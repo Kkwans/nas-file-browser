@@ -2,6 +2,7 @@ package fbhttp
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -28,7 +29,7 @@ var subtitleHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 	}
 
 	if file.IsDir {
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, fmt.Errorf("不能预览目录的字幕")
 	}
 
 	return subtitleFileHandler(w, r, file)
@@ -37,7 +38,7 @@ var subtitleHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 func subtitleFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
 	// if its not a subtitle file, reject
 	if !files.IsSupportedSubtitle(file.Name) {
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, fmt.Errorf("不支持的字幕文件格式")
 	}
 
 	fd, err := file.Fs.Open(file.Path)

@@ -21,7 +21,7 @@ import (
 func withPermShare(fn handleFunc) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Share || !d.user.Perm.Download {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有分享权限")
 		}
 
 		return fn(w, r, d)
@@ -82,7 +82,7 @@ var shareDeleteHandler = withPermShare(func(_ http.ResponseWriter, r *http.Reque
 	hash = strings.TrimPrefix(hash, "/")
 
 	if hash == "" {
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, fmt.Errorf("请求参数错误")
 	}
 
 	link, err := d.store.Share.GetByHash(hash)
@@ -91,7 +91,7 @@ var shareDeleteHandler = withPermShare(func(_ http.ResponseWriter, r *http.Reque
 	}
 
 	if link.UserID != d.user.ID && !d.user.Perm.Admin {
-		return http.StatusForbidden, nil
+		return http.StatusForbidden, fmt.Errorf("没有分享权限")
 	}
 
 	err = d.store.Share.Delete(hash)

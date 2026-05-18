@@ -3,6 +3,7 @@ package fbhttp
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -62,7 +63,7 @@ func withSelfOrAdmin(fn handleFunc) handleFunc {
 		}
 
 		if d.user.ID != id && !d.user.Perm.Admin {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有权限访问该用户信息")
 		}
 
 		d.raw = id
@@ -144,7 +145,7 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	}
 
 	if len(req.Which) != 0 {
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, fmt.Errorf("请求参数无效")
 	}
 
 	if req.Data.Password == "" {
@@ -205,7 +206,7 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 	}
 
 	if req.Data.ID != d.raw.(uint) {
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, fmt.Errorf("用户ID不匹配")
 	}
 
 	for _, field := range req.Which {
@@ -218,7 +219,7 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 
 	if len(req.Which) == 0 || (len(req.Which) == 1 && req.Which[0] == "all") {
 		if !d.user.Perm.Admin {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有权限修改所有字段")
 		}
 
 		if req.Data.Password != "" {
@@ -244,7 +245,7 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 
 		if v == "Password" {
 			if !d.user.Perm.Admin && d.user.LockPassword {
-				return http.StatusForbidden, nil
+				return http.StatusForbidden, fmt.Errorf("密码已被锁定，无法修改")
 			}
 
 			req.Data.Password, err = users.ValidateAndHashPwd(req.Data.Password, d.settings.MinimumPasswordLength)
@@ -255,7 +256,7 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 
 		for _, f := range NonModifiableFieldsForNonAdmin {
 			if !d.user.Perm.Admin && v == f {
-				return http.StatusForbidden, nil
+				return http.StatusForbidden, fmt.Errorf("没有权限修改该字段")
 			}
 		}
 	}

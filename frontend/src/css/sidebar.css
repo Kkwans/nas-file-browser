@@ -316,6 +316,88 @@ html.dark nav > button.action:first-child {
   flex-shrink: 0;
 }
 
+/* --- Directory Categories Section --- */
+.categories-section {
+  border-top: 1px solid var(--divider);
+  padding: 0.3em 0;
+  margin-top: 0.2em;
+}
+
+.categories-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.5em 1em 0.3em;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--textPrimary);
+  opacity: 0.6;
+}
+
+.categories-header i {
+  font-size: 1.1em;
+}
+
+.category-group {
+  margin: 0;
+}
+
+.category-group-header {
+  font-weight: 500 !important;
+}
+
+.category-count {
+  font-size: 0.75em;
+  background: var(--divider);
+  color: var(--textPrimary);
+  border-radius: 10px;
+  padding: 0.1em 0.5em;
+  min-width: 1.2em;
+  text-align: center;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.category-arrow {
+  font-size: 1em !important;
+  transition: transform 0.2s ease;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.category-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.category-paths {
+  padding: 0 0 0.2em 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.category-path-item {
+  padding-left: 2.5em !important;
+  font-size: 0.85em !important;
+}
+
+.category-path-item i {
+  font-size: 1.1em !important;
+}
+
+/* Risk level icon colors */
+.risk-high {
+  color: var(--icon-red, #DA4453) !important;
+}
+
+.risk-medium {
+  color: var(--icon-orange, #F5A623) !important;
+}
+
+.risk-low {
+  color: var(--icon-green, #4CAF50) !important;
+}
+
 /* --- Mobile Responsive --- */
 @media (max-width: 1024px) {
   nav {

@@ -64,6 +64,36 @@
         </button>
       </div>
 
+      <!-- Category Quick Navigation (admin only) -->
+      <div v-if="user.perm.admin && categoryGroups.length > 0" class="categories-section">
+        <div class="categories-header">
+          <i class="material-icons">category</i>
+          <span>{{ $t("sidebar.directoryCategories", {}, {默认: "目录分类"}) }}</span>
+        </div>
+        <div v-for="group in categoryGroups" :key="group.id" class="category-group">
+          <button
+            class="action category-group-header"
+            @click="toggleCategory(group.id)"
+          >
+            <i class="material-icons" :style="{ color: group.color }">{{ group.icon }}</i>
+            <span>{{ group.name }}</span>
+            <span class="category-count">{{ group.paths.length }}</span>
+            <i class="material-icons category-arrow" :class="{ expanded: expandedCategories[group.id] }">expand_more</i>
+          </button>
+          <div v-if="expandedCategories[group.id]" class="category-paths">
+            <button
+              v-for="p in group.paths"
+              :key="p.path"
+              class="action category-path-item"
+              @click="navigateVolume(p.path)"
+            >
+              <i class="material-icons" :class="'risk-' + p.risk">{{ riskIcon(p.risk) }}</i>
+              <span>{{ p.name }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="user.perm.create">
         <button
           @click="showHover('newDir')"
@@ -169,6 +199,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useVolumesStore } from "@/stores/volumes";
+import { useCategoriesStore } from "@/stores/categories";
 
 import * as auth from "@/utils/auth";
 import {
@@ -192,28 +223,45 @@ export default {
   setup() {
     const usage = reactive(USAGE_DEFAULT);
     const volumesStore = useVolumesStore();
-    return { usage, usageAbortController: new AbortController(), volumesStore };
+    const categoriesStore = useCategoriesStore();
+    const expandedCategories = reactive({});
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, expandedCategories };
   },
   components: {
     ProgressBar,
   },
   inject: ["$showError"],
-  computed: {
-    ...mapState(useAuthStore, ["user", "isLoggedIn"]),
-    ...mapState(useFileStore, ["isFiles", "reload"]),
-    ...mapState(useLayoutStore, ["currentPromptName"]),
-    active() {
-      return this.currentPromptName === "sidebar";
-    },
-    signup: () => signup,
-    hideLoginButton: () => hideLoginButton,
-    version: () => version,
-    disableExternal: () => disableExternal,
-    disableUsedPercentage: () => disableUsedPercentage,
-    canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
-  },
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
+    getKnownDirs(volBase) {
+      // Return known subdirectories for a volume based on NAS structure
+      const dirs = [
+        { path: volBase + "/@home", name: "用户主目录" },
+        { path: volBase + "/@docker", name: "Docker 数据" },
+        { path: volBase + "/@appstore", name: "应用数据" },
+        { path: volBase + "/@tmp", name: "临时文件" },
+        { path: volBase + "/@upload", name: "上传缓存" },
+        { path: volBase + "/@search", name: "搜索索引" },
+        { path: volBase + "/@thumbnail", name: "缩略图缓存" },
+        { path: volBase + "/Docker", name: "Docker 项目" },
+        { path: volBase + "/Download", name: "下载" },
+        { path: volBase + "/Movie", name: "电影" },
+        { path: volBase + "/Movies", name: "电影" },
+        { path: volBase + "/Music", name: "音乐" },
+        { path: volBase + "/Photos", name: "照片" },
+        { path: volBase + "/Pictures", name: "图片" },
+        { path: volBase + "/TV", name: "电视剧" },
+        { path: volBase + "/Video", name: "视频" },
+        { path: volBase + "/Videos", name: "视频" },
+        { path: volBase + "/Documents", name: "文档" },
+        { path: volBase + "/Common", name: "公共文件" },
+        { path: volBase + "/迅雷下载", name: "迅雷下载" },
+      ];
+
+      // Filter to only include directories that likely exist
+      // (we can't check existence without an API call, so show all)
+      return dirs;
+    },
     abortOngoingFetchUsage() {
       this.usageAbortController.abort();
     },
@@ -243,6 +291,14 @@ export default {
       if (percent >= 70) return "var(--icon-orange, #F5A623)";
       return "var(--blue, #2196F3)";
     },
+    toggleCategory(id) {
+      this.expandedCategories[id] = !this.expandedCategories[id];
+    },
+    riskIcon(risk) {
+      if (risk === "high") return "warning";
+      if (risk === "medium") return "info";
+      return "check_circle";
+    },
     navigateVolume(path) {
       this.$router.push({ path: "/files" + path + "/" });
       this.closeHovers();
@@ -264,6 +320,63 @@ export default {
     },
     logout: auth.logout,
   },
+  computed: {
+    ...mapState(useAuthStore, ["user", "isLoggedIn"]),
+    ...mapState(useFileStore, ["isFiles", "reload"]),
+    ...mapState(useLayoutStore, ["currentPromptName"]),
+    active() {
+      return this.currentPromptName === "sidebar";
+    },
+    signup: () => signup,
+    hideLoginButton: () => hideLoginButton,
+    version: () => version,
+    disableExternal: () => disableExternal,
+    disableUsedPercentage: () => disableUsedPercentage,
+    canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
+    categoryGroups() {
+      const volumes = this.volumesStore.displayVolumes;
+      if (!volumes.length) return [];
+
+      const groups = {};
+      const catOrder = ["personal", "shared", "system", "other"];
+
+      // Classify top-level directories of each volume
+      for (const vol of volumes) {
+        // We don't have the subdirectory listing yet, so we use the
+        // categories store patterns to build known paths
+        for (const cat of this.categoriesStore.categories) {
+          if (!groups[cat.id]) {
+            groups[cat.id] = {
+              id: cat.id,
+              name: cat.name,
+              icon: cat.icon,
+              color: cat.color,
+              paths: [],
+            };
+          }
+        }
+      }
+
+      // Build category paths from volume paths
+      // For each volume, add known subdirectory paths based on category patterns
+      for (const vol of volumes) {
+        const volBase = vol.path;
+        const knownDirs = this.getKnownDirs(volBase);
+        for (const dir of knownDirs) {
+          const cat = this.categoriesStore.classifyPath(dir.path);
+          const risk = this.categoriesStore.getRiskLevel(dir.path);
+          if (groups[cat.id]) {
+            groups[cat.id].paths.push({ ...dir, risk });
+          }
+        }
+      }
+
+      // Sort by predefined order and filter empty groups
+      return catOrder
+        .filter((id) => groups[id] && groups[id].paths.length > 0)
+        .map((id) => groups[id]);
+    },
+  },
   watch: {
     $route: {
       handler(to) {
@@ -278,6 +391,7 @@ export default {
     // Fetch volumes for admin users
     if (this.user?.perm?.admin) {
       this.volumesStore.fetchVolumes();
+      this.categoriesStore.fetchCategories();
     }
   },
   unmounted() {

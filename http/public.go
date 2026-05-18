@@ -1,6 +1,7 @@
 package fbhttp
 
 import (
+	"fmt"
 	"errors"
 	"net/http"
 	"net/url"
@@ -34,7 +35,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		}
 
 		if !user.Perm.Share || !user.Perm.Download {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有访问权限")
 		}
 
 		d.user = user
@@ -141,11 +142,11 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		return 0, err
 	}
 	if password == "" {
-		return http.StatusUnauthorized, nil
+		return http.StatusUnauthorized, fmt.Errorf("未授权，请重新登录")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(l.PasswordHash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return http.StatusUnauthorized, nil
+			return http.StatusUnauthorized, fmt.Errorf("未授权，请重新登录")
 		}
 		return 0, err
 	}

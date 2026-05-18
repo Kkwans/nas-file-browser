@@ -42,7 +42,7 @@ func keepUploadActive(cache UploadCache, filePath string) func() {
 func tusPostHandler(cache UploadCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有上传权限")
 		}
 		file, err := files.NewFileInfo(&files.FileOptions{
 			Fs:         d.user.Fs,
@@ -74,12 +74,12 @@ func tusPostHandler(cache UploadCache) handleFunc {
 
 			// Existing files will remain untouched unless explicitly instructed to override
 			if r.URL.Query().Get("override") != "true" {
-				return http.StatusConflict, nil
+				return http.StatusConflict, fmt.Errorf("文件冲突")
 			}
 
 			// Permission for overwriting the file
 			if !d.user.Perm.Modify {
-				return http.StatusForbidden, nil
+				return http.StatusForbidden, fmt.Errorf("没有上传权限")
 			}
 
 			fileFlags |= os.O_TRUNC
@@ -126,7 +126,7 @@ func tusHeadHandler(cache UploadCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		w.Header().Set("Cache-Control", "no-store")
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有上传权限")
 		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{
@@ -156,10 +156,10 @@ func tusHeadHandler(cache UploadCache) handleFunc {
 func tusPatchHandler(cache UploadCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有上传权限")
 		}
 		if r.Header.Get("Content-Type") != "application/offset+octet-stream" {
-			return http.StatusUnsupportedMediaType, nil
+			return http.StatusUnsupportedMediaType, fmt.Errorf("不支持的文件类型")
 		}
 
 		uploadOffset, err := getUploadOffset(r)
@@ -178,7 +178,7 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 
 		switch {
 		case errors.Is(err, afero.ErrFileNotFound):
-			return http.StatusNotFound, nil
+			return http.StatusNotFound, fmt.Errorf("文件不存在")
 		case err != nil:
 			return errToStatus(err), err
 		}
@@ -241,7 +241,7 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 func tusDeleteHandler(cache UploadCache) handleFunc {
 	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有上传权限")
 		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{

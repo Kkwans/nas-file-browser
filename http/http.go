@@ -87,6 +87,8 @@ func NewHandler(
 	api.PathPrefix("/subtitle").Handler(monkey(subtitleHandler, "/api/subtitle")).Methods("GET")
 
 	api.Handle("/volumes", monkey(volumesHandler, "")).Methods("GET")
+	api.Handle("/categories", monkey(categoriesHandler, "")).Methods("GET")
+	api.PathPrefix("/classify").Handler(monkey(classifyHandler, "/api/classify")).Methods("GET")
 
 	public := api.PathPrefix("/public").Subrouter()
 	public.PathPrefix("/dl").Handler(monkey(publicDlHandler, "/api/public/dl/")).Methods("GET")

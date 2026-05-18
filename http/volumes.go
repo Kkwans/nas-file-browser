@@ -51,7 +51,7 @@ func volumeName(path string) string {
 
 var volumesHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Admin {
-		return http.StatusForbidden, nil
+		return http.StatusForbidden, fmt.Errorf("没有访问权限")
 	}
 
 	volumes := make([]Volume, 0, 8)

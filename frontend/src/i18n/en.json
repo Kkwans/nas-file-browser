@@ -309,7 +309,12 @@
     "settings": "Settings",
     "signup": "Signup",
     "siteSettings": "Site Settings",
-    "storageVolumes": "Storage Volumes"
+    "storageVolumes": "Storage Volumes",
+    "directoryCategories": "Categories",
+    "categoryPersonal": "Personal",
+    "categoryShared": "Shared",
+    "categorySystem": "System",
+    "categoryOther": "Other"
   },
   "success": {
     "linkCopied": "Link copied!"

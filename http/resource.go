@@ -70,7 +70,7 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	if checksum := r.URL.Query().Get("checksum"); checksum != "" {
 		err := file.Checksum(checksum)
 		if errors.Is(err, fberrors.ErrInvalidOption) {
-			return http.StatusBadRequest, nil
+			return http.StatusBadRequest, fmt.Errorf("不支持的校验和类型")
 		} else if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -85,7 +85,7 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 func resourceDeleteHandler(fileCache FileCache) handleFunc {
 	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有删除权限")
 		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{
@@ -126,7 +126,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 func resourcePostHandler(fileCache FileCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有创建权限")
 		}
 
 		// Directories creation on POST.
@@ -145,12 +145,12 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 		})
 		if err == nil {
 			if r.URL.Query().Get("override") != "true" {
-				return http.StatusConflict, nil
+				return http.StatusConflict, fmt.Errorf("文件已存在")
 			}
 
 			// Permission for overwriting the file
 			if !d.user.Perm.Modify {
-				return http.StatusForbidden, nil
+				return http.StatusForbidden, fmt.Errorf("没有修改权限")
 			}
 
 			err = delThumbs(r.Context(), fileCache, file)
@@ -180,12 +180,12 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 
 var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Modify || !d.Check(r.URL.Path) {
-		return http.StatusForbidden, nil
+		return http.StatusForbidden, fmt.Errorf("没有修改权限")
 	}
 
 	// Only allow PUT for files.
 	if strings.HasSuffix(r.URL.Path, "/") {
-		return http.StatusMethodNotAllowed, nil
+		return http.StatusMethodNotAllowed, fmt.Errorf("不能直接修改目录内容")
 	}
 
 	exists, err := afero.Exists(d.user.Fs, r.URL.Path)
@@ -193,7 +193,7 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		return http.StatusInternalServerError, err
 	}
 	if !exists {
-		return http.StatusNotFound, nil
+		return http.StatusNotFound, fmt.Errorf("文件不存在")
 	}
 
 	err = d.RunHook(func() error {
@@ -219,13 +219,13 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 		dst = path.Clean("/" + dst)
 		src = path.Clean("/" + src)
 		if !d.Check(src) || !d.Check(dst) {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有权限执行此操作")
 		}
 		if err != nil {
 			return errToStatus(err), err
 		}
 		if dst == "/" || src == "/" {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有权限执行此操作")
 		}
 
 		err = checkParent(src, dst)
@@ -242,7 +242,7 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 			rename := r.URL.Query().Get("rename") == "true"
 			if !override && !rename {
 				if _, err = d.user.Fs.Stat(dst); err == nil {
-					return http.StatusConflict, nil
+					return http.StatusConflict, fmt.Errorf("文件冲突")
 				}
 			}
 			if rename {
@@ -250,7 +250,7 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 			}
 
 			if override && !d.user.Perm.Modify {
-				return http.StatusForbidden, nil
+				return http.StatusForbidden, fmt.Errorf("没有权限执行此操作")
 			}
 		}
 

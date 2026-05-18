@@ -2,6 +2,7 @@ package fbhttp
 
 import (
 	"encoding/json"
+	"fmt"
 	"errors"
 	"log"
 	"net/http"
@@ -90,7 +91,7 @@ func withUser(fn handleFunc) handleFunc {
 		p := jwt.NewParser(jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}), jwt.WithExpirationRequired())
 		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk), request.WithParser(p))
 		if (err != nil || !token.Valid) && !renewableErr(err, d) {
-			return http.StatusUnauthorized, nil
+			return http.StatusUnauthorized, fmt.Errorf("未授权，请重新登录")
 		}
 
 		expiresSoon := tk.ExpiresAt != nil && time.Until(tk.ExpiresAt.Time) < time.Hour
@@ -111,7 +112,7 @@ func withUser(fn handleFunc) handleFunc {
 func withAdmin(fn handleFunc) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Admin {
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("没有管理员权限")
 		}
 
 		return fn(w, r, d)
@@ -128,7 +129,7 @@ func loginHandler(tokenExpireTime time.Duration) handleFunc {
 		user, err := auther.Auth(r, d.store.Users, d.settings, d.server)
 		switch {
 		case errors.Is(err, os.ErrPermission):
-			return http.StatusForbidden, nil
+			return http.StatusForbidden, fmt.Errorf("用户名或密码错误")
 		case err != nil:
 			return http.StatusInternalServerError, err
 		}
@@ -144,11 +145,11 @@ type signupBody struct {
 
 var signupHandler = func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.settings.Signup {
-		return http.StatusMethodNotAllowed, nil
+		return http.StatusMethodNotAllowed, fmt.Errorf("注册功能已关闭")
 	}
 
 	if r.Body == nil {
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, fmt.Errorf("请求体为空")
 	}
 
 	info := &signupBody{}
@@ -158,7 +159,7 @@ var signupHandler = func(_ http.ResponseWriter, r *http.Request, d *data) (int, 
 	}
 
 	if info.Password == "" || info.Username == "" {
-		return http.StatusBadRequest, nil
+		return http.StatusBadRequest, fmt.Errorf("用户名和密码不能为空")
 	}
 
 	user := &users.User{

@@ -11,10 +11,11 @@ services:
     ports:
       - "8888:80"
     volumes:
-      - /srv:/srv:ro                    # Browse NAS files (read-only by default)
+      - /volume1:/volume1:ro            # NAS 存储卷 1（主存储，7.3T）
+      - /volume2:/volume2:ro            # NAS 存储卷 2（扩展存储，7.3T）
       - ./config:/config                # FileBrowser config
       - ./database:/database            # FileBrowser database (users, settings)
     environment:
       - FB_DATABASE=/database/filebrowser.db
-      - FB_ROOT=/srv
+      - FB_ROOT=/
       - FB_LOGLEVEL=info

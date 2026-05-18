@@ -31,6 +31,8 @@ RUN go mod download
 
 COPY backend/ ./
 
+COPY frontend/assets.go ./frontend/assets.go
+
 COPY --from=frontend-builder /src/frontend/dist/ ./frontend/dist/
 
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
@@ -51,7 +53,7 @@ RUN chmod +x /healthcheck.sh /init.sh /JSON.sh
 
 RUN mkdir -p /config /database /srv
 
-VOLUME /srv /config /database
+VOLUME /config /database
 
 EXPOSE 80
 

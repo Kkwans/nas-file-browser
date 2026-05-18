@@ -17,5 +17,5 @@ services:
       - ./database:/database
     environment:
       - FB_DATABASE=/database/filebrowser.db
-      - FB_ROOT=/srv
+      - FB_ROOT=/
       - FB_LOGLEVEL=info

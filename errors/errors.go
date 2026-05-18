@@ -6,24 +6,24 @@ import (
 )
 
 var (
-	ErrEmptyKey                 = errors.New("empty key")
-	ErrExist                    = errors.New("the resource already exists")
-	ErrNotExist                 = errors.New("the resource does not exist")
-	ErrEmptyPassword            = errors.New("password is empty")
-	ErrEasyPassword             = errors.New("password is too easy")
-	ErrEmptyUsername            = errors.New("username is empty")
-	ErrEmptyRequest             = errors.New("empty request")
-	ErrScopeIsRelative          = errors.New("scope is a relative path")
-	ErrInvalidDataType          = errors.New("invalid data type")
-	ErrIsDirectory              = errors.New("file is directory")
-	ErrInvalidOption            = errors.New("invalid option")
-	ErrInvalidAuthMethod        = errors.New("invalid auth method")
-	ErrPermissionDenied         = errors.New("permission denied")
-	ErrInvalidRequestParams     = errors.New("invalid request params")
-	ErrSourceIsParent           = errors.New("source is parent")
-	ErrRootUserDeletion         = errors.New("the sole admin can't be deleted")
-	ErrCurrentPasswordIncorrect = errors.New("the current password is incorrect")
-	ErrShareRequiresDownload    = errors.New("permission to share requires permission to download")
+	ErrEmptyKey                 = errors.New("密钥为空")
+	ErrExist                    = errors.New("资源已存在")
+	ErrNotExist                 = errors.New("资源不存在")
+	ErrEmptyPassword            = errors.New("密码不能为空")
+	ErrEasyPassword             = errors.New("密码强度不够，请使用更复杂的密码")
+	ErrEmptyUsername            = errors.New("用户名不能为空")
+	ErrEmptyRequest             = errors.New("请求为空")
+	ErrScopeIsRelative          = errors.New("路径是相对路径")
+	ErrInvalidDataType          = errors.New("数据类型无效")
+	ErrIsDirectory              = errors.New("文件是目录")
+	ErrInvalidOption            = errors.New("选项无效")
+	ErrInvalidAuthMethod        = errors.New("认证方式无效")
+	ErrPermissionDenied         = errors.New("权限不足")
+	ErrInvalidRequestParams     = errors.New("请求参数无效")
+	ErrSourceIsParent           = errors.New("源路径是父目录")
+	ErrRootUserDeletion         = errors.New("不能删除唯一的管理员账户")
+	ErrCurrentPasswordIncorrect = errors.New("当前密码不正确")
+	ErrShareRequiresDownload    = errors.New("分享需要下载权限")
 )
 
 type ErrShortPassword struct {
@@ -31,5 +31,5 @@ type ErrShortPassword struct {
 }
 
 func (e ErrShortPassword) Error() string {
-	return fmt.Sprintf("password is too short, minimum length is %d", e.MinimumLength)
+	return fmt.Sprintf("密码太短，最少需要 %d 位", e.MinimumLength)
 }

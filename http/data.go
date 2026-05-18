@@ -73,8 +73,9 @@ func handle(fn handleFunc, prefix string, store *storage.Storage, server *settin
 
 		if status != 0 {
 			txt := http.StatusText(status)
-			if status == http.StatusBadRequest && err != nil {
-				txt += " (" + err.Error() + ")"
+			if status >= 400 && err != nil {
+				// 优先返回中文错误信息，不带 HTTP 状态文本前缀
+				txt = err.Error()
 			}
 			http.Error(w, strconv.Itoa(status)+" "+txt, status)
 			return

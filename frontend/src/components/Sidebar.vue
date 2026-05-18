@@ -16,6 +16,54 @@
         <span>{{ $t("sidebar.myFiles") }}</span>
       </button>
 
+      <!-- Storage Volumes Section (admin only) -->
+      <div v-if="user.perm.admin && volumesStore.displayVolumes.length > 0" class="volumes-section">
+        <div class="volumes-header">
+          <i class="material-icons">storage</i>
+          <span>{{ $t("sidebar.storageVolumes", {}, {默认: "存储卷"}) }}</span>
+        </div>
+        <button
+          v-for="vol in volumesStore.systemVolumes"
+          :key="vol.path"
+          class="action volume-item"
+          @click="navigateVolume(vol.path)"
+        >
+          <i class="material-icons" :style="{ color: vol.color }">{{ vol.icon }}</i>
+          <div class="volume-info">
+            <span class="volume-name">{{ vol.displayName }}</span>
+            <div class="volume-bar-wrap">
+              <div class="volume-bar">
+                <div
+                  class="volume-bar-fill"
+                  :style="{ width: vol.usedPercentage + '%', background: volumeBarColor(vol.usedPercentage) }"
+                ></div>
+              </div>
+              <span class="volume-usage">{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span>
+            </div>
+          </div>
+        </button>
+        <button
+          v-for="vol in volumesStore.otherVolumes"
+          :key="vol.path"
+          class="action volume-item"
+          @click="navigateVolume(vol.path)"
+        >
+          <i class="material-icons" :style="{ color: vol.color }">{{ vol.icon }}</i>
+          <div class="volume-info">
+            <span class="volume-name">{{ vol.displayName }}</span>
+            <div class="volume-bar-wrap">
+              <div class="volume-bar">
+                <div
+                  class="volume-bar-fill"
+                  :style="{ width: vol.usedPercentage + '%', background: volumeBarColor(vol.usedPercentage) }"
+                ></div>
+              </div>
+              <span class="volume-usage">{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
       <div v-if="user.perm.create">
         <button
           @click="showHover('newDir')"
@@ -120,6 +168,7 @@ import { mapActions, mapState } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useVolumesStore } from "@/stores/volumes";
 
 import * as auth from "@/utils/auth";
 import {
@@ -142,7 +191,8 @@ export default {
   name: "sidebar",
   setup() {
     const usage = reactive(USAGE_DEFAULT);
-    return { usage, usageAbortController: new AbortController() };
+    const volumesStore = useVolumesStore();
+    return { usage, usageAbortController: new AbortController(), volumesStore };
   },
   components: {
     ProgressBar,
@@ -188,6 +238,15 @@ export default {
         return Object.assign(this.usage, usageStats);
       }
     },
+    volumeBarColor(percent) {
+      if (percent >= 90) return "var(--icon-red, #DA4453)";
+      if (percent >= 70) return "var(--icon-orange, #F5A623)";
+      return "var(--blue, #2196F3)";
+    },
+    navigateVolume(path) {
+      this.$router.push({ path: "/files" + path + "/" });
+      this.closeHovers();
+    },
     toRoot() {
       this.$router.push({ path: "/files" });
       this.closeHovers();
@@ -214,6 +273,12 @@ export default {
       },
       immediate: true,
     },
+  },
+  mounted() {
+    // Fetch volumes for admin users
+    if (this.user?.perm?.admin) {
+      this.volumesStore.fetchVolumes();
+    }
   },
   unmounted() {
     this.abortOngoingFetchUsage();

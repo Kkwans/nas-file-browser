@@ -241,6 +241,81 @@ html.dark nav > button.action:first-child {
   background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.03));
 }
 
+/* --- Storage Volumes Section --- */
+.volumes-section {
+  border-top: 1px solid var(--divider);
+  padding: 0.3em 0;
+  margin-top: 0.2em;
+}
+
+.volumes-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.5em 1em 0.3em;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--textPrimary);
+  opacity: 0.6;
+}
+
+.volumes-header i {
+  font-size: 1.1em;
+}
+
+.volume-item {
+  flex-wrap: wrap;
+  padding: 0.45em 1em 0.55em !important;
+}
+
+.volume-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.volume-name {
+  font-size: 0.88em;
+  font-weight: 500;
+  color: var(--textSecondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.volume-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.volume-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--divider);
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.volume-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.volume-usage {
+  font-size: 0.7em;
+  color: var(--textPrimary);
+  opacity: 0.6;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* --- Mobile Responsive --- */
 @media (max-width: 1024px) {
   nav {

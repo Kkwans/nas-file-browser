@@ -12,7 +12,7 @@
   /* Sidebar width is handled by sidebar.css */
 
   main {
-    width: calc(100% - 13em);
+    width: calc(100% - 15em);
   }
 }
 
@@ -20,6 +20,7 @@
 @media (max-width: 736px) {
   /* --- Global Layout --- */
   body {
+    padding-top: 3em;
     padding-bottom: 5em;
     -webkit-text-size-adjust: 100%;
   }

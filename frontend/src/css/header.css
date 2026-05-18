@@ -13,10 +13,10 @@ header {
   left: 0;
   height: 3.5em;
   width: 100%;
-  padding: 0 0.75em 0 1em;
+  padding: 0 1em 0 1.25em;
   display: flex;
   align-items: center;
-  gap: 0.25em;
+  gap: 0.5em;
   transition: box-shadow 0.3s ease, background-color 0.3s ease;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -32,14 +32,15 @@ header > * {
 
 /* Logo */
 header img {
-  height: 2em;
-  margin-right: 0.5em;
-  border-radius: 0.375em;
+  height: 2.25em;
+  margin-right: 0.625em;
+  border-radius: 0.5em;
   transition: transform 0.2s ease, opacity 0.2s ease;
+  flex-shrink: 0;
 }
 
 header img:hover {
-  transform: scale(1.05);
+  transform: scale(1.06);
   opacity: 0.85;
 }
 
@@ -182,7 +183,9 @@ header .action.active i {
   position: relative;
   height: 100%;
   width: 100%;
-  max-width: 25em;
+  max-width: 28em;
+  display: flex;
+  align-items: center;
 }
 
 #search.active {
@@ -199,12 +202,13 @@ header .action.active i {
   background: var(--surfaceSecondary);
   border: 1px solid transparent;
   display: flex;
-  height: 2.25em;
-  padding: 0 0.75em;
-  border-radius: 0.625em;
+  height: 2.5em;
+  padding: 0 1em;
+  border-radius: 0.75em;
   transition: all 0.2s ease;
   align-items: center;
   z-index: 2;
+  width: 100%;
 }
 
 #search #input:focus-within {
@@ -243,8 +247,14 @@ header .action.active i {
 
 #search #input > .action,
 #search #input > i {
-  margin-right: 0.3em;
+  margin-right: 0.5em;
   user-select: none;
+  color: var(--iconTertiary);
+  transition: color 0.2s ease;
+}
+
+#search #input:focus-within > i {
+  color: var(--blue);
 }
 
 #search input {
@@ -253,8 +263,9 @@ header .action.active i {
   background-color: transparent;
   padding: 0;
   font-size: 0.875em;
-  color: var(--textSecondary);
+  color: var(--textPrimary);
   outline: none;
+  font-weight: 400;
 }
 
 /* Search Results */
@@ -421,15 +432,15 @@ header .breadcrumbs {
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
-  padding: 0 0.5em;
-  gap: 0.125em;
+  padding: 0 0.75em;
+  gap: 0.25em;
 }
 
 header .breadcrumbs a,
 header .breadcrumbs span:not(.chevron) {
   font-size: 0.875em;
   color: var(--textPrimary);
-  padding: 0.25em 0.5em;
+  padding: 0.3em 0.6em;
   border-radius: 0.375em;
   transition: background-color 0.12s ease, color 0.12s ease;
   white-space: nowrap;
@@ -514,7 +525,8 @@ html.dark header .breadcrumbs a:hover {
 @media (max-width: 736px) {
   header {
     height: 3em;
-    padding: 0 0.5em 0 0.625em;
+    padding: 0 0.5em 0 0.75em;
+    gap: 0.375em;
   }
 
   header .search-button,

@@ -1,6 +1,6 @@
 body {
   font-family: "Roboto", sans-serif;
-  padding-top: 4em;
+  padding-top: 3.5em;
   background: var(--background);
   color: var(--textSecondary);
 }
@@ -60,7 +60,7 @@ nav .action > * {
 main {
   min-height: 1em;
   margin: 0 1em 1em auto;
-  width: calc(100% - 19em);
+  width: calc(100% - 17em);
 }
 
 .breadcrumbs {
@@ -69,7 +69,7 @@ main {
   border-bottom: 1px solid var(--divider);
   position: sticky;
   z-index: 1000;
-  top: 4em;
+  top: 3.5em;
 }
 
 .breadcrumbs span,
@@ -160,4 +160,11 @@ body > div[style*="z-index: 9990"] {
 #modal-background .button:focus {
   outline: 1px solid #2195f32d;
   outline-offset: 1px;
+}
+
+/* Mobile breadcrumbs top position */
+@media (max-width: 736px) {
+  .breadcrumbs {
+    top: 3em;
+  }
 }

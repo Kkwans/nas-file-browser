@@ -1,4 +1,4 @@
-# NAS File Browser - Docker Compose (Custom Build)
+# NAS File Browser - Custom Build
 # Build and run: docker-compose -f docker-compose.custom.yml up -d --build
 
 services:
@@ -11,11 +11,11 @@ services:
     ports:
       - "8888:80"
     volumes:
-      - /volume1:/volume1:ro            # NAS 存储卷 1（主存储，7.3T）
-      - /volume2:/volume2:ro            # NAS 存储卷 2（扩展存储，7.3T）
-      - ./config:/config                # FileBrowser config
-      - ./database:/database            # FileBrowser database (users, settings)
+      - /volume1:/volume1:ro
+      - /volume2:/volume2:ro
+      - ./config:/config
+      - ./database:/database
     environment:
       - FB_DATABASE=/database/filebrowser.db
-      - FB_ROOT=/
+      - FB_ROOT=/srv
       - FB_LOGLEVEL=info

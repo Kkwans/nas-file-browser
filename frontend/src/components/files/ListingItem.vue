@@ -31,7 +31,15 @@
     </div>
 
     <div>
-      <p class="name">{{ name }}</p>
+      <p class="name">
+        {{ name }}
+        <span
+          v-if="isDir && riskLevel !== 'low'"
+          class="risk-badge"
+          :class="'risk-' + riskLevel"
+          :title="riskTitle"
+        >{{ riskLabel }}</span>
+      </p>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
       <p v-else class="size" :data-order="humanSize()">{{ humanSize() }}</p>
@@ -47,6 +55,7 @@
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useCategoriesStore } from "@/stores/categories";
 
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
@@ -82,6 +91,7 @@ const props = defineProps<{
 const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
+const categoriesStore = useCategoriesStore();
 
 const singleClick = computed(
   () => !props.readOnly && authStore.user?.singleClick
@@ -116,6 +126,23 @@ const thumbnailUrl = computed(() => {
 
 const isThumbsEnabled = computed(() => {
   return enableThumbs;
+});
+
+const riskLevel = computed(() => {
+  if (!props.isDir || !props.path) return "low";
+  return categoriesStore.getRiskLevel(props.path);
+});
+
+const riskLabel = computed(() => {
+  if (riskLevel.value === "high") return "高危";
+  if (riskLevel.value === "medium") return "中危";
+  return "";
+});
+
+const riskTitle = computed(() => {
+  if (riskLevel.value === "high") return "高危目录 - 修改或删除可能导致系统不稳定";
+  if (riskLevel.value === "medium") return "中危目录 - 请谨慎操作";
+  return "";
 });
 
 const humanSize = () => {

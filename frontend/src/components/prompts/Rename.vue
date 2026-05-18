@@ -45,6 +45,7 @@
 import { mapActions, mapState, mapWritableState } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useCategoriesStore } from "@/stores/categories";
 import url from "@/utils/url";
 import { files as api } from "@/api";
 import { removePrefix } from "@/api/utils";
@@ -82,11 +83,40 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useLayoutStore, ["closeHovers"]),
+    ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
     cancel: function () {
       this.closeHovers();
     },
     submit: async function () {
+      if (this.name === "" || this.name === this.oldName) {
+        return;
+      }
+
+      // Check risk level before renaming
+      const item = this.isListing ? this.req.items[this.selected[0]] : this.req;
+      if (item?.isDir && item?.path) {
+        const categoriesStore = useCategoriesStore();
+        const risk = categoriesStore.getRiskLevel(item.path);
+        if (risk === "high" || risk === "medium") {
+          const self = this;
+          this.showHover({
+            prompt: "risk-confirm",
+            props: {
+              riskLevel: risk,
+              targetPath: item.path,
+              actionType: "rename",
+              onconfirm: () => {
+                self.executeRename();
+              },
+            },
+          });
+          return;
+        }
+      }
+
+      this.executeRename();
+    },
+    executeRename: async function () {
       if (this.name === "" || this.name === this.oldName) {
         return;
       }

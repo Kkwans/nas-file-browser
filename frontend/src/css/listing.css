@@ -523,3 +523,44 @@ html.dark #listing #multiple-selection {
     0 -4px 20px rgba(0, 0, 0, 0.3),
     0 -1px 6px rgba(0, 0, 0, 0.2);
 }
+
+/* --- Risk Level Badges in File Listing --- */
+.risk-badge {
+  display: inline-block;
+  font-size: 0.65em;
+  font-weight: 600;
+  padding: 0.15em 0.45em;
+  border-radius: 3px;
+  margin-left: 0.4em;
+  vertical-align: middle;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  position: relative;
+  top: -0.1em;
+}
+
+.risk-badge.risk-high {
+  background: rgba(218, 68, 83, 0.12);
+  color: #DA4453;
+  border: 1px solid rgba(218, 68, 83, 0.25);
+}
+
+.risk-badge.risk-medium {
+  background: rgba(245, 166, 35, 0.12);
+  color: #D4880F;
+  border: 1px solid rgba(245, 166, 35, 0.25);
+}
+
+:root.dark .risk-badge.risk-high,
+html.dark .risk-badge.risk-high {
+  background: rgba(218, 68, 83, 0.2);
+  color: #FF6B7A;
+  border-color: rgba(218, 68, 83, 0.35);
+}
+
+:root.dark .risk-badge.risk-medium,
+html.dark .risk-badge.risk-medium {
+  background: rgba(245, 166, 35, 0.2);
+  color: #FFB84D;
+  border-color: rgba(245, 166, 35, 0.35);
+}

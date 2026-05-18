@@ -60,6 +60,7 @@ import { mapActions, mapState, mapWritableState } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useAuthStore } from "@/stores/auth";
+import { useCategoriesStore } from "@/stores/categories";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
@@ -90,6 +91,34 @@ export default {
     ...mapActions(useLayoutStore, ["showHover", "closeHovers"]),
     move: async function (event) {
       event.preventDefault();
+
+      // Check risk level before moving
+      const categoriesStore = useCategoriesStore();
+      for (const itemIdx of this.selected) {
+        const item = this.req.items[itemIdx];
+        if (item.isDir && item.path) {
+          const risk = categoriesStore.getRiskLevel(item.path);
+          if (risk === "high" || risk === "medium") {
+            const self = this;
+            this.showHover({
+              prompt: "risk-confirm",
+              props: {
+                riskLevel: risk,
+                targetPath: item.path,
+                actionType: "move",
+                onconfirm: () => {
+                  self.executeMove();
+                },
+              },
+            });
+            return;
+          }
+        }
+      }
+
+      this.executeMove();
+    },
+    executeMove: async function () {
       const items = [];
 
       for (const item of this.selected) {

@@ -564,3 +564,102 @@ html.dark .card .collapsible > label:hover {
     text-align: center;
   }
 }
+
+/* --- Risk Confirmation Dialog --- */
+.risk-confirm-card {
+  max-width: 440px;
+}
+
+.risk-confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin-bottom: 0.8em;
+}
+
+.risk-confirm-icon {
+  font-size: 1.6em;
+}
+
+.risk-confirm-icon.risk-high {
+  color: #DA4453;
+}
+
+.risk-confirm-icon.risk-medium {
+  color: #F5A623;
+}
+
+.risk-confirm-title {
+  font-size: 1.15em;
+  font-weight: 600;
+  color: var(--textPrimary);
+}
+
+.risk-confirm-body {
+  font-size: 0.92em;
+  line-height: 1.6;
+  color: var(--textSecondary);
+}
+
+.risk-confirm-level {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin-bottom: 0.6em;
+}
+
+.risk-tag {
+  display: inline-block;
+  font-size: 0.8em;
+  font-weight: 600;
+  padding: 0.2em 0.6em;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.risk-tag.risk-high {
+  background: rgba(218, 68, 83, 0.12);
+  color: #DA4453;
+}
+
+.risk-tag.risk-medium {
+  background: rgba(245, 166, 35, 0.12);
+  color: #D4880F;
+}
+
+.risk-path {
+  font-family: monospace;
+  font-size: 0.85em;
+  word-break: break-all;
+  color: var(--textPrimary);
+}
+
+.risk-confirm-message {
+  margin-bottom: 0.5em;
+}
+
+.risk-confirm-details {
+  background: rgba(218, 68, 83, 0.06);
+  border-left: 3px solid #DA4453;
+  padding: 0.5em 0.8em;
+  border-radius: 0 4px 4px 0;
+  margin-top: 0.5em;
+}
+
+.risk-confirm-details p {
+  margin: 0;
+  font-size: 0.88em;
+}
+
+.button--orange {
+  color: #F5A623 !important;
+}
+
+.button--orange:hover {
+  background: rgba(245, 166, 35, 0.1) !important;
+}
+
+:root.dark .risk-confirm-details,
+html.dark .risk-confirm-details {
+  background: rgba(218, 68, 83, 0.1);
+}

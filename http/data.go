@@ -47,10 +47,6 @@ func (d *data) Check(path string) bool {
 	return allow
 }
 
-
-
-}
-
 func handle(fn handleFunc, prefix string, store *storage.Storage, server *settings.Server) http.Handler {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for k, v := range globalHeaders {

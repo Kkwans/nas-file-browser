@@ -38,6 +38,7 @@ import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useCategoriesStore } from "@/stores/categories";
 
 export default {
   name: "delete",
@@ -53,10 +54,41 @@ export default {
     ...mapWritableState(useFileStore, ["reload", "preselect"]),
   },
   methods: {
-    ...mapActions(useLayoutStore, ["closeHovers"]),
+    ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
     submit: async function () {
       buttons.loading("delete");
 
+      // Check risk level for selected items before deleting
+      if (this.isListing && this.selectedCount > 0) {
+        const categoriesStore = useCategoriesStore();
+        for (const index of this.selected) {
+          const item = this.req.items[index];
+          if (item.isDir && item.path) {
+            const risk = categoriesStore.getRiskLevel(item.path);
+            if (risk === "high" || risk === "medium") {
+              buttons.done("delete");
+              // Show risk confirmation dialog
+              const self = this;
+              this.showHover({
+                prompt: "risk-confirm",
+                props: {
+                  riskLevel: risk,
+                  targetPath: item.path,
+                  actionType: "delete",
+                  onconfirm: () => {
+                    self.executeDelete();
+                  },
+                },
+              });
+              return;
+            }
+          }
+        }
+      }
+
+      this.executeDelete();
+    },
+    executeDelete: async function () {
       try {
         if (!this.isListing) {
           await api.remove(this.$route.path);

@@ -68,7 +68,8 @@
     "rotateRight": "Rotate right",
     "toggleZoom": "Toggle zoom",
     "zoom": "Zoom",
-    "rotate": "Rotate"
+    "rotate": "Rotate",
+    "riskConfirm": "Confirm"
   },
   "download": {
     "downloadFile": "Download File",
@@ -193,7 +194,13 @@
     "skip": "Skip",
     "forbiddenError": "Forbidden Error",
     "currentPassword": "Your password",
-    "currentPasswordMessage": "Enter your password to validate this action."
+    "currentPasswordMessage": "Enter your password to validate this action.",
+    "riskConfirmTitle": "Risk Operation Confirmation",
+    "riskConfirmMessage": "You are about to perform an operation on a protected directory. Please confirm you understand the possible consequences.",
+    "riskConfirmDelete": "Deleting this directory may cause system components to malfunction, and data may be unrecoverable.",
+    "riskConfirmRename": "Renaming this directory may cause dependent system components to stop working.",
+    "riskConfirmMove": "Moving this directory may cause dependent system components to stop working.",
+    "riskConfirmGeneric": "Operations on this directory may affect system stability."
   },
   "search": {
     "images": "Images",

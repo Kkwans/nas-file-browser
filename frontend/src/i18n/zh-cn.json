@@ -68,7 +68,8 @@
     "rotateRight": "向右旋转",
     "toggleZoom": "切换缩放",
     "zoom": "缩放",
-    "rotate": "旋转"
+    "rotate": "旋转",
+    "riskConfirm": "确认执行"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -193,7 +194,13 @@
     "skip": "跳过",
     "forbiddenError": "权限错误",
     "currentPassword": "当前密码",
-    "currentPasswordMessage": "请输入密码以确认此操作。"
+    "currentPasswordMessage": "请输入密码以确认此操作。",
+    "riskConfirmTitle": "风险操作确认",
+    "riskConfirmMessage": "您正在对一个受保护的目录执行操作，请确认您了解可能的后果。",
+    "riskConfirmDelete": "删除此目录可能导致系统组件无法正常运行，数据可能无法恢复。",
+    "riskConfirmRename": "重命名此目录可能导致依赖它的系统组件无法正常工作。",
+    "riskConfirmMove": "移动此目录可能导致依赖它的系统组件无法正常工作。",
+    "riskConfirmGeneric": "对此目录的操作可能影响系统稳定性。"
   },
   "search": {
     "images": "图像",

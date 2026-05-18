@@ -1,0 +1,525 @@
+/* ============================================================
+ *  LISTING -- File Listing Page Styles (Optimized)
+ *  Changes: modern spacing, rounded corners, smooth hover,
+ *           refined cards, better typography & transitions
+ * ============================================================ */
+
+html[dir="rtl"] #listing {
+  margin-right: 16em;
+}
+
+/* --- Section headers (Folders / Files) --- */
+#listing h2 {
+  margin: 1.2em 0 0.4em 0.8em;
+  font-size: 0.85em;
+  color: var(--textPrimary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* --- Container for items --- */
+#listing > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+/* --- Truncation --- */
+#listing .item div:last-of-type * {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* --- Base item --- */
+#listing .item {
+  background: var(--surfacePrimary);
+  border-color: var(--divider);
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  color: var(--textPrimary);
+  transition:
+    0.15s ease background,
+    0.15s ease box-shadow,
+    0.15s ease transform,
+    0.1s ease opacity;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+#listing .item div:last-of-type {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#listing .item p {
+  margin: 0;
+}
+
+#listing .item .size,
+#listing .item .modified {
+  font-size: 0.88em;
+  color: var(--textPrimary);
+  opacity: 0.7;
+}
+
+#listing .item .name {
+  font-weight: 600;
+}
+
+#listing .item i {
+  font-size: 4em;
+  margin-right: 0.1em;
+  vertical-align: bottom;
+}
+
+#listing .item img {
+  width: 4em;
+  height: 4em;
+  object-fit: cover;
+  margin-right: 0.1em;
+  vertical-align: bottom;
+}
+
+/* --- Empty / Loading message --- */
+.message {
+  text-align: center;
+  font-size: 2em;
+  margin: 1em auto;
+  display: block !important;
+  width: 95%;
+  color: var(--textPrimary);
+  font-weight: 500;
+}
+
+.message i {
+  font-size: 2.5em;
+  margin-bottom: 0.2em;
+  display: block;
+}
+
+/* ============================================================
+ *  MOSAIC (Grid) VIEW
+ * ============================================================ */
+
+#listing.mosaic {
+  padding-top: 0.8em;
+  margin: 0 -0.4em;
+}
+
+#listing.mosaic .item {
+  width: calc(33% - 1em);
+  margin: 0.4em;
+  padding: 0.7em;
+  border-radius: 0.5em;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--divider);
+}
+
+#listing.mosaic .item:hover {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+#listing.mosaic .item:active {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#listing.mosaic .header {
+  display: none;
+}
+
+#listing.mosaic .item div:first-of-type {
+  width: 5em;
+}
+
+#listing.mosaic .item div:last-of-type {
+  width: calc(100% - 5vw);
+}
+
+/* --- Gallery sub-mode --- */
+#listing.mosaic.gallery .item {
+  overflow: hidden;
+  padding: 0;
+}
+
+#listing.mosaic.gallery .item div:first-of-type {
+  width: 100%;
+  height: 12em;
+}
+
+#listing.mosaic.gallery .item div:last-of-type {
+  position: absolute;
+  bottom: 0;
+  padding: 0.8em 1em;
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(#0000, rgba(0, 0, 0, 0.55));
+  border-radius: 0 0 0.5em 0.5em;
+}
+
+#listing.mosaic.gallery .item[data-type="image"] div:last-of-type {
+  color: white;
+}
+
+#listing.mosaic.gallery .item i {
+  width: 100%;
+  margin-right: 0;
+  font-size: 8em;
+  text-align: center;
+}
+
+#listing.mosaic.gallery .item img {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5em 0.5em 0 0;
+}
+
+#listing.gallery .size,
+#listing.gallery .modified {
+  display: none;
+}
+
+/* ============================================================
+ *  LIST VIEW
+ * ============================================================ */
+
+#listing.list {
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+#listing.list .item {
+  width: 100%;
+  margin: 0;
+  border: 1px solid var(--borderPrimary);
+  padding: 0.75em 1em;
+  border-top: 0;
+  border-radius: 0;
+}
+
+#listing.list .item:first-of-type {
+  border-radius: 0.4em 0.4em 0 0;
+}
+
+#listing.list .item:last-of-type {
+  border-radius: 0 0 0.4em 0.4em;
+}
+
+#listing.list .item:only-of-type {
+  border-radius: 0.4em;
+}
+
+#listing.list .item:hover {
+  background: var(--hover);
+}
+
+#listing.list h2 {
+  display: none;
+}
+
+/* --- Selected state --- */
+#listing .item[aria-selected="true"] {
+  background: var(--blue) !important;
+  color: var(--iconSecondary) !important;
+  border-color: var(--blue) !important;
+}
+
+#listing .item[aria-selected="true"] .size,
+#listing .item[aria-selected="true"] .modified {
+  color: var(--iconSecondary) !important;
+  opacity: 0.85;
+}
+
+/* --- List icon column --- */
+#listing.list .item div:first-of-type {
+  width: 3em;
+}
+
+#listing.list .item div:first-of-type i {
+  font-size: 2em;
+}
+
+#listing.list .item div:first-of-type img {
+  width: 2em;
+  height: 2em;
+  border-radius: 0.25em;
+}
+
+/* --- List content column --- */
+#listing.list .item div:last-of-type {
+  width: calc(100% - 3em);
+  display: flex;
+  align-items: center;
+}
+
+#listing.list .item .name {
+  width: 50%;
+}
+
+#listing.list .item .size {
+  width: 25%;
+}
+
+/* ============================================================
+ *  LIST HEADER (Sort row)
+ * ============================================================ */
+
+#listing .item.header {
+  display: none !important;
+  background-color: var(--iconTertiary);
+}
+
+#listing.list .header i {
+  font-size: 1.4em;
+  vertical-align: middle;
+  margin-left: 0.2em;
+  opacity: 0;
+  transition: 0.15s ease opacity;
+}
+
+#listing.list .item.header {
+  display: flex !important;
+  background: var(--surfaceSecondary);
+  z-index: 999;
+  padding: 0.6em 1em;
+  border: 0;
+  border-bottom: 2px solid var(--borderPrimary);
+  border-radius: 0.4em 0.4em 0 0;
+}
+
+#listing.list .item.header > div {
+  width: 100%;
+}
+
+#listing.list .item.header .name {
+  margin-right: 3em;
+}
+
+#listing.list .header a {
+  color: inherit;
+}
+
+#listing.list .name {
+  font-weight: normal;
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+#listing.list .header span {
+  vertical-align: middle;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+#listing.list .header p:hover i,
+#listing.list .header .active i {
+  opacity: 1;
+}
+
+#listing.list .header p:hover span,
+#listing.list .header .active span {
+  opacity: 1;
+}
+
+#listing.list .item.header .active {
+  font-weight: bold;
+}
+
+#listing.list .header p {
+  transition: 0.15s ease opacity;
+  border-radius: 0.25em;
+  padding: 0.15em 0.3em;
+  margin: -0.15em -0.3em;
+}
+
+#listing.list .header p:hover {
+  background: var(--hover);
+}
+
+/* ============================================================
+ *  MULTIPLE SELECTION BAR (Enhanced)
+ * ============================================================ */
+
+#listing #multiple-selection {
+  position: fixed;
+  bottom: -5em;
+  left: 0;
+  z-index: 99999;
+  width: 100%;
+  background: var(--surfacePrimary);
+  border-top: 1px solid var(--borderPrimary);
+  box-shadow:
+    0 -4px 20px rgba(0, 0, 0, 0.12),
+    0 -1px 6px rgba(0, 0, 0, 0.06);
+  height: auto;
+  min-height: 3.5em;
+  padding: 0.6em 1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1) bottom;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+#listing #multiple-selection.active {
+  bottom: 0;
+}
+
+/* --- Left: selection info --- */
+#listing #multiple-selection .selection-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+#listing #multiple-selection .selection-info i {
+  color: var(--blue);
+  font-size: 1.3em;
+}
+
+#listing #multiple-selection .selection-info span {
+  color: var(--textPrimary);
+  font-weight: 600;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* --- Right: action buttons --- */
+#listing #multiple-selection .selection-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+#listing #multiple-selection .selection-actions::-webkit-scrollbar {
+  display: none;
+}
+
+#listing #multiple-selection .selection-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.4em 0.7em;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 0.5em;
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
+  font-size: 0.82em;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    0.15s ease background,
+    0.15s ease border-color,
+    0.15s ease box-shadow,
+    0.1s ease transform;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#listing #multiple-selection .selection-btn i {
+  font-size: 1.15em;
+  color: var(--textSecondary);
+  transition: 0.15s ease color;
+}
+
+#listing #multiple-selection .selection-btn:hover {
+  background: var(--hover);
+  border-color: var(--blue);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
+}
+
+#listing #multiple-selection .selection-btn:hover i {
+  color: var(--blue);
+}
+
+#listing #multiple-selection .selection-btn:active {
+  transform: scale(0.96);
+}
+
+/* Action buttons (copy/move/download) with blue tint */
+#listing #multiple-selection .selection-btn.action-btn {
+  background: rgba(59, 130, 246, 0.06);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+#listing #multiple-selection .selection-btn.action-btn:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: var(--blue);
+}
+
+/* Danger button (delete) */
+#listing #multiple-selection .selection-btn.danger {
+  color: var(--red);
+  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+#listing #multiple-selection .selection-btn.danger i {
+  color: var(--red);
+}
+
+#listing #multiple-selection .selection-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: var(--red);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+/* Close button */
+#listing #multiple-selection .selection-btn.close-btn {
+  border: none;
+  background: transparent;
+  padding: 0.4em;
+  border-radius: 50%;
+  margin-left: 0.25em;
+}
+
+#listing #multiple-selection .selection-btn.close-btn i {
+  font-size: 1.3em;
+  opacity: 0.6;
+  transition: 0.15s ease opacity;
+}
+
+#listing #multiple-selection .selection-btn.close-btn:hover {
+  background: var(--hover);
+}
+
+#listing #multiple-selection .selection-btn.close-btn:hover i {
+  opacity: 1;
+  color: var(--textPrimary);
+}
+
+/* --- Dark mode enhancements --- */
+:root.dark #listing #multiple-selection,
+html.dark #listing #multiple-selection {
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow:
+    0 -4px 20px rgba(0, 0, 0, 0.3),
+    0 -1px 6px rgba(0, 0, 0, 0.2);
+}

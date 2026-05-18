@@ -1,0 +1,566 @@
+/* ============================================================
+ *  PROMPTS.CSS — 批量操作对话框全面现代化
+ *  覆盖: .card.floating / .overlay / .card-action / .file-list
+ *  兼容: 亮色 / 暗色 / 移动端
+ * ============================================================ */
+
+/* ── Overlay 遮罩 ─────────────────────────────────────────── */
+
+.overlay {
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.2s ease;
+}
+
+/* ── Floating Card 容器 ───────────────────────────────────── */
+
+.card.floating {
+  border-radius: 0.75em;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.10);
+  border: 1px solid var(--borderSecondary, rgba(0, 0, 0, 0.08));
+  animation: prompt-enter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  overflow: visible;
+  max-width: 28em;
+}
+
+@keyframes prompt-enter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ── Card Title ───────────────────────────────────────────── */
+
+.card .card-title {
+  padding: 1.25em 1.25em 0.75em;
+  border-bottom: 1px solid var(--divider, rgba(0, 0, 0, 0.06));
+}
+
+.card .card-title h2 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--textPrimary, #1a1a2e);
+  letter-spacing: -0.01em;
+}
+
+/* ── Card Content ─────────────────────────────────────────── */
+
+.card .card-content {
+  padding: 1.25em;
+  line-height: 1.65;
+  color: var(--textSecondary, #555);
+}
+
+.card .card-content p {
+  margin: 0 0 0.75em;
+}
+
+.card .card-content p:last-child {
+  margin-bottom: 0;
+}
+
+.card .card-content strong {
+  color: var(--textPrimary, #1a1a2e);
+  font-weight: 600;
+}
+
+.card .card-content code {
+  background: var(--surfaceSecondary, #f0f0f5);
+  padding: 0.15em 0.45em;
+  border-radius: 0.35em;
+  font-size: 0.88em;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+  color: var(--textPrimary, #1a1a2e);
+  word-break: break-all;
+}
+
+.card .card-content input[type="text"] {
+  width: 100%;
+  padding: 0.6em 0.85em;
+  border: 1.5px solid var(--borderPrimary, #d0d0dd);
+  border-radius: 0.5em;
+  background: var(--surfacePrimary, #fff);
+  color: var(--textPrimary, #1a1a2e);
+  font-size: 0.95em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-top: 0.5em;
+  box-sizing: border-box;
+}
+
+.card .card-content input[type="text"]:focus {
+  outline: none;
+  border-color: var(--blue, #44a6f5);
+  box-shadow: 0 0 0 3px rgba(68, 166, 245, 0.15);
+}
+
+/* ── Card Action (按钮区) ─────────────────────────────────── */
+
+.card .card-action {
+  padding: 0.75em 1.25em 1.25em;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5em;
+}
+
+.card .card-action .button--flat {
+  padding: 0.55em 1.25em;
+  border-radius: 0.5em;
+  font-size: 0.88em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.card .card-action .button--flat:hover {
+  background: var(--surfaceSecondary, #f0f0f5);
+  transform: translateY(-1px);
+}
+
+.card .card-action .button--flat:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.card .card-action .button--flat.button--grey {
+  color: var(--textSecondary, #888);
+}
+
+.card .card-action .button--flat.button--grey:hover {
+  background: var(--surfaceSecondary, #f0f0f5);
+  color: var(--textPrimary, #555);
+}
+
+/* 删除按钮 - 红色危险样式 */
+.card .card-action .button--flat.button--red,
+.card .card-action .button--red {
+  color: #e53935;
+  background: rgba(229, 57, 53, 0.06);
+}
+
+.card .card-action .button--flat.button--red:hover,
+.card .card-action .button--red:hover {
+  background: rgba(229, 57, 53, 0.12);
+  color: #c62828;
+}
+
+/* 确认/主按钮 - 蓝色高亮 */
+.card .card-action .button--flat:not(.button--grey):not(.button--red) {
+  color: var(--blue, #44a6f5);
+}
+
+.card .card-action .button--flat:not(.button--grey):not(.button--red):hover {
+  background: rgba(68, 166, 245, 0.08);
+}
+
+/* 左侧操作按钮（如新建文件夹） */
+.card .card-action .button--flat:first-child {
+  margin-right: auto;
+}
+
+/* ── File List (Copy/Move 文件夹选择器) ───────────────────── */
+
+.file-list {
+  max-height: 45vh;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0.5em 0 0;
+  padding: 0.25em;
+  border: 1.5px solid var(--borderPrimary, #d0d0dd);
+  border-radius: 0.6em;
+  background: var(--surfacePrimary, #fff);
+}
+
+.file-list li {
+  width: 100%;
+  user-select: none;
+  border-radius: 0.45em;
+  padding: 0.55em 0.75em;
+  transition: background 0.12s, transform 0.1s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 0.92em;
+  color: var(--textPrimary, #1a1a2e);
+  box-sizing: border-box;
+}
+
+.file-list li:hover {
+  background: var(--surfaceSecondary, #f0f0f5);
+}
+
+.file-list li:active {
+  transform: scale(0.985);
+}
+
+.file-list li[aria-selected="true"] {
+  background: var(--blue, #44a6f5);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(68, 166, 245, 0.25);
+}
+
+.file-list li[aria-selected="true"]:hover {
+  background: var(--dark-blue, #3a8fd4);
+}
+
+.file-list li:before {
+  content: "folder";
+  font-family: "Material Icons";
+  font-size: 1.4em;
+  margin-right: 0.5em;
+  color: var(--textSecondary, #888);
+  vertical-align: middle;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.file-list li[aria-selected="true"]:before {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Delete 确认对话框特殊样式 ────────────────────────────── */
+
+.card .card-content .delete-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 50%;
+  background: rgba(229, 57, 53, 0.08);
+  color: #e53935;
+  margin-bottom: 0.75em;
+}
+
+/* ── Share 对话框优化 ─────────────────────────────────────── */
+
+.card#share {
+  max-width: 30em;
+}
+
+.card#share ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5em 0 0;
+}
+
+.card#share ul li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em 0;
+  border-bottom: 1px solid var(--divider, rgba(0, 0, 0, 0.04));
+}
+
+.card#share ul li:last-child {
+  border-bottom: none;
+}
+
+.card#share ul li a {
+  color: var(--blue, #44a6f5);
+  cursor: pointer;
+  margin-right: auto;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.card#share ul li a:hover {
+  text-decoration: underline;
+}
+
+.card#share ul li input,
+.card#share ul li select {
+  padding: 0.35em 0.5em;
+  margin-right: 0.5em;
+  border: 1.5px solid var(--borderPrimary, #d0d0dd);
+  border-radius: 0.4em;
+  background: var(--surfacePrimary, #fff);
+  color: var(--textPrimary, #1a1a2e);
+  font-size: 0.88em;
+  transition: border-color 0.2s;
+}
+
+.card#share ul li input:focus,
+.card#share ul li select:focus {
+  outline: none;
+  border-color: var(--blue, #44a6f5);
+}
+
+.card#share .input-group {
+  display: flex;
+  border: 1.5px solid var(--borderPrimary, #d0d0dd);
+  border-radius: 0.5em;
+  overflow: hidden;
+  margin-top: 0.5em;
+}
+
+.card#share .input-group input {
+  flex: 1;
+  border: none;
+  padding: 0.6em 0.85em;
+  border-radius: 0;
+}
+
+.card#share .input-group input:focus {
+  box-shadow: none;
+}
+
+/* ── Info 对话框优化 ──────────────────────────────────────── */
+
+.card .card-content .break-word {
+  word-break: break-all;
+}
+
+/* ── Collapsible (Share 高级选项) ──────────────────────────── */
+
+.card .collapsible {
+  border-top: 1px solid var(--divider, rgba(0, 0, 0, 0.06));
+}
+
+.card .collapsible > label {
+  padding: 0.85em 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.92em;
+  color: var(--textSecondary, #666);
+  transition: color 0.15s;
+}
+
+.card .collapsible > label:hover {
+  color: var(--textPrimary, #1a1a2e);
+}
+
+.card .collapsible > label * {
+  margin: 0;
+  color: inherit;
+}
+
+.card .collapsible > label i {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 1.1em;
+}
+
+.card .collapsible > input:checked ~ label i {
+  transform: rotate(180deg);
+}
+
+.card .collapsible .collapse {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.card .collapsible > input:checked ~ .collapse {
+  padding-top: 0.75em;
+  padding-bottom: 0.75em;
+  max-height: 20em;
+}
+
+/* ── 暗色模式 ─────────────────────────────────────────────── */
+
+:root.dark .card.floating,
+html.dark .card.floating {
+  background: #1e1e2e;
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.20);
+}
+
+:root.dark .card .card-title,
+html.dark .card .card-title {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+:root.dark .card .card-title h2,
+html.dark .card .card-title h2 {
+  color: #e0e0ee;
+}
+
+:root.dark .card .card-content,
+html.dark .card .card-content {
+  color: #a0a0b8;
+}
+
+:root.dark .card .card-content strong,
+html.dark .card .card-content strong {
+  color: #e0e0ee;
+}
+
+:root.dark .card .card-content code,
+html.dark .card .card-content code {
+  background: rgba(255, 255, 255, 0.06);
+  color: #c0c0d8;
+}
+
+:root.dark .card .card-content input[type="text"],
+html.dark .card .card-content input[type="text"] {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: #e0e0ee;
+}
+
+:root.dark .card .card-content input[type="text"]:focus,
+html.dark .card .card-content input[type="text"]:focus {
+  border-color: var(--blue, #44a6f5);
+  box-shadow: 0 0 0 3px rgba(68, 166, 245, 0.12);
+}
+
+:root.dark .card .card-action .button--flat.button--grey,
+html.dark .card .card-action .button--flat.button--grey {
+  color: #808098;
+}
+
+:root.dark .card .card-action .button--flat.button--grey:hover,
+html.dark .card .card-action .button--flat.button--grey:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #a0a0b8;
+}
+
+:root.dark .card .card-action .button--flat.button--red,
+html.dark .card .card-action .button--flat.button--red {
+  color: #ef5350;
+  background: rgba(239, 83, 80, 0.08);
+}
+
+:root.dark .card .card-action .button--flat.button--red:hover,
+html.dark .card .card-action .button--flat.button--red:hover {
+  background: rgba(239, 83, 80, 0.15);
+  color: #ff7043;
+}
+
+:root.dark .card .card-action .button--flat:not(.button--grey):not(.button--red),
+html.dark .card .card-action .button--flat:not(.button--grey):not(.button--red) {
+  color: #64b5f6;
+}
+
+:root.dark .card .card-action .button--flat:not(.button--grey):not(.button--red):hover,
+html.dark .card .card-action .button--flat:not(.button--grey):not(.button--red):hover {
+  background: rgba(100, 181, 246, 0.08);
+}
+
+:root.dark .file-list,
+html.dark .file-list {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .file-list li,
+html.dark .file-list li {
+  color: #c0c0d8;
+}
+
+:root.dark .file-list li:hover,
+html.dark .file-list li:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root.dark .file-list li[aria-selected="true"],
+html.dark .file-list li[aria-selected="true"] {
+  background: var(--blue, #44a6f5);
+  color: #fff;
+}
+
+:root.dark .file-list li:before,
+html.dark .file-list li:before {
+  color: #808098;
+}
+
+:root.dark .card#share ul li input,
+:root.dark .card#share ul li select,
+html.dark .card#share ul li input,
+html.dark .card#share ul li select {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: #e0e0ee;
+}
+
+:root.dark .card#share .input-group,
+html.dark .card#share .input-group {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+:root.dark .card#share .input-group input,
+html.dark .card#share .input-group input {
+  background: transparent;
+  color: #e0e0ee;
+}
+
+:root.dark .card .collapsible,
+html.dark .card .collapsible {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+:root.dark .card .collapsible > label,
+html.dark .card .collapsible > label {
+  color: #808098;
+}
+
+:root.dark .card .collapsible > label:hover,
+html.dark .card .collapsible > label:hover {
+  color: #c0c0d8;
+}
+
+/* ── 移动端响应式 ─────────────────────────────────────────── */
+
+@media (max-width: 736px) {
+  .card.floating {
+    max-width: 95%;
+    width: 95%;
+    max-height: 90%;
+    border-radius: 0.65em;
+  }
+
+  .card .card-title {
+    padding: 1em 1em 0.6em;
+  }
+
+  .card .card-content {
+    padding: 1em;
+  }
+
+  .card .card-action {
+    padding: 0.6em 1em 1em;
+    flex-wrap: wrap;
+  }
+
+  .card .card-action .button--flat {
+    padding: 0.6em 1em;
+    font-size: 0.85em;
+  }
+
+  .file-list {
+    max-height: 50vh;
+  }
+
+  .file-list li {
+    padding: 0.7em 0.75em;
+  }
+}
+
+@media (max-width: 450px) {
+  .card.floating {
+    max-width: 98%;
+    width: 98%;
+    border-radius: 0.5em;
+  }
+
+  .card .card-action {
+    justify-content: stretch;
+  }
+
+  .card .card-action .button--flat {
+    flex: 1;
+    text-align: center;
+  }
+}

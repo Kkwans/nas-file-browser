@@ -1,0 +1,535 @@
+/*
+ * Markdown 渲染样式
+ * 覆盖两种渲染路径：
+ *   1. .md_preview — FileBrowser 原生预览（保留兼容）
+ *   2. .vditor-reset — Vditor 预览/IR/SV 模式
+ *
+ * 元素覆盖清单（marked 输出 + Vditor 扩展）：
+ *   h1-h6, p, a, code, pre, blockquote, table/th/td/tr,
+ *   ul/ol/li, hr, img, strong, em, del, details/summary,
+ *   input[type=checkbox], dl/dt/dd
+ */
+
+/* ===== 容器 ===== */
+.md_preview,
+.vditor-reset.vditor-preview--content {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  color: #1f2937;
+}
+
+.md_preview {
+  padding: 2rem 3rem;
+  max-width: 860px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.vditor-reset.vditor-preview--content {
+  padding: 2rem 3rem;
+  max-width: 860px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+#preview-container {
+  overflow: auto;
+  flex: 1;
+  background: #ffffff;
+}
+
+/* ===== 标题 h1-h6 ===== */
+.md_preview h1,
+.vditor-reset.vditor-preview--content h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 32px 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.md_preview h2,
+.vditor-reset.vditor-preview--content h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 28px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.md_preview h3,
+.vditor-reset.vditor-preview--content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 24px 0 10px;
+}
+
+.md_preview h4,
+.vditor-reset.vditor-preview--content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 20px 0 8px;
+}
+
+.md_preview h5,
+.vditor-reset.vditor-preview--content h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 18px 0 6px;
+}
+
+.md_preview h6,
+.vditor-reset.vditor-preview--content h6 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  margin: 16px 0 4px;
+}
+
+/* ===== 段落 ===== */
+.md_preview p,
+.vditor-reset.vditor-preview--content p {
+  margin: 0 0 16px;
+  line-height: 1.8;
+  color: #374151;
+}
+
+/* ===== 链接 ===== */
+.md_preview a,
+.vditor-reset.vditor-preview--content a {
+  color: #2563eb;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.md_preview a:hover,
+.vditor-reset.vditor-preview--content a:hover {
+  border-bottom-color: #2563eb;
+}
+
+/* ===== 行内代码 ===== */
+.md_preview code:not(pre code),
+.vditor-reset.vditor-preview--content code:not(pre code) {
+  background: #f1f5f9;
+  color: #e11d48;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+  border: 1px solid #e2e8f0;
+}
+
+/* ===== 代码块 ===== */
+.md_preview pre,
+.vditor-reset.vditor-preview--content pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 20px 24px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1px solid #334155;
+}
+
+.md_preview pre code,
+.vditor-reset.vditor-preview--content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+  border-radius: 0;
+}
+
+/* ===== 引用块 ===== */
+.md_preview blockquote,
+.vditor-reset.vditor-preview--content blockquote {
+  border-left: 4px solid #3b82f6;
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 12px 20px;
+  margin: 16px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.md_preview blockquote p,
+.vditor-reset.vditor-preview--content blockquote p {
+  color: #1e40af;
+  margin: 0;
+}
+
+/* ===== 表格 ===== */
+.md_preview table,
+.vditor-reset.vditor-preview--content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.md_preview th,
+.vditor-reset.vditor-preview--content th {
+  background: #f8fafc;
+  color: #1e293b;
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.md_preview td,
+.vditor-reset.vditor-preview--content td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+}
+
+.md_preview tr:hover td,
+.vditor-reset.vditor-preview--content tr:hover td {
+  background: #f8fafc;
+}
+
+/* ===== 列表 ===== */
+.md_preview ul,
+.md_preview ol,
+.vditor-reset.vditor-preview--content ul,
+.vditor-reset.vditor-preview--content ol {
+  margin: 8px 0 16px;
+  padding-left: 28px;
+}
+
+.md_preview li,
+.vditor-reset.vditor-preview--content li {
+  margin: 6px 0;
+  line-height: 1.7;
+  color: #374151;
+}
+
+.md_preview li::marker,
+.vditor-reset.vditor-preview--content li::marker {
+  color: #3b82f6;
+}
+
+/* 嵌套列表 */
+.md_preview ul ul,
+.md_preview ol ol,
+.md_preview ul ol,
+.md_preview ol ul,
+.vditor-reset.vditor-preview--content ul ul,
+.vditor-reset.vditor-preview--content ol ol,
+.vditor-reset.vditor-preview--content ul ol,
+.vditor-reset.vditor-preview--content ol ul {
+  margin: 2px 0 2px 0;
+}
+
+/* ===== 复选框（任务列表） ===== */
+.md_preview input[type="checkbox"],
+.vditor-reset.vditor-preview--content input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: #3b82f6;
+  vertical-align: middle;
+}
+
+/* ===== 分割线 ===== */
+.md_preview hr,
+.vditor-reset.vditor-preview--content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, #e5e7eb, #f3f4f6, #e5e7eb);
+  margin: 32px 0;
+}
+
+/* ===== 图片 ===== */
+.md_preview img,
+.vditor-reset.vditor-preview--content img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== 强调 ===== */
+.md_preview strong,
+.vditor-reset.vditor-preview--content strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.md_preview em,
+.vditor-reset.vditor-preview--content em {
+  color: #4b5563;
+}
+
+/* ===== 删除线 ===== */
+.md_preview del,
+.vditor-reset.vditor-preview--content del {
+  color: #9ca3af;
+}
+
+/* ===== 定义列表（Vditor 扩展） ===== */
+.md_preview dl,
+.vditor-reset.vditor-preview--content dl {
+  margin: 0 0 16px;
+}
+
+.md_preview dt,
+.vditor-reset.vditor-preview--content dt {
+  font-weight: 600;
+  color: #111827;
+  margin-top: 12px;
+}
+
+.md_preview dd,
+.vditor-reset.vditor-preview--content dd {
+  margin-left: 24px;
+  color: #374151;
+}
+
+/* ===== Details/Summary（Vditor 扩展） ===== */
+.md_preview details,
+.vditor-reset.vditor-preview--content details {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  background: #f9fafb;
+}
+
+.md_preview details summary,
+.vditor-reset.vditor-preview--content details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #1f2937;
+  user-select: none;
+}
+
+.md_preview details[open] summary,
+.vditor-reset.vditor-preview--content details[open] summary {
+  margin-bottom: 8px;
+}
+
+/* ===== 脚注标记（Vditor 扩展） ===== */
+.md_preview sup,
+.vditor-reset.vditor-preview--content sup {
+  font-size: 0.75em;
+  vertical-align: super;
+}
+
+.md_preview sup a,
+.vditor-reset.vditor-preview--content sup a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+
+/* ================================================
+ * 暗色主题适配
+ * FileBrowser 在 <html> 上设置 className="dark"
+ * ================================================ */
+html.dark .md_preview,
+html.dark .vditor-reset.vditor-preview--content {
+  color: #e2e8f0;
+}
+
+html.dark #preview-container {
+  background: #0f172a;
+}
+
+/* 标题 */
+html.dark .md_preview h1,
+html.dark .vditor-reset.vditor-preview--content h1 {
+  color: #f1f5f9;
+  border-bottom-color: #334155;
+}
+
+html.dark .md_preview h2,
+html.dark .vditor-reset.vditor-preview--content h2 {
+  color: #e2e8f0;
+  border-bottom-color: #1e293b;
+}
+
+html.dark .md_preview h3,
+html.dark .vditor-reset.vditor-preview--content h3 {
+  color: #cbd5e1;
+}
+
+html.dark .md_preview h4,
+html.dark .vditor-reset.vditor-preview--content h4 {
+  color: #94a3b8;
+}
+
+html.dark .md_preview h5,
+html.dark .vditor-reset.vditor-preview--content h5 {
+  color: #94a3b8;
+}
+
+html.dark .md_preview h6,
+html.dark .vditor-reset.vditor-preview--content h6 {
+  color: #64748b;
+}
+
+/* 段落 / 列表项 */
+html.dark .md_preview p,
+html.dark .md_preview li,
+html.dark .vditor-reset.vditor-preview--content p,
+html.dark .vditor-reset.vditor-preview--content li {
+  color: #cbd5e1;
+}
+
+/* 链接 */
+html.dark .md_preview a,
+html.dark .vditor-reset.vditor-preview--content a {
+  color: #60a5fa;
+}
+
+html.dark .md_preview a:hover,
+html.dark .vditor-reset.vditor-preview--content a:hover {
+  border-bottom-color: #60a5fa;
+}
+
+/* 行内代码 */
+html.dark .md_preview code:not(pre code),
+html.dark .vditor-reset.vditor-preview--content code:not(pre code) {
+  background: #1e293b;
+  color: #f472b6;
+  border-color: #334155;
+}
+
+/* 代码块 */
+html.dark .md_preview pre,
+html.dark .vditor-reset.vditor-preview--content pre {
+  background: #0f172a;
+  border-color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .md_preview pre code,
+html.dark .vditor-reset.vditor-preview--content pre code {
+  background: transparent;
+  color: inherit;
+}
+
+/* 引用块 */
+html.dark .md_preview blockquote,
+html.dark .vditor-reset.vditor-preview--content blockquote {
+  background: #1e293b;
+  border-left-color: #3b82f6;
+  color: #93c5fd;
+}
+
+html.dark .md_preview blockquote p,
+html.dark .vditor-reset.vditor-preview--content blockquote p {
+  color: #93c5fd;
+}
+
+/* 表格 */
+html.dark .md_preview table,
+html.dark .vditor-reset.vditor-preview--content table {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+html.dark .md_preview th,
+html.dark .vditor-reset.vditor-preview--content th {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-bottom-color: #334155;
+}
+
+html.dark .md_preview td,
+html.dark .vditor-reset.vditor-preview--content td {
+  color: #cbd5e1;
+  border-bottom-color: #1e293b;
+}
+
+html.dark .md_preview tr:hover td,
+html.dark .vditor-reset.vditor-preview--content tr:hover td {
+  background: #1e293b;
+}
+
+/* 强调 */
+html.dark .md_preview strong,
+html.dark .vditor-reset.vditor-preview--content strong {
+  color: #f1f5f9;
+}
+
+html.dark .md_preview em,
+html.dark .vditor-reset.vditor-preview--content em {
+  color: #94a3b8;
+}
+
+html.dark .md_preview del,
+html.dark .vditor-reset.vditor-preview--content del {
+  color: #64748b;
+}
+
+/* 分割线 */
+html.dark .md_preview hr,
+html.dark .vditor-reset.vditor-preview--content hr {
+  background: linear-gradient(to right, #334155, #1e293b, #334155);
+}
+
+/* 图片 */
+html.dark .md_preview img,
+html.dark .vditor-reset.vditor-preview--content img {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 列表标记 */
+html.dark .md_preview li::marker,
+html.dark .vditor-reset.vditor-preview--content li::marker {
+  color: #60a5fa;
+}
+
+/* 复选框 */
+html.dark .md_preview input[type="checkbox"],
+html.dark .vditor-reset.vditor-preview--content input[type="checkbox"] {
+  accent-color: #60a5fa;
+}
+
+/* 定义列表 */
+html.dark .md_preview dt,
+html.dark .vditor-reset.vditor-preview--content dt {
+  color: #f1f5f9;
+}
+
+html.dark .md_preview dd,
+html.dark .vditor-reset.vditor-preview--content dd {
+  color: #cbd5e1;
+}
+
+/* Details/Summary */
+html.dark .md_preview details,
+html.dark .vditor-reset.vditor-preview--content details {
+  border-color: #334155;
+  background: #1e293b;
+}
+
+html.dark .md_preview details summary,
+html.dark .vditor-reset.vditor-preview--content details summary {
+  color: #e2e8f0;
+}
+
+/* 脚注 */
+html.dark .md_preview sup a,
+html.dark .vditor-reset.vditor-preview--content sup a {
+  color: #60a5fa;
+}

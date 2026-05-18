@@ -1,0 +1,20 @@
+# NAS File Browser - Docker Compose (Custom Build)
+# Build and run: docker-compose -f docker-compose.custom.yml up -d --build
+
+services:
+  filebrowser:
+    build:
+      context: .
+      dockerfile: Dockerfile.custom
+    container_name: nas-file-browser
+    restart: unless-stopped
+    ports:
+      - "8888:80"
+    volumes:
+      - /srv:/srv:ro                    # Browse NAS files (read-only by default)
+      - ./config:/config                # FileBrowser config
+      - ./database:/database            # FileBrowser database (users, settings)
+    environment:
+      - FB_DATABASE=/database/filebrowser.db
+      - FB_ROOT=/srv
+      - FB_LOGLEVEL=info

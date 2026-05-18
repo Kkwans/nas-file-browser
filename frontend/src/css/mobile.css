@@ -1,0 +1,299 @@
+/* ==========================================================================
+   Mobile Responsive Styles
+   Optimized for touch devices and small screens.
+   Breakpoints: 1024px (tablet), 736px (phone), 450px (small phone)
+   
+   Note: sidebar.css and header.css contain their own responsive rules.
+   This file handles listing, editor, selection bar, and global mobile layout.
+   ========================================================================== */
+
+/* === Tablet (<= 1024px) === */
+@media (max-width: 1024px) {
+  /* Sidebar width is handled by sidebar.css */
+
+  main {
+    width: calc(100% - 13em);
+  }
+}
+
+/* === Phone (<= 736px) === */
+@media (max-width: 736px) {
+  /* --- Global Layout --- */
+  body {
+    padding-bottom: 5em;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  main {
+    margin: 0 0.75em;
+    width: calc(100% - 1.5em);
+  }
+
+  /* --- File Listing --- */
+  #listing {
+    margin-bottom: 5em;
+  }
+
+  #listing.list .item {
+    padding: 0.5em 0.625em;
+    min-height: 2.75em;
+    gap: 0.5em;
+  }
+
+  #listing.list .item .size {
+    display: none;
+  }
+
+  #listing.list .item .name {
+    width: 60%;
+    font-size: 0.9375em;
+  }
+
+  #listing.list .item .checkbox {
+    width: 2em;
+    height: 2em;
+  }
+
+  /* Grid view - 2 columns on phone */
+  #listing.gallery .item {
+    width: calc(50% - 0.75em);
+  }
+
+  /* --- File Selection Bar --- */
+  #file-selection {
+    position: fixed;
+    bottom: 1em;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    background: var(--surfacePrimary);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--borderPrimary);
+    border-radius: 1em;
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      0 1px 4px rgba(0, 0, 0, 0.04);
+    padding: 0.375em;
+    width: 92%;
+    max-width: 22em;
+    z-index: 100;
+    animation: slideUpIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes slideUpIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(1em);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  #file-selection .action {
+    border-radius: 50%;
+    width: 2.5em;
+    height: 2.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+  }
+
+  #file-selection .action:active {
+    background: var(--hover);
+    transform: scale(0.92);
+  }
+
+  #file-selection > span {
+    display: inline-block;
+    margin-left: 0.75em;
+    color: var(--textSecondary);
+    font-size: 0.875em;
+    font-weight: 500;
+    margin-right: auto;
+  }
+
+  #file-selection .action span {
+    display: none;
+  }
+
+  /* --- Search on Mobile --- */
+  #search {
+    display: none;
+  }
+
+  #search.active {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99998;
+    background: var(--surfacePrimary);
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  #search.active input {
+    font-size: 16px; /* Prevent iOS zoom */
+    padding: 0.875em 1em;
+    border-radius: 0;
+    border: none;
+    border-bottom: 2px solid var(--blue);
+  }
+
+  #search.active .result {
+    padding: 0.5em 0.75em;
+    min-height: 3em;
+  }
+
+  /* --- More Button --- */
+  #more {
+    display: inherit;
+  }
+
+  /* --- Shell Divider --- */
+  .shell__divider {
+    height: 12px;
+  }
+
+  /* --- Editor Mobile --- */
+  .dashboard.editor {
+    padding: 0;
+  }
+
+  .dashboard.editor .editor {
+    min-height: calc(100vh - 9em);
+  }
+
+  /* Vditor mobile adjustments */
+  .vditor {
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  .vditor-toolbar {
+    padding: 0.25em 0.375em !important;
+    flex-wrap: wrap;
+    gap: 0.125em;
+  }
+
+  .vditor-toolbar__item {
+    padding: 0.25em 0.375em !important;
+  }
+
+  .vditor-toolbar__item button {
+    width: 1.75em !important;
+    height: 1.75em !important;
+  }
+
+  .vditor-ir,
+  .vditor-sv,
+  .vditor-preview {
+    padding: 0.75em !important;
+    font-size: 15px !important;
+  }
+
+  /* Preview mode mobile */
+  .md_preview,
+  .vditor-reset.vditor-preview--content {
+    padding: 1em 0.75em;
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .md_preview pre,
+  .vditor-reset.vditor-preview--content pre {
+    font-size: 0.8125em;
+    padding: 0.875em;
+    border-radius: 0.5em;
+  }
+
+  .md_preview table,
+  .vditor-reset.vditor-preview--content table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .md_preview img,
+  .vditor-reset.vditor-preview--content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5em;
+  }
+
+  /* --- Dashboard / Settings Mobile --- */
+  .dashboard {
+    padding: 1em 0.5em;
+  }
+
+  .dashboard .row {
+    margin-right: unset;
+  }
+
+  /* --- RTL Adjustments --- */
+  html[dir="rtl"] #listing {
+    margin-right: unset;
+  }
+
+  html[dir="rtl"] .breadcrumbs {
+    transform: translateX(16em);
+  }
+
+  html[dir="rtl"] #nav .wrapper {
+    margin-right: unset;
+  }
+
+  html[dir="rtl"] .dashboard .row {
+    margin-right: unset;
+  }
+
+  /* --- Touch-friendly interactive elements --- */
+  .action,
+  .item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  .action {
+    touch-action: manipulation;
+  }
+}
+
+/* === Small Phone (<= 450px) === */
+@media (max-width: 450px) {
+  #listing.list .item .modified {
+    display: none;
+  }
+
+  #listing.list .item .name {
+    width: 100%;
+    font-size: 0.875em;
+  }
+
+  #listing.gallery .item {
+    width: calc(50% - 0.5em);
+  }
+
+  /* Vditor toolbar - hide less-used buttons */
+  .vditor-toolbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .vditor-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+}

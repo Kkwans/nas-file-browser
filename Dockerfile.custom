@@ -1,0 +1,70 @@
+# ============================================================
+# NAS File Browser - Custom Build (Multi-stage)
+# Builds frontend (Vue 3 + Vite + pnpm) + backend (Go)
+# Produces a minimal Alpine runtime image (~60MB)
+# ============================================================
+
+# --- Stage 1: Build Frontend ---
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /src/frontend
+
+# Copy package files first for better layer caching
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+
+# Enable corepack and install dependencies
+RUN corepack enable && \
+    corepack prepare pnpm@10.33.4 --activate && \
+    pnpm install --frozen-lockfile
+
+# Copy rest of frontend source
+COPY frontend/ ./
+
+# Build frontend (typecheck + vite build)
+RUN pnpm build
+
+# --- Stage 2: Build Backend ---
+FROM golang:1.25-alpine AS backend-builder
+
+RUN apk add --no-cache git
+
+WORKDIR /src
+
+# Set Go proxy for China (must be before go mod download)
+ENV GOPROXY=https://goproxy.cn,direct
+
+# Copy go module files first for better layer caching
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy rest of source
+COPY . .
+
+# Copy built frontend into the source tree (Go embed needs it)
+COPY --from=frontend-builder /src/frontend/dist/ ./frontend/dist/
+
+# Build static binary (native arch, supports ARM64 NAS)
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
+
+# --- Stage 3: Runtime ---
+FROM alpine:3.21
+
+RUN apk add --no-cache ca-certificates mailcap tini wget && \
+    wget -q -O /JSON.sh https://raw.githubusercontent.com/dominictarr/JSON.sh/0d5e5c77365f63809bf6e77ef44a1f34b0e05840/JSON.sh
+
+# Copy binary and config files
+COPY --from=backend-builder /src/filebrowser /filebrowser
+COPY --from=backend-builder /src/docker/common/ /
+COPY --from=backend-builder /src/docker/alpine/ /
+RUN chmod +x /healthcheck.sh /init.sh /JSON.sh
+
+# Create data directories
+RUN mkdir -p /config /database /srv
+
+VOLUME /srv /config /database
+
+EXPOSE 80
+
+HEALTHCHECK --start-period=2s --interval=5s --timeout=3s CMD /healthcheck.sh
+
+ENTRYPOINT ["tini", "--", "/init.sh"]

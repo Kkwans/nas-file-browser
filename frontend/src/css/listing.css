@@ -564,3 +564,52 @@ html.dark .risk-badge.risk-medium {
   color: #FFB84D;
   border-color: rgba(245, 166, 35, 0.35);
 }
+
+/* --- Favorite Star in Listing --- */
+.favorite-star {
+  font-size: 0.85em !important;
+  margin-left: 0.3em !important;
+  vertical-align: middle;
+  cursor: pointer;
+  opacity: 0;
+  transition: 0.15s ease opacity, 0.15s ease color, 0.15s ease transform;
+  color: var(--textPrimary) !important;
+  position: relative;
+  top: -0.05em;
+}
+
+#listing .item:hover .favorite-star,
+.favorite-star.is-fav {
+  opacity: 0.5;
+}
+
+#listing .item:hover .favorite-star.is-fav {
+  opacity: 1;
+}
+
+.favorite-star:hover {
+  opacity: 1 !important;
+  color: #F5A623 !important;
+  transform: scale(1.15);
+}
+
+.favorite-star.is-fav {
+  color: #F5A623 !important;
+  opacity: 0.8;
+}
+
+.favorite-star.is-fav:hover {
+  opacity: 1 !important;
+  transform: scale(1.15);
+}
+
+/* Selected state: hide star (selected items have blue bg) */
+#listing .item[aria-selected="true"] .favorite-star {
+  opacity: 0.6 !important;
+  color: var(--iconSecondary) !important;
+}
+
+#listing .item[aria-selected="true"] .favorite-star.is-fav {
+  color: #FFD700 !important;
+  opacity: 0.9 !important;
+}

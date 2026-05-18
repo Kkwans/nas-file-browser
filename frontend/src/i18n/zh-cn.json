@@ -321,7 +321,15 @@
     "categoryPersonal": "个人文件夹",
     "categoryShared": "共享文件夹",
     "categorySystem": "系统文件夹",
-    "categoryOther": "其他"
+    "categoryOther": "其他",
+    "favorites": "收藏夹",
+    "addFavorite": "收藏",
+    "removeFavorite": "取消收藏",
+    "noFavorites": "暂无收藏目录"
+  },
+  "favorites": {
+    "added": "已收藏",
+    "removed": "已取消收藏"
   },
   "success": {
     "linkCopied": "链接已复制！"

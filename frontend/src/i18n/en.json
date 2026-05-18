@@ -321,7 +321,15 @@
     "categoryPersonal": "Personal",
     "categoryShared": "Shared",
     "categorySystem": "System",
-    "categoryOther": "Other"
+    "categoryOther": "Other",
+    "favorites": "Favorites",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "noFavorites": "No favorites yet"
+  },
+  "favorites": {
+    "added": "Added to favorites",
+    "removed": "Removed from favorites"
   },
   "success": {
     "linkCopied": "Link copied!"

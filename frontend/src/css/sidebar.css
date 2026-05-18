@@ -241,6 +241,71 @@ html.dark nav > button.action:first-child {
   background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.03));
 }
 
+/* --- Favorites Section --- */
+.favorites-section {
+  border-top: 1px solid var(--divider);
+  padding: 0.3em 0;
+  margin-top: 0.2em;
+}
+
+.favorites-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.5em 1em 0.3em;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--textPrimary);
+  opacity: 0.6;
+}
+
+.favorites-header i {
+  font-size: 1.1em;
+  color: #F5A623;
+}
+
+.favorite-item {
+  position: relative;
+}
+
+.favorite-item .favorite-icon {
+  color: #F5A623 !important;
+  font-size: 1.15em !important;
+}
+
+.favorite-item:hover .favorite-icon {
+  color: #F5A623 !important;
+}
+
+.favorite-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favorite-remove {
+  font-size: 0.9em !important;
+  opacity: 0;
+  transition: 0.15s ease opacity, 0.15s ease color;
+  color: var(--textPrimary) !important;
+  flex-shrink: 0;
+  padding: 0.15em;
+  border-radius: 50%;
+}
+
+.favorite-item:hover .favorite-remove {
+  opacity: 0.5;
+}
+
+.favorite-remove:hover {
+  opacity: 1 !important;
+  color: var(--icon-red) !important;
+  background: rgba(218, 68, 83, 0.1);
+}
+
 /* --- Storage Volumes Section --- */
 .volumes-section {
   border-top: 1px solid var(--divider);

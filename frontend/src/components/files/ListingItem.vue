@@ -39,6 +39,13 @@
           :class="'risk-' + riskLevel"
           :title="riskTitle"
         >{{ riskLabel }}</span>
+        <i
+          v-if="isDir"
+          class="material-icons favorite-star"
+          :class="{ 'is-fav': isFavorited }"
+          :title="isFavorited ? $t('sidebar.removeFavorite') : $t('sidebar.addFavorite')"
+          @click.stop.prevent="toggleFav"
+        >{{ isFavorited ? 'star' : 'star_border' }}</i>
       </p>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
@@ -56,6 +63,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useCategoriesStore } from "@/stores/categories";
+import { useFavoritesStore } from "@/stores/favorites";
 
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
@@ -92,6 +100,7 @@ const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const categoriesStore = useCategoriesStore();
+const favoritesStore = useFavoritesStore();
 
 const singleClick = computed(
   () => !props.readOnly && authStore.user?.singleClick
@@ -144,6 +153,16 @@ const riskTitle = computed(() => {
   if (riskLevel.value === "medium") return "中危目录 - 请谨慎操作";
   return "";
 });
+
+const isFavorited = computed(() => {
+  if (!props.isDir || !props.path) return false;
+  return favoritesStore.isFavorite(props.path);
+});
+
+const toggleFav = () => {
+  if (!props.path) return;
+  favoritesStore.toggleFavorite(props.path, props.name);
+};
 
 const humanSize = () => {
   return props.type == "invalid_link" ? "invalid link" : filesize(props.size);

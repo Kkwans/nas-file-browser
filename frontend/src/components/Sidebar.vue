@@ -16,6 +16,29 @@
         <span>{{ $t("sidebar.myFiles") }}</span>
       </button>
 
+      <!-- Favorites Section -->
+      <div v-if="favoritesStore.sortedFavorites.length > 0" class="favorites-section">
+        <div class="favorites-header">
+          <i class="material-icons">star</i>
+          <span>{{ $t("sidebar.favorites", {}, {默认: "收藏夹"}) }}</span>
+        </div>
+        <button
+          v-for="fav in favoritesStore.sortedFavorites"
+          :key="fav.id"
+          class="action favorite-item"
+          @click="navigateVolume(fav.path)"
+          :title="fav.path"
+        >
+          <i class="material-icons favorite-icon">star</i>
+          <span class="favorite-name">{{ fav.name }}</span>
+          <i
+            class="material-icons favorite-remove"
+            :title="$t('sidebar.removeFavorite')"
+            @click.stop.prevent="removeFavorite(fav.id)"
+          >close</i>
+        </button>
+      </div>
+
       <!-- Storage Volumes Section (admin only) -->
       <div v-if="user.perm.admin && volumesStore.displayVolumes.length > 0" class="volumes-section">
         <div class="volumes-header">
@@ -200,6 +223,7 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useVolumesStore } from "@/stores/volumes";
 import { useCategoriesStore } from "@/stores/categories";
+import { useFavoritesStore } from "@/stores/favorites";
 
 import * as auth from "@/utils/auth";
 import {
@@ -224,8 +248,9 @@ export default {
     const usage = reactive(USAGE_DEFAULT);
     const volumesStore = useVolumesStore();
     const categoriesStore = useCategoriesStore();
+    const favoritesStore = useFavoritesStore();
     const expandedCategories = reactive({});
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, expandedCategories };
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, expandedCategories };
   },
   components: {
     ProgressBar,
@@ -302,6 +327,9 @@ export default {
     navigateVolume(path) {
       this.$router.push({ path: "/files" + path + "/" });
       this.closeHovers();
+    },
+    removeFavorite(id) {
+      this.favoritesStore.removeFavorite(id);
     },
     toRoot() {
       this.$router.push({ path: "/files" });
@@ -388,6 +416,8 @@ export default {
     },
   },
   mounted() {
+    // Load favorites for all users
+    this.favoritesStore.loadFavorites();
     // Fetch volumes for admin users
     if (this.user?.perm?.admin) {
       this.volumesStore.fetchVolumes();

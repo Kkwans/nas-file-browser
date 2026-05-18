@@ -46,8 +46,8 @@ FROM alpine:3.21
 RUN apk add --no-cache ca-certificates mailcap tini
 
 COPY --from=backend-builder /src/filebrowser /usr/local/bin/filebrowser
-COPY --from=backend-builder /src/docker/common/ /
-COPY --from=backend-builder /src/docker/alpine/ /
+COPY docker/common/ /
+COPY docker/alpine/ /
 COPY --from=backend-builder /JSON.sh /JSON.sh
 RUN chmod +x /healthcheck.sh /init.sh /JSON.sh
 

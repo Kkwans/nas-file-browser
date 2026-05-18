@@ -306,6 +306,61 @@ html.dark nav > button.action:first-child {
   background: rgba(218, 68, 83, 0.1);
 }
 
+/* --- Section Empty State --- */
+.section-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.5em 1em 0.6em;
+  font-size: 0.78em;
+  color: var(--textPrimary);
+  opacity: 0.4;
+  font-style: italic;
+}
+
+.section-empty i {
+  font-size: 1.15em !important;
+  opacity: 0.6;
+}
+
+/* --- Section Action Button (header right) --- */
+.section-action-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.15em;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: 0.15s ease opacity, 0.15s ease background;
+}
+
+.section-action-btn i {
+  font-size: 1em !important;
+  color: var(--textPrimary) !important;
+  opacity: 0.5;
+}
+
+.favorites-header:hover .section-action-btn,
+.tags-header:hover .section-action-btn {
+  opacity: 1;
+}
+
+.section-action-btn:hover {
+  background: var(--hover);
+}
+
+.section-action-btn:hover i {
+  opacity: 0.8;
+  color: var(--icon-red, #DA4453) !important;
+}
+
+.tags-header:hover .section-action-btn:hover i {
+  color: var(--blue, #2196F3) !important;
+}
+
 /* --- Tags Filter Section --- */
 .tags-section {
   border-top: 1px solid var(--divider);

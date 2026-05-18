@@ -17,10 +17,22 @@
       </button>
 
       <!-- Favorites Section -->
-      <div v-if="favoritesStore.sortedFavorites.length > 0" class="favorites-section">
+      <div class="favorites-section">
         <div class="favorites-header">
           <i class="material-icons">star</i>
           <span>{{ $t("sidebar.favorites") }}</span>
+          <button
+            v-if="favoritesStore.sortedFavorites.length > 0"
+            class="section-action-btn"
+            :title="$t('sidebar.clearAllFavorites')"
+            @click.stop.prevent="clearAllFavorites"
+          >
+            <i class="material-icons">delete_sweep</i>
+          </button>
+        </div>
+        <div v-if="favoritesStore.sortedFavorites.length === 0" class="section-empty">
+          <i class="material-icons">star_border</i>
+          <span>{{ $t("sidebar.noFavorites") }}</span>
         </div>
         <button
           v-for="(fav, index) in favoritesStore.sortedFavorites"
@@ -52,10 +64,21 @@
       </div>
 
       <!-- Tags Filter Section -->
-      <div v-if="tagsStore.sortedTags.length > 0" class="tags-section">
+      <div class="tags-section">
         <div class="tags-header">
           <i class="material-icons">label</i>
           <span>{{ $t("sidebar.tags") }}</span>
+          <button
+            class="section-action-btn"
+            :title="$t('tags.manage')"
+            @click.stop.prevent="openTagManager"
+          >
+            <i class="material-icons">settings</i>
+          </button>
+        </div>
+        <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
+          <i class="material-icons">turned_in_not</i>
+          <span>{{ $t("tags.noTags") }}</span>
         </div>
         <button
           v-for="tag in tagsStore.sortedTags"
@@ -374,6 +397,15 @@ export default {
     },
     removeFavorite(id) {
       this.favoritesStore.removeFavorite(id);
+    },
+    clearAllFavorites() {
+      if (this.favoritesStore.sortedFavorites.length === 0) return;
+      // Clear all favorites
+      this.favoritesStore.favorites = [];
+      this.favoritesStore.saveFavorites();
+    },
+    openTagManager() {
+      this.showHover({ prompt: 'tag-manager' });
     },
     onFavDragStart(event, index) {
       this.dragFromIndex = index;

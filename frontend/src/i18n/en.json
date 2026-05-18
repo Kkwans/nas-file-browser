@@ -326,6 +326,7 @@
     "addFavorite": "Add to favorites",
     "removeFavorite": "Remove from favorites",
     "noFavorites": "No favorites yet",
+    "clearAllFavorites": "Clear all favorites",
     "tags": "Tags"
   },
   "favorites": {

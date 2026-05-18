@@ -528,6 +528,36 @@ html.dark nav > button.action:first-child {
   color: var(--icon-green, #4CAF50) !important;
 }
 
+/* --- Favorites Drag & Drop --- */
+.favorite-drag-handle {
+  font-size: 0.95em !important;
+  opacity: 0;
+  transition: 0.15s ease opacity;
+  cursor: grab;
+  color: var(--textPrimary) !important;
+}
+
+.favorite-item:hover .favorite-drag-handle {
+  opacity: 0.4;
+}
+
+.favorite-drag-handle:hover {
+  opacity: 0.8 !important;
+}
+
+.favorite-item.dragging {
+  opacity: 0.35;
+  background: var(--hover);
+}
+
+.favorite-item.drag-over-top {
+  box-shadow: inset 0 2px 0 0 var(--blue, #2196F3);
+}
+
+.favorite-item.drag-over-bottom {
+  box-shadow: inset 0 -2px 0 0 var(--blue, #2196F3);
+}
+
 /* --- Mobile Responsive --- */
 @media (max-width: 1024px) {
   nav {

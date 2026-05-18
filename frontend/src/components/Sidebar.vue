@@ -23,12 +23,24 @@
           <span>{{ $t("sidebar.favorites") }}</span>
         </div>
         <button
-          v-for="fav in favoritesStore.sortedFavorites"
+          v-for="(fav, index) in favoritesStore.sortedFavorites"
           :key="fav.id"
           class="action favorite-item"
+          :class="{
+            'drag-over-top': dragOverIndex === index && dragFromIndex !== index && dragOverPosition === 'top',
+            'drag-over-bottom': dragOverIndex === index && dragFromIndex !== index && dragOverPosition === 'bottom',
+            'dragging': dragFromIndex === index,
+          }"
+          draggable="true"
           @click="navigateVolume(fav.path)"
           :title="fav.path"
+          @dragstart="onFavDragStart($event, index)"
+          @dragover="onFavDragOver($event, index)"
+          @dragleave="onFavDragLeave"
+          @drop="onFavDrop($event, index)"
+          @dragend="onFavDragEnd"
         >
+          <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
           <i class="material-icons favorite-icon">star</i>
           <span class="favorite-name">{{ fav.name }}</span>
           <i
@@ -243,7 +255,7 @@
 </template>
 
 <script>
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import { mapActions, mapState } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
@@ -279,7 +291,10 @@ export default {
     const favoritesStore = useFavoritesStore();
     const tagsStore = useTagsStore();
     const expandedCategories = reactive({});
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories };
+    const dragFromIndex = ref(-1);
+    const dragOverIndex = ref(-1);
+    const dragOverPosition = ref('');
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, dragFromIndex, dragOverIndex, dragOverPosition };
   },
   components: {
     ProgressBar,
@@ -359,6 +374,58 @@ export default {
     },
     removeFavorite(id) {
       this.favoritesStore.removeFavorite(id);
+    },
+    onFavDragStart(event, index) {
+      this.dragFromIndex = index;
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', index.toString());
+      // Add slight delay so the dragging class applies after the drag image is captured
+      this.$nextTick(() => {
+        event.target.classList.add('dragging');
+      });
+    },
+    onFavDragOver(event, index) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      if (this.dragFromIndex === index) return;
+
+      // Determine if dropping above or below the item
+      const rect = event.currentTarget.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      this.dragOverIndex = index;
+      this.dragOverPosition = event.clientY < midY ? 'top' : 'bottom';
+    },
+    onFavDragLeave(event) {
+      // Only clear if actually leaving the element (not entering a child)
+      if (!event.currentTarget.contains(event.relatedTarget)) {
+        this.dragOverIndex = -1;
+        this.dragOverPosition = '';
+      }
+    },
+    onFavDrop(event, toIndex) {
+      event.preventDefault();
+      const fromIndex = this.dragFromIndex;
+      if (fromIndex < 0 || fromIndex === toIndex) return;
+
+      // Adjust target index based on drop position
+      let targetIndex = toIndex;
+      if (this.dragOverPosition === 'bottom') {
+        targetIndex = toIndex + 1;
+      }
+      // If dragging from before the target, adjust for the removal shift
+      if (fromIndex < targetIndex) {
+        targetIndex--;
+      }
+
+      this.favoritesStore.reorderFavorite(fromIndex, targetIndex);
+      this.dragFromIndex = -1;
+      this.dragOverIndex = -1;
+      this.dragOverPosition = '';
+    },
+    onFavDragEnd() {
+      this.dragFromIndex = -1;
+      this.dragOverIndex = -1;
+      this.dragOverPosition = '';
     },
     filterByTag(tagId) {
       this.tagsStore.setFilter(tagId);

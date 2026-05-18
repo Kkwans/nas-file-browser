@@ -20,7 +20,7 @@
       <div v-if="favoritesStore.sortedFavorites.length > 0" class="favorites-section">
         <div class="favorites-header">
           <i class="material-icons">star</i>
-          <span>{{ $t("sidebar.favorites", {}, {默认: "收藏夹"}) }}</span>
+          <span>{{ $t("sidebar.favorites") }}</span>
         </div>
         <button
           v-for="fav in favoritesStore.sortedFavorites"
@@ -39,11 +39,38 @@
         </button>
       </div>
 
+      <!-- Tags Filter Section -->
+      <div v-if="tagsStore.sortedTags.length > 0" class="tags-section">
+        <div class="tags-header">
+          <i class="material-icons">label</i>
+          <span>{{ $t("sidebar.tags") }}</span>
+        </div>
+        <button
+          v-for="tag in tagsStore.sortedTags"
+          :key="tag.id"
+          class="action tag-filter-item"
+          :class="{ active: tagsStore.activeFilter === tag.id }"
+          @click="filterByTag(tag.id)"
+        >
+          <i class="material-icons tag-filter-dot" :style="{ color: tag.color }">label</i>
+          <span class="tag-filter-name">{{ tag.name }}</span>
+          <span class="tag-filter-count">{{ tag.paths.length }}</span>
+        </button>
+        <button
+          v-if="tagsStore.activeFilter"
+          class="action tag-filter-clear"
+          @click="clearTagFilter"
+        >
+          <i class="material-icons">filter_list_off</i>
+          <span>{{ $t("tags.clearFilter") }}</span>
+        </button>
+      </div>
+
       <!-- Storage Volumes Section (admin only) -->
       <div v-if="user.perm.admin && volumesStore.displayVolumes.length > 0" class="volumes-section">
         <div class="volumes-header">
           <i class="material-icons">storage</i>
-          <span>{{ $t("sidebar.storageVolumes", {}, {默认: "存储卷"}) }}</span>
+          <span>{{ $t("sidebar.storageVolumes") }}</span>
         </div>
         <button
           v-for="vol in volumesStore.systemVolumes"
@@ -91,7 +118,7 @@
       <div v-if="user.perm.admin && categoryGroups.length > 0" class="categories-section">
         <div class="categories-header">
           <i class="material-icons">category</i>
-          <span>{{ $t("sidebar.directoryCategories", {}, {默认: "目录分类"}) }}</span>
+          <span>{{ $t("sidebar.directoryCategories") }}</span>
         </div>
         <div v-for="group in categoryGroups" :key="group.id" class="category-group">
           <button
@@ -224,6 +251,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { useVolumesStore } from "@/stores/volumes";
 import { useCategoriesStore } from "@/stores/categories";
 import { useFavoritesStore } from "@/stores/favorites";
+import { useTagsStore } from "@/stores/tags";
 
 import * as auth from "@/utils/auth";
 import {
@@ -249,8 +277,9 @@ export default {
     const volumesStore = useVolumesStore();
     const categoriesStore = useCategoriesStore();
     const favoritesStore = useFavoritesStore();
+    const tagsStore = useTagsStore();
     const expandedCategories = reactive({});
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, expandedCategories };
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories };
   },
   components: {
     ProgressBar,
@@ -330,6 +359,13 @@ export default {
     },
     removeFavorite(id) {
       this.favoritesStore.removeFavorite(id);
+    },
+    filterByTag(tagId) {
+      this.tagsStore.setFilter(tagId);
+      this.closeHovers();
+    },
+    clearTagFilter() {
+      this.tagsStore.setFilter(null);
     },
     toRoot() {
       this.$router.push({ path: "/files" });
@@ -416,8 +452,9 @@ export default {
     },
   },
   mounted() {
-    // Load favorites for all users
+    // Load favorites and tags for all users
     this.favoritesStore.loadFavorites();
+    this.tagsStore.loadTags();
     // Fetch volumes for admin users
     if (this.user?.perm?.admin) {
       this.volumesStore.fetchVolumes();

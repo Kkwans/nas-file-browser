@@ -46,6 +46,23 @@
           :title="isFavorited ? $t('sidebar.removeFavorite') : $t('sidebar.addFavorite')"
           @click.stop.prevent="toggleFav"
         >{{ isFavorited ? 'star' : 'star_border' }}</i>
+        <i
+          v-if="isDir"
+          class="material-icons tag-btn"
+          :class="{ 'has-tags': pathTags.length > 0 }"
+          :title="$t('tags.assignTags')"
+          @click.stop.prevent="toggleTagPicker"
+        >label</i>
+        <span
+          v-for="tag in pathTags"
+          :key="tag.id"
+          class="tag-chip"
+          :style="{ background: tag.color + '20', color: tag.color, borderColor: tag.color + '40' }"
+          :title="tag.name"
+        >{{ tag.name }}</span>
+        <div v-if="isDir && showTagPicker" class="tag-picker-popup" @click.stop>
+          <TagPicker :path="path || ''" @manage="openTagManager" />
+        </div>
       </p>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
@@ -64,6 +81,7 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useCategoriesStore } from "@/stores/categories";
 import { useFavoritesStore } from "@/stores/favorites";
+import { useTagsStore } from "@/stores/tags";
 
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
@@ -72,6 +90,7 @@ import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
+import TagPicker from "@/components/TagPicker.vue";
 
 const touches = ref<number>(0);
 
@@ -101,6 +120,7 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const categoriesStore = useCategoriesStore();
 const favoritesStore = useFavoritesStore();
+const tagsStore = useTagsStore();
 
 const singleClick = computed(
   () => !props.readOnly && authStore.user?.singleClick
@@ -162,6 +182,28 @@ const isFavorited = computed(() => {
 const toggleFav = () => {
   if (!props.path) return;
   favoritesStore.toggleFavorite(props.path, props.name);
+};
+
+const showTagPicker = ref(false);
+
+const pathTags = computed(() => {
+  if (!props.isDir || !props.path) return [];
+  return tagsStore.getTagsForPath(props.path);
+});
+
+const toggleTagPicker = (e: Event) => {
+  e.stopPropagation();
+  e.preventDefault();
+  showTagPicker.value = !showTagPicker.value;
+};
+
+const closeTagPicker = () => {
+  showTagPicker.value = false;
+};
+
+const openTagManager = () => {
+  showTagPicker.value = false;
+  layoutStore.showHover({ prompt: "tag-manager" });
 };
 
 const humanSize = () => {
@@ -284,6 +326,9 @@ const drop = async (event: Event) => {
 };
 
 const itemClick = (event: Event | KeyboardEvent) => {
+  // Close tag picker on any item click
+  showTagPicker.value = false;
+
   // If long press was triggered, prevent normal click behavior
   if (longPressTriggered.value) {
     longPressTriggered.value = false;

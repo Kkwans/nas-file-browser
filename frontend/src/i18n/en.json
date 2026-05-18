@@ -325,7 +325,8 @@
     "favorites": "Favorites",
     "addFavorite": "Add to favorites",
     "removeFavorite": "Remove from favorites",
-    "noFavorites": "No favorites yet"
+    "noFavorites": "No favorites yet",
+    "tags": "Tags"
   },
   "favorites": {
     "added": "Added to favorites",
@@ -358,5 +359,17 @@
     "toggleList": "Toggle file upload list",
     "remaining": "remaining",
     "completed": "Completed"
+  },
+  "tags": {
+    "manage": "Manage Tags",
+    "create": "Create Tag",
+    "edit": "Edit Tag",
+    "delete": "Delete Tag",
+    "namePlaceholder": "Tag name...",
+    "noTags": "No tags yet, create one",
+    "assignTags": "Assign Tags",
+    "confirmDelete": "Delete tag",
+    "clearFilter": "Clear Filter",
+    "filtered": "Filtering by tag"
   }
 }

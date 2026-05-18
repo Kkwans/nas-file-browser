@@ -217,6 +217,15 @@
           </div>
         </div>
 
+        <!-- Tag filter indicator -->
+        <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
+          <i class="material-icons" :style="{ color: tagsStore.activeFilterTag.color }">label</i>
+          <span>{{ $t("tags.filtered") }}: <strong>{{ tagsStore.activeFilterTag.name }}</strong></span>
+          <button class="tag-filter-clear-btn" @click="tagsStore.setFilter(null)">
+            <i class="material-icons">close</i>
+          </button>
+        </div>
+
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
           {{ t("files.folders") }}
         </h2>
@@ -408,6 +417,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useClipboardStore } from "@/stores/clipboard";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useTagsStore } from "@/stores/tags";
 
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
@@ -437,6 +447,7 @@ import { removePrefix } from "@/api/utils";
 
 const showLimit = ref<number>(50);
 const columnWidth = ref<number>(280);
+const tagsStore = useTagsStore();
 const dragCounter = ref<number>(0);
 const width = ref<number>(window.innerWidth);
 const itemWeight = ref<number>(0);
@@ -483,7 +494,20 @@ const items = computed(() => {
   const dirs: any[] = [];
   const files: any[] = [];
 
+  // Get the parent path for constructing full paths
+  const parentPath = fileStore.req?.path ?? "";
+
   fileStore.req?.items.forEach((item) => {
+    // Build the full path for tag matching
+    const fullPath = parentPath
+      ? parentPath.replace(/\/$/, "") + "/" + item.name
+      : "/" + item.name;
+
+    // Apply tag filter (only affects directories)
+    if (item.isDir && !tagsStore.matchesFilter(fullPath)) {
+      return; // skip this item
+    }
+
     if (item.isDir) {
       dirs.push(item);
     } else {

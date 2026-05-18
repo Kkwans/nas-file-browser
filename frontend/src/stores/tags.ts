@@ -1,0 +1,188 @@
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  paths: string[];
+  createdAt: number;
+}
+
+const STORAGE_KEY = "nas-file-browser-tags";
+
+// Predefined color palette for tags
+export const TAG_COLORS = [
+  "#F44336", // Red
+  "#E91E63", // Pink
+  "#9C27B0", // Purple
+  "#673AB7", // Deep Purple
+  "#3F51B5", // Indigo
+  "#2196F3", // Blue
+  "#03A9F4", // Light Blue
+  "#00BCD4", // Cyan
+  "#009688", // Teal
+  "#4CAF50", // Green
+  "#8BC34A", // Light Green
+  "#CDDC39", // Lime
+  "#FFC107", // Amber
+  "#FF9800", // Orange
+  "#FF5722", // Deep Orange
+  "#795548", // Brown
+  "#607D8B", // Blue Grey
+];
+
+export const useTagsStore = defineStore("tags", () => {
+  const tags = ref<Tag[]>([]);
+  const loaded = ref(false);
+  const activeFilter = ref<string | null>(null); // tag id for filtering
+
+  // Load from localStorage
+  function loadTags() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        tags.value = JSON.parse(saved);
+      }
+    } catch {
+      tags.value = [];
+    }
+    loaded.value = true;
+  }
+
+  // Save to localStorage
+  function saveTags() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tags.value));
+    } catch {
+      // localStorage full or unavailable
+    }
+  }
+
+  // Create a new tag
+  function createTag(name: string, color: string): Tag {
+    const tag: Tag = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: name.trim(),
+      color,
+      paths: [],
+      createdAt: Date.now(),
+    };
+    tags.value.push(tag);
+    saveTags();
+    return tag;
+  }
+
+  // Update a tag
+  function updateTag(id: string, updates: Partial<Pick<Tag, "name" | "color">>) {
+    const tag = tags.value.find((t) => t.id === id);
+    if (!tag) return;
+    if (updates.name !== undefined) tag.name = updates.name.trim();
+    if (updates.color !== undefined) tag.color = updates.color;
+    saveTags();
+  }
+
+  // Delete a tag
+  function deleteTag(id: string) {
+    tags.value = tags.value.filter((t) => t.id !== id);
+    if (activeFilter.value === id) activeFilter.value = null;
+    saveTags();
+  }
+
+  // Add a path to a tag
+  function addPathToTag(tagId: string, path: string) {
+    const tag = tags.value.find((t) => t.id === tagId);
+    if (!tag) return;
+    const cleaned = path.replace(/\/+$/, "");
+    if (!tag.paths.includes(cleaned)) {
+      tag.paths.push(cleaned);
+      saveTags();
+    }
+  }
+
+  // Remove a path from a tag
+  function removePathFromTag(tagId: string, path: string) {
+    const tag = tags.value.find((t) => t.id === tagId);
+    if (!tag) return;
+    const cleaned = path.replace(/\/+$/, "");
+    tag.paths = tag.paths.filter((p) => p !== cleaned);
+    saveTags();
+  }
+
+  // Toggle a path in a tag (add if not present, remove if present)
+  function togglePathInTag(tagId: string, path: string) {
+    const tag = tags.value.find((t) => t.id === tagId);
+    if (!tag) return;
+    const cleaned = path.replace(/\/+$/, "");
+    const idx = tag.paths.indexOf(cleaned);
+    if (idx >= 0) {
+      tag.paths.splice(idx, 1);
+    } else {
+      tag.paths.push(cleaned);
+    }
+    saveTags();
+  }
+
+  // Get all tags for a specific path
+  function getTagsForPath(path: string): Tag[] {
+    const cleaned = path.replace(/\/+$/, "");
+    return tags.value.filter((t) => t.paths.includes(cleaned));
+  }
+
+  // Check if a path has any tags
+  function hasTags(path: string): boolean {
+    const cleaned = path.replace(/\/+$/, "");
+    return tags.value.some((t) => t.paths.includes(cleaned));
+  }
+
+  // Set active filter tag (null = no filter)
+  function setFilter(tagId: string | null) {
+    activeFilter.value = activeFilter.value === tagId ? null : tagId;
+  }
+
+  // Get filtered paths (based on active filter)
+  const filteredPaths = computed(() => {
+    if (!activeFilter.value) return null; // null means no filter active
+    const tag = tags.value.find((t) => t.id === activeFilter.value);
+    return tag ? new Set(tag.paths) : null;
+  });
+
+  // Active filter tag object
+  const activeFilterTag = computed(() => {
+    if (!activeFilter.value) return null;
+    return tags.value.find((t) => t.id === activeFilter.value) ?? null;
+  });
+
+  // Check if a path matches the current filter
+  function matchesFilter(path: string): boolean {
+    if (!filteredPaths.value) return true; // no filter = show all
+    const cleaned = path.replace(/\/+$/, "");
+    return filteredPaths.value.has(cleaned);
+  }
+
+  // Tags sorted by name
+  const sortedTags = computed(() =>
+    [...tags.value].sort((a, b) => a.name.localeCompare(b.name, "zh-CN"))
+  );
+
+  return {
+    tags,
+    sortedTags,
+    loaded,
+    activeFilter,
+    activeFilterTag,
+    filteredPaths,
+    loadTags,
+    saveTags,
+    createTag,
+    updateTag,
+    deleteTag,
+    addPathToTag,
+    removePathFromTag,
+    togglePathInTag,
+    getTagsForPath,
+    hasTags,
+    setFilter,
+    matchesFilter,
+  };
+});

@@ -325,7 +325,8 @@
     "favorites": "收藏夹",
     "addFavorite": "收藏",
     "removeFavorite": "取消收藏",
-    "noFavorites": "暂无收藏目录"
+    "noFavorites": "暂无收藏目录",
+    "tags": "标签"
   },
   "favorites": {
     "added": "已收藏",
@@ -358,5 +359,17 @@
     "toggleList": "切换上传文件列表",
     "remaining": "剩余",
     "completed": "已完成"
+  },
+  "tags": {
+    "manage": "管理标签",
+    "create": "创建标签",
+    "edit": "编辑标签",
+    "delete": "删除标签",
+    "namePlaceholder": "标签名称...",
+    "noTags": "暂无标签，创建一个吧",
+    "assignTags": "分配标签",
+    "confirmDelete": "确定删除标签",
+    "clearFilter": "清除筛选",
+    "filtered": "正在按标签筛选"
   }
 }

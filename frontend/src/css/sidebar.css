@@ -306,6 +306,71 @@ html.dark nav > button.action:first-child {
   background: rgba(218, 68, 83, 0.1);
 }
 
+/* --- Tags Filter Section --- */
+.tags-section {
+  border-top: 1px solid var(--divider);
+  padding: 0.3em 0;
+  margin-top: 0.2em;
+}
+
+.tags-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.5em 1em 0.3em;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--textPrimary);
+  opacity: 0.6;
+}
+
+.tags-header i {
+  font-size: 1.1em;
+  color: var(--blue, #2196F3);
+}
+
+.tag-filter-item .tag-filter-dot {
+  font-size: 1em !important;
+}
+
+.tag-filter-item.active {
+  background: rgba(33, 150, 243, 0.08);
+}
+
+.tag-filter-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.tag-filter-count {
+  font-size: 0.75em;
+  color: var(--textSecondary, #999);
+  background: var(--surfaceSecondary, #f0f0f0);
+  padding: 0.05em 0.4em;
+  border-radius: 0.6em;
+  min-width: 1em;
+  text-align: center;
+}
+
+.tag-filter-clear {
+  opacity: 0.7;
+  font-size: 0.85em;
+}
+
+.tag-filter-clear:hover {
+  opacity: 1;
+}
+
+.tag-filter-clear .material-icons {
+  font-size: 1.1em !important;
+  color: var(--icon-red, #DA4453);
+}
+
 /* --- Storage Volumes Section --- */
 .volumes-section {
   border-top: 1px solid var(--divider);

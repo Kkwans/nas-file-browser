@@ -31,9 +31,9 @@ RUN go mod download
 
 COPY backend/ ./
 
-COPY frontend/assets.go ./backend/frontend/assets.go
+COPY frontend/assets.go ./frontend/assets.go
 
-COPY --from=frontend-builder /src/frontend/dist/ ./backend/frontend/dist/
+COPY --from=frontend-builder /src/frontend/dist/ ./frontend/dist/
 
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
 

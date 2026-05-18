@@ -18,7 +18,10 @@
 
       <!-- Favorites Section -->
       <div class="favorites-section">
-        <div class="favorites-header">
+        <button
+          class="favorites-header"
+          @click="toggleSection('favorites')"
+        >
           <i class="material-icons">star</i>
           <span>{{ $t("sidebar.favorites") }}</span>
           <button
@@ -29,7 +32,9 @@
           >
             <i class="material-icons">delete_sweep</i>
           </button>
-        </div>
+          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.favorites }">expand_more</i>
+        </button>
+        <template v-if="!collapsedSections.favorites">
         <div v-if="favoritesStore.sortedFavorites.length === 0" class="section-empty">
           <i class="material-icons">star_border</i>
           <span>{{ $t("sidebar.noFavorites") }}</span>
@@ -61,11 +66,15 @@
             @click.stop.prevent="removeFavorite(fav.id)"
           >close</i>
         </button>
+        </template>
       </div>
 
       <!-- Tags Filter Section -->
       <div class="tags-section">
-        <div class="tags-header">
+        <button
+          class="tags-header"
+          @click="toggleSection('tags')"
+        >
           <i class="material-icons">label</i>
           <span>{{ $t("sidebar.tags") }}</span>
           <button
@@ -75,7 +84,9 @@
           >
             <i class="material-icons">settings</i>
           </button>
-        </div>
+          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.tags }">expand_more</i>
+        </button>
+        <template v-if="!collapsedSections.tags">
         <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
           <i class="material-icons">turned_in_not</i>
           <span>{{ $t("tags.noTags") }}</span>
@@ -99,14 +110,20 @@
           <i class="material-icons">filter_list_off</i>
           <span>{{ $t("tags.clearFilter") }}</span>
         </button>
+        </template>
       </div>
 
       <!-- Storage Volumes Section (admin only) -->
       <div v-if="user.perm.admin && volumesStore.displayVolumes.length > 0" class="volumes-section">
-        <div class="volumes-header">
+        <button
+          class="volumes-header"
+          @click="toggleSection('volumes')"
+        >
           <i class="material-icons">storage</i>
           <span>{{ $t("sidebar.storageVolumes") }}</span>
-        </div>
+          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.volumes }">expand_more</i>
+        </button>
+        <template v-if="!collapsedSections.volumes">
         <button
           v-for="vol in volumesStore.systemVolumes"
           :key="vol.path"
@@ -147,14 +164,20 @@
             </div>
           </div>
         </button>
+        </template>
       </div>
 
       <!-- Category Quick Navigation (admin only) -->
       <div v-if="user.perm.admin && categoryGroups.length > 0" class="categories-section">
-        <div class="categories-header">
+        <button
+          class="categories-header"
+          @click="toggleSection('categories')"
+        >
           <i class="material-icons">category</i>
           <span>{{ $t("sidebar.directoryCategories") }}</span>
-        </div>
+          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.categories }">expand_more</i>
+        </button>
+        <template v-if="!collapsedSections.categories">
         <div v-for="group in categoryGroups" :key="group.id" class="category-group">
           <button
             class="action category-group-header"
@@ -177,6 +200,7 @@
             </button>
           </div>
         </div>
+        </template>
       </div>
 
       <div v-if="user.perm.create">
@@ -314,10 +338,24 @@ export default {
     const favoritesStore = useFavoritesStore();
     const tagsStore = useTagsStore();
     const expandedCategories = reactive({});
+    const collapsedSections = reactive({
+      favorites: false,
+      tags: false,
+      volumes: false,
+      categories: false,
+    });
+    // Load collapsed state from localStorage
+    try {
+      const saved = localStorage.getItem('nas-file-browser-collapsed-sections');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.assign(collapsedSections, parsed);
+      }
+    } catch {}
     const dragFromIndex = ref(-1);
     const dragOverIndex = ref(-1);
     const dragOverPosition = ref('');
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, dragFromIndex, dragOverIndex, dragOverPosition };
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition };
   },
   components: {
     ProgressBar,
@@ -385,6 +423,12 @@ export default {
     },
     toggleCategory(id) {
       this.expandedCategories[id] = !this.expandedCategories[id];
+    },
+    toggleSection(id) {
+      this.collapsedSections[id] = !this.collapsedSections[id];
+      try {
+        localStorage.setItem('nas-file-browser-collapsed-sections', JSON.stringify(this.collapsedSections));
+      } catch {}
     },
     riskIcon(risk) {
       if (risk === "high") return "warning";

@@ -259,6 +259,20 @@ html.dark nav > button.action:first-child {
   letter-spacing: 0.05em;
   color: var(--textPrimary);
   opacity: 0.6;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: 0.15s ease opacity;
+}
+
+html[dir="rtl"] .favorites-header {
+  text-align: right;
+}
+
+.favorites-header:hover {
+  opacity: 0.85;
 }
 
 .favorites-header i {
@@ -325,7 +339,6 @@ html.dark nav > button.action:first-child {
 
 /* --- Section Action Button (header right) --- */
 .section-action-btn {
-  margin-left: auto;
   background: none;
   border: none;
   cursor: pointer;
@@ -335,6 +348,7 @@ html.dark nav > button.action:first-child {
   align-items: center;
   opacity: 0;
   transition: 0.15s ease opacity, 0.15s ease background;
+  flex-shrink: 0;
 }
 
 .section-action-btn i {
@@ -346,6 +360,26 @@ html.dark nav > button.action:first-child {
 .favorites-header:hover .section-action-btn,
 .tags-header:hover .section-action-btn {
   opacity: 1;
+}
+
+/* --- Section Arrow (collapse/expand) --- */
+.section-arrow {
+  font-size: 1em !important;
+  transition: transform 0.2s ease;
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.section-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.favorites-header:hover .section-arrow,
+.tags-header:hover .section-arrow,
+.volumes-header:hover .section-arrow,
+.categories-header:hover .section-arrow {
+  opacity: 0.8;
 }
 
 .section-action-btn:hover {
@@ -379,6 +413,20 @@ html.dark nav > button.action:first-child {
   letter-spacing: 0.05em;
   color: var(--textPrimary);
   opacity: 0.6;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: 0.15s ease opacity;
+}
+
+html[dir="rtl"] .tags-header {
+  text-align: right;
+}
+
+.tags-header:hover {
+  opacity: 0.85;
 }
 
 .tags-header i {
@@ -444,6 +492,20 @@ html.dark nav > button.action:first-child {
   letter-spacing: 0.05em;
   color: var(--textPrimary);
   opacity: 0.6;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: 0.15s ease opacity;
+}
+
+html[dir="rtl"] .volumes-header {
+  text-align: right;
+}
+
+.volumes-header:hover {
+  opacity: 0.85;
 }
 
 .volumes-header i {
@@ -519,6 +581,20 @@ html.dark nav > button.action:first-child {
   letter-spacing: 0.05em;
   color: var(--textPrimary);
   opacity: 0.6;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: 0.15s ease opacity;
+}
+
+html[dir="rtl"] .categories-header {
+  text-align: right;
+}
+
+.categories-header:hover {
+  opacity: 0.85;
 }
 
 .categories-header i {

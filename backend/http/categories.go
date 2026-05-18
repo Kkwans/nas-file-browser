@@ -122,7 +122,20 @@ func matchPattern(pattern, path string) bool {
 	// Direct prefix match for patterns ending with /*
 	if strings.HasSuffix(pattern, "/*") {
 		prefix := strings.TrimSuffix(pattern, "/*")
-		return strings.HasPrefix(path, prefix+"/") || path == prefix
+		// Split pattern and path into components for glob matching
+		patternParts := strings.Split(prefix, "/")
+		pathParts := strings.Split(path, "/")
+		if len(pathParts) < len(patternParts) {
+			return false
+		}
+		// Match each component with glob support
+		for i, pp := range patternParts {
+			matched, _ := filepath.Match(pp, pathParts[i])
+			if !matched {
+				return false
+			}
+		}
+		return true
 	}
 
 	// Use filepath.Match for glob matching

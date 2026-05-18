@@ -724,3 +724,20 @@ html.dark .risk-badge.risk-medium {
 .tag-filter-clear-btn .material-icons {
   font-size: 1em;
 }
+
+/* --- Dark Mode: Tag Filter & Picker --- */
+:root.dark .tag-filter-indicator,
+html.dark .tag-filter-indicator {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.25);
+}
+
+:root.dark .tag-filter-clear-btn:hover,
+html.dark .tag-filter-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .tag-chip,
+html.dark .tag-chip {
+  filter: brightness(1.15);
+}

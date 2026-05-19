@@ -89,6 +89,7 @@ const currentMode = ref<"ir" | "sv" | "preview">("ir");
 let vditorInstance: any = null;
 let aceEditor: Ace.Editor | null = null;
 let savedContent = ""; // 保存一份内容用于模式切换时重建
+let initialMdContent = ""; // 记录 Markdown 初始内容用于 dirty 检测
 
 onMounted(() => {
   window.addEventListener("keydown", keyEvent);
@@ -160,6 +161,7 @@ onBeforeRouteUpdate((to, from, next) => {
 
 const initVditor = async (content: string) => {
   savedContent = content;
+  initialMdContent = content;
   await initVditorWithMode(content, 'ir');
 };
 
@@ -429,7 +431,15 @@ const keyEvent = (event: KeyboardEvent) => {
 };
 
 const handlePageChange = (event: BeforeUnloadEvent) => {
-  if (isMarkdownFile) return; // Vditor 有自己的 dirty 检测
+  if (isMarkdownFile && vditorInstance) {
+    // Vditor dirty 检测：比较当前内容与初始内容
+    const currentContent = vditorInstance.getValue();
+    if (currentContent !== initialMdContent) {
+      event.preventDefault();
+      event.returnValue = true;
+    }
+    return;
+  }
   if (!aceEditor?.session.getUndoManager().isClean()) {
     event.preventDefault();
     event.returnValue = true;
@@ -448,6 +458,9 @@ const save = async (throwError?: boolean) => {
       content = aceEditor.getValue();
     }
     await api.put(route.path, content);
+    if (isMarkdownFile) {
+      initialMdContent = content;
+    }
     if (aceEditor) {
       aceEditor.session.getUndoManager().markClean();
     }

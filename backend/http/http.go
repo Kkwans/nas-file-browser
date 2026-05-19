@@ -86,6 +86,19 @@ func NewHandler(
 	api.PathPrefix("/search").Handler(monkey(searchHandler, "/api/search")).Methods("GET")
 	api.PathPrefix("/subtitle").Handler(monkey(subtitleHandler, "/api/subtitle")).Methods("GET")
 
+	api.Handle("/favorites", monkey(favoritesGetHandler, "")).Methods("GET")
+	api.Handle("/favorites", monkey(favoritesPostHandler, "")).Methods("POST")
+	api.Handle("/favorites/reorder", monkey(favoritesReorderHandler, "")).Methods("PUT")
+	api.Handle("/favorites/{id}", monkey(favoritePutHandler, "")).Methods("PUT")
+	api.Handle("/favorites/{id}", monkey(favoriteDeleteHandler, "")).Methods("DELETE")
+
+	api.Handle("/tags", monkey(tagsGetHandler, "")).Methods("GET")
+	api.Handle("/tags", monkey(tagsPostHandler, "")).Methods("POST")
+	api.Handle("/tags/{id}", monkey(tagPutHandler, "")).Methods("PUT")
+	api.Handle("/tags/{id}", monkey(tagDeleteHandler, "")).Methods("DELETE")
+	api.Handle("/tags/{id}/paths", monkey(tagAddPathHandler, "")).Methods("POST")
+	api.Handle("/tags/{id}/paths", monkey(tagRemovePathHandler, "")).Methods("DELETE")
+
 	api.Handle("/volumes", monkey(volumesHandler, "")).Methods("GET")
 	api.Handle("/categories", monkey(categoriesHandler, "")).Methods("GET")
 	api.Handle("/classify", monkey(classifyHandler, "")).Methods("GET")

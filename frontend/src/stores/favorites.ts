@@ -10,26 +10,75 @@ export interface Favorite {
 }
 
 const STORAGE_KEY = "nas-file-browser-favorites";
+const API_BASE = "/api/favorites";
 
 export const useFavoritesStore = defineStore("favorites", () => {
   const favorites = ref<Favorite[]>([]);
   const loaded = ref(false);
 
-  // Load from localStorage
-  function loadFavorites() {
+  // --- API helpers ---
+
+  async function apiGet(): Promise<Favorite[] | null> {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        favorites.value = JSON.parse(saved);
-      }
+      const res = await fetch(API_BASE);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
     } catch {
-      favorites.value = [];
+      return null;
     }
-    loaded.value = true;
   }
 
-  // Save to localStorage
-  function saveFavorites() {
+  async function apiCreate(fav: Favorite): Promise<boolean> {
+    try {
+      const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fav),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function apiUpdate(id: string, fav: Partial<Favorite>): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fav),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function apiDelete(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function apiReorder(orderedIds: string[]): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/reorder`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  // --- localStorage helpers ---
+
+  function saveToLocalStorage() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites.value));
     } catch {
@@ -37,36 +86,69 @@ export const useFavoritesStore = defineStore("favorites", () => {
     }
   }
 
+  function loadFromLocalStorage(): Favorite[] {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  // --- Public methods ---
+
+  // Load favorites: API first, fallback to localStorage
+  async function loadFavorites() {
+    const apiData = await apiGet();
+    if (apiData) {
+      favorites.value = apiData;
+      saveToLocalStorage(); // keep localStorage in sync
+    } else {
+      favorites.value = loadFromLocalStorage();
+    }
+    loaded.value = true;
+  }
+
+  // Save to localStorage (kept for backward compat, prefer API)
+  function saveFavorites() {
+    saveToLocalStorage();
+  }
+
   // Add a favorite
-  function addFavorite(path: string, name: string) {
+  async function addFavorite(path: string, name: string) {
     const cleaned = path.replace(/\/+$/, "");
     // Check duplicate
     if (favorites.value.some((f) => f.path === cleaned)) return;
 
-    favorites.value.push({
+    const newFav: Favorite = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       path: cleaned,
       name,
       addedAt: Date.now(),
       order: favorites.value.length,
-    });
-    saveFavorites();
+    };
+    favorites.value.push(newFav);
+    saveToLocalStorage();
+    await apiCreate(newFav);
   }
 
   // Remove a favorite by id
-  function removeFavorite(id: string) {
+  async function removeFavorite(id: string) {
     favorites.value = favorites.value.filter((f) => f.id !== id);
     // Re-index order
     favorites.value.forEach((f, i) => (f.order = i));
-    saveFavorites();
+    saveToLocalStorage();
+    await apiDelete(id);
   }
 
   // Remove a favorite by path
-  function removeByPath(path: string) {
+  async function removeByPath(path: string) {
     const cleaned = path.replace(/\/+$/, "");
+    const target = favorites.value.find((f) => f.path === cleaned);
     favorites.value = favorites.value.filter((f) => f.path !== cleaned);
     favorites.value.forEach((f, i) => (f.order = i));
-    saveFavorites();
+    saveToLocalStorage();
+    if (target) await apiDelete(target.id);
   }
 
   // Check if a path is favorited
@@ -76,18 +158,18 @@ export const useFavoritesStore = defineStore("favorites", () => {
   }
 
   // Toggle favorite
-  function toggleFavorite(path: string, name: string) {
+  async function toggleFavorite(path: string, name: string) {
     const cleaned = path.replace(/\/+$/, "");
     const existing = favorites.value.find((f) => f.path === cleaned);
     if (existing) {
-      removeFavorite(existing.id);
+      await removeFavorite(existing.id);
     } else {
-      addFavorite(cleaned, name);
+      await addFavorite(cleaned, name);
     }
   }
 
   // Reorder (move item from one position to another)
-  function reorderFavorite(fromIndex: number, toIndex: number) {
+  async function reorderFavorite(fromIndex: number, toIndex: number) {
     if (
       fromIndex < 0 ||
       fromIndex >= favorites.value.length ||
@@ -99,7 +181,27 @@ export const useFavoritesStore = defineStore("favorites", () => {
     const [item] = favorites.value.splice(fromIndex, 1);
     favorites.value.splice(toIndex, 0, item);
     favorites.value.forEach((f, i) => (f.order = i));
-    saveFavorites();
+    saveToLocalStorage();
+    await apiReorder(favorites.value.map((f) => f.id));
+  }
+
+  // Sync local data to API (e.g. after recovering from offline)
+  async function syncFavorites() {
+    const apiData = await apiGet();
+    if (apiData) {
+      // API is source of truth; merge any local-only items
+      const apiPaths = new Set(apiData.map((f) => f.path));
+      const localOnly = favorites.value.filter((f) => !apiPaths.has(f.path));
+      for (const fav of localOnly) {
+        await apiCreate(fav);
+      }
+      // Re-fetch to get merged result
+      const merged = await apiGet();
+      if (merged) {
+        favorites.value = merged;
+        saveToLocalStorage();
+      }
+    }
   }
 
   // Sorted favorites
@@ -119,5 +221,6 @@ export const useFavoritesStore = defineStore("favorites", () => {
     isFavorite,
     toggleFavorite,
     reorderFavorite,
+    syncFavorites,
   };
 });

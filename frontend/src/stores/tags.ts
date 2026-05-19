@@ -10,6 +10,7 @@ export interface Tag {
 }
 
 const STORAGE_KEY = "nas-file-browser-tags";
+const API_BASE = "/api/tags";
 
 // Predefined color palette for tags
 export const TAG_COLORS = [
@@ -37,21 +38,82 @@ export const useTagsStore = defineStore("tags", () => {
   const loaded = ref(false);
   const activeFilter = ref<string | null>(null); // tag id for filtering
 
-  // Load from localStorage
-  function loadTags() {
+  // --- API helpers ---
+
+  async function apiGet(): Promise<Tag[] | null> {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        tags.value = JSON.parse(saved);
-      }
+      const res = await fetch(API_BASE);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
     } catch {
-      tags.value = [];
+      return null;
     }
-    loaded.value = true;
   }
 
-  // Save to localStorage
-  function saveTags() {
+  async function apiCreate(tag: Tag): Promise<boolean> {
+    try {
+      const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tag),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function apiUpdate(id: string, updates: Partial<Tag>): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function apiDelete(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function apiAddPath(tagId: string, path: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/${tagId}/paths`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function apiRemovePath(tagId: string, path: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/${tagId}/paths`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  // --- localStorage helpers ---
+
+  function saveToLocalStorage() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tags.value));
     } catch {
@@ -59,8 +121,36 @@ export const useTagsStore = defineStore("tags", () => {
     }
   }
 
+  function loadFromLocalStorage(): Tag[] {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  // --- Public methods ---
+
+  // Load tags: API first, fallback to localStorage
+  async function loadTags() {
+    const apiData = await apiGet();
+    if (apiData) {
+      tags.value = apiData;
+      saveToLocalStorage(); // keep localStorage in sync
+    } else {
+      tags.value = loadFromLocalStorage();
+    }
+    loaded.value = true;
+  }
+
+  // Save to localStorage (kept for backward compat, prefer API)
+  function saveTags() {
+    saveToLocalStorage();
+  }
+
   // Create a new tag
-  function createTag(name: string, color: string): Tag {
+  async function createTag(name: string, color: string): Promise<Tag> {
     const tag: Tag = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       name: name.trim(),
@@ -69,58 +159,66 @@ export const useTagsStore = defineStore("tags", () => {
       createdAt: Date.now(),
     };
     tags.value.push(tag);
-    saveTags();
+    saveToLocalStorage();
+    await apiCreate(tag);
     return tag;
   }
 
   // Update a tag
-  function updateTag(id: string, updates: Partial<Pick<Tag, "name" | "color">>) {
+  async function updateTag(id: string, updates: Partial<Pick<Tag, "name" | "color">>) {
     const tag = tags.value.find((t) => t.id === id);
     if (!tag) return;
     if (updates.name !== undefined) tag.name = updates.name.trim();
     if (updates.color !== undefined) tag.color = updates.color;
-    saveTags();
+    saveToLocalStorage();
+    await apiUpdate(id, updates);
   }
 
   // Delete a tag
-  function deleteTag(id: string) {
+  async function deleteTag(id: string) {
     tags.value = tags.value.filter((t) => t.id !== id);
     if (activeFilter.value === id) activeFilter.value = null;
-    saveTags();
+    saveToLocalStorage();
+    await apiDelete(id);
   }
 
   // Add a path to a tag
-  function addPathToTag(tagId: string, path: string) {
+  async function addPathToTag(tagId: string, path: string) {
     const tag = tags.value.find((t) => t.id === tagId);
     if (!tag) return;
     const cleaned = path.replace(/\/+$/, "");
     if (!tag.paths.includes(cleaned)) {
       tag.paths.push(cleaned);
-      saveTags();
+      saveToLocalStorage();
+      await apiAddPath(tagId, cleaned);
     }
   }
 
   // Remove a path from a tag
-  function removePathFromTag(tagId: string, path: string) {
+  async function removePathFromTag(tagId: string, path: string) {
     const tag = tags.value.find((t) => t.id === tagId);
     if (!tag) return;
     const cleaned = path.replace(/\/+$/, "");
     tag.paths = tag.paths.filter((p) => p !== cleaned);
-    saveTags();
+    saveToLocalStorage();
+    await apiRemovePath(tagId, cleaned);
   }
 
   // Toggle a path in a tag (add if not present, remove if present)
-  function togglePathInTag(tagId: string, path: string) {
+  async function togglePathInTag(tagId: string, path: string) {
     const tag = tags.value.find((t) => t.id === tagId);
     if (!tag) return;
     const cleaned = path.replace(/\/+$/, "");
     const idx = tag.paths.indexOf(cleaned);
     if (idx >= 0) {
       tag.paths.splice(idx, 1);
+      saveToLocalStorage();
+      await apiRemovePath(tagId, cleaned);
     } else {
       tag.paths.push(cleaned);
+      saveToLocalStorage();
+      await apiAddPath(tagId, cleaned);
     }
-    saveTags();
   }
 
   // Get all tags for a specific path
@@ -160,6 +258,25 @@ export const useTagsStore = defineStore("tags", () => {
     return filteredPaths.value.has(cleaned);
   }
 
+  // Sync local data to API (e.g. after recovering from offline)
+  async function syncTags() {
+    const apiData = await apiGet();
+    if (apiData) {
+      // API is source of truth; merge any local-only tags
+      const apiIds = new Set(apiData.map((t) => t.id));
+      const localOnly = tags.value.filter((t) => !apiIds.has(t.id));
+      for (const tag of localOnly) {
+        await apiCreate(tag);
+      }
+      // Re-fetch to get merged result
+      const merged = await apiGet();
+      if (merged) {
+        tags.value = merged;
+        saveToLocalStorage();
+      }
+    }
+  }
+
   // Tags sorted by name
   const sortedTags = computed(() =>
     [...tags.value].sort((a, b) => a.name.localeCompare(b.name, "zh-CN"))
@@ -184,5 +301,6 @@ export const useTagsStore = defineStore("tags", () => {
     hasTags,
     setFilter,
     matchesFilter,
+    syncTags,
   };
 });

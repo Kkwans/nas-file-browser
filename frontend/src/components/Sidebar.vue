@@ -4,7 +4,7 @@
     <div
       class="sidebar-resize-handle"
       @mousedown="startResize"
-      :title="t('sidebar.resizeSidebar')"
+      :title="$t('sidebar.resizeSidebar')"
     ></div>
     <template v-if="isLoggedIn">
       <button @click="toAccountSettings" class="action">

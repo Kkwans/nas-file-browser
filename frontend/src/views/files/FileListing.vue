@@ -742,6 +742,29 @@ const keyEvent = (event: KeyboardEvent) => {
     layoutStore.showHover("rename");
   }
 
+  // Space key - Quick Preview
+  if (event.key === " " || event.code === "Space") {
+    if (fileStore.selectedCount !== 1) return;
+    event.preventDefault();
+    const item = fileStore.req?.items[fileStore.selected[0]];
+    if (item && !item.isDir) {
+      layoutStore.showHover({
+        prompt: "quick-preview",
+        props: {
+          item: {
+            name: item.name,
+            url: item.url,
+            type: item.type,
+            size: item.size,
+            modified: item.modified,
+            path: item.path,
+            extension: item.extension || '',
+          },
+        },
+      });
+    }
+  }
+
   // Ctrl is pressed
   if (!event.ctrlKey && !event.metaKey) {
     return;

@@ -663,3 +663,229 @@ html.dark .card .collapsible > label:hover {
 html.dark .risk-confirm-details {
   background: rgba(218, 68, 83, 0.1);
 }
+
+/* ── Quick Preview 快捷预览 ───────────────────────────────── */
+
+.quick-preview-card {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 800px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.quick-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75em 1em;
+  border-bottom: 1px solid var(--borderSecondary, rgba(0, 0, 0, 0.08));
+  gap: 0.5em;
+  flex-shrink: 0;
+}
+
+.quick-preview-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 0;
+  flex: 1;
+}
+
+.quick-preview-name {
+  font-weight: 600;
+  font-size: 0.95em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quick-preview-meta {
+  font-size: 0.8em;
+  opacity: 0.5;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.file-type-icon {
+  font-size: 1.3em;
+  flex-shrink: 0;
+}
+
+.file-type-icon.type-image { color: var(--icon-orange, #f90); }
+.file-type-icon.type-video { color: var(--icon-violet, #60f); }
+.file-type-icon.type-audio { color: var(--icon-yellow, #ff0); }
+.file-type-icon.type-pdf   { color: var(--icon-red, #f00); }
+.file-type-icon.type-text  { color: var(--icon-blue, #00f); }
+.file-type-icon.type-blob  { color: var(--icon-grey, #999); }
+
+.quick-preview-actions {
+  display: flex;
+  gap: 0.25em;
+  flex-shrink: 0;
+}
+
+.quick-preview-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35em;
+  border-radius: 0.375em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--textPrimary, #333);
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.quick-preview-btn:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.quick-preview-btn.close-btn:hover {
+  color: #e53935;
+  background: rgba(229, 57, 53, 0.08);
+}
+
+.quick-preview-btn i {
+  font-size: 1.2em;
+}
+
+.quick-preview-body {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  max-height: calc(90vh - 4em);
+  background: var(--surfaceSecondary, #f5f5f5);
+}
+
+.quick-preview-image {
+  max-width: 100%;
+  max-height: calc(90vh - 4em);
+  object-fit: contain;
+  display: block;
+}
+
+.quick-preview-video {
+  max-width: 100%;
+  max-height: calc(90vh - 4em);
+  display: block;
+}
+
+.quick-preview-audio-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+  padding: 2em;
+}
+
+.audio-icon {
+  font-size: 4em;
+  opacity: 0.3;
+  color: var(--icon-yellow, #ff0);
+}
+
+.quick-preview-audio {
+  width: 320px;
+  max-width: 100%;
+}
+
+.quick-preview-pdf {
+  width: 100%;
+  height: calc(90vh - 4em);
+  border: none;
+}
+
+.quick-preview-text {
+  width: 100%;
+  max-height: calc(90vh - 4em);
+  overflow: auto;
+  margin: 0;
+  padding: 1em 1.25em;
+  font-size: 0.85em;
+  line-height: 1.6;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  background: var(--surfacePrimary, #fff);
+  color: var(--textPrimary, #333);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.quick-preview-text code {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.quick-preview-no-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75em;
+  padding: 3em;
+  opacity: 0.5;
+}
+
+.quick-preview-no-preview i {
+  font-size: 3em;
+}
+
+.quick-preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 1;
+}
+
+/* Dark mode */
+:root.dark .quick-preview-body,
+html.dark .quick-preview-body {
+  background: var(--surfaceSecondary, #1e1e1e);
+}
+
+:root.dark .quick-preview-btn:hover,
+html.dark .quick-preview-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .quick-preview-loading,
+html.dark .quick-preview-loading {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Mobile */
+@media (max-width: 736px) {
+  .quick-preview-card {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 92vh;
+  }
+
+  .quick-preview-header {
+    padding: 0.5em 0.75em;
+    flex-wrap: wrap;
+  }
+
+  .quick-preview-meta {
+    display: none;
+  }
+
+  .quick-preview-body {
+    max-height: calc(92vh - 3.5em);
+  }
+
+  .quick-preview-pdf {
+    height: calc(92vh - 3.5em);
+  }
+}

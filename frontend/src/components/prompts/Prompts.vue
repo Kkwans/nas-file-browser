@@ -31,6 +31,7 @@ import ResolveConflict from "./ResolveConflict.vue";
 import CurrentPassword from "./CurrentPassword.vue";
 import RiskConfirm from "./RiskConfirm.vue";
 import TagManager from "@/components/TagManager.vue";
+import QuickPreview from "./QuickPreview.vue";
 
 const layoutStore = useLayoutStore();
 
@@ -56,6 +57,7 @@ const components = new Map<string, any>([
   ["current-password", CurrentPassword],
   ["risk-confirm", RiskConfirm],
   ["tag-manager", TagManager],
+  ["quick-preview", QuickPreview],
 ]);
 
 const modal = computed(() => {

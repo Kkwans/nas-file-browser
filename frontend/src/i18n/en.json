@@ -130,6 +130,7 @@
     },
     "del": "delete selected items",
     "doubleClick": "open a file or directory",
+    "space": "quick preview file (select a file then press Space)",
     "esc": "clear selection and/or close the prompt",
     "f1": "this information",
     "f2": "rename file",

@@ -15,6 +15,7 @@
         <li><strong>CTRL + Click</strong> - {{ $t("help.ctrl.click") }}</li>
         <li><strong>Click</strong> - {{ $t("help.click") }}</li>
         <li><strong>Double click</strong> - {{ $t("help.doubleClick") }}</li>
+        <li><strong>Space</strong> - {{ $t("help.space") }}</li>
       </ul>
     </div>
 

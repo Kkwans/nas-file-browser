@@ -114,7 +114,7 @@ html[dir="rtl"] #listing {
 #listing.mosaic .item {
   width: calc(33% - 1em);
   margin: 0.4em;
-  padding: 0.7em;
+  padding: 0.5em 0.6em;
   border-radius: 0.5em;
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.04),
@@ -144,13 +144,28 @@ html[dir="rtl"] #listing {
 }
 
 #listing.mosaic .item div:first-of-type {
-  width: 3.5em;
-  height: 3.5em;
+  width: 2.8em;
+  height: 2.8em;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+#listing.mosaic .item div:first-of-type i {
+  font-size: 2.4em;
+  line-height: 1;
+  vertical-align: middle;
+  margin-right: 0;
+}
+
+#listing.mosaic .item div:first-of-type img {
+  width: 2.8em;
+  height: 2.8em;
+  margin-right: 0;
+  border-radius: 0.35em;
+  object-fit: cover;
 }
 
 #listing.mosaic .item div:last-of-type {
@@ -186,8 +201,8 @@ html[dir="rtl"] #listing {
 #listing.mosaic.gallery .item i {
   width: 100%;
   margin-right: 0;
-  font-size: 8em;
-  text-align: center;
+  font-size: 5em;
+  line-height: 1;
 }
 
 #listing.mosaic.gallery .item img {

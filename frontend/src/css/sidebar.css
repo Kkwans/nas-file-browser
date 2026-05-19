@@ -416,9 +416,9 @@ html[dir="rtl"] .favorites-header {
 .tags-header {
   display: flex;
   align-items: center;
-  gap: 0.7em;
-  padding: 0.5em 1em 0.3em;
-  font-size: 0.75em;
+  gap: 0.5em;
+  padding: 0.45em 1em 0.25em;
+  font-size: 0.7em;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -446,7 +446,13 @@ html[dir="rtl"] .tags-header {
 }
 
 .tag-filter-item .tag-filter-dot {
-  font-size: 1em !important;
+  font-size: 0.85em !important;
+}
+
+.tag-filter-item {
+  padding-top: 0.35em !important;
+  padding-bottom: 0.35em !important;
+  font-size: 0.85em !important;
 }
 
 .tag-filter-item.active {
@@ -462,10 +468,10 @@ html[dir="rtl"] .tags-header {
 }
 
 .tag-filter-count {
-  font-size: 0.75em;
+  font-size: 0.65em;
   color: var(--textSecondary, #999);
   background: var(--surfaceSecondary, #f0f0f0);
-  padding: 0.05em 0.4em;
+  padding: 0.05em 0.35em;
   border-radius: 0.6em;
   min-width: 1em;
   text-align: center;
@@ -698,6 +704,29 @@ html[dir="rtl"] .categories-header {
 
 .favorite-item.drag-over-bottom {
   box-shadow: inset 0 -2px 0 0 var(--blue, #2196F3);
+}
+
+/* --- Sidebar Resize Handle --- */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  transition: background 0.15s;
+}
+
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle:active {
+  background: var(--blue, #2196F3);
+  opacity: 0.3;
+}
+
+html[dir="rtl"] .sidebar-resize-handle {
+  right: auto;
+  left: -3px;
 }
 
 /* --- Mobile Responsive --- */

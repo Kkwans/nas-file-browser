@@ -335,7 +335,8 @@
     "removeFavorite": "取消收藏",
     "noFavorites": "暂无收藏目录",
     "clearAllFavorites": "清空收藏夹",
-    "tags": "标签"
+    "tags": "标签",
+    "resizeSidebar": "拖拽调节侧边栏宽度"
   },
   "favorites": {
     "added": "已收藏",

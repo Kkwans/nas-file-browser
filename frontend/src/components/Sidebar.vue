@@ -1,6 +1,11 @@
 <template>
   <div v-show="active" @click="closeHovers" class="overlay"></div>
-  <nav :class="{ active }">
+  <nav :class="{ active }" :style="{ width: sidebarWidth + 'px' }">
+    <div
+      class="sidebar-resize-handle"
+      @mousedown="startResize"
+      :title="t('sidebar.resizeSidebar')"
+    ></div>
     <template v-if="isLoggedIn">
       <button @click="toAccountSettings" class="action">
         <i class="material-icons">person</i>
@@ -355,7 +360,11 @@ export default {
     const dragFromIndex = ref(-1);
     const dragOverIndex = ref(-1);
     const dragOverPosition = ref('');
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition };
+    const sidebarWidth = ref(parseInt(localStorage.getItem('nas-file-browser-sidebar-width') || '256'));
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition, sidebarWidth, isResizing, startX, startWidth };
   },
   components: {
     ProgressBar,
@@ -363,6 +372,31 @@ export default {
   inject: ["$showError"],
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
+    startResize(event) {
+      this.isResizing = true;
+      this.startX = event.clientX;
+      this.startWidth = this.sidebarWidth;
+      document.addEventListener('mousemove', this.onResize);
+      document.addEventListener('mouseup', this.stopResize);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    },
+    onResize(event) {
+      if (!this.isResizing) return;
+      const diff = event.clientX - this.startX;
+      const newWidth = Math.min(500, Math.max(180, this.startWidth + diff));
+      this.sidebarWidth = newWidth;
+    },
+    stopResize() {
+      this.isResizing = false;
+      document.removeEventListener('mousemove', this.onResize);
+      document.removeEventListener('mouseup', this.stopResize);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      try {
+        localStorage.setItem('nas-file-browser-sidebar-width', this.sidebarWidth.toString());
+      } catch {}
+    },
     getKnownDirs(volBase) {
       // Return known subdirectories for a volume based on NAS structure
       const dirs = [

@@ -484,7 +484,7 @@ import {
   ref,
   watch,
 } from "vue";
-import { useRoute, onBeforeRouteUpdate } from "vue-router";
+import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
@@ -535,6 +535,7 @@ const sortOptions = [
 const { req } = storeToRefs(fileStore);
 
 const route = useRoute();
+const router = useRouter();
 onBeforeRouteUpdate(() => {
   hideContextMenu();
 });
@@ -1119,7 +1120,7 @@ const sort = async (by: string) => {
 };
 
 const openSearch = () => {
-  layoutStore.showHover("search");
+  router.push('/search');
 };
 
 const toggleMultipleSelection = () => {

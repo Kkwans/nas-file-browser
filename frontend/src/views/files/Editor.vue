@@ -253,27 +253,61 @@ const setupOutlineClickHandler = () => {
   const mountEl = document.getElementById('vditor-mount');
   if (!mountEl) return;
 
-  // 监听大纲面板的点击事件
-  const outlineEl = mountEl.querySelector('.vditor-outline');
-  if (!outlineEl) return;
+  const bindOutlineClicks = () => {
+    const outlineEl = mountEl.querySelector('.vditor-outline');
+    if (!outlineEl) return;
 
-  outlineEl.addEventListener('click', (e: Event) => {
-    const target = e.target as HTMLElement;
-    const spanEl = target.closest('span[data-target-id]') as HTMLElement | null;
-    if (!spanEl) return;
+    // 移除旧监听器（避免重复绑定）
+    outlineEl.removeEventListener('click', handleOutlineClick);
+    outlineEl.addEventListener('click', handleOutlineClick);
+  };
 
-    const targetId = spanEl.getAttribute('data-target-id');
-    if (!targetId) return;
-
-    // 查找目标元素并滚动
-    const headingEl = mountEl.querySelector(`#${targetId}`) ||
-      mountEl.querySelector(`[data-id="${targetId}"]`) ||
-      mountEl.querySelector(`h1[id="${targetId}"], h2[id="${targetId}"], h3[id="${targetId}"], h4[id="${targetId}"], h5[id="${targetId}"], h6[id="${targetId}"]`);
-
-    if (headingEl) {
-      headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // 使用 MutationObserver 确保大纲 DOM 渲染完成后绑定
+  const observer = new MutationObserver(() => {
+    const outlineEl = mountEl.querySelector('.vditor-outline');
+    if (outlineEl && outlineEl.children.length > 0) {
+      bindOutlineClicks();
+      observer.disconnect();
     }
   });
+
+  observer.observe(mountEl, { childList: true, subtree: true });
+
+  // 也立即尝试绑定（大纲可能已存在）
+  bindOutlineClicks();
+};
+
+const handleOutlineClick = (e: Event) => {
+  const target = e.target as HTMLElement;
+  const mountEl = document.getElementById('vditor-mount');
+  if (!mountEl) return;
+
+  // 尝试多种选择器匹配大纲项
+  const spanEl = target.closest('span[data-target-id]') as HTMLElement
+    || target.closest('[data-target-id]') as HTMLElement
+    || target.closest('span[data-id]') as HTMLElement;
+
+  if (!spanEl) return;
+
+  const targetId = spanEl.getAttribute('data-target-id') || spanEl.getAttribute('data-id');
+  if (!targetId) return;
+
+  // 查找目标标题元素并滚动
+  const selectors = [
+    `#${CSS.escape(targetId)}`,
+    `[data-id="${targetId}"]`,
+    `h1[id="${targetId}"], h2[id="${targetId}"], h3[id="${targetId}"], h4[id="${targetId}"], h5[id="${targetId}"], h6[id="${targetId}"]`,
+  ];
+
+  for (const sel of selectors) {
+    try {
+      const headingEl = mountEl.querySelector(sel);
+      if (headingEl) {
+        headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    } catch {}
+  }
 };
 
 const initVditorPreview = async (content: string) => {
@@ -286,9 +320,13 @@ const initVditorPreview = async (content: string) => {
   const isDark = isDarkTheme();
 
   // 阅读模式：用 Vditor 的预览方法渲染为纯 HTML
-  // md2html 可能返回 Promise，需要 await
+  // md2html 可能返回 Promise 或 string，统一用 Promise.resolve 包裹确保 await
   const htmlResult = VditorClass.md2html(content, { theme: isDark ? 'dark' : 'light' });
-  const html = htmlResult instanceof Promise ? await htmlResult : htmlResult;
+  const html = await Promise.resolve(htmlResult);
+  if (typeof html !== 'string') {
+    console.error('[Vditor] md2html returned non-string:', html);
+    return;
+  }
 
   const previewElement = document.createElement('div');
   previewElement.className = 'vditor-reset vditor-preview--content';
@@ -371,7 +409,7 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
 
   if (mode === 'preview') {
     // 阅读模式：用 Vditor 的预览模式（只有预览面板）
-    initVditorPreview(content);
+    await initVditorPreview(content);
   } else {
     // ir 或 sv 模式
     initVditorWithMode(content, mode);

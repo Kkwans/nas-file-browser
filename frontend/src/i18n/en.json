@@ -335,7 +335,8 @@
     "removeFavorite": "Remove from favorites",
     "noFavorites": "No favorites yet",
     "clearAllFavorites": "Clear all favorites",
-    "tags": "Tags"
+    "tags": "Tags",
+    "resizeSidebar": "Drag to resize sidebar"
   },
   "favorites": {
     "added": "Added to favorites",

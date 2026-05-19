@@ -1,5 +1,18 @@
 /* Icons */
 
+/* Prevent material icon text fallback from leaking during font load */
+.file-icons i.material-icons {
+  font-display: swap;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Hide ::before content until font is loaded (prevents "folder" text leak) */
+.file-icons [data-dir="true"] i::before {
+  font-family: 'Material Icons';
+  font-display: swap;
+}
+
 /* General */
 
 .file-icons [aria-label^="."] {

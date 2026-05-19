@@ -564,3 +564,33 @@ html[dir="rtl"] .card.floating .card-content .file-list {
   direction: ltr;
   text-align: left;
 }
+
+/* Font loading fix - hide icon text before Material Icons loads */
+.material-icons,
+.file-icons i::before,
+.file-icons [data-type] i::before {
+  font-display: block;
+  overflow: hidden;
+}
+
+/* Loading skeleton animation */
+@keyframes skeleton-pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.skeleton-loading {
+  background: #e0e0e0;
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Loading state improvements */
+.message.delayed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 200px;
+}

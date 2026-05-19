@@ -11,8 +11,8 @@ services:
     ports:
       - "8888:80"
     volumes:
-      - /volume1:/volume1:ro
-      - /volume2:/volume2:ro
+      - /volume1:/volume1
+      - /volume2:/volume2
       - ./config:/config
       - ./database:/database
     environment:

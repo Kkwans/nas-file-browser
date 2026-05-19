@@ -37,8 +37,7 @@ COPY --from=frontend-builder /src/frontend/dist/ ./frontend/dist/
 
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
 
-# Download JSON.sh in builder (has network access)
-RUN wget -q -O /JSON.sh https://raw.githubusercontent.com/dominictarr/JSON.sh/0d5e5c77365f63809bf6e77ef44a1f34b0e05840/JSON.sh
+# JSON.sh copied from local (GitHub raw often blocked in China)
 
 # --- Stage 3: Runtime ---
 FROM alpine:3.21
@@ -48,7 +47,7 @@ RUN apk add --no-cache ca-certificates mailcap tini
 COPY --from=backend-builder /src/filebrowser /usr/local/bin/filebrowser
 COPY docker/common/ /
 COPY docker/alpine/ /
-COPY --from=backend-builder /JSON.sh /JSON.sh
+COPY docker/JSON.sh /JSON.sh
 RUN chmod +x /healthcheck.sh /init.sh /JSON.sh
 
 RUN mkdir -p /config /database /srv

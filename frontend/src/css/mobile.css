@@ -79,9 +79,9 @@
   }
 
   #listing.list .item {
-    padding: 0.5em 0.625em;
-    min-height: 2.75em;
-    gap: 0.5em;
+    padding: 0.4em 0.625em;
+    min-height: 2.5em;
+    gap: 0.4em;
   }
 
   #listing.list .item .size {
@@ -90,12 +90,15 @@
 
   #listing.list .item .name {
     width: 60%;
-    font-size: 0.9375em;
+    font-size: 0.875em;
+    word-break: break-all;
   }
 
   #listing.list .item .checkbox {
-    width: 2em;
-    height: 2em;
+    width: 2.5em;
+    height: 2.5em;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   /* === Mosaic (Grid) Mobile - Vertical Cards === */
@@ -116,7 +119,7 @@
 
   #listing.mosaic .item div:first-of-type {
     width: 100%;
-    height: 2.5em;
+    height: 2.8em;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -124,15 +127,15 @@
   }
 
   #listing.mosaic .item div:first-of-type i {
-    font-size: 2em;
+    font-size: 2.2em;
     margin-right: 0;
   }
 
   #listing.mosaic .item div:first-of-type img {
-    width: 2.5em;
-    height: 2.5em;
+    width: 2.8em;
+    height: 2.8em;
     margin-right: 0;
-    border-radius: 0.3em;
+    border-radius: 0.4em;
   }
 
   #listing.mosaic .item div:last-of-type {
@@ -141,15 +144,17 @@
   }
 
   #listing.mosaic .item .name {
-    display: block;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     width: 100%;
     font-size: 0.7em;
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    line-height: 1.2;
-    max-height: 2.4em;
+    line-height: 1.3;
+    max-height: 2.6em;
+    word-break: break-all;
   }
 
   #listing.mosaic .item .size,
@@ -206,8 +211,11 @@
   }
 
   #listing #multiple-selection .selection-btn {
-    padding: 0.3em 0.5em;
-    font-size: 0.75em;
+    padding: 0.4em 0.6em;
+    font-size: 0.8em;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
   }
 
   #listing #multiple-selection .selection-btn span {
@@ -215,7 +223,7 @@
   }
 
   #listing #multiple-selection .selection-btn i {
-    font-size: 1.2em;
+    font-size: 1.3em;
   }
 
   /* --- File Selection Bar --- */
@@ -254,8 +262,10 @@
 
   #file-selection .action {
     border-radius: 50%;
-    width: 2.5em;
-    height: 2.5em;
+    width: 2.75em;
+    height: 2.75em;
+    min-width: 44px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -437,7 +447,8 @@
 
   #listing.list .item .name {
     width: 100%;
-    font-size: 0.875em;
+    font-size: 0.8125em;
+    word-break: break-all;
   }
 
   /* 3 columns on small phone, tighter */
@@ -457,6 +468,8 @@
 
   #listing.mosaic .item .name {
     font-size: 0.68em;
+    -webkit-line-clamp: 2;
+    max-height: 2.4em;
   }
 
   #listing.mosaic.gallery .item {

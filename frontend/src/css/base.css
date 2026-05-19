@@ -53,7 +53,7 @@ i.spin {
 
 /* nav styles moved to sidebar.css */
 
-nav .action > * {
+nav.sidebar .action > * {
   vertical-align: middle;
 }
 

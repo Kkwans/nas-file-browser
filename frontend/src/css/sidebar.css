@@ -4,7 +4,7 @@
  * ============================================ */
 
 /* --- Sidebar Container --- */
-nav {
+nav.sidebar {
   width: 16em;
   position: fixed;
   top: 3.5em;
@@ -20,7 +20,7 @@ nav {
   z-index: 999;
 }
 
-html[dir="rtl"] nav {
+html[dir="rtl"] nav.sidebar {
   left: initial;
   right: 0;
   border-right: none;
@@ -28,17 +28,17 @@ html[dir="rtl"] nav {
 }
 
 /* Scrollbar styling */
-nav::-webkit-scrollbar {
+nav.sidebar::-webkit-scrollbar {
   width: 4px;
 }
-nav::-webkit-scrollbar-track {
+nav.sidebar::-webkit-scrollbar-track {
   background: transparent;
 }
-nav::-webkit-scrollbar-thumb {
+nav.sidebar::-webkit-scrollbar-thumb {
   background: var(--borderSecondary);
   border-radius: 4px;
 }
-nav::-webkit-scrollbar-thumb:hover {
+nav.sidebar::-webkit-scrollbar-thumb:hover {
   background: var(--textPrimary);
 }
 
@@ -48,7 +48,7 @@ nav::-webkit-scrollbar-thumb:hover {
 }
 
 /* --- Navigation Buttons --- */
-nav .action {
+nav.sidebar .action {
   width: 100%;
   display: flex;
   align-items: center;
@@ -65,39 +65,39 @@ nav .action {
   border-left: 3px solid transparent;
 }
 
-html[dir="rtl"] nav .action {
+html[dir="rtl"] nav.sidebar .action {
   text-align: right;
   border-left: none;
   border-right: 3px solid transparent;
 }
 
-nav .action:hover {
+nav.sidebar .action:hover {
   background-color: var(--hover);
   border-left-color: var(--blue);
   color: var(--textSecondary);
 }
 
-html[dir="rtl"] nav .action:hover {
+html[dir="rtl"] nav.sidebar .action:hover {
   border-left-color: transparent;
   border-right-color: var(--blue);
 }
 
-nav .action:active {
+nav.sidebar .action:active {
   background-color: var(--divider);
 }
 
-nav .action i {
+nav.sidebar .action i {
   font-size: 1.25em;
   color: var(--textPrimary);
   flex-shrink: 0;
   transition: 0.15s ease color;
 }
 
-nav .action:hover i {
+nav.sidebar .action:hover i {
   color: var(--blue);
 }
 
-nav .action span {
+nav.sidebar .action span {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
@@ -105,20 +105,20 @@ nav .action span {
 }
 
 /* --- Section Dividers --- */
-nav > div {
+nav.sidebar > div {
   border-top: 1px solid var(--divider);
   padding: 0.4em 0;
   margin-top: 0.2em;
 }
 
-nav > div:first-child {
+nav.sidebar > div:first-child {
   border-top: none;
   padding-top: 0;
   margin-top: 0;
 }
 
 /* --- User Info Button (first button with person icon) --- */
-nav > button.action:first-child {
+nav.sidebar > button.action:first-child {
   padding: 0.8em 1em;
   margin-top: 0;
   background: linear-gradient(135deg, rgba(33, 150, 243, 0.06), rgba(33, 150, 243, 0.02));
@@ -126,12 +126,12 @@ nav > button.action:first-child {
   border-left: none;
 }
 
-html[dir="rtl"] nav > button.action:first-child {
+html[dir="rtl"] nav.sidebar > button.action:first-child {
   border-left: none;
   border-right: none;
 }
 
-nav > button.action:first-child i {
+nav.sidebar > button.action:first-child i {
   background: var(--blue);
   color: #fff !important;
   border-radius: 50%;
@@ -139,61 +139,61 @@ nav > button.action:first-child i {
   font-size: 1.1em;
 }
 
-nav > button.action:first-child span {
+nav.sidebar > button.action:first-child span {
   font-weight: 500;
   color: var(--textSecondary);
 }
 
-nav > button.action:first-child:hover {
+nav.sidebar > button.action:first-child:hover {
   background: linear-gradient(135deg, rgba(33, 150, 243, 0.12), rgba(33, 150, 243, 0.04));
   border-left: none;
 }
 
-html[dir="rtl"] nav > button.action:first-child:hover {
+html[dir="rtl"] nav.sidebar > button.action:first-child:hover {
   border-right: none;
 }
 
 /* --- Logout Button --- */
-nav #logout {
+nav.sidebar #logout {
   margin-top: auto;
   border-top: 1px solid var(--divider);
   color: var(--icon-red);
 }
 
-nav #logout i {
+nav.sidebar #logout i {
   color: var(--icon-red);
 }
 
-nav #logout:hover {
+nav.sidebar #logout:hover {
   background-color: rgba(218, 68, 83, 0.08);
   border-left-color: var(--icon-red);
 }
 
-html[dir="rtl"] nav #logout:hover {
+html[dir="rtl"] nav.sidebar #logout:hover {
   border-left-color: transparent;
   border-right-color: var(--icon-red);
 }
 
-nav #logout:hover i {
+nav.sidebar #logout:hover i {
   color: var(--icon-red);
 }
 
 /* --- Storage Usage Section --- */
-nav .credits:first-of-type {
+nav.sidebar .credits:first-of-type {
   padding: 1em 1.2em 0.5em;
   margin: 0.5em 0 0;
 }
 
-nav .vue-simple-progress {
+nav.sidebar .vue-simple-progress {
   border-radius: 4px !important;
   overflow: hidden;
 }
 
-nav .vue-simple-progress-bar {
+nav.sidebar .vue-simple-progress-bar {
   border-radius: 4px !important;
 }
 
-nav .vue-simple-progress-text {
+nav.sidebar .vue-simple-progress-text {
   font-size: 0.75em !important;
   color: var(--textPrimary) !important;
   text-align: center !important;
@@ -201,7 +201,7 @@ nav .vue-simple-progress-text {
 }
 
 /* --- Credits / Footer Section --- */
-nav .credits:last-child {
+nav.sidebar .credits:last-child {
   padding: 0.8em 1.2em;
   margin: 0;
   font-size: 0.55em;
@@ -211,33 +211,33 @@ nav .credits:last-child {
   line-height: 1.6;
 }
 
-nav .credits a {
+nav.sidebar .credits a {
   color: var(--blue);
   transition: 0.15s ease opacity;
 }
 
-nav .credits a:hover {
+nav.sidebar .credits a:hover {
   opacity: 0.7;
 }
 
 /* --- Dark Mode Adjustments --- */
-:root.dark nav {
+:root.dark nav.sidebar {
   background: var(--surfacePrimary);
   border-right-color: var(--divider);
 }
 
-html.dark nav {
+html.dark nav.sidebar {
   background: var(--surfacePrimary);
   border-right-color: var(--divider);
 }
 
-:root.dark nav .action i,
-html.dark nav .action i {
+:root.dark nav.sidebar .action i,
+html.dark nav.sidebar .action i {
   color: var(--textPrimary);
 }
 
-:root.dark nav > button.action:first-child,
-html.dark nav > button.action:first-child {
+:root.dark nav.sidebar > button.action:first-child,
+html.dark nav.sidebar > button.action:first-child {
   background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.03));
 }
 
@@ -731,13 +731,13 @@ html[dir="rtl"] .sidebar-resize-handle {
 
 /* --- Mobile Responsive --- */
 @media (max-width: 1024px) {
-  nav {
+  nav.sidebar {
     width: 14em;
   }
 }
 
 @media (max-width: 736px) {
-  nav {
+  nav.sidebar {
     top: 0;
     z-index: 99999;
     width: 17em;
@@ -747,25 +747,25 @@ html[dir="rtl"] .sidebar-resize-handle {
                 0.25s ease box-shadow;
   }
 
-  html[dir="rtl"] nav {
+  html[dir="rtl"] nav.sidebar {
     left: unset;
     right: -18em;
     transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1) right,
                 0.25s ease box-shadow;
   }
 
-  nav.active {
+  nav.sidebar.active {
     left: 0;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
-  html[dir="rtl"] nav.active {
+  html[dir="rtl"] nav.sidebar.active {
     left: unset;
     right: 0;
     box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
-  nav .action {
+  nav.sidebar .action {
     padding: 0.75em 1.2em;
   }
 }

@@ -53,7 +53,7 @@ func ParsePreviewSize(name string) (PreviewSize, error) {
 	if x, ok := _PreviewSizeValue[name]; ok {
 		return x, nil
 	}
-	return PreviewSize(0), fmt.Errorf("%s is not a valid PreviewSize, try [%s]", name, strings.Join(_PreviewSizeNames, ", "))
+	return PreviewSize(0), fmt.Errorf("%s 不是有效的预览尺寸，可选值：[%s]", name, strings.Join(_PreviewSizeNames, ", "))
 }
 
 // MarshalText implements the text marshaller method

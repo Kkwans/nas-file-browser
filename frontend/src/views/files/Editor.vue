@@ -44,7 +44,7 @@
     </div>
     <template v-else>
       <!-- Vditor 容器（Markdown 文件） -->
-      <div v-if="isMarkdownFile" id="vditor-mount" class="vditor-mount"></div>
+      <div v-if="isMarkdownFile" id="vditor-mount" class="vditor-mount markdown-editor-active"></div>
       <!-- Ace 编辑器（非 Markdown 文件） -->
       <form v-else id="editor"></form>
     </template>
@@ -242,7 +242,37 @@ const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
     },
     after: () => {
       // 加载完成后聚焦
+      // 确保大纲目录点击可以跳转
+      setupOutlineClickHandler();
     },
+  });
+};
+
+// 确保大纲目录点击可以跳转到对应标题
+const setupOutlineClickHandler = () => {
+  const mountEl = document.getElementById('vditor-mount');
+  if (!mountEl) return;
+
+  // 监听大纲面板的点击事件
+  const outlineEl = mountEl.querySelector('.vditor-outline');
+  if (!outlineEl) return;
+
+  outlineEl.addEventListener('click', (e: Event) => {
+    const target = e.target as HTMLElement;
+    const spanEl = target.closest('span[data-target-id]') as HTMLElement | null;
+    if (!spanEl) return;
+
+    const targetId = spanEl.getAttribute('data-target-id');
+    if (!targetId) return;
+
+    // 查找目标元素并滚动
+    const headingEl = mountEl.querySelector(`#${targetId}`) ||
+      mountEl.querySelector(`[data-id="${targetId}"]`) ||
+      mountEl.querySelector(`h1[id="${targetId}"], h2[id="${targetId}"], h3[id="${targetId}"], h4[id="${targetId}"], h5[id="${targetId}"], h6[id="${targetId}"]`);
+
+    if (headingEl) {
+      headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 };
 
@@ -256,9 +286,13 @@ const initVditorPreview = async (content: string) => {
   const isDark = isDarkTheme();
 
   // 阅读模式：用 Vditor 的预览方法渲染为纯 HTML
+  // md2html 可能返回 Promise，需要 await
+  const htmlResult = VditorClass.md2html(content, { theme: isDark ? 'dark' : 'light' });
+  const html = htmlResult instanceof Promise ? await htmlResult : htmlResult;
+
   const previewElement = document.createElement('div');
   previewElement.className = 'vditor-reset vditor-preview--content';
-  previewElement.innerHTML = VditorClass.md2html(content, { theme: isDark ? 'dark' : 'light' });
+  previewElement.innerHTML = html;
   mountEl.appendChild(previewElement);
 
   // 保存一个伪实例，getValue 时返回原始内容
@@ -422,7 +456,7 @@ const finishClose = () => {
 <style scoped>
 .vditor-mount {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* Vditor 容器全屏 */

@@ -53,11 +53,55 @@
           :label="t('buttons.shell')"
           @action="layoutStore.toggleShell"
         />
-        <action
-          :icon="viewIcon"
-          :label="t('buttons.switchView')"
-          @action="switchView"
-        />
+        <!-- View Mode Dropdown -->
+        <div class="view-mode-dropdown" ref="viewDropdownRef">
+          <action
+            :icon="viewIcon"
+            :label="t('buttons.switchView')"
+            @action="toggleViewDropdown"
+          />
+          <div v-if="showViewDropdown" class="dropdown-menu">
+            <button
+              v-for="mode in viewModes"
+              :key="mode.value"
+              class="dropdown-item"
+              :class="{ active: currentViewMode === mode.value }"
+              @click="selectViewMode(mode.value)"
+            >
+              <i class="material-icons">{{ mode.icon }}</i>
+              <span>{{ t(mode.label) }}</span>
+              <i v-if="currentViewMode === mode.value" class="material-icons check">check</i>
+            </button>
+          </div>
+        </div>
+        <!-- Sort Dropdown -->
+        <div class="sort-dropdown" ref="sortDropdownRef">
+          <action
+            icon="sort"
+            :label="t('buttons.sort')"
+            @action="toggleSortDropdown"
+          />
+          <div v-if="showSortDropdown" class="dropdown-menu">
+            <button
+              v-for="opt in sortOptions"
+              :key="opt.by"
+              class="dropdown-item"
+              :class="{ active: currentSortBy === opt.by }"
+              @click="selectSort(opt.by)"
+            >
+              <i class="material-icons">{{ opt.icon }}</i>
+              <span>{{ t(opt.label) }}</span>
+              <i v-if="currentSortBy === opt.by" class="material-icons sort-arrow">
+                {{ currentSortAsc ? 'arrow_upward' : 'arrow_downward' }}
+              </i>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" @click="toggleSortDirection">
+              <i class="material-icons">swap_vert</i>
+              <span>{{ currentSortAsc ? t('files.descending') : t('files.ascending') }}</span>
+            </button>
+          </div>
+        </div>
         <action
           v-if="headerButtons.download"
           icon="file_download"
@@ -170,7 +214,7 @@
         ref="listing"
         class="file-icons"
         data-clear-on-click="true"
-        :class="authStore.user?.viewMode ?? ''"
+        :class="currentViewMode"
         @click="handleEmptyAreaClick"
       >
         <div>
@@ -461,6 +505,33 @@ const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 
+// View mode dropdown
+const showViewDropdown = ref<boolean>(false);
+const viewDropdownRef = ref<HTMLElement | null>(null);
+const currentViewMode = ref<ViewModeType>(
+  (localStorage.getItem('nas-file-browser-view-mode') as ViewModeType) ||
+  authStore.user?.viewMode ||
+  'mosaic'
+);
+const viewModes = [
+  { value: 'mosaic' as ViewModeType, icon: 'grid_view', label: 'buttons.gridView' },
+  { value: 'list' as ViewModeType, icon: 'view_list', label: 'buttons.listView' },
+  { value: 'mosaic gallery' as ViewModeType, icon: 'view_module', label: 'buttons.detailView' },
+  { value: 'compact' as ViewModeType, icon: 'density_medium', label: 'buttons.compactView' },
+];
+
+// Sort dropdown
+const showSortDropdown = ref<boolean>(false);
+const sortDropdownRef = ref<HTMLElement | null>(null);
+const currentSortBy = ref<string>(fileStore.req?.sorting?.by || 'name');
+const currentSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
+const sortOptions = [
+  { by: 'name', icon: 'sort_by_alpha', label: 'files.sortByName' },
+  { by: 'size', icon: 'data_usage', label: 'files.sortBySize' },
+  { by: 'modified', icon: 'schedule', label: 'files.sortByLastModified' },
+  { by: 'type', icon: 'category', label: 'files.sortByType' },
+];
+
 const { req } = storeToRefs(fileStore);
 
 const route = useRoute();
@@ -551,14 +622,13 @@ const modifiedIcon = computed(() => {
 });
 
 const viewIcon = computed(() => {
-  const icons = {
-    list: "view_module",
-    mosaic: "grid_view",
-    "mosaic gallery": "view_list",
+  const icons: Record<string, string> = {
+    list: 'view_list',
+    mosaic: 'grid_view',
+    'mosaic gallery': 'view_module',
+    compact: 'density_medium',
   };
-  return authStore.user === null
-    ? icons["list"]
-    : icons[authStore.user.viewMode];
+  return icons[currentViewMode.value] || 'grid_view';
 });
 
 const headerButtons = computed(() => {
@@ -584,6 +654,12 @@ const isMobile = computed(() => {
 watch(req, () => {
   // Reset the show value
   showLimit.value = 50;
+
+  // Sync sort state from server
+  if (fileStore.req?.sorting) {
+    currentSortBy.value = fileStore.req.sorting.by;
+    currentSortAsc.value = fileStore.req.sorting.asc;
+  }
 
   nextTick(() => {
     // Ensures that the listing is displayed
@@ -615,6 +691,7 @@ onMounted(() => {
   window.addEventListener("keydown", keyEvent);
   window.addEventListener("scroll", scrollEvent);
   window.addEventListener("resize", windowsResize);
+  document.addEventListener("click", handleOutsideClick);
 
   if (!authStore.user?.perm.create) return;
   document.addEventListener("dragover", preventDefault);
@@ -628,6 +705,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("scroll", scrollEvent);
   window.removeEventListener("resize", windowsResize);
+  document.removeEventListener("click", handleOutsideClick);
 
   if (authStore.user && !authStore.user?.perm.create) return;
   document.removeEventListener("dragover", preventDefault);
@@ -1024,6 +1102,9 @@ const sort = async (by: string) => {
     }
   }
 
+  currentSortBy.value = by;
+  currentSortAsc.value = asc;
+
   try {
     if (authStore.user?.id) {
       await users.update({ id: authStore.user?.id, sorting: { by, asc } }, [
@@ -1112,24 +1193,85 @@ const download = () => {
 const switchView = async () => {
   layoutStore.closeHovers();
 
-  const modes = {
-    list: "mosaic",
-    mosaic: "mosaic gallery",
-    "mosaic gallery": "list",
+  const modes: Record<string, string> = {
+    list: 'mosaic',
+    mosaic: 'mosaic gallery',
+    'mosaic gallery': 'compact',
+    compact: 'list',
   };
 
   const data = {
     id: authStore.user?.id,
-    viewMode: (modes[authStore.user?.viewMode ?? "list"] ||
-      "list") as ViewModeType,
+    viewMode: (modes[currentViewMode.value] || 'list') as ViewModeType,
   };
 
-  users.update(data, ["viewMode"]).catch($showError);
+  selectViewMode(data.viewMode);
+};
 
-  authStore.updateUser(data);
+const toggleViewDropdown = () => {
+  showSortDropdown.value = false;
+  showViewDropdown.value = !showViewDropdown.value;
+};
+
+const toggleSortDropdown = () => {
+  showViewDropdown.value = false;
+  showSortDropdown.value = !showSortDropdown.value;
+};
+
+const selectViewMode = (mode: ViewModeType) => {
+  currentViewMode.value = mode;
+  localStorage.setItem('nas-file-browser-view-mode', mode);
+  showViewDropdown.value = false;
+
+  // Also update server-side preference if logged in
+  if (authStore.user?.id) {
+    users.update({ id: authStore.user.id, viewMode: mode }, ['viewMode']).catch(() => {});
+    authStore.updateUser({ viewMode: mode });
+  }
 
   setItemWeight();
   fillWindow();
+};
+
+const selectSort = async (by: string) => {
+  currentSortBy.value = by;
+  showSortDropdown.value = false;
+
+  try {
+    if (authStore.user?.id) {
+      await users.update({ id: authStore.user.id, sorting: { by, asc: currentSortAsc.value } }, ['sorting']);
+    }
+  } catch (e: any) {
+    $showError(e);
+  }
+
+  fileStore.reload = true;
+};
+
+const toggleSortDirection = async () => {
+  currentSortAsc.value = !currentSortAsc.value;
+  showSortDropdown.value = false;
+
+  try {
+    if (authStore.user?.id) {
+      await users.update({ id: authStore.user.id, sorting: { by: currentSortBy.value, asc: currentSortAsc.value } }, ['sorting']);
+    }
+  } catch (e: any) {
+    $showError(e);
+  }
+
+  fileStore.reload = true;
+};
+
+// Close dropdowns on outside click
+const handleOutsideClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  if (showViewDropdown.value && viewDropdownRef.value && !viewDropdownRef.value.contains(target)) {
+    showViewDropdown.value = false;
+  }
+  if (showSortDropdown.value && sortDropdownRef.value && !sortDropdownRef.value.contains(target)) {
+    showSortDropdown.value = false;
+  }
 };
 
 const uploadFunc = () => {

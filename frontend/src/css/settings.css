@@ -16,6 +16,9 @@
   border-bottom: 2px solid var(--divider);
   border-radius: 0;
   position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5em;
 }
 
 .dashboard #nav ul {
@@ -64,7 +67,9 @@
 
 .dashboard .row {
   gap: 1em;
-  margin: 0;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 1.5em;
 }
 
 .dashboard .row .column {

@@ -64,7 +64,7 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		case "image":
 			return handleImagePreview(w, r, imgSvc, fileCache, file, previewSize, enableThumbnails, resizePreview)
 		default:
-			return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
+			return http.StatusNotImplemented, fmt.Errorf("不支持预览 %s 类型的文件", file.Type)
 		}
 	})
 }

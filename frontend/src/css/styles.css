@@ -347,6 +347,15 @@ main .spinner .bounce2 {
   overflow: hidden;
 }
 
+/* Vditor needs its own scroll, override container overflow */
+#editor-container:has(.markdown-editor-active) {
+  overflow: visible;
+}
+
+#editor-container .vditor-mount {
+  overflow: auto;
+}
+
 #editor-container .bar {
   background: var(--surfacePrimary);
 }

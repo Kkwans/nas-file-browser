@@ -69,7 +69,7 @@ func tusPostHandler(cache UploadCache) handleFunc {
 		// if file exists
 		if file != nil {
 			if file.IsDir {
-				return http.StatusBadRequest, fmt.Errorf("cannot upload to a directory %s", file.RealPath())
+				return http.StatusBadRequest, fmt.Errorf("不能上传到目录 %s", file.RealPath())
 			}
 
 			// Existing files will remain untouched unless explicitly instructed to override
@@ -106,7 +106,7 @@ func tusPostHandler(cache UploadCache) handleFunc {
 
 		uploadLength, err := getUploadLength(r)
 		if err != nil || uploadLength < 0 {
-			return http.StatusBadRequest, fmt.Errorf("invalid upload length: %w", err)
+			return http.StatusBadRequest, fmt.Errorf("无效的上传长度: %w", err)
 		}
 
 		// Enables the user to utilize the PATCH endpoint for uploading file data
@@ -164,7 +164,7 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 
 		uploadOffset, err := getUploadOffset(r)
 		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid upload offset")
+			return http.StatusBadRequest, fmt.Errorf("无效的上传偏移量")
 		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{
@@ -194,10 +194,10 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 
 		switch {
 		case file.IsDir:
-			return http.StatusBadRequest, fmt.Errorf("cannot upload to a directory %s", file.RealPath())
+			return http.StatusBadRequest, fmt.Errorf("不能上传到目录 %s", file.RealPath())
 		case file.Size != uploadOffset:
 			return http.StatusConflict, fmt.Errorf(
-				"%s file size doesn't match the provided offset: %d",
+				"%s 文件大小与提供的偏移量不匹配: %d",
 				file.RealPath(),
 				uploadOffset,
 			)
@@ -205,25 +205,25 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 
 		openFile, err := d.user.Fs.OpenFile(r.URL.Path, os.O_WRONLY|os.O_APPEND, d.settings.FileMode)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("could not open file: %w", err)
+			return http.StatusInternalServerError, fmt.Errorf("无法打开文件: %w", err)
 		}
 		defer openFile.Close()
 
 		_, err = openFile.Seek(uploadOffset, 0)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("could not seek file: %w", err)
+			return http.StatusInternalServerError, fmt.Errorf("无法定位文件: %w", err)
 		}
 
 		defer r.Body.Close()
 		bytesWritten, err := io.Copy(openFile, r.Body)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("could not write to file: %w", err)
+			return http.StatusInternalServerError, fmt.Errorf("无法写入文件: %w", err)
 		}
 
 		// Sync the file to ensure all data is written to storage
 		// to prevent file corruption.
 		if err := openFile.Sync(); err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("could not sync file: %w", err)
+			return http.StatusInternalServerError, fmt.Errorf("无法同步文件: %w", err)
 		}
 
 		newOffset := uploadOffset + bytesWritten
@@ -275,7 +275,7 @@ func tusDeleteHandler(cache UploadCache) handleFunc {
 func getUploadLength(r *http.Request) (int64, error) {
 	uploadOffset, err := strconv.ParseInt(r.Header.Get("Upload-Length"), 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("invalid upload length: %w", err)
+		return 0, fmt.Errorf("无效的上传长度: %w", err)
 	}
 	return uploadOffset, nil
 }
@@ -283,7 +283,7 @@ func getUploadLength(r *http.Request) (int64, error) {
 func getUploadOffset(r *http.Request) (int64, error) {
 	uploadOffset, err := strconv.ParseInt(r.Header.Get("Upload-Offset"), 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("invalid upload offset: %w", err)
+		return 0, fmt.Errorf("无效的上传偏移量: %w", err)
 	}
 	return uploadOffset, nil
 }

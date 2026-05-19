@@ -122,12 +122,14 @@
 .md_preview code:not(pre code),
 .vditor-reset.vditor-preview--content code:not(pre code) {
   background: #f1f5f9;
-  color: #e11d48;
-  padding: 2px 6px;
+  color: #d63384;
+  padding: 2px 7px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 0.88em;
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
   border: 1px solid #e2e8f0;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 /* ===== 代码块 ===== */
@@ -135,15 +137,34 @@
 .vditor-reset.vditor-preview--content pre {
   background: #1e293b;
   color: #e2e8f0;
-  padding: 20px 24px;
-  border-radius: 8px;
+  padding: 1.25em 1.5em;
+  border-radius: 10px;
   overflow-x: auto;
-  margin: 16px 0 20px;
-  font-size: 13px;
-  line-height: 1.7;
+  margin: 1.25em 0 1.5em;
+  font-size: 0.85em;
+  line-height: 1.75;
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #334155;
+  position: relative;
+}
+
+/* Code block language label */
+.md_preview pre > code::before,
+.vditor-reset.vditor-preview--content pre > code::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.2em 0.8em;
+  font-size: 0.7em;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0 10px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .md_preview pre code,
@@ -160,11 +181,25 @@
 .md_preview blockquote,
 .vditor-reset.vditor-preview--content blockquote {
   border-left: 4px solid #3b82f6;
-  background: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff, #f0f7ff);
   color: #1e40af;
-  padding: 12px 20px;
+  padding: 14px 20px;
   margin: 16px 0;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 10px 10px 0;
+  font-style: normal;
+  position: relative;
+}
+
+.md_preview blockquote::before,
+.vditor-reset.vditor-preview--content blockquote::before {
+  content: '\201C';
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  font-size: 2.5em;
+  color: rgba(59, 130, 246, 0.15);
+  font-family: Georgia, serif;
+  line-height: 1;
 }
 
 .md_preview blockquote p,
@@ -179,20 +214,24 @@
   width: 100%;
   border-collapse: collapse;
   margin: 16px 0;
-  font-size: 14px;
-  border-radius: 8px;
+  font-size: 0.9em;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
 }
 
 .md_preview th,
 .vditor-reset.vditor-preview--content th {
-  background: #f8fafc;
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
   color: #1e293b;
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
   border-bottom: 2px solid #e2e8f0;
+  font-size: 0.88em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .md_preview td,
@@ -431,9 +470,14 @@ html.dark .vditor-reset.vditor-preview--content pre code {
 /* 引用块 */
 html.dark .md_preview blockquote,
 html.dark .vditor-reset.vditor-preview--content blockquote {
-  background: #1e293b;
+  background: linear-gradient(135deg, #1e293b, #1a2332);
   border-left-color: #3b82f6;
   color: #93c5fd;
+}
+
+html.dark .md_preview blockquote::before,
+html.dark .vditor-reset.vditor-preview--content blockquote::before {
+  color: rgba(59, 130, 246, 0.2);
 }
 
 html.dark .md_preview blockquote p,
@@ -444,12 +488,13 @@ html.dark .vditor-reset.vditor-preview--content blockquote p {
 /* 表格 */
 html.dark .md_preview table,
 html.dark .vditor-reset.vditor-preview--content table {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border-color: #334155;
 }
 
 html.dark .md_preview th,
 html.dark .vditor-reset.vditor-preview--content th {
-  background: #1e293b;
+  background: linear-gradient(180deg, #1e293b, #172033);
   color: #e2e8f0;
   border-bottom-color: #334155;
 }

@@ -373,7 +373,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *data, fileCach
 
 		return fileutils.MoveFile(d.user.Fs, src, dst, d.settings.FileMode, d.settings.DirMode)
 	default:
-		return fmt.Errorf("unsupported action %s: %w", action, fberrors.ErrInvalidRequestParams)
+		return fmt.Errorf("不支持的操作 %s: %w", action, fberrors.ErrInvalidRequestParams)
 	}
 }
 
@@ -401,7 +401,7 @@ var resourceGetRecursiveHandler = withUser(func(w http.ResponseWriter, r *http.R
 		return errToStatus(err), err
 	}
 	if !info.IsDir() {
-		return http.StatusBadRequest, fmt.Errorf("path is not a directory")
+		return http.StatusBadRequest, fmt.Errorf("路径不是目录")
 	}
 
 	entries := make([]RecursiveEntry, 0)

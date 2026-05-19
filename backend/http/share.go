@@ -103,7 +103,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	var body share.CreateBody
 	if r.Body != nil {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+			return http.StatusBadRequest, fmt.Errorf("请求体解析失败: %w", err)
 		}
 		defer r.Body.Close()
 	}
@@ -176,7 +176,7 @@ func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, e
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, http.StatusInternalServerError, fmt.Errorf("failed to hash password: %w", err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("密码加密失败: %w", err)
 	}
 
 	return hash, 0, nil

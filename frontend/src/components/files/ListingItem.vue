@@ -56,10 +56,10 @@
         <span
           v-for="tag in pathTags"
           :key="tag.id"
-          class="tag-chip"
-          :style="{ background: tag.color + '20', color: tag.color, borderColor: tag.color + '40' }"
+          class="tag-dot"
+          :style="{ background: tag.color }"
           :title="tag.name"
-        >{{ tag.name }}</span>
+        ></span>
         <div v-if="isDir && showTagPicker" class="tag-picker-popup" @click.stop>
           <TagPicker :path="path || ''" @manage="openTagManager" />
         </div>

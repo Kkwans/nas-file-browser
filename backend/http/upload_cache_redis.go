@@ -17,19 +17,19 @@ type redisUploadCache struct {
 
 func newRedisUploadCache(redisURL string) (*redisUploadCache, error) {
 	if redisURL == "" {
-		return nil, fmt.Errorf("redis URL is required")
+		return nil, fmt.Errorf("Redis URL 不能为空")
 	}
 
 	opts, err := redis.ParseURL(redisURL)
 	if err != nil {
-		return nil, fmt.Errorf("invalid redis URL: %w", err)
+		return nil, fmt.Errorf("无效的 Redis URL: %w", err)
 	}
 
 	client := redis.NewClient(opts)
 
 	// Test connection
 	if err := client.Ping(context.Background()).Err(); err != nil {
-		return nil, fmt.Errorf("failed to connect to redis: %w", err)
+		return nil, fmt.Errorf("连接 Redis 失败: %w", err)
 	}
 
 	return &redisUploadCache{client: client}, nil
@@ -57,14 +57,14 @@ func (c *redisUploadCache) GetLength(filePath string) (int64, error) {
 	result, err := c.client.Get(context.Background(), c.filePathKey(filePath)).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return 0, fmt.Errorf("no active upload found for the given path")
+			return 0, fmt.Errorf("未找到该路径的活跃上传")
 		}
-		return 0, fmt.Errorf("redis error: %w", err)
+		return 0, fmt.Errorf("Redis 错误: %w", err)
 	}
 
 	size, err := strconv.ParseInt(result, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("invalid upload length in cache: %w", err)
+		return 0, fmt.Errorf("缓存中的上传长度无效: %w", err)
 	}
 
 	c.Touch(filePath)

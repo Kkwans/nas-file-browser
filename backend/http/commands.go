@@ -25,7 +25,7 @@ var upgrader = websocket.Upgrader{
 }
 
 var (
-	cmdNotAllowed = []byte("Command not allowed.")
+	cmdNotAllowed = []byte("命令不允许执行。")
 )
 
 func wsErr(ws *websocket.Conn, r *http.Request, status int, err error) {

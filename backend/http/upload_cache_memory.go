@@ -60,7 +60,7 @@ func (c *memoryUploadCache) Complete(filePath string) {
 func (c *memoryUploadCache) GetLength(filePath string) (int64, error) {
 	item := c.cache.Get(filePath)
 	if item == nil {
-		return 0, fmt.Errorf("no active upload found for the given path")
+		return 0, fmt.Errorf("未找到该路径的活跃上传")
 	}
 	return item.Value(), nil
 }

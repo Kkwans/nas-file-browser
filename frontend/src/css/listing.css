@@ -587,9 +587,10 @@ html.dark #listing #multiple-selection {
     0 -1px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* In mosaic view, hide risk badge for clean cards */
+/* Risk icons: compact in mosaic view, visible in all views */
 #listing.mosaic .risk-icon {
-  display: none;
+  font-size: 12px;
+  margin-left: 2px;
 }
 
 /* --- Risk Level Icons in File Listing --- */

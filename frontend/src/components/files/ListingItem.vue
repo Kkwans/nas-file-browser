@@ -33,12 +33,12 @@
     <div>
       <p class="name">
         {{ name }}
-        <span
+        <i
           v-if="isDir && riskLevel !== 'low'"
-          class="risk-badge"
+          class="material-icons risk-icon"
           :class="'risk-' + riskLevel"
           :title="riskTitle"
-        >{{ riskLabel }}</span>
+        >{{ riskLevel === 'high' ? 'warning' : 'info' }}</i>
         <i
           v-if="isDir"
           class="material-icons favorite-star"

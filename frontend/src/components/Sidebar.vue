@@ -202,9 +202,13 @@
               :key="p.path"
               class="action category-path-item"
               @click="navigateVolume(p.path)"
+              :title="p.path"
             >
               <i class="material-icons" :class="'risk-' + p.risk">{{ riskIcon(p.risk) }}</i>
-              <span>{{ p.name }}</span>
+              <div class="category-path-info">
+                <span class="category-path-name">{{ p.name }}</span>
+                <span v-if="p.volumeType !== 'system'" class="category-path-type">{{ p.volumeType }}</span>
+              </div>
             </button>
           </div>
         </div>
@@ -584,34 +588,30 @@ export default {
       const groups = {};
       const catOrder = ["personal", "shared", "system", "other"];
 
-      // Classify top-level directories of each volume
-      for (const vol of volumes) {
-        // We don't have the subdirectory listing yet, so we use the
-        // categories store patterns to build known paths
-        for (const cat of this.categoriesStore.categories) {
-          if (!groups[cat.id]) {
-            groups[cat.id] = {
-              id: cat.id,
-              name: cat.name,
-              icon: cat.icon,
-              color: cat.color,
-              paths: [],
-            };
-          }
+      // Initialize groups from categories
+      for (const cat of this.categoriesStore.categories) {
+        if (!groups[cat.id]) {
+          groups[cat.id] = {
+            id: cat.id,
+            name: cat.name,
+            icon: cat.icon,
+            color: cat.color,
+            paths: [],
+          };
         }
       }
 
-      // Build category paths from volume paths
-      // For each volume, add known subdirectory paths based on category patterns
+      // Classify each volume into a category based on its path
       for (const vol of volumes) {
-        const volBase = vol.path;
-        const knownDirs = this.getKnownDirs(volBase);
-        for (const dir of knownDirs) {
-          const cat = this.categoriesStore.classifyPath(dir.path);
-          const risk = this.categoriesStore.getRiskLevel(dir.path);
-          if (groups[cat.id]) {
-            groups[cat.id].paths.push({ ...dir, risk });
-          }
+        const cat = this.categoriesStore.classifyPath(vol.path);
+        const risk = this.categoriesStore.getRiskLevel(vol.path);
+        if (groups[cat.id]) {
+          groups[cat.id].paths.push({
+            path: vol.path,
+            name: vol.displayName,
+            risk,
+            volumeType: vol.type,
+          });
         }
       }
 

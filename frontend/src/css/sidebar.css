@@ -695,6 +695,25 @@ html[dir="rtl"] .categories-header {
   font-size: 1.1em !important;
 }
 
+.category-path-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+
+.category-path-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.category-path-type {
+  font-size: 0.75em;
+  color: var(--textSecondary);
+  text-transform: capitalize;
+}
+
 /* Risk level icon colors */
 .risk-high {
   color: var(--icon-red, #DA4453) !important;

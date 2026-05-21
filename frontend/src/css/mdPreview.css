@@ -24,17 +24,23 @@
 .md_preview {
   padding: 2rem 3rem;
   max-width: 860px;
+  width: 100%;
   margin: 0 auto;
   font-size: 15px;
   line-height: 1.8;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 .vditor-reset.vditor-preview--content {
   padding: 2rem 3rem;
   max-width: 860px;
+  width: 100%;
   margin: 0 auto;
   font-size: 15px;
   line-height: 1.8;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 #preview-container {
@@ -209,16 +215,35 @@
 }
 
 /* ===== 表格 ===== */
+/* 表格：display:block 作为滚动容器，内部元素保持 table 布局 */
 .md_preview table,
 .vditor-reset.vditor-preview--content table {
+  display: block;
   width: 100%;
-  border-collapse: collapse;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin: 16px 0;
   font-size: 0.9em;
-  border-radius: 10px;
-  overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+/* 内部元素保持表格布局，确保列对齐 */
+.md_preview table > thead,
+.md_preview table > tbody,
+.md_preview table > tfoot,
+.vditor-reset.vditor-preview--content table > thead,
+.vditor-reset.vditor-preview--content table > tbody,
+.vditor-reset.vditor-preview--content table > tfoot {
+  display: table;
+  width: 100%;
+}
+
+.md_preview table > colgroup,
+.vditor-reset.vditor-preview--content table > colgroup {
+  display: table-column-group;
 }
 
 .md_preview th,
@@ -232,6 +257,7 @@
   font-size: 0.88em;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .md_preview td,
@@ -244,6 +270,24 @@
 .md_preview tr:hover td,
 .vditor-reset.vditor-preview--content tr:hover td {
   background: #f8fafc;
+}
+
+/* 表格首尾行圆角（替代 table 的 border-radius，因为浏览器不支持） */
+.md_preview thead tr:first-child th:first-child,
+.vditor-reset.vditor-preview--content thead tr:first-child th:first-child {
+  border-top-left-radius: 10px;
+}
+.md_preview thead tr:first-child th:last-child,
+.vditor-reset.vditor-preview--content thead tr:first-child th:last-child {
+  border-top-right-radius: 10px;
+}
+.md_preview tbody tr:last-child td:first-child,
+.vditor-reset.vditor-preview--content tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+.md_preview tbody tr:last-child td:last-child,
+.vditor-reset.vditor-preview--content tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
 }
 
 /* ===== 列表 ===== */

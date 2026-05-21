@@ -92,6 +92,12 @@ func NewHandler(
 	api.Handle("/favorites/{id}", monkey(favoritePutHandler, "")).Methods("PUT")
 	api.Handle("/favorites/{id}", monkey(favoriteDeleteHandler, "")).Methods("DELETE")
 
+	api.Handle("/favorites/groups", monkey(favoriteGroupsGetHandler, "")).Methods("GET")
+	api.Handle("/favorites/groups", monkey(favoriteGroupsPostHandler, "")).Methods("POST")
+	api.Handle("/favorites/groups/reorder", monkey(favoriteGroupsReorderHandler, "")).Methods("PUT")
+	api.Handle("/favorites/groups/{id}", monkey(favoriteGroupPutHandler, "")).Methods("PUT")
+	api.Handle("/favorites/groups/{id}", monkey(favoriteGroupDeleteHandler, "")).Methods("DELETE")
+
 	api.Handle("/tags", monkey(tagsGetHandler, "")).Methods("GET")
 	api.Handle("/tags", monkey(tagsPostHandler, "")).Methods("POST")
 	api.Handle("/tags/{id}", monkey(tagPutHandler, "")).Methods("PUT")

@@ -338,6 +338,10 @@
     "removeFavorite": "取消收藏",
     "noFavorites": "暂无收藏目录",
     "clearAllFavorites": "清空收藏夹",
+    "createGroup": "新建分组",
+    "groupNamePlaceholder": "分组名称...",
+    "deleteGroup": "删除分组",
+    "noFavoritesInGroup": "该分组暂无收藏",
     "tags": "标签",
     "resizeSidebar": "拖拽调节侧边栏宽度"
   },

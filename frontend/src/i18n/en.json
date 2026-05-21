@@ -338,6 +338,10 @@
     "removeFavorite": "Remove from favorites",
     "noFavorites": "No favorites yet",
     "clearAllFavorites": "Clear all favorites",
+    "createGroup": "New Group",
+    "groupNamePlaceholder": "Group name...",
+    "deleteGroup": "Delete Group",
+    "noFavoritesInGroup": "No favorites in this group",
     "tags": "Tags",
     "resizeSidebar": "Drag to resize sidebar"
   },

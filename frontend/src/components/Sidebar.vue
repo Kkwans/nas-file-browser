@@ -30,6 +30,13 @@
           <i class="material-icons">star</i>
           <span>{{ $t("sidebar.favorites") }}</span>
           <button
+            class="section-action-btn"
+            :title="$t('sidebar.createGroup') || 'New Group'"
+            @click.stop.prevent="showCreateGroup = !showCreateGroup"
+          >
+            <i class="material-icons">create_new_folder</i>
+          </button>
+          <button
             v-if="favoritesStore.sortedFavorites.length > 0"
             class="section-action-btn"
             :title="$t('sidebar.clearAllFavorites')"
@@ -40,40 +47,112 @@
           <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.favorites }">expand_more</i>
         </button>
         <template v-if="!collapsedSections.favorites">
-        <div v-if="favoritesStore.sortedFavorites.length === 0" class="section-empty">
+        <!-- Create group input -->
+        <div v-if="showCreateGroup" class="create-group-input">
+          <input
+            v-model="newGroupName"
+            :placeholder="$t('sidebar.groupNamePlaceholder') || 'Group name...'"
+            @keyup.enter="createGroup"
+            @keyup.escape="showCreateGroup = false"
+            ref="groupInputRef"
+          />
+          <button @click="createGroup" :disabled="!newGroupName.trim()">
+            <i class="material-icons">check</i>
+          </button>
+          <button @click="showCreateGroup = false">
+            <i class="material-icons">close</i>
+          </button>
+        </div>
+        <!-- Empty state -->
+        <div v-if="favoritesStore.sortedFavorites.length === 0 && favoritesStore.sortedGroups.length === 0" class="section-empty">
           <i class="material-icons">star_border</i>
           <span>{{ $t("sidebar.noFavorites") }}</span>
         </div>
-        <button
-          v-for="(fav, index) in favoritesStore.sortedFavorites"
-          :key="fav.id"
-          class="action favorite-item"
-          :class="{
-            'drag-over-top': dragOverIndex === index && dragFromIndex !== index && dragOverPosition === 'top',
-            'drag-over-bottom': dragOverIndex === index && dragFromIndex !== index && dragOverPosition === 'bottom',
-            'dragging': dragFromIndex === index,
-          }"
-          draggable="true"
-          @click="navigateVolume(fav.path)"
-          :title="fav.path"
-          @dragstart="onFavDragStart($event, index)"
-          @dragover="onFavDragOver($event, index)"
-          @dragleave="onFavDragLeave"
-          @drop="onFavDrop($event, index)"
-          @dragend="onFavDragEnd"
+        <!-- Ungrouped favorites -->
+        <template v-if="favoritesStore.favoritesByGroup[''] && favoritesStore.favoritesByGroup[''].length > 0">
+          <button
+            v-for="(fav, index) in favoritesStore.favoritesByGroup['']"
+            :key="fav.id"
+            class="action favorite-item"
+            draggable="true"
+            @click="navigateVolume(fav.path)"
+            :title="fav.path"
+            @dragstart="onFavDragStart($event, fav.id)"
+            @dragover.prevent="onFavDragOverItem($event, fav.id)"
+            @dragleave="onFavDragLeaveItem"
+            @drop="onFavDropOnItem($event, fav.id)"
+            @dragend="onFavDragEnd"
+          >
+            <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
+            <i class="material-icons favorite-icon">folder</i>
+            <div class="favorite-info">
+              <span class="favorite-name">{{ fav.name }}</span>
+              <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
+            </div>
+            <i
+              class="material-icons favorite-remove"
+              :title="$t('sidebar.removeFavorite')"
+              @click.stop.prevent="removeFavorite(fav.id)"
+            >close</i>
+          </button>
+        </template>
+        <!-- Groups -->
+        <div
+          v-for="group in favoritesStore.sortedGroups"
+          :key="group.id"
+          class="favorite-group"
         >
-          <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
-          <i class="material-icons favorite-icon">folder</i>
-          <div class="favorite-info">
-            <span class="favorite-name">{{ fav.name }}</span>
-            <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
-          </div>
-          <i
-            class="material-icons favorite-remove"
-            :title="$t('sidebar.removeFavorite')"
-            @click.stop.prevent="removeFavorite(fav.id)"
-          >close</i>
-        </button>
+          <button
+            class="favorite-group-header"
+            @click="toggleGroupCollapse(group.id)"
+            @dragover.prevent="onFavDragOverGroup($event, group.id)"
+            @drop="onFavDropOnGroup($event, group.id)"
+            @dragleave="onFavDragLeaveGroup"
+            :class="{ 'drag-over-group': dragOverGroupId === group.id }"
+          >
+            <i class="material-icons" :style="{ color: group.color || 'var(--blue)' }">folder</i>
+            <span class="group-name">{{ group.name }}</span>
+            <span class="category-count">{{ (favoritesStore.favoritesByGroup[group.id] || []).length }}</span>
+            <button
+              class="section-action-btn"
+              :title="$t('sidebar.deleteGroup') || 'Delete Group'"
+              @click.stop.prevent="deleteGroup(group.id)"
+            >
+              <i class="material-icons">close</i>
+            </button>
+            <i class="material-icons category-arrow" :class="{ expanded: !collapsedGroups[group.id] }">expand_more</i>
+          </button>
+          <template v-if="!collapsedGroups[group.id]">
+            <button
+              v-for="fav in (favoritesStore.favoritesByGroup[group.id] || [])"
+              :key="fav.id"
+              class="action favorite-item category-path-item"
+              draggable="true"
+              @click="navigateVolume(fav.path)"
+              :title="fav.path"
+              @dragstart="onFavDragStart($event, fav.id)"
+              @dragover.prevent="onFavDragOverItem($event, fav.id)"
+              @dragleave="onFavDragLeaveItem"
+              @drop="onFavDropOnItem($event, fav.id)"
+              @dragend="onFavDragEnd"
+            >
+              <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
+              <i class="material-icons favorite-icon">folder</i>
+              <div class="favorite-info">
+                <span class="favorite-name">{{ fav.name }}</span>
+                <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
+              </div>
+              <i
+                class="material-icons favorite-remove"
+                :title="$t('sidebar.removeFavorite')"
+                @click.stop.prevent="removeFavorite(fav.id)"
+              >close</i>
+            </button>
+            <div v-if="(favoritesStore.favoritesByGroup[group.id] || []).length === 0" class="section-empty">
+              <span>{{ $t('sidebar.noFavoritesInGroup') || 'No favorites in this group' }}</span>
+            </div>
+          </template>
+        </div>
         </template>
       </div>
 
@@ -367,13 +446,19 @@ export default {
     const dragFromIndex = ref(-1);
     const dragOverIndex = ref(-1);
     const dragOverPosition = ref('');
+    // Group-related state
+    const showCreateGroup = ref(false);
+    const newGroupName = ref('');
+    const collapsedGroups = reactive({});
+    const dragOverGroupId = ref('');
+    const draggedFavId = ref('');
     const sidebarWidth = ref(parseInt(localStorage.getItem('nas-file-browser-sidebar-width') || '256'));
     // Set CSS variable for main content area adjustment
     document.documentElement.style.setProperty('--sidebar-width', sidebarWidth.value + 'px');
     let isResizing = false;
     let startX = 0;
     let startWidth = 0;
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition, sidebarWidth, isResizing, startX, startWidth };
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition, sidebarWidth, isResizing, startX, startWidth, showCreateGroup, newGroupName, collapsedGroups, dragOverGroupId, draggedFavId };
   },
   components: {
     ProgressBar,
@@ -492,60 +577,62 @@ export default {
       this.favoritesStore.favorites = [];
       this.favoritesStore.saveFavorites();
     },
-    openTagManager() {
-      this.showHover({ prompt: 'tag-manager' });
+    async createGroup() {
+      const name = this.newGroupName.trim();
+      if (!name) return;
+      await this.favoritesStore.addGroup(name);
+      this.newGroupName = '';
+      this.showCreateGroup = false;
     },
-    onFavDragStart(event, index) {
-      this.dragFromIndex = index;
+    async deleteGroup(id) {
+      const result = await this.favoritesStore.deleteGroup(id);
+      if (result.conflict) {
+        this.$showError(new Error('Cannot delete group: it still contains favorites. Move or remove them first.'));
+      }
+    },
+    toggleGroupCollapse(id) {
+      this.collapsedGroups[id] = !this.collapsedGroups[id];
+    },
+    onFavDragStart(event, favId) {
+      this.draggedFavId = favId;
       event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', index.toString());
-      // Add slight delay so the dragging class applies after the drag image is captured
-      this.$nextTick(() => {
-        event.target.classList.add('dragging');
-      });
+      event.dataTransfer.setData('text/plain', favId);
     },
-    onFavDragOver(event, index) {
-      event.preventDefault();
+    onFavDragOverItem(event, favId) {
       event.dataTransfer.dropEffect = 'move';
-      if (this.dragFromIndex === index) return;
-
-      // Determine if dropping above or below the item
-      const rect = event.currentTarget.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      this.dragOverIndex = index;
-      this.dragOverPosition = event.clientY < midY ? 'top' : 'bottom';
     },
-    onFavDragLeave(event) {
-      // Only clear if actually leaving the element (not entering a child)
-      if (!event.currentTarget.contains(event.relatedTarget)) {
-        this.dragOverIndex = -1;
-        this.dragOverPosition = '';
-      }
-    },
-    onFavDrop(event, toIndex) {
+    onFavDragLeaveItem() {},
+    async onFavDropOnItem(event, targetFavId) {
       event.preventDefault();
-      const fromIndex = this.dragFromIndex;
-      if (fromIndex < 0 || fromIndex === toIndex) return;
-
-      // Adjust target index based on drop position
-      let targetIndex = toIndex;
-      if (this.dragOverPosition === 'bottom') {
-        targetIndex = toIndex + 1;
+      this.dragOverGroupId = '';
+      // If dropped on a favorite, no action needed for now
+    },
+    onFavDragOverGroup(event, groupId) {
+      event.dataTransfer.dropEffect = 'move';
+      this.dragOverGroupId = groupId;
+    },
+    onFavDragLeaveGroup(event) {
+      if (!event.currentTarget.contains(event.relatedTarget)) {
+        this.dragOverGroupId = '';
       }
-      // If dragging from before the target, adjust for the removal shift
-      if (fromIndex < targetIndex) {
-        targetIndex--;
+    },
+    async onFavDropOnGroup(event, groupId) {
+      event.preventDefault();
+      this.dragOverGroupId = '';
+      if (this.draggedFavId) {
+        await this.favoritesStore.moveFavoriteToGroup(this.draggedFavId, groupId);
+        this.draggedFavId = '';
       }
-
-      this.favoritesStore.reorderFavorite(fromIndex, targetIndex);
-      this.dragFromIndex = -1;
-      this.dragOverIndex = -1;
-      this.dragOverPosition = '';
     },
     onFavDragEnd() {
       this.dragFromIndex = -1;
       this.dragOverIndex = -1;
       this.dragOverPosition = '';
+      this.dragOverGroupId = '';
+      this.draggedFavId = '';
+    },
+    openTagManager() {
+      this.showHover({ prompt: 'tag-manager' });
     },
     filterByTag(tagId) {
       this.tagsStore.setFilter(tagId);

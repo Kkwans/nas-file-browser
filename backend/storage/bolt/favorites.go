@@ -58,3 +58,35 @@ func (f favoritesBackend) DeleteByPath(path string) error {
 	}
 	return f.db.DeleteStruct(fav)
 }
+
+// --- Group methods ---
+
+func (f favoritesBackend) GetAllGroups() ([]*favorites.FavoriteGroup, error) {
+	var all []*favorites.FavoriteGroup
+	err := f.db.All(&all)
+	if errors.Is(err, storm.ErrNotFound) {
+		return []*favorites.FavoriteGroup{}, nil
+	}
+	return all, err
+}
+
+func (f favoritesBackend) GetGroupByID(id string) (*favorites.FavoriteGroup, error) {
+	var group favorites.FavoriteGroup
+	err := f.db.One("ID", id, &group)
+	if errors.Is(err, storm.ErrNotFound) {
+		return nil, favorites.ErrNotExist
+	}
+	return &group, err
+}
+
+func (f favoritesBackend) SaveGroup(group *favorites.FavoriteGroup) error {
+	return f.db.Save(group)
+}
+
+func (f favoritesBackend) UpdateGroup(group *favorites.FavoriteGroup) error {
+	return f.db.Update(group)
+}
+
+func (f favoritesBackend) DeleteGroup(id string) error {
+	return f.db.DeleteStruct(&favorites.FavoriteGroup{ID: id})
+}

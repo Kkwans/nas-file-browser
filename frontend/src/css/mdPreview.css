@@ -183,6 +183,54 @@
   border-radius: 0;
 }
 
+/* ===== 代码块行号 ===== */
+.md_preview pre code.has-line-numbers,
+.vditor-reset.vditor-preview--content pre code.has-line-numbers {
+  display: flex;
+  flex-direction: column;
+  counter-reset: line-number;
+  padding-left: 3.5em;
+  position: relative;
+}
+
+.md_preview pre code.has-line-numbers::before,
+.vditor-reset.vditor-preview--content pre code.has-line-numbers::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3em;
+  background: rgba(255, 255, 255, 0.03);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.md_preview pre code.has-line-numbers .code-line,
+.vditor-reset.vditor-preview--content pre code.has-line-numbers .code-line {
+  display: block;
+  counter-increment: line-number;
+  position: relative;
+  min-height: 1.75em;
+}
+
+.md_preview pre code.has-line-numbers .code-line::before,
+.vditor-reset.vditor-preview--content pre code.has-line-numbers .code-line::before {
+  content: counter(line-number);
+  position: absolute;
+  left: -3.5em;
+  width: 2.8em;
+  text-align: right;
+  color: rgba(148, 163, 184, 0.5);
+  font-size: 0.85em;
+  user-select: none;
+  pointer-events: none;
+}
+
+.md_preview pre code.has-line-numbers .code-line:hover,
+.vditor-reset.vditor-preview--content pre code.has-line-numbers .code-line:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 /* ===== 引用块 ===== */
 .md_preview blockquote,
 .vditor-reset.vditor-preview--content blockquote {

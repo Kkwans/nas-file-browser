@@ -335,6 +335,9 @@ const initVditorPreview = async (content: string) => {
   previewElement.innerHTML = html;
   mountEl.appendChild(previewElement);
 
+  // 为代码块添加行号
+  addLineNumbersToCodeBlocks(previewElement);
+
   // 保存一个伪实例，getValue 时返回原始内容
   vditorInstance = {
     getValue: () => content,
@@ -391,6 +394,26 @@ const initAceEditor = (content: string) => {
   }
 
   aceEditor.focus();
+};
+
+// 为代码块添加行号（后处理）
+const addLineNumbersToCodeBlocks = (container: HTMLElement) => {
+  const codeBlocks = container.querySelectorAll('pre > code');
+  codeBlocks.forEach((codeEl) => {
+    const html = codeEl.innerHTML;
+    // 按换行符分割为行
+    const lines = html.split('\n');
+    // 如果最后一行是空行，去掉（通常是尾部换行）
+    if (lines.length > 1 && lines[lines.length - 1].trim() === '') {
+      lines.pop();
+    }
+    // 用 span.code-line 包裹每一行
+    const wrappedHtml = lines
+      .map((line) => `<span class="code-line">${line}</span>`)
+      .join('\n');
+    codeEl.innerHTML = wrappedHtml;
+    codeEl.classList.add('has-line-numbers');
+  });
 };
 
 const switchMode = async (mode: "ir" | "sv" | "preview") => {

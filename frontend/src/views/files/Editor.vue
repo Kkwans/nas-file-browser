@@ -90,6 +90,8 @@ let vditorInstance: any = null;
 let aceEditor: Ace.Editor | null = null;
 let savedContent = ""; // 保存一份内容用于模式切换时重建
 let initialMdContent = ""; // 记录 Markdown 初始内容用于 dirty 检测
+let mdInitialized = false; // Vditor 是否已完成初始化
+let userEdited = false; // 用户是否实际修改过内容
 
 onMounted(() => {
   window.addEventListener("keydown", keyEvent);
@@ -143,7 +145,7 @@ onBeforeUnmount(() => {
 
 onBeforeRouteUpdate((to, from, next) => {
   const isDirty = isMarkdownFile
-    ? (vditorInstance && vditorInstance.getValue() !== savedContent)
+    ? (vditorInstance && userEdited && mdInitialized)
     : !aceEditor?.session.getUndoManager().isClean();
 
   if (!isDirty) {
@@ -167,6 +169,8 @@ onBeforeRouteUpdate((to, from, next) => {
 const initVditor = async (content: string) => {
   savedContent = content;
   initialMdContent = content;
+  mdInitialized = false;
+  userEdited = false;
   await initVditorWithMode(content, 'ir');
 };
 
@@ -274,9 +278,22 @@ const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
       },
     },
     after: () => {
-      // 加载完成后聚焦
+      // 编辑器初始化完成后，捕获 Vditor 规范化后的内容作为基线
+      // 这样即使 Vditor 对内容做了微调（如尾部换行），也不会误判为 dirty
+      try {
+        const normalized = vditorInstance.getValue();
+        savedContent = normalized;
+        initialMdContent = normalized;
+      } catch {}
+      mdInitialized = true;
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
+    },
+    input: () => {
+      // 用户实际编辑内容时标记为 dirty
+      if (mdInitialized) {
+        userEdited = true;
+      }
     },
   });
 };
@@ -377,6 +394,10 @@ const initVditorPreview = async (content: string) => {
     getValue: () => content,
     destroy: () => { previewElement.remove(); },
   };
+  // 预览模式基线与实际内容一致
+  savedContent = content;
+  initialMdContent = content;
+  mdInitialized = true;
 };
 
 const initAceEditor = (content: string) => {
@@ -487,10 +508,13 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
   const content = vditorInstance.getValue();
   savedContent = content;
   currentMode.value = mode;
+  // 模式切换不算用户编辑
+  // userEdited 保持不变，因为用户之前可能已经编辑过
 
   // 销毁旧实例，按新模式重建（Vditor 不支持运行时切换模式）
   try { vditorInstance.destroy(); } catch {}
   vditorInstance = null;
+  mdInitialized = false;
 
   // 重置大纲处理器绑定标记（新实例需要重新绑定）
   _outlineHandlerBound = false;
@@ -521,9 +545,8 @@ const keyEvent = (event: KeyboardEvent) => {
 
 const handlePageChange = (event: BeforeUnloadEvent) => {
   if (isMarkdownFile && vditorInstance) {
-    // Vditor dirty 检测：比较当前内容与初始内容
-    const currentContent = vditorInstance.getValue();
-    if (currentContent !== initialMdContent) {
+    // Vditor dirty 检测：用 userEdited 标记判断
+    if (userEdited && mdInitialized) {
       event.preventDefault();
       event.returnValue = true;
     }
@@ -549,6 +572,7 @@ const save = async (throwError?: boolean) => {
     await api.put(route.path, content);
     if (isMarkdownFile) {
       initialMdContent = content;
+      userEdited = false;
     }
     if (aceEditor) {
       aceEditor.session.getUndoManager().markClean();
@@ -563,7 +587,7 @@ const save = async (throwError?: boolean) => {
 
 const close = () => {
   const isDirty = isMarkdownFile
-    ? (vditorInstance && vditorInstance.getValue() !== savedContent)
+    ? (vditorInstance && userEdited && mdInitialized)
     : !aceEditor?.session.getUndoManager().isClean();
 
   if (!isDirty) {
@@ -576,6 +600,7 @@ const close = () => {
     confirm: (event: Event) => {
       event.preventDefault();
       if (aceEditor) aceEditor.session.getUndoManager().reset();
+      userEdited = false;
       finishClose();
     },
     saveAction: async () => {

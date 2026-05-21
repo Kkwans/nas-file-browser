@@ -379,6 +379,7 @@
   /* --- Dashboard / Settings Mobile --- */
   .dashboard {
     padding: 1em 0.5em;
+    max-width: 100%;
   }
 
   .dashboard .row {

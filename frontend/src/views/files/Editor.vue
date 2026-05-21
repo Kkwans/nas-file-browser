@@ -191,6 +191,32 @@ const loadVditorResources = async () => {
   }
 };
 
+// 动态加载 highlight.js（代码块语法高亮）
+const loadHighlightJS = async () => {
+  const isDark = isDarkTheme();
+  const themeCSS = isDark ? 'github-dark' : 'github';
+
+  // 加载 highlight.js 主题 CSS
+  if (!document.querySelector('link[href*="highlight.js"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
+    link.id = 'hljs-theme';
+    document.head.appendChild(link);
+  }
+
+  // 加载 highlight.js JS
+  if (!(window as any).hljs) {
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js';
+      script.onload = () => resolve();
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+};
+
 const isDarkTheme = () => {
   // FileBrowser 在 <html> 元素上设置 className="dark"
   return document.documentElement.className === 'dark';
@@ -321,6 +347,7 @@ const setupOutlineClickHandler = () => {
 
 const initVditorPreview = async (content: string) => {
   await loadVditorResources();
+  await loadHighlightJS();
 
   const VditorClass = (window as any).Vditor;
   const mountEl = document.getElementById('vditor-mount');
@@ -342,8 +369,8 @@ const initVditorPreview = async (content: string) => {
   previewElement.innerHTML = html;
   mountEl.appendChild(previewElement);
 
-  // 为代码块添加行号
-  addLineNumbersToCodeBlocks(previewElement);
+  // 为代码块添加语法高亮 + 行号 + 语言标签
+  highlightAndAnnotateCodeBlocks(previewElement);
 
   // 保存一个伪实例，getValue 时返回原始内容
   vditorInstance = {
@@ -403,31 +430,52 @@ const initAceEditor = (content: string) => {
   aceEditor.focus();
 };
 
-// 为代码块添加行号 + 语言标签（后处理）
-const addLineNumbersToCodeBlocks = (container: HTMLElement) => {
+// 为代码块添加语法高亮 + 行号 + 语言标签
+// 处理顺序：1) 语法高亮 2) 行号包裹 3) 语言标签
+const highlightAndAnnotateCodeBlocks = (container: HTMLElement) => {
   const codeBlocks = container.querySelectorAll('pre > code');
+  const hljs = (window as any).hljs;
+
   codeBlocks.forEach((codeEl) => {
+    // 1. 从 class 提取语言名
+    let lang = '';
+    const langMatch = codeEl.className.match(/language-(\w+)/);
+    if (langMatch) {
+      lang = langMatch[1];
+    }
+    // 设置 data-lang（供 CSS ::before 显示语言标签）
+    if (lang && !codeEl.getAttribute('data-lang')) {
+      codeEl.setAttribute('data-lang', lang);
+    }
+
+    // 2. 应用语法高亮（在添加行号之前）
+    if (hljs && lang) {
+      try {
+        // 先获取纯文本，让 highlight.js 自己处理
+        const rawText = codeEl.textContent || '';
+        const result = hljs.highlight(rawText, { language: lang, ignoreIllegals: true });
+        codeEl.innerHTML = result.value;
+        codeEl.classList.add('hljs');
+      } catch (e) {
+        // 语言不支持或其他错误，跳过高亮
+        console.warn('[hljs] highlight failed for', lang, e);
+      }
+    }
+
+    // 3. 为每行添加行号包裹
+    // 注意：此时 innerHTML 可能包含 hljs 的 <span> 标签
+    // 按 \n 分割后，每个片段仍然是有效的 HTML（hljs 用 inline span）
     const html = codeEl.innerHTML;
-    // 按换行符分割为行
     const lines = html.split('\n');
-    // 如果最后一行是空行，去掉（通常是尾部换行）
+    // 去掉尾部空行
     if (lines.length > 1 && lines[lines.length - 1].trim() === '') {
       lines.pop();
     }
-    // 用 span.code-line 包裹每一行
     const wrappedHtml = lines
       .map((line) => `<span class="code-line">${line}</span>`)
       .join('\n');
     codeEl.innerHTML = wrappedHtml;
     codeEl.classList.add('has-line-numbers');
-
-    // 从 class 提取语言名并设置 data-lang（供 CSS ::before 显示语言标签）
-    if (!codeEl.getAttribute('data-lang')) {
-      const langMatch = codeEl.className.match(/language-(\w+)/);
-      if (langMatch) {
-        codeEl.setAttribute('data-lang', langMatch[1]);
-      }
-    }
   });
 };
 

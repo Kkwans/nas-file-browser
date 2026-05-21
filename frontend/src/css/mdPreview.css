@@ -213,11 +213,25 @@
 #vditor-mount .vditor-ir pre code,
 #vditor-mount .vditor-sv pre code {
   background: transparent !important;
-  color: inherit !important;
+  /* 默认颜色，无高亮时使用 */
+  color: #e2e8f0;
   padding: 0 !important;
   border: none !important;
   font-size: inherit !important;
   border-radius: 0 !important;
+}
+
+/* highlight.js 代码块：让 hljs 主题控制语法颜色 */
+.md_preview pre code.hljs,
+.vditor-reset.vditor-preview--content pre code.hljs,
+#vditor-mount .vditor-ir pre code.hljs,
+#vditor-mount .vditor-sv pre code.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  font-size: inherit !important;
+  border-radius: 0 !important;
+  /* 不设置 color，让 highlight.js 主题 CSS 控制 */
 }
 
 /* ===== 代码块行号 ===== */
@@ -691,12 +705,20 @@ html.dark #vditor-mount .vditor-sv pre {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
-html.dark .md_preview pre code,
-html.dark .vditor-reset.vditor-preview--content pre code,
-html.dark #vditor-mount .vditor-ir pre code,
-html.dark #vditor-mount .vditor-sv pre code {
+html.dark .md_preview pre code:not(.hljs),
+html.dark .vditor-reset.vditor-preview--content pre code:not(.hljs),
+html.dark #vditor-mount .vditor-ir pre code:not(.hljs),
+html.dark #vditor-mount .vditor-sv pre code:not(.hljs) {
   background: transparent !important;
-  color: inherit !important;
+  color: #e2e8f0;
+}
+
+html.dark .md_preview pre code.hljs,
+html.dark .vditor-reset.vditor-preview--content pre code.hljs,
+html.dark #vditor-mount .vditor-ir pre code.hljs,
+html.dark #vditor-mount .vditor-sv pre code.hljs {
+  background: transparent !important;
+  /* 暗色模式不设置 color，让 hljs 暗色主题控制 */
 }
 
 /* 引用块 */

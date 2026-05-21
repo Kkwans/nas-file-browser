@@ -1033,3 +1033,30 @@ html.dark .sort-dropdown .dropdown-menu {
     0 8px 24px rgba(0, 0, 0, 0.3),
     0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+/* @-prefix system folders toggle */
+.system-dirs-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  background: none;
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  padding: 0.1em 0.5em;
+  margin-left: 0.5em;
+  font-size: 0.75em;
+  color: var(--textSecondary);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.15s, color 0.15s;
+}
+.system-dirs-toggle:hover {
+  background: var(--surfaceSecondary);
+  color: var(--textPrimary);
+}
+.system-dirs-toggle .material-icons {
+  font-size: 1em;
+}
+.system-dirs-toggle span {
+  font-size: 0.9em;
+}

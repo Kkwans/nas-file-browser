@@ -271,6 +271,15 @@
 
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
           {{ t("files.folders") }}
+          <button
+            v-if="hasSystemDirs"
+            class="system-dirs-toggle"
+            @click="toggleSystemDirs"
+            :title="showSystemDirs ? t('files.hideSystemDirs') : t('files.showSystemDirs')"
+          >
+            <i class="material-icons">{{ showSystemDirs ? 'expand_less' : 'expand_more' }}</i>
+            <span>@({{ systemDirs.length }})</span>
+          </button>
         </h2>
         <div
           v-if="fileStore.req?.numDirs ?? false"
@@ -530,6 +539,11 @@ const sortOptions = [
   { by: 'type', icon: 'category', label: 'files.sortByType' },
 ];
 
+// @-prefix folder collapse
+const showSystemDirs = ref<boolean>(
+  localStorage.getItem('nas-file-browser-show-system-dirs') === 'true'
+);
+
 const { req } = storeToRefs(fileStore);
 
 const route = useRoute();
@@ -558,7 +572,23 @@ const ascOrdered = computed(() =>
   fileStore.req ? fileStore.req.sorting.asc : false
 );
 
-const dirs = computed(() => items.value.dirs.slice(0, showLimit.value));
+const normalDirs = computed(() =>
+  items.value.dirs.filter((d) => !d.name.startsWith('@')).slice(0, showLimit.value)
+);
+const systemDirs = computed(() =>
+  items.value.dirs.filter((d) => d.name.startsWith('@')).slice(0, showLimit.value)
+);
+const dirs = computed(() => {
+  if (showSystemDirs.value) {
+    return items.value.dirs.slice(0, showLimit.value);
+  }
+  return normalDirs.value;
+});
+const hasSystemDirs = computed(() => systemDirs.value.length > 0);
+const toggleSystemDirs = () => {
+  showSystemDirs.value = !showSystemDirs.value;
+  localStorage.setItem('nas-file-browser-show-system-dirs', String(showSystemDirs.value));
+};
 
 const items = computed(() => {
   const dirs: any[] = [];

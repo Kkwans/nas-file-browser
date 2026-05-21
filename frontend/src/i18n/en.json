@@ -119,7 +119,9 @@
       "semicolon": "Semicolon (;)",
       "both": "Both (,) and (;)"
     },
-    "fileEncoding": "File Encoding"
+    "fileEncoding": "File Encoding",
+    "hideSystemDirs": "Hide system folders",
+    "showSystemDirs": "Show system folders"
   },
   "help": {
     "click": "select file or directory",

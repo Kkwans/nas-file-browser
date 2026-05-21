@@ -119,7 +119,9 @@
       "semicolon": "分号 (;)",
       "both": "逗号 (,) 和分号 (;)"
     },
-    "fileEncoding": "文件编码"
+    "fileEncoding": "文件编码",
+    "hideSystemDirs": "隐藏系统文件夹",
+    "showSystemDirs": "显示系统文件夹"
   },
   "help": {
     "click": "选择文件或文件夹",

@@ -922,14 +922,27 @@ const paste = async (event: Event) => {
 
 const columnsResize = () => {
   // Update the columns size based on the window width.
-  const items_ = css(["#listing.mosaic .item", ".mosaic#listing .item"]);
+  const items_ = css(["#listing.mosaic:not(.gallery) .item", ".mosaic:not(.gallery)#listing .item"]);
   if (items_ === null) return;
 
-  let columns = Math.floor(
-    (document.querySelector("main")?.offsetWidth ?? 0) / columnWidth.value
-  );
-  if (columns === 0) columns = 1;
-  items_.style.width = `calc(${100 / columns}% - 1em)`;
+  const mainWidth = document.querySelector("main")?.offsetWidth ?? 0;
+
+  // Responsive column count based on screen width
+  let colWidth = 240;
+  if (mainWidth <= 450) {
+    colWidth = 100;
+  } else if (mainWidth <= 736) {
+    colWidth = 120;
+  } else if (mainWidth <= 900) {
+    colWidth = 200;
+  }
+
+  let columns = Math.floor(mainWidth / colWidth);
+  if (columns < 2) columns = 2;
+  if (columns > 6) columns = 6;
+
+  const gap = mainWidth <= 736 ? 0.6 : 1;
+  items_.style.width = `calc(${100 / columns}% - ${gap}em)`;
 };
 
 const scrollEvent = throttle(() => {

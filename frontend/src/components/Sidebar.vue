@@ -63,8 +63,11 @@
           @dragend="onFavDragEnd"
         >
           <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
-          <i class="material-icons favorite-icon">star</i>
-          <span class="favorite-name">{{ fav.name }}</span>
+          <i class="material-icons favorite-icon">folder</i>
+          <div class="favorite-info">
+            <span class="favorite-name">{{ fav.name }}</span>
+            <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
+          </div>
           <i
             class="material-icons favorite-remove"
             :title="$t('sidebar.removeFavorite')"

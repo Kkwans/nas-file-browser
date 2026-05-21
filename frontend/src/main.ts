@@ -20,6 +20,12 @@ import duration from "dayjs/plugin/duration";
 
 import "./css/styles.css";
 
+// Detect Material Icons font loading to prevent "folder" text flash
+document.body.classList.add("fonts-loading");
+document.fonts.ready.then(() => {
+  document.body.classList.remove("fonts-loading");
+});
+
 // register dayjs plugins globally
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);

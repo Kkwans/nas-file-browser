@@ -2,15 +2,32 @@
 
 /* Prevent material icon text fallback from leaking during font load */
 .file-icons i.material-icons {
-  font-display: swap;
+  font-display: block;
   overflow: hidden;
   min-width: 0;
 }
 
 /* Hide ::before content until font is loaded (prevents "folder" text leak) */
-.file-icons [data-dir="true"] i::before {
+.file-icons i::before {
   font-family: 'Material Icons';
-  font-display: swap;
+  font-display: block;
+  /* Block: invisible text until font loads, no fallback text flash */
+}
+
+/* Loading skeleton for icons before font loads */
+.fonts-loading .file-icons i::before {
+  content: '' !important;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background: var(--surfaceSecondary, #e0e0e0);
+  border-radius: 4px;
+  animation: icon-skeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes icon-skeleton {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
 }
 
 /* General */

@@ -507,7 +507,7 @@ const save = async (throwError?: boolean) => {
 
 const close = () => {
   const isDirty = isMarkdownFile
-    ? false // Vditor handles this
+    ? (vditorInstance && vditorInstance.getValue() !== savedContent)
     : !aceEditor?.session.getUndoManager().isClean();
 
   if (!isDirty) {

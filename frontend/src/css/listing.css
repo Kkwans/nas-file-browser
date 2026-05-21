@@ -628,24 +628,35 @@ html.dark .risk-icon.risk-medium {
   vertical-align: middle;
   cursor: pointer;
   opacity: 0;
-  transition: 0.15s ease opacity, 0.15s ease color, 0.15s ease transform;
-  color: var(--textPrimary) !important;
+  transition: 0.2s ease opacity, 0.2s ease color, 0.2s ease transform;
+  color: var(--textSecondary) !important;
   position: relative;
   top: -0.05em;
+  border-radius: 50%;
+  padding: 2px;
 }
 
 /* In mosaic view, position star absolutely at top-right */
 #listing.mosaic .favorite-star {
   position: absolute;
-  top: 0.35em;
-  right: 0.35em;
+  top: 0.3em;
+  right: 0.3em;
   margin-left: 0 !important;
-  font-size: 0.78em !important;
+  font-size: 0.8em !important;
+  background: var(--surfacePrimary);
+  border-radius: 50%;
+  width: 1.6em;
+  height: 1.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  opacity: 0;
 }
 
 #listing .item:hover .favorite-star,
 .favorite-star.is-fav {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 #listing .item:hover .favorite-star.is-fav {
@@ -655,28 +666,38 @@ html.dark .risk-icon.risk-medium {
 .favorite-star:hover {
   opacity: 1 !important;
   color: #F5A623 !important;
-  transform: scale(1.15);
+  transform: scale(1.2);
+  background: rgba(245, 166, 35, 0.08);
 }
 
 .favorite-star.is-fav {
   color: #F5A623 !important;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .favorite-star.is-fav:hover {
   opacity: 1 !important;
-  transform: scale(1.15);
+  transform: scale(1.2);
+  background: rgba(245, 166, 35, 0.12);
 }
 
-/* Selected state: hide star (selected items have blue bg) */
+/* Selected state */
 #listing .item[aria-selected="true"] .favorite-star {
-  opacity: 0.6 !important;
+  opacity: 0.5 !important;
   color: var(--iconSecondary) !important;
 }
 
 #listing .item[aria-selected="true"] .favorite-star.is-fav {
   color: #FFD700 !important;
   opacity: 0.9 !important;
+}
+
+/* Mosaic: show star on hover with smooth reveal */
+#listing.mosaic .item:hover .favorite-star {
+  opacity: 0.7;
+}
+#listing.mosaic .item:hover .favorite-star.is-fav {
+  opacity: 1;
 }
 
 /* In mosaic view, hide tag button and dots for clean cards */

@@ -1,7 +1,6 @@
 <template>
   <div>
     <header-bar showMenu showLogo>
-      <search />
       <title />
       <action
         class="search-button"
@@ -472,7 +471,6 @@ import { Base64 } from "js-base64";
 
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
-import Search from "@/components/Search.vue";
 import Item from "@/components/files/ListingItem.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import {
@@ -775,7 +773,7 @@ const keyEvent = (event: KeyboardEvent) => {
     case "F":
       if (event.shiftKey) {
         event.preventDefault();
-        layoutStore.showHover("search");
+        router.push('/search');
       }
       break;
     case "c":

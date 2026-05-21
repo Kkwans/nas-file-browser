@@ -207,7 +207,7 @@
               <i class="material-icons" :class="'risk-' + p.risk">{{ riskIcon(p.risk) }}</i>
               <div class="category-path-info">
                 <span class="category-path-name">{{ p.name }}</span>
-                <span v-if="p.volumeType !== 'system'" class="category-path-type">{{ p.volumeType }}</span>
+                <span v-if="p.volumeType && p.volumeType !== 'system'" class="category-path-type">{{ p.volumeType }}</span>
               </div>
             </button>
           </div>
@@ -585,8 +585,8 @@ export default {
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
     categoryGroups() {
-      const volumes = this.volumesStore.displayVolumes;
-      if (!volumes.length) return [];
+      const subDirs = this.volumesStore.allSubDirs;
+      if (!subDirs.length) return [];
 
       const groups = {};
       const catOrder = ["personal", "shared", "system", "other"];
@@ -604,16 +604,16 @@ export default {
         }
       }
 
-      // Classify each volume into a category based on its path
-      for (const vol of volumes) {
-        const cat = this.categoriesStore.classifyPath(vol.path);
-        const risk = this.categoriesStore.getRiskLevel(vol.path);
+      // Classify each subdirectory into a category based on its path
+      for (const dir of subDirs) {
+        const cat = this.categoriesStore.classifyPath(dir.path);
+        const risk = this.categoriesStore.getRiskLevel(dir.path);
         if (groups[cat.id]) {
           groups[cat.id].paths.push({
-            path: vol.path,
-            name: vol.displayName,
+            path: dir.path,
+            name: dir.name,
             risk,
-            volumeType: vol.type,
+            volumeType: '',
           });
         }
       }

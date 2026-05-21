@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { Volume } from "@/api/volumes";
+import type { Volume, SubDir } from "@/api/volumes";
 import { getVolumes } from "@/api/volumes";
 import prettyBytes from "pretty-bytes";
 
@@ -51,6 +51,17 @@ export const useVolumesStore = defineStore("volumes", () => {
     displayVolumes.value.filter((v) => v.type !== "system")
   );
 
+  // Flatten all subdirectories from all volumes
+  const allSubDirs = computed<SubDir[]>(() => {
+    const result: SubDir[] = [];
+    for (const vol of volumes.value) {
+      if (vol.subDirs) {
+        result.push(...vol.subDirs);
+      }
+    }
+    return result;
+  });
+
   async function fetchVolumes() {
     loading.value = true;
     error.value = null;
@@ -72,6 +83,7 @@ export const useVolumesStore = defineStore("volumes", () => {
     displayVolumes,
     systemVolumes,
     otherVolumes,
+    allSubDirs,
     fetchVolumes,
   };
 });

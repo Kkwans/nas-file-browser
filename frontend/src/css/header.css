@@ -86,8 +86,7 @@ header .action span {
   display: none;
 }
 
-/* Search & Menu buttons (hidden on desktop, shown on mobile) */
-header .search-button,
+/* Menu button (hidden on desktop, shown on mobile) */
 header .menu-button {
   display: none;
 }

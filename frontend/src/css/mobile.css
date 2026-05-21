@@ -353,17 +353,20 @@
   }
 
   .md_preview pre,
-  .vditor-reset.vditor-preview--content pre {
+  .vditor-reset.vditor-preview--content pre,
+  #vditor-mount .vditor-ir pre,
+  #vditor-mount .vditor-sv pre {
     font-size: 0.8125em;
     padding: 0.875em;
     border-radius: 0.5em;
   }
 
   .md_preview table,
-  .vditor-reset.vditor-preview--content table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .vditor-reset.vditor-preview--content table,
+  #vditor-mount .vditor-ir table,
+  #vditor-mount .vditor-sv table {
+    display: table;
+    width: 100%;
   }
 
   .md_preview img,

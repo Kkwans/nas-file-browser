@@ -403,7 +403,7 @@ const initAceEditor = (content: string) => {
   aceEditor.focus();
 };
 
-// 为代码块添加行号（后处理）
+// 为代码块添加行号 + 语言标签（后处理）
 const addLineNumbersToCodeBlocks = (container: HTMLElement) => {
   const codeBlocks = container.querySelectorAll('pre > code');
   codeBlocks.forEach((codeEl) => {
@@ -420,6 +420,14 @@ const addLineNumbersToCodeBlocks = (container: HTMLElement) => {
       .join('\n');
     codeEl.innerHTML = wrappedHtml;
     codeEl.classList.add('has-line-numbers');
+
+    // 从 class 提取语言名并设置 data-lang（供 CSS ::before 显示语言标签）
+    if (!codeEl.getAttribute('data-lang')) {
+      const langMatch = codeEl.className.match(/language-(\w+)/);
+      if (langMatch) {
+        codeEl.setAttribute('data-lang', langMatch[1]);
+      }
+    }
   });
 };
 

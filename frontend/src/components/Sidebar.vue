@@ -368,6 +368,8 @@ export default {
     const dragOverIndex = ref(-1);
     const dragOverPosition = ref('');
     const sidebarWidth = ref(parseInt(localStorage.getItem('nas-file-browser-sidebar-width') || '256'));
+    // Set CSS variable for main content area adjustment
+    document.documentElement.style.setProperty('--sidebar-width', sidebarWidth.value + 'px');
     let isResizing = false;
     let startX = 0;
     let startWidth = 0;
@@ -393,6 +395,7 @@ export default {
       const diff = event.clientX - this.startX;
       const newWidth = Math.min(500, Math.max(180, this.startWidth + diff));
       this.sidebarWidth = newWidth;
+      document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
     },
     stopResize() {
       this.isResizing = false;

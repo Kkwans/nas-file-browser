@@ -10,7 +10,8 @@
 /* === Tablet (<= 1024px) === */
 @media (max-width: 1024px) {
   main {
-    width: calc(100% - 15em);
+    margin-left: var(--sidebar-width, 15em);
+    width: calc(100% - var(--sidebar-width, 15em) - 1em);
   }
 }
 

@@ -126,6 +126,11 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("beforeunload", handlePageChange);
+  const mountEl = document.getElementById('vditor-mount');
+  if (mountEl) {
+    mountEl.removeEventListener('click', handleOutlineCapture, true);
+  }
+  _outlineHandlerBound = false;
   if (vditorInstance) {
     try { vditorInstance.destroy(); } catch {}
     vditorInstance = null;
@@ -251,65 +256,67 @@ const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
 };
 
 // 确保大纲目录点击可以跳转到对应标题
-const setupOutlineClickHandler = () => {
-  const mountEl = document.getElementById('vditor-mount');
-  if (!mountEl) return;
+// 使用捕获阶段事件监听，绕过 Vditor 内置的 stopPropagation
+let _outlineHandlerBound = false;
 
-  const bindOutlineClicks = () => {
-    const outlineEl = mountEl.querySelector('.vditor-outline');
-    if (!outlineEl) return;
-
-    // 移除旧监听器（避免重复绑定）
-    outlineEl.removeEventListener('click', handleOutlineClick);
-    outlineEl.addEventListener('click', handleOutlineClick);
-  };
-
-  // 使用 MutationObserver 确保大纲 DOM 渲染完成后绑定
-  const observer = new MutationObserver(() => {
-    const outlineEl = mountEl.querySelector('.vditor-outline');
-    if (outlineEl && outlineEl.children.length > 0) {
-      bindOutlineClicks();
-      observer.disconnect();
-    }
-  });
-
-  observer.observe(mountEl, { childList: true, subtree: true });
-
-  // 也立即尝试绑定（大纲可能已存在）
-  bindOutlineClicks();
-};
-
-const handleOutlineClick = (e: Event) => {
+const handleOutlineCapture = (e: MouseEvent) => {
   const target = e.target as HTMLElement;
-  const mountEl = document.getElementById('vditor-mount');
-  if (!mountEl) return;
+  if (!target) return;
 
-  // 尝试多种选择器匹配大纲项
-  const spanEl = target.closest('span[data-target-id]') as HTMLElement
-    || target.closest('[data-target-id]') as HTMLElement
-    || target.closest('span[data-id]') as HTMLElement;
+  // 检查是否点击了展开/折叠按钮，放行
+  if (target.closest('.vditor-outline__action')) return;
 
-  if (!spanEl) return;
+  // 向上查找带有 data-target-id 的元素
+  const outlineItem = target.closest('[data-target-id]') as HTMLElement;
+  if (!outlineItem) return;
 
-  const targetId = spanEl.getAttribute('data-target-id') || spanEl.getAttribute('data-id');
+  const targetId = outlineItem.getAttribute('data-target-id');
   if (!targetId) return;
 
-  // 查找目标标题元素并滚动
-  const selectors = [
-    `#${CSS.escape(targetId)}`,
-    `[data-id="${targetId}"]`,
-    `h1[id="${targetId}"], h2[id="${targetId}"], h3[id="${targetId}"], h4[id="${targetId}"], h5[id="${targetId}"], h6[id="${targetId}"]`,
-  ];
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
 
-  for (const sel of selectors) {
-    try {
-      const headingEl = mountEl.querySelector(sel);
-      if (headingEl) {
-        headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-    } catch {}
+  const headingEl = document.getElementById(targetId);
+  if (!headingEl) return;
+
+  // 找到实际的滚动容器（vditor-mount 内部的可滚动元素）
+  const mountEl = document.getElementById('vditor-mount');
+  if (!mountEl) return;
+
+  // 在 IR/SV 模式下，内容区域是可滚动的
+  // 查找从标题元素到 mountEl 之间的可滚动父元素
+  let scrollContainer: HTMLElement | null = null;
+  let cur: HTMLElement | null = headingEl;
+  while (cur && cur !== mountEl) {
+    const style = window.getComputedStyle(cur);
+    if (/(auto|scroll)/.test(style.overflow + style.overflowY) &&
+        cur.scrollHeight > cur.clientHeight) {
+      scrollContainer = cur;
+      break;
+    }
+    cur = cur.parentElement;
   }
+
+  if (scrollContainer) {
+    // 标题在内部滚动容器中，手动计算偏移量
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const headingRect = headingEl.getBoundingClientRect();
+    const offset = headingRect.top - containerRect.top + scrollContainer.scrollTop - 20;
+    scrollContainer.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+  } else {
+    // 回退: scrollIntoView 或 window scrollTo
+    headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+const setupOutlineClickHandler = () => {
+  const mountEl = document.getElementById('vditor-mount');
+  if (!mountEl || _outlineHandlerBound) return;
+
+  // 使用捕获阶段监听，确保在 Vditor 的冒泡处理器之前执行
+  mountEl.addEventListener('click', handleOutlineCapture, true);
+  _outlineHandlerBound = true;
 };
 
 const initVditorPreview = async (content: string) => {
@@ -428,6 +435,9 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
   // 销毁旧实例，按新模式重建（Vditor 不支持运行时切换模式）
   try { vditorInstance.destroy(); } catch {}
   vditorInstance = null;
+
+  // 重置大纲处理器绑定标记（新实例需要重新绑定）
+  _outlineHandlerBound = false;
 
   // 等待 DOM 更新
   await new Promise(r => setTimeout(r, 50));

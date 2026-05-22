@@ -603,8 +603,8 @@ const items = computed(() => {
       ? parentPath.replace(/\/$/, "") + "/" + item.name
       : "/" + item.name;
 
-    // Apply tag filter (only affects directories)
-    if (item.isDir && !tagsStore.matchesFilter(fullPath)) {
+    // Apply tag filter (files and directories)
+    if (!tagsStore.matchesFilter(fullPath)) {
       return; // skip this item
     }
 

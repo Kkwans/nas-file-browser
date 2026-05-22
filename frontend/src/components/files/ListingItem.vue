@@ -47,7 +47,6 @@
           @click.stop.prevent="toggleFav"
         >{{ isFavorited ? 'star' : 'star_border' }}</i>
         <i
-          v-if="isDir"
           class="material-icons tag-btn"
           :class="{ 'has-tags': pathTags.length > 0 }"
           :title="$t('tags.assignTags')"
@@ -60,7 +59,7 @@
           :style="{ background: tag.color }"
           :title="tag.name"
         ></span>
-        <div v-if="isDir && showTagPicker" class="tag-picker-popup" @click.stop>
+        <div v-if="showTagPicker" class="tag-picker-popup" @click.stop>
           <TagPicker :path="path || ''" @manage="openTagManager" />
         </div>
       </p>

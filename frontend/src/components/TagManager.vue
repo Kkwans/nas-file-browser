@@ -204,7 +204,7 @@ function close() {
 }
 
 .close-btn:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.06));
+  background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 
 /* Create section */
@@ -324,7 +324,7 @@ function close() {
 }
 
 .tag-item:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.04));
+  background: var(--hover, rgba(0, 0, 0, 0.04));
 }
 
 .tag-dot {
@@ -371,7 +371,7 @@ function close() {
 }
 
 .tag-action-btn:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.08));
+  background: var(--hover, rgba(0, 0, 0, 0.08));
   color: var(--textPrimary, #1a1a2e);
 }
 

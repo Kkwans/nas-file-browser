@@ -154,7 +154,7 @@ async function confirmCreate() {
 }
 
 .fav-group-picker-manage:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.06));
+  background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 
 .fav-group-picker-manage .material-icons {
@@ -176,7 +176,7 @@ async function confirmCreate() {
 }
 
 .fav-group-picker-item:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.04));
+  background: var(--hover, rgba(0, 0, 0, 0.04));
 }
 
 .fav-group-picker-item.active {
@@ -244,7 +244,7 @@ async function confirmCreate() {
 }
 
 .fav-group-create button:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.06));
+  background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 
 .fav-group-create button:disabled {

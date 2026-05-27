@@ -31,11 +31,14 @@
       />
 
       <div v-if="recaptcha" id="recaptcha"></div>
-      <input
+      <button
         class="button button--block"
         type="submit"
-        :value="createMode ? t('login.signup') : t('login.submit')"
-      />
+        :disabled="loading"
+      >
+        <i v-if="loading" class="material-icons spin" style="font-size: 1em; margin-right: 0.5em;">autorenew</i>
+        {{ createMode ? t('login.signup') : t('login.submit') }}
+      </button>
 
       <p @click="toggleMode" v-if="signup">
         {{ createMode ? t("login.loginInstead") : t("login.createAnAccount") }}
@@ -60,6 +63,7 @@ import { useRoute, useRouter } from "vue-router";
 
 // Define refs
 const createMode = ref<boolean>(false);
+const loading = ref<boolean>(false);
 const error = ref<string>("");
 const username = ref<string>("");
 const password = ref<string>("");
@@ -98,6 +102,8 @@ const submit = async (event: Event) => {
     }
   }
 
+  loading.value = true;
+  error.value = "";
   try {
     if (createMode.value) {
       await auth.signup(username.value, password.value);
@@ -106,7 +112,6 @@ const submit = async (event: Event) => {
     await auth.login(username.value, password.value, captcha);
     router.push({ path: redirect });
   } catch (e: any) {
-    // console.error(e);
     if (e instanceof StatusError) {
       if (e.status === 409) {
         error.value = t("login.usernameTaken");
@@ -123,6 +128,8 @@ const submit = async (event: Event) => {
         $showError(e);
       }
     }
+  } finally {
+    loading.value = false;
   }
 };
 

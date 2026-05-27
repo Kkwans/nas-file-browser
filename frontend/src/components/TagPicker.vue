@@ -86,7 +86,7 @@ function openManager() {
 }
 
 .tag-picker-manage:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.06));
+  background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 
 .tag-picker-manage .material-icons {
@@ -119,7 +119,7 @@ function openManager() {
 }
 
 .tag-picker-item:hover {
-  background: var(--hoverColor, rgba(0, 0, 0, 0.04));
+  background: var(--hover, rgba(0, 0, 0, 0.04));
 }
 
 .tag-picker-item.active {

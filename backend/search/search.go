@@ -39,6 +39,29 @@ func Search(ctx context.Context,
 			return nil
 		}
 
+		// Optimization: match filename first (cheap string ops) before
+			// expensive permission checking. This avoids running the checker
+			// on files that don't match the search terms.
+		if len(search.Terms) > 0 {
+			_, fileName := path.Split(fPath)
+			matched := false
+			for _, term := range search.Terms {
+				checkName := fileName
+				checkTerm := term
+				if !search.CaseSensitive {
+					checkName = strings.ToLower(checkName)
+					checkTerm = strings.ToLower(checkTerm)
+				}
+				if strings.Contains(checkName, checkTerm) {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				return nil
+			}
+		}
+
 		if !checker.Check(fPath) {
 			return nil
 		}
@@ -56,20 +79,6 @@ func Search(ctx context.Context,
 			if !match {
 				return nil
 			}
-		}
-
-		if len(search.Terms) > 0 {
-			for _, term := range search.Terms {
-				_, fileName := path.Split(fPath)
-				if !search.CaseSensitive {
-					fileName = strings.ToLower(fileName)
-					term = strings.ToLower(term)
-				}
-				if strings.Contains(fileName, term) {
-					return found(relativePath, f)
-				}
-			}
-			return nil
 		}
 
 		return found(relativePath, f)

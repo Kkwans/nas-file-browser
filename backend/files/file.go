@@ -398,7 +398,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 	}
 
 	listing := &Listing{
-		Items:    []*FileInfo{},
+		Items:    make([]*FileInfo, 0, len(dir)),
 		NumDirs:  0,
 		NumFiles: 0,
 	}
@@ -414,8 +414,6 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 		isSymlink, isInvalidLink := false, false
 		if IsSymlink(f.Mode()) {
 			isSymlink = true
-			// It's a symbolic link. We try to follow it. If it doesn't work,
-			// we stay with the link information instead of the target's.
 			info, err := i.Fs.Stat(fPath)
 			if err == nil {
 				f = info
@@ -424,6 +422,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 			}
 		}
 
+		ext := filepath.Ext(name)
 		file := &FileInfo{
 			Fs:         i.Fs,
 			Name:       name,
@@ -432,18 +431,9 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 			Mode:       f.Mode(),
 			IsDir:      f.IsDir(),
 			IsSymlink:  isSymlink,
-			Extension:  filepath.Ext(name),
+			Extension:  ext,
 			Path:       fPath,
 			currentDir: dir,
-		}
-
-		if !file.IsDir && strings.HasPrefix(mime.TypeByExtension(file.Extension), "image/") && calcImgRes {
-			resolution, err := calculateImageResolution(file.Fs, file.Path)
-			if err != nil {
-				log.Printf("Error calculating resolution for image %s: %v", file.Path, err)
-			} else {
-				file.Resolution = resolution
-			}
 		}
 
 		if file.IsDir {
@@ -454,10 +444,10 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 			if isInvalidLink {
 				file.Type = "invalid_link"
 			} else {
-				err := file.detectType(true, false, readHeader, calcImgRes)
-				if err != nil {
-					return err
-				}
+				// Use extension-only type detection for directory listing.
+				// Header-based detection is deferred to individual file preview.
+				// This avoids opening every file just to list the directory.
+				file.detectTypeFromExt()
 			}
 		}
 
@@ -466,4 +456,25 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 
 	i.Listing = listing
 	return nil
+}
+
+// detectTypeFromExt determines file type using only the extension.
+// Much faster than detectType which reads file headers.
+// Used for directory listings where only basic type info is needed.
+func (i *FileInfo) detectTypeFromExt() {
+	mimetype := mime.TypeByExtension(i.Extension)
+	switch {
+	case strings.HasPrefix(mimetype, "video"):
+		i.Type = "video"
+	case strings.HasPrefix(mimetype, "audio"):
+		i.Type = "audio"
+	case strings.HasPrefix(mimetype, "image"):
+		i.Type = "image"
+	case strings.HasSuffix(mimetype, "pdf"):
+		i.Type = "pdf"
+	case strings.HasPrefix(mimetype, "text"):
+		i.Type = "text"
+	default:
+		i.Type = "blob"
+	}
 }

@@ -56,14 +56,11 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		}
 		defer f.Close()
 
-		data, err := io.ReadAll(f)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
 		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", file.Size))
 		w.WriteHeader(http.StatusOK)
-		_, err = w.Write(data)
+		// Stream data directly instead of loading entire file into memory.
+		_, err = io.Copy(w, f)
 		return 0, err
 	}
 

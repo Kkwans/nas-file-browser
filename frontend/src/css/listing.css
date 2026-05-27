@@ -824,6 +824,42 @@ html.dark .risk-icon.risk-medium {
   margin-top: 0.25em;
 }
 
+/* ---- Favorite Group Picker Popup ---- */
+.fav-group-picker-popup {
+  position: absolute;
+  top: 100%;
+  left: 4em;
+  z-index: 100;
+  margin-top: 0.25em;
+}
+
+.favorite-group-btn {
+  font-size: 0.85em;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  color: var(--textSecondary, #999);
+  margin-left: 0.15em;
+  vertical-align: middle;
+}
+
+#listing .item:hover .favorite-group-btn,
+.favorite-group-btn:hover {
+  opacity: 1;
+}
+
+.favorite-group-btn:hover {
+  color: var(--blue, #2196F3);
+}
+
+.is-fav ~ .favorite-group-btn {
+  opacity: 0.5;
+}
+
+#listing .item:hover .is-fav ~ .favorite-group-btn {
+  opacity: 1;
+}
+
 #listing .item {
   position: relative;
 }

@@ -40,12 +40,20 @@
           :title="riskTitle"
         >{{ riskLevel === 'high' ? 'warning' : 'info' }}</i>
         <i
-          v-if="isDir"
           class="material-icons favorite-star"
           :class="{ 'is-fav': isFavorited }"
           :title="isFavorited ? $t('sidebar.removeFavorite') : $t('sidebar.addFavorite')"
           @click.stop.prevent="toggleFav"
         >{{ isFavorited ? 'star' : 'star_border' }}</i>
+        <i
+          v-if="isFavorited"
+          class="material-icons favorite-group-btn"
+          :title="$t('sidebar.assignToGroup') || '收藏到分组'"
+          @click.stop.prevent="toggleFavGroupPicker"
+        >folder_special</i>
+        <div v-if="showFavGroupPicker" class="fav-group-picker-popup" @click.stop>
+          <FavoriteGroupPicker :path="path || ''" :name="name" @close="closeFavGroupPicker" />
+        </div>
         <i
           class="material-icons tag-btn"
           :class="{ 'has-tags': pathTags.length > 0 }"
@@ -90,6 +98,7 @@ import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
+import FavoriteGroupPicker from "@/components/FavoriteGroupPicker.vue";
 
 const touches = ref<number>(0);
 
@@ -178,9 +187,21 @@ const isFavorited = computed(() => {
   return favoritesStore.isFavorite(props.path);
 });
 
+const showFavGroupPicker = ref(false);
+
 const toggleFav = () => {
   if (!props.path) return;
   favoritesStore.toggleFavorite(props.path, props.name);
+};
+
+const toggleFavGroupPicker = (e: Event) => {
+  e.stopPropagation();
+  e.preventDefault();
+  showFavGroupPicker.value = !showFavGroupPicker.value;
+};
+
+const closeFavGroupPicker = () => {
+  showFavGroupPicker.value = false;
 };
 
 const showTagPicker = ref(false);
@@ -325,8 +346,9 @@ const drop = async (event: Event) => {
 };
 
 const itemClick = (event: Event | KeyboardEvent) => {
-  // Close tag picker on any item click
+  // Close pickers on any item click
   showTagPicker.value = false;
+  showFavGroupPicker.value = false;
 
   // If long press was triggered, prevent normal click behavior
   if (longPressTriggered.value) {

@@ -344,6 +344,8 @@
     "groupNamePlaceholder": "Group name...",
     "deleteGroup": "Delete Group",
     "noFavoritesInGroup": "No favorites in this group",
+    "assignToGroup": "Assign to group",
+    "ungrouped": "Ungrouped",
     "tags": "Tags",
     "resizeSidebar": "Drag to resize sidebar"
   },

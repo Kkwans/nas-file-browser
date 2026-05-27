@@ -98,6 +98,7 @@
 <script setup lang="ts">
 import { throttle } from "lodash-es";
 import UTIF from "utif";
+import { filesize } from "@/utils";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -150,10 +151,7 @@ const container = ref<HTMLDivElement | null>(null);
 // Computed
 const fileSize = computed(() => {
   if (!props.fileSizeBytes) return "";
-  const bytes = props.fileSizeBytes;
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  return filesize(props.fileSizeBytes);
 });
 
 onMounted(() => {

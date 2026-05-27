@@ -203,19 +203,28 @@ export default {
       const listing = this._fileStore?.oldReq?.items;
       if (!listing || listing.length === 0) return;
 
-      const mediaTypes = ["image", "video", "audio", "blob"];
+      // All previewable types (media + text + markdown)
+      const previewableTypes = ["image", "video", "audio", "blob", "text", "textImmutable"];
+      const previewableExts = [".md", ".markdown", ".txt", ".json", ".xml", ".yml", ".yaml", ".csv", ".log", ".ini", ".conf", ".cfg", ".sh", ".py", ".js", ".ts", ".go", ".java", ".c", ".cpp", ".h", ".css", ".html", ".vue", ".rs", ".rb", ".php", ".sql", ".toml", ".env", ".pdf", ".epub", ".srt", ".vtt", ".ass"];
+
+      const isPreviewable = (item) => {
+        if (previewableTypes.includes(item.type)) return true;
+        const ext = item.extension?.toLowerCase() || "";
+        return previewableExts.includes(ext);
+      };
+
       const currentName = this.item.name;
       const currentIndex = listing.findIndex((it) => it.name === currentName);
       if (currentIndex === -1) return;
 
-      // Find next/previous media file
+      // Find next/previous previewable file
       let idx = currentIndex;
       do {
         idx += direction;
         if (idx < 0) idx = listing.length - 1;
         if (idx >= listing.length) idx = 0;
-        if (idx === currentIndex) return; // wrapped around, no other media
-      } while (!mediaTypes.includes(listing[idx].type));
+        if (idx === currentIndex) return; // wrapped around, no other file
+      } while (!isPreviewable(listing[idx]));
 
       const target = listing[idx];
       this.closeHovers();
@@ -225,7 +234,13 @@ export default {
       this.closeHovers();
     },
     downloadFile() {
-      window.open(this.directUrl, "_blank");
+      const a = document.createElement('a');
+      a.href = this.directUrl;
+      a.download = this.item.name || '';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     },
     openFull() {
       window.open(this.directUrl, "_blank");

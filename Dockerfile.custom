@@ -3,7 +3,7 @@
 # ============================================================
 
 # --- Stage 1: Build Frontend ---
-FROM node:24-alpine AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /src/frontend
 
@@ -32,11 +32,9 @@ RUN go mod download
 
 COPY backend/ ./
 
-COPY frontend/assets.go ./frontend/assets.go
-
 COPY --from=frontend-builder /src/frontend/dist/ ./frontend/dist/
 
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
+RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
 
 # JSON.sh copied from local (GitHub raw often blocked in China)
 

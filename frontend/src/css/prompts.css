@@ -825,6 +825,47 @@ html.dark .risk-confirm-details {
   font-size: inherit;
 }
 
+.quick-preview-markdown {
+  width: 100%;
+  max-height: calc(90vh - 4em);
+  overflow: auto;
+  padding: 1.5rem 2rem;
+  font-size: 14px;
+  line-height: 1.8;
+  background: var(--surfacePrimary, #fff);
+  box-sizing: border-box;
+}
+
+/* Override mdPreview max-width inside quick preview modal */
+.quick-preview-markdown.md_preview {
+  max-width: 100%;
+  padding: 1.5rem 2rem;
+  margin: 0;
+}
+
+/* Dark mode for markdown preview */
+:root.dark .quick-preview-markdown,
+html.dark .quick-preview-markdown {
+  background: var(--surfacePrimary, #0f172a);
+  color: #e2e8f0;
+}
+
+:root.dark .quick-preview-body:has(.quick-preview-markdown),
+html.dark .quick-preview-body:has(.quick-preview-markdown) {
+  background: var(--surfacePrimary, #0f172a);
+}
+
+/* Mobile markdown preview */
+@media (max-width: 736px) {
+  .quick-preview-markdown {
+    padding: 1rem 1.25rem;
+    font-size: 13px;
+  }
+  .quick-preview-markdown.md_preview {
+    padding: 1rem 1.25rem;
+  }
+}
+
 .quick-preview-no-preview {
   display: flex;
   flex-direction: column;

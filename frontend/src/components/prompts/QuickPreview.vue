@@ -45,6 +45,12 @@
         :src="directUrl"
         class="quick-preview-pdf"
       />
+      <!-- Markdown (rendered) -->
+      <div
+        v-else-if="isMarkdown"
+        class="quick-preview-markdown md_preview"
+        ref="markdownBody"
+      ></div>
       <!-- Text / Code -->
       <pre v-else-if="isText" class="quick-preview-text"><code>{{ textContent }}</code></pre>
       <!-- Blob (no preview) -->
@@ -76,6 +82,7 @@ export default {
     return {
       loading: true,
       textContent: "",
+      markdownHtml: "",
     };
   },
   computed: {
@@ -92,7 +99,13 @@ export default {
     isPdf() {
       return this.item.extension?.toLowerCase() === ".pdf";
     },
+    isMarkdown() {
+      const ext = this.item.extension?.toLowerCase() || "";
+      return ext === ".md" || ext === ".markdown";
+    },
     isText() {
+      // Markdown files are handled separately by isMarkdown
+      if (this.isMarkdown) return false;
       const textTypes = ["text", "textImmutable"];
       const textExts = [
         ".txt", ".md", ".json", ".xml", ".yml", ".yaml", ".csv", ".log",
@@ -140,7 +153,9 @@ export default {
     },
   },
   mounted() {
-    if (this.isText) {
+    if (this.isMarkdown) {
+      this.loadMarkdownContent();
+    } else if (this.isText) {
       this.loadTextContent();
     } else if (this.item.type === "blob" || this.item.type === "invalid_link") {
       this.loading = false;
@@ -170,6 +185,119 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async loadMarkdownContent() {
+      try {
+        const resp = await fetch(this.directUrl, { credentials: "include" });
+        const text = await resp.text();
+        const truncated =
+          text.length > 51200
+            ? text.substring(0, 51200) + "\n\n... (文件过大，仅显示前 50KB)"
+            : text;
+        await this.renderMarkdown(truncated);
+      } catch {
+        this.textContent = "无法加载文件内容";
+        // Fallback to plain text display
+        this.$nextTick(() => {
+          if (this.$refs.markdownBody) {
+            this.$refs.markdownBody.textContent = this.textContent;
+          }
+        });
+      } finally {
+        this.loading = false;
+      }
+    },
+    async renderMarkdown(content) {
+      // Load Vditor CSS
+      if (!document.querySelector('link[href*="vditor"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.css';
+        document.head.appendChild(link);
+      }
+
+      // Load highlight.js CSS
+      const isDark = document.documentElement.className === 'dark';
+      const themeCSS = isDark ? 'github-dark' : 'github';
+      if (!document.querySelector('link[href*="highlight.js"]')) {
+        const hlLink = document.createElement('link');
+        hlLink.rel = 'stylesheet';
+        hlLink.href = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
+        hlLink.id = 'hljs-theme';
+        document.head.appendChild(hlLink);
+      }
+
+      // Load Vditor JS
+      if (!(window).Vditor) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      // Load highlight.js JS
+      if (!(window).hljs) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      // Render markdown to HTML
+      const VditorClass = (window).Vditor;
+      const htmlResult = VditorClass.md2html(content, { theme: isDark ? 'dark' : 'light' });
+      const html = await Promise.resolve(htmlResult);
+
+      if (typeof html === 'string' && this.$refs.markdownBody) {
+        this.$refs.markdownBody.innerHTML = html;
+        this.highlightCodeBlocks(this.$refs.markdownBody);
+      }
+    },
+    highlightCodeBlocks(container) {
+      const codeBlocks = container.querySelectorAll('pre > code');
+      const hljs = (window).hljs;
+
+      codeBlocks.forEach((codeEl) => {
+        // Extract language from class
+        let lang = '';
+        const langMatch = codeEl.className.match(/language-(\w+)/);
+        if (langMatch) {
+          lang = langMatch[1];
+        }
+        if (lang && !codeEl.getAttribute('data-lang')) {
+          codeEl.setAttribute('data-lang', lang);
+        }
+
+        // Apply syntax highlighting
+        if (hljs && lang) {
+          try {
+            const rawText = codeEl.textContent || '';
+            const result = hljs.highlight(rawText, { language: lang, ignoreIllegals: true });
+            codeEl.innerHTML = result.value;
+            codeEl.classList.add('hljs');
+          } catch (e) {
+            // Language not supported, skip
+          }
+        }
+
+        // Wrap lines for line numbers
+        const html = codeEl.innerHTML;
+        const lines = html.split('\n');
+        if (lines.length > 1 && lines[lines.length - 1].trim() === '') {
+          lines.pop();
+        }
+        const wrappedHtml = lines
+          .map((line) => `<span class="code-line">${line}</span>`)
+          .join('\n');
+        codeEl.innerHTML = wrappedHtml;
+        codeEl.classList.add('has-line-numbers');
+      });
     },
   },
 };

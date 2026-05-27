@@ -249,7 +249,7 @@ const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
       {
         name: 'source-mode',
         tipPosition: 's',
-        tip: '源码模式',
+        tip: t('buttons.sourceMode'),
         icon: '<svg viewBox="0 0 1024 1024"><path d="M586.185 280.418l44.206-44.206L816 421.812l-185.609 185.61-44.206-44.207L727.588 421.812zM437.815 743.582l-44.206 44.206L208 602.188l185.609-185.61 44.206 44.207L296.412 602.188z"/></svg>',
         click: () => switchMode('sv'),
       },

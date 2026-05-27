@@ -75,7 +75,8 @@
     "toggleZoom": "切换缩放",
     "zoom": "缩放",
     "rotate": "旋转",
-    "riskConfirm": "确认执行"
+    "riskConfirm": "确认执行",
+    "sourceMode": "源码模式"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -124,7 +125,9 @@
     },
     "fileEncoding": "文件编码",
     "hideSystemDirs": "隐藏系统文件夹",
-    "showSystemDirs": "显示系统文件夹"
+    "showSystemDirs": "显示系统文件夹",
+    "riskHighTitle": "高危目录 - 修改或删除可能导致系统不稳定",
+    "riskMediumTitle": "中危目录 - 请谨慎操作"
   },
   "help": {
     "click": "选择文件或文件夹",
@@ -350,11 +353,32 @@
     "createGroup": "新建分组",
     "groupNamePlaceholder": "分组名称...",
     "deleteGroup": "删除分组",
+    "deleteGroupConflict": "无法删除分组：分组中仍有收藏项，请先移出或删除收藏。",
     "noFavoritesInGroup": "该分组暂无收藏",
     "assignToGroup": "收藏到分组",
     "ungrouped": "未分组",
     "tags": "标签",
-    "resizeSidebar": "拖拽调节侧边栏宽度"
+    "resizeSidebar": "拖拽调节侧边栏宽度",
+    "knownDir_home": "用户主目录",
+    "knownDir_docker": "Docker 数据",
+    "knownDir_appstore": "应用数据",
+    "knownDir_tmp": "临时文件",
+    "knownDir_upload": "上传缓存",
+    "knownDir_search": "搜索索引",
+    "knownDir_thumbnail": "缩略图缓存",
+    "knownDir_Docker": "Docker 项目",
+    "knownDir_Download": "下载",
+    "knownDir_Movie": "电影",
+    "knownDir_Movies": "电影",
+    "knownDir_Music": "音乐",
+    "knownDir_Photos": "照片",
+    "knownDir_Pictures": "图片",
+    "knownDir_TV": "电视剧",
+    "knownDir_Video": "视频",
+    "knownDir_Videos": "视频",
+    "knownDir_Documents": "文档",
+    "knownDir_Common": "公共文件",
+    "knownDir_xunlei": "迅雷下载"
   },
   "favorites": {
     "added": "已收藏",

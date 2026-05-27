@@ -75,7 +75,8 @@
     "toggleZoom": "Toggle zoom",
     "zoom": "Zoom",
     "rotate": "Rotate",
-    "riskConfirm": "Confirm"
+    "riskConfirm": "Confirm",
+    "sourceMode": "Source Mode"
   },
   "download": {
     "downloadFile": "Download File",
@@ -124,7 +125,9 @@
     },
     "fileEncoding": "File Encoding",
     "hideSystemDirs": "Hide system folders",
-    "showSystemDirs": "Show system folders"
+    "showSystemDirs": "Show system folders",
+    "riskHighTitle": "High-risk directory - modification or deletion may cause system instability",
+    "riskMediumTitle": "Medium-risk directory - proceed with caution"
   },
   "help": {
     "click": "select file or directory",
@@ -350,11 +353,32 @@
     "createGroup": "New Group",
     "groupNamePlaceholder": "Group name...",
     "deleteGroup": "Delete Group",
+    "deleteGroupConflict": "Cannot delete group: it still contains favorites. Move or remove them first.",
     "noFavoritesInGroup": "No favorites in this group",
     "assignToGroup": "Assign to group",
     "ungrouped": "Ungrouped",
     "tags": "Tags",
-    "resizeSidebar": "Drag to resize sidebar"
+    "resizeSidebar": "Drag to resize sidebar",
+    "knownDir_home": "User Home",
+    "knownDir_docker": "Docker Data",
+    "knownDir_appstore": "App Data",
+    "knownDir_tmp": "Temp Files",
+    "knownDir_upload": "Upload Cache",
+    "knownDir_search": "Search Index",
+    "knownDir_thumbnail": "Thumbnail Cache",
+    "knownDir_Docker": "Docker Projects",
+    "knownDir_Download": "Downloads",
+    "knownDir_Movie": "Movies",
+    "knownDir_Movies": "Movies",
+    "knownDir_Music": "Music",
+    "knownDir_Photos": "Photos",
+    "knownDir_Pictures": "Pictures",
+    "knownDir_TV": "TV Shows",
+    "knownDir_Video": "Videos",
+    "knownDir_Videos": "Videos",
+    "knownDir_Documents": "Documents",
+    "knownDir_Common": "Common Files",
+    "knownDir_xunlei": "Xunlei Downloads"
   },
   "favorites": {
     "added": "Added to favorites",

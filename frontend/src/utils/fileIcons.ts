@@ -27,7 +27,7 @@ const EXT_ICON_MAP: Record<string, string> = {
   ppt: "slideshow",
   pptx: "slideshow",
   odp: "slideshow",
-  key: "slideshow",
+  keynote: "slideshow",
 
   // Audio
   mp3: "audiotrack",
@@ -49,7 +49,6 @@ const EXT_ICON_MAP: Record<string, string> = {
   flv: "movie",
   webm: "movie",
   m4v: "movie",
-  ts: "movie",
   mpeg: "movie",
   mpg: "movie",
   "3gp": "movie",

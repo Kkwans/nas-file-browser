@@ -53,7 +53,30 @@
     "skipAll": "Skip all conflicting files",
     "renameAll": "Rename all files (create a copy)",
     "singleDecision": "Decide for each conflicting file",
-    "toggleLineNumbers": "切換行號顯示"
+    "toggleLineNumbers": "切換行號顯示",
+    "compactView": "緊湊列表",
+    "detailView": "詳細列表",
+    "fitToScreen": "適應螢幕",
+    "gridView": "網格視圖",
+    "invertSelection": "反選",
+    "listView": "列表視圖",
+    "originalSize": "原始大小",
+    "resumeTransfer": "恢復傳輸",
+    "resumeTransferTooltip": "跳過所有衝突檔案，除了伺服器上較小的檔案（可能傳輸中斷）。",
+    "riskConfirm": "確認執行",
+    "rotate": "旋轉",
+    "rotateLeft": "向左旋轉",
+    "rotateRight": "向右旋轉",
+    "selectAll": "全選",
+    "sort": "排序",
+    "toggleZoom": "切換縮放",
+    "vditorIR": "即時渲染",
+    "vditorPreview": "閱讀模式",
+    "vditorSV": "分屏",
+    "zoom": "縮放",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "sourceMode": "原始碼模式"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -97,7 +120,14 @@
       "semicolon": "Semicolon (;)",
       "both": "Both (,) and (;)"
     },
-    "fileEncoding": "File Encoding"
+    "fileEncoding": "File Encoding",
+    "ascending": "升序",
+    "descending": "降序",
+    "hideSystemDirs": "隱藏系統資料夾",
+    "showSystemDirs": "顯示系統資料夾",
+    "sortByType": "按類型排序",
+    "riskHighTitle": "高風險目錄 - 修改或刪除可能導致系統不穩定",
+    "riskMediumTitle": "中風險目錄 - 請謹慎操作"
   },
   "help": {
     "click": "選擇檔案或目錄",
@@ -186,7 +216,13 @@
     "skip": "Skip",
     "forbiddenError": "Forbidden Error",
     "currentPassword": "Your password",
-    "currentPasswordMessage": "Enter your password to validate this action."
+    "currentPasswordMessage": "Enter your password to validate this action.",
+    "riskConfirmDelete": "刪除此目錄可能導致系統元件無法正常運作，資料可能無法恢復。",
+    "riskConfirmGeneric": "對此目錄的操作可能影響系統穩定性。",
+    "riskConfirmMessage": "您正在對一個受保護的目錄執行操作，請確認您了解可能的後果。",
+    "riskConfirmMove": "移動此目錄可能導致依賴它的系統元件無法正常工作。",
+    "riskConfirmRename": "重新命名此目錄可能導致依賴它的系統元件無法正常工作。",
+    "riskConfirmTitle": "風險操作確認"
   },
   "search": {
     "images": "影像",
@@ -301,7 +337,48 @@
     "settings": "設定",
     "signup": "註冊",
     "siteSettings": "網站設定",
-    "viewCategoryContents": "檢視內容"
+    "viewCategoryContents": "檢視內容",
+    "addFavorite": "收藏",
+    "assignToGroup": "收藏到分組",
+    "categoryOther": "其他",
+    "categoryPersonal": "個人資料夾",
+    "categoryShared": "共用資料夾",
+    "categorySystem": "系統資料夾",
+    "clearAllFavorites": "清空收藏夾",
+    "createGroup": "新建分組",
+    "deleteGroup": "刪除分組",
+    "directoryCategories": "目錄分類",
+    "diskUsed": "已使用 {used}，共 {total}",
+    "favorites": "收藏夾",
+    "groupNamePlaceholder": "分組名稱...",
+    "noFavorites": "暫無收藏目錄",
+    "noFavoritesInGroup": "該分組暫無收藏",
+    "removeFavorite": "取消收藏",
+    "resizeSidebar": "拖曳調節側邊欄寬度",
+    "storageVolumes": "儲存卷",
+    "tags": "標籤",
+    "ungrouped": "未分組",
+    "deleteGroupConflict": "無法刪除分組：分組中仍有收藏項目，請先移出或刪除收藏。",
+    "knownDir_home": "用戶主目錄",
+    "knownDir_docker": "Docker 資料",
+    "knownDir_appstore": "應用資料",
+    "knownDir_tmp": "暫存檔案",
+    "knownDir_upload": "上傳快取",
+    "knownDir_search": "搜尋索引",
+    "knownDir_thumbnail": "縮圖快取",
+    "knownDir_Docker": "Docker 專案",
+    "knownDir_Download": "下載",
+    "knownDir_Movie": "電影",
+    "knownDir_Movies": "電影",
+    "knownDir_Music": "音樂",
+    "knownDir_Photos": "照片",
+    "knownDir_Pictures": "圖片",
+    "knownDir_TV": "電視劇",
+    "knownDir_Video": "影片",
+    "knownDir_Videos": "影片",
+    "knownDir_Documents": "文件",
+    "knownDir_Common": "公共檔案",
+    "knownDir_xunlei": "迅雷下載"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -312,5 +389,39 @@
     "minutes": "分鐘",
     "seconds": "秒",
     "unit": "時間單位"
+  },
+  "favorites": {
+    "added": "已收藏",
+    "removed": "已取消收藏"
+  },
+  "pdf": {
+    "downloadFile": "下載檔案",
+    "exitFullscreen": "退出全螢幕",
+    "fitToPage": "適合頁面",
+    "fitToWidth": "適合寬度",
+    "fullscreen": "全螢幕",
+    "loadFailed": "PDF 載入失敗",
+    "loading": "載入 PDF 中...",
+    "print": "列印",
+    "zoomIn": "放大",
+    "zoomOut": "縮小"
+  },
+  "tags": {
+    "assignTags": "分配標籤",
+    "clearFilter": "清除篩選",
+    "confirmDelete": "確定要刪除這個標籤嗎？",
+    "create": "建立標籤",
+    "delete": "刪除標籤",
+    "edit": "編輯標籤",
+    "filtered": "已篩選",
+    "manage": "管理標籤",
+    "namePlaceholder": "標籤名稱...",
+    "noTags": "暫無標籤"
+  },
+  "uploading": {
+    "abort": "中止傳輸",
+    "completed": "傳輸完成",
+    "remaining": "剩餘時間",
+    "toggleList": "切換傳輸列表"
   }
 }

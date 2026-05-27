@@ -97,6 +97,7 @@ import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import TagPicker from "@/components/TagPicker.vue";
 import FavoriteGroupPicker from "@/components/FavoriteGroupPicker.vue";
 
@@ -110,6 +111,7 @@ const moveThreshold = ref<number>(10);
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
+const { t } = useI18n();
 
 const props = defineProps<{
   name: string;
@@ -171,8 +173,8 @@ const riskLevel = computed(() => {
 });
 
 const riskTitle = computed(() => {
-  if (riskLevel.value === "high") return "高危目录 - 修改或删除可能导致系统不稳定";
-  if (riskLevel.value === "medium") return "中危目录 - 请谨慎操作";
+  if (riskLevel.value === "high") return t('files.riskHighTitle');
+  if (riskLevel.value === "medium") return t('files.riskMediumTitle');
   return "";
 });
 

@@ -534,27 +534,28 @@ export default {
     },
     getKnownDirs(volBase) {
       // Return known subdirectories for a volume based on NAS structure
+      const t = this.$t;
       const dirs = [
-        { path: volBase + "/@home", name: "用户主目录" },
-        { path: volBase + "/@docker", name: "Docker 数据" },
-        { path: volBase + "/@appstore", name: "应用数据" },
-        { path: volBase + "/@tmp", name: "临时文件" },
-        { path: volBase + "/@upload", name: "上传缓存" },
-        { path: volBase + "/@search", name: "搜索索引" },
-        { path: volBase + "/@thumbnail", name: "缩略图缓存" },
-        { path: volBase + "/Docker", name: "Docker 项目" },
-        { path: volBase + "/Download", name: "下载" },
-        { path: volBase + "/Movie", name: "电影" },
-        { path: volBase + "/Movies", name: "电影" },
-        { path: volBase + "/Music", name: "音乐" },
-        { path: volBase + "/Photos", name: "照片" },
-        { path: volBase + "/Pictures", name: "图片" },
-        { path: volBase + "/TV", name: "电视剧" },
-        { path: volBase + "/Video", name: "视频" },
-        { path: volBase + "/Videos", name: "视频" },
-        { path: volBase + "/Documents", name: "文档" },
-        { path: volBase + "/Common", name: "公共文件" },
-        { path: volBase + "/迅雷下载", name: "迅雷下载" },
+        { path: volBase + "/@home", name: t('sidebar.knownDir_home') },
+        { path: volBase + "/@docker", name: t('sidebar.knownDir_docker') },
+        { path: volBase + "/@appstore", name: t('sidebar.knownDir_appstore') },
+        { path: volBase + "/@tmp", name: t('sidebar.knownDir_tmp') },
+        { path: volBase + "/@upload", name: t('sidebar.knownDir_upload') },
+        { path: volBase + "/@search", name: t('sidebar.knownDir_search') },
+        { path: volBase + "/@thumbnail", name: t('sidebar.knownDir_thumbnail') },
+        { path: volBase + "/Docker", name: t('sidebar.knownDir_Docker') },
+        { path: volBase + "/Download", name: t('sidebar.knownDir_Download') },
+        { path: volBase + "/Movie", name: t('sidebar.knownDir_Movie') },
+        { path: volBase + "/Movies", name: t('sidebar.knownDir_Movies') },
+        { path: volBase + "/Music", name: t('sidebar.knownDir_Music') },
+        { path: volBase + "/Photos", name: t('sidebar.knownDir_Photos') },
+        { path: volBase + "/Pictures", name: t('sidebar.knownDir_Pictures') },
+        { path: volBase + "/TV", name: t('sidebar.knownDir_TV') },
+        { path: volBase + "/Video", name: t('sidebar.knownDir_Video') },
+        { path: volBase + "/Videos", name: t('sidebar.knownDir_Videos') },
+        { path: volBase + "/Documents", name: t('sidebar.knownDir_Documents') },
+        { path: volBase + "/Common", name: t('sidebar.knownDir_Common') },
+        { path: volBase + "/迅雷下载", name: t('sidebar.knownDir_xunlei') },
       ];
 
       // Filter to only include directories that likely exist
@@ -644,7 +645,7 @@ export default {
     async deleteGroup(id) {
       const result = await this.favoritesStore.deleteGroup(id);
       if (result.conflict) {
-        this.$showError(new Error('Cannot delete group: it still contains favorites. Move or remove them first.'));
+        this.$showError(new Error(this.$t('sidebar.deleteGroupConflict')));
       }
     },
     toggleGroupCollapse(id) {

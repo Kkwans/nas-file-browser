@@ -147,7 +147,11 @@
     "esc": "clear selection and/or close the prompt",
     "f1": "this information",
     "f2": "rename file",
-    "help": "Help"
+    "help": "Help",
+    "ctrlCopy": "copy selected files",
+    "ctrlCut": "cut selected files",
+    "ctrlPaste": "paste files from clipboard",
+    "ctrlA": "select all files and folders"
   },
   "login": {
     "createAnAccount": "Create an account",

@@ -829,6 +829,38 @@ const keyEvent = (event: KeyboardEvent) => {
     return;
   }
 
+  // Page Up / Page Down - jump by visible page size
+  if (event.key === "PageDown" || event.key === "PageUp") {
+    event.preventDefault();
+    const allItems = [...items.value.dirs, ...items.value.files];
+    if (allItems.length === 0) return;
+
+    // Estimate visible items from viewport height
+    const pageSize = Math.max(5, Math.floor((window.innerHeight - 200) / 60));
+    const currentIndex = fileStore.selected.length > 0
+      ? fileStore.selected[fileStore.selected.length - 1]
+      : -1;
+
+    // Find position in allItems array
+    const pos = allItems.findIndex((it) => it.index === currentIndex);
+    let newPos: number;
+    if (event.key === "PageDown") {
+      newPos = pos < 0 ? pageSize - 1 : Math.min(pos + pageSize, allItems.length - 1);
+    } else {
+      newPos = pos < 0 ? 0 : Math.max(pos - pageSize, 0);
+    }
+
+    const target = allItems[newPos];
+    if (target) {
+      fileStore.selected = [target.index];
+      nextTick(() => {
+        const el = document.querySelectorAll("#listing .item")[target.index];
+        if (el) el.scrollIntoView({ block: "nearest" });
+      });
+    }
+    return;
+  }
+
   if (event.key === "Delete") {
     if (!authStore.user?.perm.delete || fileStore.selectedCount == 0) return;
 

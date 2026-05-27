@@ -7,6 +7,12 @@
         <span class="quick-preview-meta">{{ humanSize }} · {{ humanTime }}</span>
       </div>
       <div class="quick-preview-actions">
+        <button class="quick-preview-btn" @click="navigateFile(-1)" :title="$t('buttons.previous')">
+          <i class="material-icons">chevron_left</i>
+        </button>
+        <button class="quick-preview-btn" @click="navigateFile(1)" :title="$t('buttons.next')">
+          <i class="material-icons">chevron_right</i>
+        </button>
         <button class="quick-preview-btn" @click="downloadFile" :title="$t('buttons.download')">
           <i class="material-icons">file_download</i>
         </button>
@@ -72,11 +78,14 @@
 <script>
 import { mapState, mapActions } from "pinia";
 import { useLayoutStore } from "@/stores/layout";
+import { useFileStore } from "@/stores/file";
 import { files as api } from "@/api";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import { loadMarkdownResources, highlightAndAnnotateCodeBlocks } from "@/utils/externalResources";
 import dayjs from "dayjs";
+import url from "@/utils/url";
+import { useRouter, useRoute } from "vue-router";
 
 export default {
   name: "quick-preview",
@@ -85,7 +94,15 @@ export default {
       loading: true,
       textContent: "",
       markdownHtml: "",
+      _fileStore: null,
+      _router: null,
+      _route: null,
     };
+  },
+  created() {
+    this._fileStore = useFileStore();
+    this._router = useRouter();
+    this._route = useRoute();
   },
   computed: {
     ...mapState(useLayoutStore, ["currentPrompt"]),
@@ -174,7 +191,35 @@ export default {
       if (event.key === "Escape") {
         event.preventDefault();
         this.closeHovers();
+        return;
       }
+      // Left/Right arrow to navigate between files
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        this.navigateFile(event.key === "ArrowRight" ? 1 : -1);
+      }
+    },
+    navigateFile(direction) {
+      const listing = this._fileStore?.oldReq?.items;
+      if (!listing || listing.length === 0) return;
+
+      const mediaTypes = ["image", "video", "audio", "blob"];
+      const currentName = this.item.name;
+      const currentIndex = listing.findIndex((it) => it.name === currentName);
+      if (currentIndex === -1) return;
+
+      // Find next/previous media file
+      let idx = currentIndex;
+      do {
+        idx += direction;
+        if (idx < 0) idx = listing.length - 1;
+        if (idx >= listing.length) idx = 0;
+        if (idx === currentIndex) return; // wrapped around, no other media
+      } while (!mediaTypes.includes(listing[idx].type));
+
+      const target = listing[idx];
+      this.closeHovers();
+      this._router?.push({ path: target.url });
     },
     close() {
       this.closeHovers();
@@ -191,10 +236,10 @@ export default {
         const text = await resp.text();
         this.textContent =
           text.length > 51200
-            ? text.substring(0, 51200) + "\n\n... (文件过大，仅显示前 50KB)"
+            ? text.substring(0, 51200) + "\n\n... " + this.$t('files.fileTooLarge')
             : text;
       } catch {
-        this.textContent = "无法加载文件内容";
+        this.textContent = this.$t('files.cannotLoadContent');
       } finally {
         this.loading = false;
       }
@@ -205,11 +250,11 @@ export default {
         const text = await resp.text();
         const truncated =
           text.length > 51200
-            ? text.substring(0, 51200) + "\n\n... (文件过大，仅显示前 50KB)"
+            ? text.substring(0, 51200) + "\n\n... " + this.$t('files.fileTooLarge')
             : text;
         await this.renderMarkdown(truncated);
       } catch {
-        this.textContent = "无法加载文件内容";
+        this.textContent = this.$t('files.cannotLoadContent');
         // Fallback to plain text display
         this.$nextTick(() => {
           if (this.$refs.markdownBody) {

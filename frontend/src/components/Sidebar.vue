@@ -604,7 +604,14 @@ export default {
       return "check_circle";
     },
     navigateVolume(path) {
-      this.$router.push({ path: "/files" + path + "/" });
+      // Check if path looks like a file (has a common file extension)
+      const lastSegment = path.split('/').pop() || '';
+      const dotIdx = lastSegment.lastIndexOf('.');
+      const ext = dotIdx > 0 ? lastSegment.slice(dotIdx + 1).toLowerCase() : '';
+      const fileExts = ['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','md','json','js','ts','py','java','go','html','css','xml','yaml','yml','csv','mp3','mp4','avi','mkv','mov','wav','flac','jpg','jpeg','png','gif','webp','svg','bmp','ico','zip','rar','7z','tar','gz','bz2','xz','exe','sh','bat','ps1','sql','rb','php','swift','kt','rs','c','cpp','h','hpp'];
+      const isFile = ext && fileExts.includes(ext);
+      const url = isFile ? "/files" + path : "/files" + path + "/";
+      this.$router.push({ path: url });
       this.closeHovers();
     },
     removeFavorite(id) {

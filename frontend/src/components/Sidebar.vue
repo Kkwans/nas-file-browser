@@ -96,7 +96,7 @@
             @dragend="onFavDragEnd"
           >
             <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
-            <i class="material-icons favorite-icon">folder</i>
+            <i class="material-icons favorite-icon">{{ favoriteIcon(fav.name) }}</i>
             <div class="favorite-info">
               <span class="favorite-name">{{ fav.name }}</span>
               <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
@@ -149,7 +149,7 @@
               @dragend="onFavDragEnd"
             >
               <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
-              <i class="material-icons favorite-icon">folder</i>
+              <i class="material-icons favorite-icon">{{ favoriteIcon(fav.name) }}</i>
               <div class="favorite-info">
                 <span class="favorite-name">{{ fav.name }}</span>
                 <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
@@ -609,6 +609,46 @@ export default {
     },
     removeFavorite(id) {
       this.favoritesStore.removeFavorite(id);
+    },
+    favoriteIcon(name) {
+      // Heuristic: if name has a file extension, it's likely a file
+      const ext = name.split('.').pop();
+      if (ext && ext !== name && ext.length <= 5 && !name.endsWith('/')) {
+        const iconMap = {
+          'pdf': 'picture_as_pdf',
+          'mp3': 'audiotrack',
+          'mp4': 'movie',
+          'jpg': 'image',
+          'jpeg': 'image',
+          'png': 'image',
+          'gif': 'image',
+          'webp': 'image',
+          'svg': 'image',
+          'doc': 'description',
+          'docx': 'description',
+          'xls': 'table_chart',
+          'xlsx': 'table_chart',
+          'ppt': 'slideshow',
+          'pptx': 'slideshow',
+          'zip': 'folder_zip',
+          'rar': 'folder_zip',
+          '7z': 'folder_zip',
+          'tar': 'folder_zip',
+          'gz': 'folder_zip',
+          'txt': 'article',
+          'md': 'article',
+          'json': 'data_object',
+          'js': 'code',
+          'ts': 'code',
+          'py': 'code',
+          'java': 'code',
+          'go': 'code',
+          'html': 'code',
+          'css': 'code',
+        };
+        return iconMap[ext.toLowerCase()] || 'insert_drive_file';
+      }
+      return 'folder';
     },
     async clearAllFavorites() {
       if (this.favoritesStore.sortedFavorites.length === 0) return;

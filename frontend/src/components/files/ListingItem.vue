@@ -183,7 +183,7 @@ const riskTitle = computed(() => {
 });
 
 const isFavorited = computed(() => {
-  if (!props.isDir || !props.path) return false;
+  if (!props.path) return false;
   return favoritesStore.isFavorite(props.path);
 });
 
@@ -207,7 +207,7 @@ const closeFavGroupPicker = () => {
 const showTagPicker = ref(false);
 
 const pathTags = computed(() => {
-  if (!props.isDir || !props.path) return [];
+  if (!props.path) return [];
   return tagsStore.getTagsForPath(props.path);
 });
 

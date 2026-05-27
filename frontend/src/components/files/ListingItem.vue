@@ -170,12 +170,6 @@ const riskLevel = computed(() => {
   return categoriesStore.getRiskLevel(props.path);
 });
 
-const riskLabel = computed(() => {
-  if (riskLevel.value === "high") return "高危";
-  if (riskLevel.value === "medium") return "中危";
-  return "";
-});
-
 const riskTitle = computed(() => {
   if (riskLevel.value === "high") return "高危目录 - 修改或删除可能导致系统不稳定";
   if (riskLevel.value === "medium") return "中危目录 - 请谨慎操作";

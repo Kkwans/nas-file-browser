@@ -4,7 +4,7 @@
     ref="contextMenu"
     v-show="show"
     :style="{
-      top: `${props.pos.y}px`,
+      top: `${top}px`,
       left: `${left}px`,
     }"
   >
@@ -24,6 +24,12 @@ const left = computed(() => {
     props.pos.x,
     window.innerWidth - (contextMenu.value?.clientWidth ?? 0)
   );
+});
+
+const top = computed(() => {
+  const menuHeight = contextMenu.value?.clientHeight ?? 0;
+  const maxY = window.innerHeight + window.scrollY - menuHeight - 8;
+  return Math.min(props.pos.y, maxY);
 });
 
 const hideContextMenu = () => {

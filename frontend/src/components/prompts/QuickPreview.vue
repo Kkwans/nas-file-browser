@@ -153,6 +153,7 @@ export default {
     },
   },
   mounted() {
+    window.addEventListener("keydown", this.handleKeydown);
     if (this.isMarkdown) {
       this.loadMarkdownContent();
     } else if (this.isText) {
@@ -161,8 +162,17 @@ export default {
       this.loading = false;
     }
   },
+  beforeUnmount() {
+    window.removeEventListener("keydown", this.handleKeydown);
+  },
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers"]),
+    handleKeydown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this.closeHovers();
+      }
+    },
     close() {
       this.closeHovers();
     },

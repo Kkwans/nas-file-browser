@@ -2,6 +2,8 @@ package tags
 
 import (
 	"errors"
+	"fmt"
+	"sync/atomic"
 	"time"
 )
 
@@ -128,17 +130,10 @@ func (s *Storage) RemovePath(id, path string) (*Tag, error) {
 	return tag, nil
 }
 
-func generateID() string {
-	return time.Now().Format("20060102150405.000") + randomHex(6)
-}
+// generateID creates a unique ID based on timestamp + counter.
+var tagIDCounter uint64
 
-func randomHex(n int) string {
-	const hex = "0123456789abcdef"
-	b := make([]byte, n)
-	t := time.Now().UnixNano()
-	for i := range b {
-		b[i] = hex[t%16]
-		t >>= 4
-	}
-	return string(b)
+func generateID() string {
+	c := atomic.AddUint64(&tagIDCounter, 1)
+	return time.Now().Format("20060102150405.000") + "-" + fmt.Sprintf("%06x", c&0xFFFFFF)
 }

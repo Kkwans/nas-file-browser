@@ -335,4 +335,28 @@ const formatTime = (time: string): string => {
   color: var(--textSecondary);
   white-space: nowrap;
 }
+
+@media (max-width: 736px) {
+  .search-page-content {
+    padding: 12px 16px;
+  }
+
+  .search-result-item {
+    padding: 8px 12px;
+  }
+
+  .search-result-meta {
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+  }
+
+  .search-types {
+    gap: 12px;
+  }
+
+  .search-type-item {
+    padding: 12px 16px;
+  }
+}
 </style>

@@ -62,7 +62,7 @@
           :to="item.url"
           class="search-result-item"
         >
-          <i class="material-icons">{{ item.isDir ? 'folder' : 'insert_drive_file' }}</i>
+          <i class="material-icons">{{ fileIcon(item) }}</i>
           <div class="search-result-info">
             <span class="search-result-name">{{ item.name }}</span>
             <span class="search-result-path">{{ item.path }}</span>
@@ -168,6 +168,25 @@ const formatSize = (size: number): string => {
 
 const formatTime = (time: string): string => {
   return dayjs(time).fromNow();
+};
+
+const fileIcon = (item: any): string => {
+  if (item.isDir) return 'folder';
+  const ext = (item.name?.split('.').pop() || '').toLowerCase();
+  const iconMap: Record<string, string> = {
+    'pdf': 'picture_as_pdf',
+    'mp3': 'audiotrack', 'wav': 'audiotrack', 'flac': 'audiotrack', 'aac': 'audiotrack',
+    'mp4': 'movie', 'avi': 'movie', 'mkv': 'movie', 'mov': 'movie', 'wmv': 'movie',
+    'jpg': 'image', 'jpeg': 'image', 'png': 'image', 'gif': 'image', 'webp': 'image', 'svg': 'image', 'bmp': 'image',
+    'doc': 'description', 'docx': 'description',
+    'xls': 'table_chart', 'xlsx': 'table_chart',
+    'ppt': 'slideshow', 'pptx': 'slideshow',
+    'zip': 'folder_zip', 'rar': 'folder_zip', '7z': 'folder_zip', 'tar': 'folder_zip', 'gz': 'folder_zip',
+    'txt': 'article', 'md': 'article',
+    'json': 'data_object', 'xml': 'data_object',
+    'js': 'code', 'ts': 'code', 'py': 'code', 'java': 'code', 'go': 'code', 'html': 'code', 'css': 'code', 'vue': 'code',
+  };
+  return iconMap[ext] || 'insert_drive_file';
 };
 </script>
 

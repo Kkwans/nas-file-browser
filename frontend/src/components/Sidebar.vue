@@ -21,6 +21,16 @@
         <span>{{ $t("sidebar.myFiles") }}</span>
       </button>
 
+      <button
+        class="action"
+        @click="openSearch"
+        :aria-label="$t('buttons.search')"
+        :title="$t('buttons.search')"
+      >
+        <i class="material-icons">search</i>
+        <span>{{ $t("buttons.search") }}</span>
+      </button>
+
       <!-- Favorites Section -->
       <div class="favorites-section">
         <button
@@ -640,6 +650,10 @@ export default {
     },
     clearTagFilter() {
       this.tagsStore.setFilter(null);
+    },
+    openSearch() {
+      this.$router.push('/search');
+      this.closeHovers();
     },
     toRoot() {
       this.$router.push({ path: "/files" });

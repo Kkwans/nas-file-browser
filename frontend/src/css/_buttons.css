@@ -1,18 +1,63 @@
+/* ============================================================
+ *  BUTTONS — Modern Design System
+ *  Polished button styles with consistent design language
+ * ============================================================ */
+
 .button {
   outline: 0;
-  border: 0;
-  padding: 0.5em 1em;
-  border-radius: 0.1em;
+  border: 1px solid transparent;
+  padding: 0.55em 1.2em;
+  border-radius: 0.5em;
   cursor: pointer;
   background: var(--blue);
   color: white;
-  border: 1px solid var(--divider);
-  box-shadow: 0 0 5px var(--divider);
-  transition: 0.1s ease all;
+  font-weight: 500;
+  font-size: 0.88em;
+  letter-spacing: 0.01em;
+  transition:
+    0.15s ease background-color,
+    0.15s ease box-shadow,
+    0.15s ease transform,
+    0.15s ease border-color;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .button:hover {
   background-color: var(--dark-blue);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  transform: translateY(-1px);
+}
+
+.button:hover::after {
+  opacity: 1;
+}
+
+.button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 3px rgba(33, 150, 243, 0.15);
+}
+
+.button:active::after {
+  opacity: 0;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.15);
 }
 
 .button--block {
@@ -23,6 +68,17 @@
 
 .button--red {
   background: var(--red);
+  border-color: transparent;
+}
+
+.button--red:hover {
+  background: var(--dark-red);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.button--red:focus-visible {
+  outline-color: var(--red);
+  box-shadow: 0 0 0 4px rgba(244, 67, 54, 0.15);
 }
 
 .button--blue {
@@ -32,24 +88,54 @@
 .button--flat {
   color: var(--dark-blue);
   background: transparent;
-  box-shadow: 0 0 0;
-  border: 0;
+  box-shadow: none;
+  border: 1px solid transparent;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.82em;
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
 }
 
 .button--flat:hover {
-  background: var(--surfaceSecondary);
+  background: rgba(33, 150, 243, 0.08);
+  transform: none;
+  box-shadow: none;
+}
+
+.button--flat:active {
+  background: rgba(33, 150, 243, 0.14);
+  transform: scale(0.97);
+}
+
+.button--flat:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12);
 }
 
 .button--flat.button--red {
   color: var(--dark-red);
 }
 
+.button--flat.button--red:hover {
+  background: rgba(244, 67, 54, 0.08);
+}
+
 .button--flat.button--grey {
-  color: #6f6f6f;
+  color: var(--textPrimary);
+}
+
+.button--flat.button--grey:hover {
+  background: var(--hover);
 }
 
 .button[disabled] {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
 }

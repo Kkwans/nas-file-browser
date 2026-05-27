@@ -224,7 +224,7 @@ const submit = async () => {
 }
 
 .search-type-item:hover {
-  background: var(--hoverColor);
+  background: var(--hover);
   transform: translateY(-2px);
 }
 
@@ -274,7 +274,7 @@ const submit = async () => {
 }
 
 .search-result-item:hover {
-  background: var(--hoverColor);
+  background: var(--hover);
 }
 
 .search-result-item i {

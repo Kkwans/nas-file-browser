@@ -1,7 +1,7 @@
 /* ============================================================
- *  LISTING -- File Listing Page Styles (Optimized)
- *  Changes: modern spacing, rounded corners, smooth hover,
- *           refined cards, better typography & transitions
+ *  LISTING -- File Listing Page Styles
+ *  Modern file listing with refined cards, smooth transitions,
+ *  better typography, and polished interactions
  * ============================================================ */
 
 html[dir="rtl"] #listing {
@@ -10,13 +10,13 @@ html[dir="rtl"] #listing {
 
 /* --- Section headers (Folders / Files) --- */
 #listing h2 {
-  margin: 1.2em 0 0.4em 0.8em;
-  font-size: 0.85em;
+  margin: 1.5em 0 0.5em 1em;
+  font-size: 0.78em;
   color: var(--textPrimary);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.7;
+  opacity: 0.5;
 }
 
 /* --- Container for items --- */
@@ -41,10 +41,10 @@ html[dir="rtl"] #listing {
   flex-wrap: nowrap;
   color: var(--textPrimary);
   transition:
-    0.15s ease background,
-    0.15s ease box-shadow,
-    0.15s ease transform,
-    0.1s ease opacity;
+    0.18s ease background,
+    0.18s ease box-shadow,
+    0.18s ease transform,
+    0.12s ease opacity;
   align-items: center;
   cursor: pointer;
   user-select: none;
@@ -62,13 +62,15 @@ html[dir="rtl"] #listing {
 
 #listing .item .size,
 #listing .item .modified {
-  font-size: 0.88em;
+  font-size: 0.85em;
   color: var(--textPrimary);
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 #listing .item .name {
   font-weight: 600;
+  font-size: 0.92em;
+  letter-spacing: -0.01em;
 }
 
 #listing .item i {
@@ -88,18 +90,31 @@ html[dir="rtl"] #listing {
 /* --- Empty / Loading message --- */
 .message {
   text-align: center;
-  font-size: 2em;
-  margin: 1em auto;
-  display: block !important;
+  font-size: 1.5em;
+  margin: 2em auto;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 95%;
   color: var(--textPrimary);
   font-weight: 500;
+  opacity: 0.6;
+  min-height: 12em;
+  gap: 0.5em;
 }
 
 .message i {
-  font-size: 2.5em;
-  margin-bottom: 0.2em;
+  font-size: 3em;
+  margin-bottom: 0.3em;
   display: block;
+  opacity: 0.4;
+  animation: messageFloat 3s ease-in-out infinite;
+}
+
+@keyframes messageFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 /* ============================================================
@@ -107,18 +122,18 @@ html[dir="rtl"] #listing {
  * ============================================================ */
 
 #listing.mosaic {
-  padding-top: 0.8em;
-  margin: 0 -0.4em;
+  padding-top: 1em;
+  margin: 0 -0.5em;
 }
 
 #listing.mosaic .item {
   width: calc(25% - 1em);
-  margin: 0.4em;
-  padding: 1.2em 0.6em 0.8em;
-  border-radius: 0.65em;
+  margin: 0.5em;
+  padding: 1.4em 0.8em 1em;
+  border-radius: 0.75em;
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 1px 2px rgba(0, 0, 0, 0.08);
+    0 1px 3px rgba(0, 0, 0, 0.03),
+    0 1px 2px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--divider);
   display: flex;
   flex-direction: column;
@@ -126,21 +141,25 @@ html[dir="rtl"] #listing {
   gap: 0;
   text-align: center;
   position: relative;
+  background: linear-gradient(135deg, var(--surfacePrimary) 0%, var(--surfaceSecondary) 100%);
 }
 
 #listing.mosaic .item:hover {
   box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.1),
-    0 2px 6px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
-  border-color: var(--blue);
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(33, 150, 243, 0.08);
+  transform: translateY(-3px);
+  border-color: rgba(33, 150, 243, 0.3);
+  background: linear-gradient(135deg, var(--surfacePrimary) 0%, rgba(33, 150, 243, 0.03) 100%);
 }
 
 #listing.mosaic .item:active {
-  transform: translateY(0);
+  transform: translateY(-1px);
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  transition-duration: 0.08s;
 }
 
 #listing.mosaic .header {
@@ -149,27 +168,33 @@ html[dir="rtl"] #listing {
 
 /* Icon container - centered, larger */
 #listing.mosaic .item div:first-of-type {
-  width: 3.6em;
-  height: 3.6em;
+  width: 4em;
+  height: 4em;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.6em;
+  border-radius: 0.5em;
+  transition: transform 0.2s ease;
+}
+
+#listing.mosaic .item:hover div:first-of-type {
+  transform: scale(1.05);
 }
 
 #listing.mosaic .item div:first-of-type i {
-  font-size: 3em;
+  font-size: 3.2em;
   line-height: 1;
   margin-right: 0;
 }
 
 #listing.mosaic .item div:first-of-type img {
-  width: 3.6em;
-  height: 3.6em;
+  width: 4em;
+  height: 4em;
   margin-right: 0;
-  border-radius: 0.4em;
+  border-radius: 0.5em;
   object-fit: cover;
 }
 
@@ -188,14 +213,14 @@ html[dir="rtl"] #listing {
   width: 100%;
   white-space: normal;
   word-break: break-word;
-  line-height: 1.3;
-  max-height: 2.6em;
+  line-height: 1.35;
+  max-height: 2.7em;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  font-size: 0.85em;
-  padding: 0 0.2em;
+  font-size: 0.82em;
+  padding: 0 0.25em;
 }
 
 /* Meta info (size, modified) - compact */
@@ -204,9 +229,9 @@ html[dir="rtl"] #listing {
 }
 
 #listing.mosaic .item .modified {
-  font-size: 0.72em;
-  margin-top: 0.3em;
-  opacity: 0.55;
+  font-size: 0.7em;
+  margin-top: 0.35em;
+  opacity: 0.45;
 }
 
 /* --- Gallery sub-mode (detail view) --- */
@@ -218,18 +243,19 @@ html[dir="rtl"] #listing {
 
 #listing.mosaic.gallery .item div:first-of-type {
   width: 100%;
-  height: 12em;
+  height: 14em;
   margin-bottom: 0;
+  border-radius: 0.75em 0.75em 0 0;
 }
 
 #listing.mosaic.gallery .item div:last-of-type {
   position: absolute;
   bottom: 0;
-  padding: 0.8em 1em;
+  padding: 1em 1.2em;
   width: 100%;
   text-align: center;
-  background: linear-gradient(#0000, rgba(0, 0, 0, 0.55));
-  border-radius: 0 0 0.65em 0.65em;
+  background: linear-gradient(#0000, rgba(0, 0, 0, 0.6));
+  border-radius: 0 0 0.75em 0.75em;
 }
 
 #listing.mosaic.gallery .item[data-type="image"] div:last-of-type {
@@ -246,7 +272,7 @@ html[dir="rtl"] #listing {
 #listing.mosaic.gallery .item img {
   width: 100%;
   height: 100%;
-  border-radius: 0.65em 0.65em 0 0;
+  border-radius: 0.75em 0.75em 0 0;
 }
 
 #listing.gallery .size,
@@ -269,25 +295,27 @@ html[dir="rtl"] #listing {
   width: 100%;
   margin: 0;
   border: 1px solid var(--borderPrimary);
-  padding: 0.75em 1em;
+  padding: 0.7em 1.2em;
   border-top: 0;
   border-radius: 0;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 #listing.list .item:first-of-type {
-  border-radius: 0.4em 0.4em 0 0;
+  border-radius: 0.5em 0.5em 0 0;
 }
 
 #listing.list .item:last-of-type {
-  border-radius: 0 0 0.4em 0.4em;
+  border-radius: 0 0 0.5em 0.5em;
 }
 
 #listing.list .item:only-of-type {
-  border-radius: 0.4em;
+  border-radius: 0.5em;
 }
 
 #listing.list .item:hover {
   background: var(--hover);
+  box-shadow: inset 3px 0 0 0 var(--blue);
 }
 
 #listing.list h2 {
@@ -296,9 +324,12 @@ html[dir="rtl"] #listing {
 
 /* --- Selected state --- */
 #listing .item[aria-selected="true"] {
-  background: var(--blue) !important;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--dark-blue) 100%) !important;
   color: var(--iconSecondary) !important;
   border-color: var(--blue) !important;
+  box-shadow:
+    0 2px 8px rgba(33, 150, 243, 0.25),
+    0 0 0 1px rgba(33, 150, 243, 0.15);
 }
 
 #listing .item[aria-selected="true"] .size,
@@ -319,7 +350,7 @@ html[dir="rtl"] #listing {
 #listing.list .item div:first-of-type img {
   width: 2em;
   height: 2em;
-  border-radius: 0.25em;
+  border-radius: 0.3em;
 }
 
 /* --- List content column --- */
@@ -356,12 +387,12 @@ html[dir="rtl"] #listing {
 
 #listing.list .item.header {
   display: flex !important;
-  background: var(--surfaceSecondary);
+  background: linear-gradient(180deg, var(--surfaceSecondary) 0%, var(--surfacePrimary) 100%);
   z-index: 999;
-  padding: 0.6em 1em;
+  padding: 0.6em 1.2em;
   border: 0;
   border-bottom: 2px solid var(--borderPrimary);
-  border-radius: 0.4em 0.4em 0 0;
+  border-radius: 0.5em 0.5em 0 0;
 }
 
 #listing.list .item.header > div {
@@ -385,11 +416,11 @@ html[dir="rtl"] #listing {
 
 #listing.list .header span {
   vertical-align: middle;
-  font-size: 0.85em;
+  font-size: 0.82em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-weight: 600;
-  opacity: 0.6;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  opacity: 0.5;
 }
 
 #listing.list .header p:hover i,
@@ -408,9 +439,9 @@ html[dir="rtl"] #listing {
 
 #listing.list .header p {
   transition: 0.15s ease opacity;
-  border-radius: 0.25em;
-  padding: 0.15em 0.3em;
-  margin: -0.15em -0.3em;
+  border-radius: 0.35em;
+  padding: 0.2em 0.4em;
+  margin: -0.2em -0.4em;
 }
 
 #listing.list .header p:hover {
@@ -418,7 +449,7 @@ html[dir="rtl"] #listing {
 }
 
 /* ============================================================
- *  MULTIPLE SELECTION BAR (Enhanced)
+ *  MULTIPLE SELECTION BAR
  * ============================================================ */
 
 #listing #multiple-selection {
@@ -430,18 +461,18 @@ html[dir="rtl"] #listing {
   background: var(--surfacePrimary);
   border-top: 1px solid var(--borderPrimary);
   box-shadow:
-    0 -4px 20px rgba(0, 0, 0, 0.12),
-    0 -1px 6px rgba(0, 0, 0, 0.06);
+    0 -4px 24px rgba(0, 0, 0, 0.1),
+    0 -1px 8px rgba(0, 0, 0, 0.05);
   height: auto;
   min-height: 3.5em;
-  padding: 0.6em 1em;
+  padding: 0.6em 1.2em;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75em;
   transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1) bottom;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 #listing #multiple-selection.active {
@@ -465,7 +496,7 @@ html[dir="rtl"] #listing {
 #listing #multiple-selection .selection-info span {
   color: var(--textPrimary);
   font-weight: 600;
-  font-size: 0.9em;
+  font-size: 0.88em;
   white-space: nowrap;
 }
 
@@ -473,7 +504,7 @@ html[dir="rtl"] #listing {
 #listing #multiple-selection .selection-actions {
   display: flex;
   align-items: center;
-  gap: 0.35em;
+  gap: 0.4em;
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -487,8 +518,8 @@ html[dir="rtl"] #listing {
 #listing #multiple-selection .selection-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
-  padding: 0.4em 0.7em;
+  gap: 0.35em;
+  padding: 0.45em 0.8em;
   border: 1px solid var(--borderPrimary);
   border-radius: 0.5em;
   background: var(--surfacePrimary);
@@ -515,7 +546,7 @@ html[dir="rtl"] #listing {
 #listing #multiple-selection .selection-btn:hover {
   background: var(--hover);
   border-color: var(--blue);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
 #listing #multiple-selection .selection-btn:hover i {
@@ -528,20 +559,20 @@ html[dir="rtl"] #listing {
 
 /* Action buttons (copy/move/download) with blue tint */
 #listing #multiple-selection .selection-btn.action-btn {
-  background: rgba(59, 130, 246, 0.06);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.15);
 }
 
 #listing #multiple-selection .selection-btn.action-btn:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.1);
   border-color: var(--blue);
 }
 
 /* Danger button (delete) */
 #listing #multiple-selection .selection-btn.danger {
   color: var(--red);
-  border-color: rgba(239, 68, 68, 0.2);
-  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.05);
 }
 
 #listing #multiple-selection .selection-btn.danger i {
@@ -549,9 +580,9 @@ html[dir="rtl"] #listing {
 }
 
 #listing #multiple-selection .selection-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.1);
   border-color: var(--red);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.12);
 }
 
 /* Close button */
@@ -565,7 +596,7 @@ html[dir="rtl"] #listing {
 
 #listing #multiple-selection .selection-btn.close-btn i {
   font-size: 1.3em;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: 0.15s ease opacity;
 }
 
@@ -581,10 +612,10 @@ html[dir="rtl"] #listing {
 /* --- Dark mode enhancements --- */
 :root.dark #listing #multiple-selection,
 html.dark #listing #multiple-selection {
-  background: rgba(30, 41, 59, 0.95);
+  background: rgba(28, 37, 43, 0.95);
   box-shadow:
-    0 -4px 20px rgba(0, 0, 0, 0.3),
-    0 -1px 6px rgba(0, 0, 0, 0.2);
+    0 -4px 24px rgba(0, 0, 0, 0.25),
+    0 -1px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Risk icons: compact in mosaic view, visible in all views */
@@ -639,18 +670,18 @@ html.dark .risk-icon.risk-medium {
 /* In mosaic view, position star absolutely at top-right */
 #listing.mosaic .favorite-star {
   position: absolute;
-  top: 0.3em;
-  right: 0.3em;
+  top: 0.4em;
+  right: 0.4em;
   margin-left: 0 !important;
   font-size: 0.8em !important;
   background: var(--surfacePrimary);
   border-radius: 50%;
-  width: 1.6em;
-  height: 1.6em;
+  width: 1.7em;
+  height: 1.7em;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   opacity: 0;
 }
 
@@ -804,8 +835,8 @@ html.dark .risk-icon.risk-medium {
   gap: 0.5em;
   padding: 0.5em 1em;
   margin: 0 0 0.5em;
-  background: rgba(33, 150, 243, 0.06);
-  border: 1px solid rgba(33, 150, 243, 0.15);
+  background: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.12);
   border-radius: 0.5em;
   font-size: 0.8125em;
   color: var(--textPrimary, #1a1a2e);
@@ -830,7 +861,7 @@ html.dark .risk-icon.risk-medium {
 }
 
 .tag-filter-clear-btn:hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.06);
   color: var(--textPrimary, #1a1a2e);
 }
 
@@ -841,13 +872,13 @@ html.dark .risk-icon.risk-medium {
 /* --- Dark Mode: Tag Filter & Picker --- */
 :root.dark .tag-filter-indicator,
 html.dark .tag-filter-indicator {
-  background: rgba(33, 150, 243, 0.1);
-  border-color: rgba(33, 150, 243, 0.25);
+  background: rgba(33, 150, 243, 0.08);
+  border-color: rgba(33, 150, 243, 0.2);
 }
 
 :root.dark .tag-filter-clear-btn:hover,
 html.dark .tag-filter-clear-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 :root.dark .tag-chip,
@@ -872,24 +903,25 @@ html.dark .tag-chip {
   border: 1px solid var(--borderPrimary);
   border-top: 0;
   border-radius: 0;
-  padding: 0.35em 1em;
+  padding: 0.35em 1.2em;
   min-height: auto;
 }
 
 #listing.compact .item:first-of-type {
-  border-radius: 0.4em 0.4em 0 0;
+  border-radius: 0.5em 0.5em 0 0;
 }
 
 #listing.compact .item:last-of-type {
-  border-radius: 0 0 0.4em 0.4em;
+  border-radius: 0 0 0.5em 0.5em;
 }
 
 #listing.compact .item:only-of-type {
-  border-radius: 0.4em;
+  border-radius: 0.5em;
 }
 
 #listing.compact .item:hover {
   background: var(--hover);
+  box-shadow: inset 2px 0 0 0 var(--blue);
 }
 
 #listing.compact h2 {
@@ -918,7 +950,7 @@ html.dark .tag-chip {
 
 #listing.compact .item .name {
   width: 55%;
-  font-size: 0.88em;
+  font-size: 0.85em;
   font-weight: 500;
 }
 
@@ -939,12 +971,12 @@ html.dark .tag-chip {
 /* Show header in compact view too */
 #listing.compact .item.header {
   display: flex !important;
-  background: var(--surfaceSecondary);
+  background: linear-gradient(180deg, var(--surfaceSecondary) 0%, var(--surfacePrimary) 100%);
   z-index: 999;
-  padding: 0.4em 1em;
+  padding: 0.4em 1.2em;
   border: 0;
   border-bottom: 2px solid var(--borderPrimary);
-  border-radius: 0.4em 0.4em 0 0;
+  border-radius: 0.5em 0.5em 0 0;
   font-size: 0.85em;
 }
 
@@ -968,35 +1000,35 @@ html.dark .tag-chip {
   top: 100%;
   right: 0;
   z-index: 1000;
-  min-width: 180px;
+  min-width: 200px;
   background: var(--surfacePrimary);
   border: 1px solid var(--borderPrimary);
-  border-radius: 0.6em;
+  border-radius: 0.65em;
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 0.35em 0;
-  margin-top: 0.25em;
-  animation: dropdownFadeIn 0.15s ease;
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    0 2px 10px rgba(0, 0, 0, 0.06);
+  padding: 0.4em 0;
+  margin-top: 0.35em;
+  animation: dropdownFadeIn 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-6px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.6em;
+  gap: 0.65em;
   width: 100%;
-  padding: 0.55em 1em;
+  padding: 0.6em 1.1em;
   border: none;
   background: transparent;
   color: var(--textPrimary);
@@ -1040,7 +1072,7 @@ html.dark .tag-chip {
 .dropdown-divider {
   height: 1px;
   background: var(--divider);
-  margin: 0.25em 0;
+  margin: 0.3em 0;
 }
 
 /* Dark mode dropdowns */
@@ -1049,10 +1081,10 @@ html.dark .tag-chip {
 html.dark .view-mode-dropdown .dropdown-menu,
 html.dark .sort-dropdown .dropdown-menu {
   background: var(--surfacePrimary);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--divider);
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.2);
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* @-prefix system folders toggle */
@@ -1062,10 +1094,10 @@ html.dark .sort-dropdown .dropdown-menu {
   gap: 0.2em;
   background: none;
   border: 1px solid var(--divider);
-  border-radius: 4px;
-  padding: 0.1em 0.5em;
+  border-radius: 0.35em;
+  padding: 0.15em 0.5em;
   margin-left: 0.5em;
-  font-size: 0.75em;
+  font-size: 0.72em;
   color: var(--textSecondary);
   cursor: pointer;
   vertical-align: middle;
@@ -1080,4 +1112,45 @@ html.dark .sort-dropdown .dropdown-menu {
 }
 .system-dirs-toggle span {
   font-size: 0.9em;
+}
+
+/* ============================================================
+ *  ENTRANCE ANIMATION
+ *  Subtle fade-in for listing items on page load
+ * ============================================================ */
+
+@keyframes itemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#listing .item:not(.header) {
+  animation: itemFadeIn 0.25s ease both;
+}
+
+/* Stagger animation for first 20 items */
+#listing .item:nth-child(1) { animation-delay: 0.02s; }
+#listing .item:nth-child(2) { animation-delay: 0.04s; }
+#listing .item:nth-child(3) { animation-delay: 0.06s; }
+#listing .item:nth-child(4) { animation-delay: 0.08s; }
+#listing .item:nth-child(5) { animation-delay: 0.10s; }
+#listing .item:nth-child(6) { animation-delay: 0.12s; }
+#listing .item:nth-child(7) { animation-delay: 0.14s; }
+#listing .item:nth-child(8) { animation-delay: 0.16s; }
+#listing .item:nth-child(9) { animation-delay: 0.18s; }
+#listing .item:nth-child(10) { animation-delay: 0.20s; }
+#listing .item:nth-child(11) { animation-delay: 0.22s; }
+#listing .item:nth-child(12) { animation-delay: 0.24s; }
+#listing .item:nth-child(n+13) { animation-delay: 0.26s; }
+
+/* Disable animation for non-mosaic views to avoid jank */
+#listing.list .item:not(.header),
+#listing.compact .item:not(.header) {
+  animation: none;
 }

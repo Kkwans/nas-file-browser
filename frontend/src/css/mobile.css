@@ -10,8 +10,27 @@
 /* === Tablet (<= 1024px) === */
 @media (max-width: 1024px) {
   main {
-    margin-left: var(--sidebar-width, 15em);
-    width: calc(100% - var(--sidebar-width, 15em) - 1em);
+    margin-left: var(--sidebar-width, 14em);
+    width: calc(100% - var(--sidebar-width, 14em) - 1em);
+  }
+
+  #listing.mosaic .item {
+    width: calc(33.333% - 1em);
+    padding: 1.2em 0.7em 0.9em;
+  }
+
+  #listing.mosaic .item div:first-of-type {
+    width: 3.6em;
+    height: 3.6em;
+  }
+
+  #listing.mosaic .item div:first-of-type i {
+    font-size: 2.8em;
+  }
+
+  #listing.mosaic .item div:first-of-type img {
+    width: 3.6em;
+    height: 3.6em;
   }
 }
 
@@ -23,31 +42,42 @@
   }
 
   #listing.mosaic .item {
-    width: calc(25% - 0.8em);
-    padding: 0.8em 0.5em 0.6em;
+    width: calc(33.333% - 0.8em);
+    padding: 1em 0.5em 0.8em;
   }
 
   #listing.mosaic .item div:first-of-type {
-    width: 3em;
-    height: 3em;
-    margin-bottom: 0.4em;
+    width: 3.2em;
+    height: 3.2em;
+    margin-bottom: 0.5em;
   }
 
   #listing.mosaic .item div:first-of-type i {
-    font-size: 2.4em;
+    font-size: 2.6em;
   }
 
   #listing.mosaic .item div:first-of-type img {
-    width: 3em;
-    height: 3em;
+    width: 3.2em;
+    height: 3.2em;
   }
 
   #listing.mosaic .item .name {
-    font-size: 0.78em;
+    font-size: 0.8em;
   }
 
   #listing.mosaic .item .modified {
-    font-size: 0.68em;
+    font-size: 0.7em;
+  }
+
+  /* Better touch targets on tablet */
+  #listing.list .item {
+    min-height: 3em;
+    padding: 0.6em 1em;
+  }
+
+  #listing.compact .item {
+    min-height: 2.5em;
+    padding: 0.4em 1em;
   }
 }
 
@@ -76,8 +106,8 @@
   }
 
   #listing.list .item {
-    padding: 0.4em 0.625em;
-    min-height: 2.5em;
+    padding: 0.5em 0.75em;
+    min-height: 2.75em;
     gap: 0.4em;
   }
 
@@ -100,46 +130,46 @@
 
   /* === Mosaic (Grid) Mobile - Vertical Cards === */
   #listing.mosaic > div {
-    gap: 0.3em;
+    gap: 0.35em;
   }
 
   #listing.mosaic .item {
     width: calc(33.333% - 0.6em);
-    padding: 0.6em 0.4em 0.5em;
-    margin: 0;
+    padding: 0.7em 0.4em 0.6em;
+    margin: 0.3em;
   }
 
   #listing.mosaic .item div:first-of-type {
-    width: 2.8em;
-    height: 2.8em;
-    margin-bottom: 0.3em;
+    width: 3em;
+    height: 3em;
+    margin-bottom: 0.35em;
   }
 
   #listing.mosaic .item div:first-of-type i {
-    font-size: 2.2em;
+    font-size: 2.4em;
   }
 
   #listing.mosaic .item div:first-of-type img {
-    width: 2.8em;
-    height: 2.8em;
+    width: 3em;
+    height: 3em;
     border-radius: 0.4em;
   }
 
   #listing.mosaic .item .name {
-    font-size: 0.7em;
+    font-size: 0.72em;
     -webkit-line-clamp: 2;
-    max-height: 2.4em;
+    max-height: 2.5em;
   }
 
   #listing.mosaic .item .modified {
-    font-size: 0.62em;
+    font-size: 0.63em;
   }
 
   #listing.mosaic .item .favorite-star {
     position: absolute;
-    top: 0.3em;
-    right: 0.3em;
-    font-size: 0.7em !important;
+    top: 0.35em;
+    right: 0.35em;
+    font-size: 0.72em !important;
     margin-left: 0 !important;
     opacity: 0.4;
   }
@@ -159,7 +189,7 @@
   }
 
   #listing.mosaic.gallery .item div:first-of-type {
-    height: 6em;
+    height: 7em;
   }
 
   #listing.mosaic.gallery .item i {
@@ -173,10 +203,11 @@
 
   /* --- Multiple Selection Bar Mobile --- */
   #listing #multiple-selection {
-    padding: 0.4em 0.6em;
-    gap: 0.4em;
-    min-height: 3em;
+    padding: 0.5em 0.75em;
+    gap: 0.5em;
+    min-height: 3.25em;
     flex-wrap: wrap;
+    border-radius: 0.75em 0.75em 0 0;
   }
 
   #listing #multiple-selection .selection-info span {
@@ -184,11 +215,12 @@
   }
 
   #listing #multiple-selection .selection-btn {
-    padding: 0.4em 0.6em;
-    font-size: 0.8em;
+    padding: 0.5em 0.8em;
+    font-size: 0.82em;
     min-width: 44px;
     min-height: 44px;
     justify-content: center;
+    border-radius: 0.6em;
   }
 
   #listing #multiple-selection .selection-btn span {
@@ -208,13 +240,13 @@
     display: flex;
     align-items: center;
     background: var(--surfacePrimary);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--borderPrimary);
     border-radius: 1em;
     box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.08),
-      0 1px 4px rgba(0, 0, 0, 0.04);
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 1px 6px rgba(0, 0, 0, 0.04);
     padding: 0.375em;
     width: 92%;
     max-width: 22em;
@@ -414,6 +446,25 @@
   .action {
     touch-action: manipulation;
   }
+
+  /* Ensure minimum touch target size */
+  #listing.list .item {
+    min-height: 44px;
+  }
+
+  #listing.compact .item {
+    min-height: 36px;
+  }
+
+  /* Better mobile mosaic spacing */
+  #listing.mosaic > div {
+    gap: 0.4em;
+  }
+
+  /* Disable entrance animation on mobile for performance */
+  #listing .item:not(.header) {
+    animation: none !important;
+  }
 }
 
 /* === Small Phone (<= 450px) === */
@@ -431,20 +482,20 @@
   /* 3 columns on small phone, tighter */
   #listing.mosaic .item {
     width: calc(33.333% - 0.4em);
-    padding: 0.4em;
+    padding: 0.5em 0.35em;
   }
 
   #listing.mosaic .item div:first-of-type i {
-    font-size: 1.8em;
+    font-size: 2em;
   }
 
   #listing.mosaic .item div:first-of-type img {
-    width: 2.2em;
-    height: 2.2em;
+    width: 2.4em;
+    height: 2.4em;
   }
 
   #listing.mosaic .item .name {
-    font-size: 0.68em;
+    font-size: 0.7em;
     -webkit-line-clamp: 2;
     max-height: 2.4em;
   }

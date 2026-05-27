@@ -497,7 +497,14 @@ const close = () => {
   router.push({ path: uri });
 };
 
-const download = () => window.open(downloadUrl.value);
+const download = () => {
+  const a = document.createElement('a');
+  a.href = downloadUrl.value;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
 const openDirect = () => window.open(directUrl.value);
 
 const editAsText = () => {

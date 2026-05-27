@@ -62,7 +62,13 @@ export function download(
     url += `token=${token}&`;
   }
 
-  window.open(url);
+  // Use a temporary <a> element to trigger download without popup blocker issues
+  const a = document.createElement('a');
+  a.href = url;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 export function getDownloadURL(res: Resource, inline = false) {

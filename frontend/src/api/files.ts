@@ -100,7 +100,13 @@ export function download(format: any, ...files: string[]) {
     url += `algo=${format}&`;
   }
 
-  window.open(url);
+  // Use a temporary <a> element to trigger download without popup blocker issues
+  const a = document.createElement('a');
+  a.href = url;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 export async function post(

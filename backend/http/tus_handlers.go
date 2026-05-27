@@ -241,7 +241,7 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 func tusDeleteHandler(cache UploadCache) handleFunc {
 	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
-			return http.StatusForbidden, fmt.Errorf("没有上传权限")
+			return http.StatusForbidden, fmt.Errorf("没有删除权限")
 		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{

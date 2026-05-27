@@ -2,7 +2,7 @@
   <div id="search-page">
     <header-bar showMenu showLogo>
       <div class="search-page-input">
-        <button class="action" @action="goBack" @click="goBack" :aria-label="t('buttons.close')">
+        <button class="action" @click="goBack" :aria-label="t('buttons.close')">
           <i class="material-icons">arrow_back</i>
         </button>
         <input

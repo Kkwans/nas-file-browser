@@ -67,6 +67,10 @@
             <span class="search-result-name">{{ item.name }}</span>
             <span class="search-result-path">{{ item.path }}</span>
           </div>
+          <div class="search-result-meta">
+            <span v-if="!item.isDir" class="search-result-size">{{ formatSize(item.size) }}</span>
+            <span v-if="item.modified" class="search-result-time">{{ formatTime(item.modified) }}</span>
+          </div>
         </router-link>
       </div>
     </div>
@@ -78,6 +82,8 @@ import HeaderBar from "@/components/header/HeaderBar.vue";
 import { search } from "@/api";
 import { StatusError } from "@/api/utils";
 import { useFileStore } from "@/stores/file";
+import { filesize } from "@/utils";
+import dayjs from "dayjs";
 import { computed, inject, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -154,6 +160,14 @@ const submit = async () => {
   }
 
   ongoing.value = false;
+};
+
+const formatSize = (size: number): string => {
+  return filesize(size);
+};
+
+const formatTime = (time: string): string => {
+  return dayjs(time).fromNow();
 };
 </script>
 
@@ -305,5 +319,20 @@ const submit = async () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.search-result-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.search-result-size,
+.search-result-time {
+  font-size: 12px;
+  color: var(--textSecondary);
+  white-space: nowrap;
 }
 </style>

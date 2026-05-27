@@ -29,7 +29,7 @@ func NewHandler(
 	r := mux.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+			w.Header().Set("Content-Security-Policy", `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' blob: data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';`)
 			next.ServeHTTP(w, r)
 		})
 	})

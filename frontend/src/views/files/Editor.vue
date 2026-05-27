@@ -12,6 +12,19 @@
         @action="save()"
       />
 
+      <!-- 代码语言标识 + 行号切换（非 Markdown 文件） -->
+      <template v-if="!isMarkdownFile && aceEditorReady">
+        <span class="editor-lang-badge" :title="langCaption">
+          <i class="material-icons">code</i>
+          {{ langCaption }}
+        </span>
+        <action
+          :icon="showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'"
+          :label="t('buttons.toggleLineNumbers')"
+          @action="toggleLineNumbers()"
+        />
+      </template>
+
       <!-- Markdown 模式切换 -->
       <template v-if="isMarkdownFile">
         <action
@@ -84,6 +97,9 @@ const editor = ref<Ace.Editor | null>(null);
 const isMarkdownFile =
   fileStore.req?.name.endsWith(".md") ||
   fileStore.req?.name.endsWith(".markdown");
+const aceEditorReady = ref(false);
+const showLineNumbers = ref(true);
+const langCaption = ref("");
 
 const currentMode = ref<"ir" | "sv" | "preview">("ir");
 let vditorInstance: any = null;
@@ -449,6 +465,20 @@ const initAceEditor = (content: string) => {
   }
 
   aceEditor.focus();
+  aceEditorReady.value = true;
+
+  // 获取并设置语言名称
+  const detectedMode = modelist.getModeForPath(fileStore.req!.name);
+  langCaption.value = detectedMode.caption || detectedMode.name || "";
+};
+
+const toggleLineNumbers = () => {
+  if (!aceEditor) return;
+  showLineNumbers.value = !showLineNumbers.value;
+  aceEditor.setOptions({
+    showGutter: showLineNumbers.value,
+    showLineNumbers: showLineNumbers.value,
+  });
 };
 
 // 为代码块添加语法高亮 + 行号 + 语言标签
@@ -646,5 +676,26 @@ const finishClose = () => {
 /* 活跃的模式按钮 */
 .active :deep(i) {
   color: var(--blue) !important;
+}
+
+/* 语言标识 badge */
+.editor-lang-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  color: var(--textSecondary);
+  background: var(--backgroundSecondary);
+  border: 1px solid var(--borderSecondary);
+  text-transform: capitalize;
+  white-space: nowrap;
+  user-select: none;
+}
+.editor-lang-badge i {
+  font-size: 14px;
+  opacity: 0.7;
 }
 </style>

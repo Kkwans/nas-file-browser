@@ -1,7 +1,7 @@
 .dashboard {
   margin: 1em auto;
-  max-width: 80%;
-  padding: 0 1em;
+  max-width: min(96%, 1400px);
+  padding: 0 1.5em;
 }
 
 .dashboard .row {

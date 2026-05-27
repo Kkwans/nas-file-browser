@@ -339,6 +339,7 @@
     "removeFavorite": "Remove from favorites",
     "noFavorites": "No favorites yet",
     "clearAllFavorites": "Clear all favorites",
+    "viewCategoryContents": "View contents",
     "createGroup": "New Group",
     "groupNamePlaceholder": "Group name...",
     "deleteGroup": "Delete Group",

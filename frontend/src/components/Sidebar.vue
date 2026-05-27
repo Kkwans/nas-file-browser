@@ -278,15 +278,24 @@
         </button>
         <template v-if="!collapsedSections.categories">
         <div v-for="group in categoryGroups" :key="group.id" class="category-group">
-          <button
-            class="action category-group-header"
-            @click="toggleCategory(group.id)"
-          >
-            <i class="material-icons" :style="{ color: group.color }">{{ group.icon }}</i>
-            <span>{{ group.name }}</span>
-            <span class="category-count">{{ group.paths.length }}</span>
-            <i class="material-icons category-arrow" :class="{ expanded: expandedCategories[group.id] }">expand_more</i>
-          </button>
+          <div class="category-group-header-row">
+            <button
+              class="action category-group-header category-group-nav"
+              @click="navigateCategoryFirst(group)"
+              :title="$t('sidebar.viewCategoryContents') || 'View contents'"
+            >
+              <i class="material-icons" :style="{ color: group.color }">{{ group.icon }}</i>
+              <span>{{ group.name }}</span>
+              <span class="category-count">{{ group.paths.length }}</span>
+            </button>
+            <button
+              class="category-expand-btn"
+              @click="toggleCategory(group.id)"
+              :title="expandedCategories[group.id] ? 'Collapse' : 'Expand'"
+            >
+              <i class="material-icons category-arrow" :class="{ expanded: expandedCategories[group.id] }">expand_more</i>
+            </button>
+          </div>
           <div v-if="expandedCategories[group.id]" class="category-paths">
             <button
               v-for="p in group.paths"
@@ -298,7 +307,8 @@
               <i class="material-icons" :class="'risk-' + p.risk">{{ riskIcon(p.risk) }}</i>
               <div class="category-path-info">
                 <span class="category-path-name">{{ p.name }}</span>
-                <span v-if="p.volumeType && p.volumeType !== 'system'" class="category-path-type">{{ p.volumeType }}</span>
+                <span v-if="isDuplicateName(p.name, group.id)" class="category-path-volume">{{ getVolumeLabel(p.path) }}</span>
+                <span v-else-if="p.volumeType && p.volumeType !== 'system'" class="category-path-type">{{ p.volumeType }}</span>
               </div>
             </button>
           </div>
@@ -675,6 +685,29 @@ export default {
     openSearch() {
       this.$router.push('/search');
       this.closeHovers();
+    },
+    navigateCategoryFirst(group) {
+      // Navigate to the first path in the category
+      if (group.paths.length > 0) {
+        this.navigateVolume(group.paths[0].path);
+      }
+      // Also expand the category to show all paths
+      this.expandedCategories[group.id] = true;
+    },
+    isDuplicateName(name, groupId) {
+      // Check if this folder name appears in multiple paths within the same category
+      const group = this.categoryGroups.find(g => g.id === groupId);
+      if (!group) return false;
+      return group.paths.filter(p => p.name === name).length > 1;
+    },
+    getVolumeLabel(path) {
+      // Extract volume label from path, e.g. /volume1/Docker -> volume1
+      const match = path.match(/^\/(volume\d+)/);
+      if (match) return match[1];
+      // For root paths, show the first directory
+      const parts = path.split('/').filter(Boolean);
+      if (parts.length > 0) return parts[0];
+      return '';
     },
     toRoot() {
       this.$router.push({ path: "/files" });

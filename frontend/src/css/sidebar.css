@@ -666,6 +666,42 @@ html[dir="rtl"] .categories-header {
   margin: 0;
 }
 
+.category-group-header-row {
+  display: flex;
+  align-items: center;
+}
+
+.category-group-nav {
+  flex: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-right: none;
+}
+
+.category-group-nav:hover {
+  background: var(--surface-hover, rgba(0, 0, 0, 0.04));
+}
+
+.category-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 100%;
+  padding: 0.4em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s ease, background 0.15s ease;
+  border-radius: 4px;
+}
+
+.category-expand-btn:hover {
+  opacity: 0.8;
+  background: var(--surface-hover, rgba(0, 0, 0, 0.04));
+}
+
 .category-group-header {
   font-weight: 500 !important;
 }
@@ -724,6 +760,13 @@ html[dir="rtl"] .categories-header {
   font-size: 0.75em;
   color: var(--textSecondary);
   text-transform: capitalize;
+}
+
+.category-path-volume {
+  font-size: 0.7em;
+  color: var(--textSecondary);
+  opacity: 0.7;
+  font-style: italic;
 }
 
 /* Risk level icon colors */

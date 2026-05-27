@@ -292,7 +292,8 @@
     "preview": "預覽",
     "settings": "設定",
     "signup": "註冊",
-    "siteSettings": "網站設定"
+    "siteSettings": "網站設定",
+    "viewCategoryContents": "檢視內容"
   },
   "success": {
     "linkCopied": "連結已複製！"

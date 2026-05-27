@@ -171,15 +171,8 @@
       />
     </div>
 
-    <div v-if="layoutStore.loading">
-      <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
-        <span>{{ t("files.loading") }}</span>
-      </h2>
+    <div v-if="layoutStore.loading" class="loading-skeleton-wrapper">
+      <LoadingSkeleton :count="12" :viewMode="skeletonViewMode" />
     </div>
     <template v-else>
       <div
@@ -482,6 +475,7 @@ import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
+import LoadingSkeleton from "@/components/LoadingSkeleton.vue";
 import {
   computed,
   inject,
@@ -648,6 +642,13 @@ const modifiedIcon = computed(() => {
   }
 
   return "arrow_upward";
+});
+
+const skeletonViewMode = computed(() => {
+  // Map 'mosaic gallery' to 'gallery' for skeleton
+  const mode = currentViewMode.value;
+  if (mode === 'mosaic gallery') return 'gallery';
+  return mode;
 });
 
 const viewIcon = computed(() => {
@@ -1429,5 +1430,10 @@ const handleEmptyAreaClick = (e: MouseEvent) => {
 
 .file-selection-margin-bottom {
   margin-bottom: 3.5rem;
+}
+
+.loading-skeleton-wrapper {
+  min-height: calc(100vh - 8rem);
+  padding-top: 0.5em;
 }
 </style>

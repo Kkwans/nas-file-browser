@@ -83,6 +83,7 @@ import { search } from "@/api";
 import { StatusError } from "@/api/utils";
 import { useFileStore } from "@/stores/file";
 import { filesize } from "@/utils";
+import { getFileIcon } from "@/utils/fileIcons";
 import dayjs from "dayjs";
 import { computed, inject, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -171,22 +172,7 @@ const formatTime = (time: string): string => {
 };
 
 const fileIcon = (item: any): string => {
-  if (item.isDir) return 'folder';
-  const ext = (item.name?.split('.').pop() || '').toLowerCase();
-  const iconMap: Record<string, string> = {
-    'pdf': 'picture_as_pdf',
-    'mp3': 'audiotrack', 'wav': 'audiotrack', 'flac': 'audiotrack', 'aac': 'audiotrack',
-    'mp4': 'movie', 'avi': 'movie', 'mkv': 'movie', 'mov': 'movie', 'wmv': 'movie',
-    'jpg': 'image', 'jpeg': 'image', 'png': 'image', 'gif': 'image', 'webp': 'image', 'svg': 'image', 'bmp': 'image',
-    'doc': 'description', 'docx': 'description',
-    'xls': 'table_chart', 'xlsx': 'table_chart',
-    'ppt': 'slideshow', 'pptx': 'slideshow',
-    'zip': 'folder_zip', 'rar': 'folder_zip', '7z': 'folder_zip', 'tar': 'folder_zip', 'gz': 'folder_zip',
-    'txt': 'article', 'md': 'article',
-    'json': 'data_object', 'xml': 'data_object',
-    'js': 'code', 'ts': 'code', 'py': 'code', 'java': 'code', 'go': 'code', 'html': 'code', 'css': 'code', 'vue': 'code',
-  };
-  return iconMap[ext] || 'insert_drive_file';
+  return getFileIcon(item.name, item.isDir);
 };
 </script>
 

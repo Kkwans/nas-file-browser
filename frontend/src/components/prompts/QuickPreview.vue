@@ -74,6 +74,8 @@ import { mapState, mapActions } from "pinia";
 import { useLayoutStore } from "@/stores/layout";
 import { files as api } from "@/api";
 import { filesize } from "@/utils";
+import { getFileIcon } from "@/utils/fileIcons";
+import { loadMarkdownResources, highlightAndAnnotateCodeBlocks } from "@/utils/externalResources";
 import dayjs from "dayjs";
 
 export default {
@@ -119,7 +121,7 @@ export default {
       return textExts.includes(ext);
     },
     fileIcon() {
-      const icons = {
+      const typeIcons = {
         image: "image",
         video: "movie",
         audio: "volume_up",
@@ -129,7 +131,8 @@ export default {
         blob: "insert_drive_file",
         invalid_link: "link_off",
       };
-      return icons[this.item.type] || "insert_drive_file";
+      // Prefer type-based icon, fall back to extension-based
+      return typeIcons[this.item.type] || getFileIcon(this.item.name || "");
     },
     fileTypeClass() {
       const classes = {
@@ -218,49 +221,11 @@ export default {
       }
     },
     async renderMarkdown(content) {
-      // Load Vditor CSS
-      if (!document.querySelector('link[href*="vditor"]')) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.css';
-        document.head.appendChild(link);
-      }
-
-      // Load highlight.js CSS
-      const isDark = document.documentElement.className === 'dark';
-      const themeCSS = isDark ? 'github-dark' : 'github';
-      if (!document.querySelector('link[href*="highlight.js"]')) {
-        const hlLink = document.createElement('link');
-        hlLink.rel = 'stylesheet';
-        hlLink.href = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
-        hlLink.id = 'hljs-theme';
-        document.head.appendChild(hlLink);
-      }
-
-      // Load Vditor JS
-      if (!(window).Vditor) {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.min.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
-      // Load highlight.js JS
-      if (!(window).hljs) {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
+      await loadMarkdownResources();
 
       // Render markdown to HTML
       const VditorClass = (window).Vditor;
+      const isDark = document.documentElement.className === 'dark';
       const htmlResult = VditorClass.md2html(content, { theme: isDark ? 'dark' : 'light' });
       const html = await Promise.resolve(htmlResult);
 
@@ -270,44 +235,7 @@ export default {
       }
     },
     highlightCodeBlocks(container) {
-      const codeBlocks = container.querySelectorAll('pre > code');
-      const hljs = (window).hljs;
-
-      codeBlocks.forEach((codeEl) => {
-        // Extract language from class
-        let lang = '';
-        const langMatch = codeEl.className.match(/language-(\w+)/);
-        if (langMatch) {
-          lang = langMatch[1];
-        }
-        if (lang && !codeEl.getAttribute('data-lang')) {
-          codeEl.setAttribute('data-lang', lang);
-        }
-
-        // Apply syntax highlighting
-        if (hljs && lang) {
-          try {
-            const rawText = codeEl.textContent || '';
-            const result = hljs.highlight(rawText, { language: lang, ignoreIllegals: true });
-            codeEl.innerHTML = result.value;
-            codeEl.classList.add('hljs');
-          } catch (e) {
-            // Language not supported, skip
-          }
-        }
-
-        // Wrap lines for line numbers
-        const html = codeEl.innerHTML;
-        const lines = html.split('\n');
-        if (lines.length > 1 && lines[lines.length - 1].trim() === '') {
-          lines.pop();
-        }
-        const wrappedHtml = lines
-          .map((line) => `<span class="code-line">${line}</span>`)
-          .join('\n');
-        codeEl.innerHTML = wrappedHtml;
-        codeEl.classList.add('has-line-numbers');
-      });
+      highlightAndAnnotateCodeBlocks(container);
     },
   },
 };

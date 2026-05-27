@@ -426,6 +426,7 @@ import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
 
 import * as auth from "@/utils/auth";
+import { getFileIcon } from "@/utils/fileIcons";
 import {
   version,
   signup,
@@ -621,39 +622,7 @@ export default {
       // Heuristic: if name has a file extension, it's likely a file
       const ext = name.split('.').pop();
       if (ext && ext !== name && ext.length <= 5 && !name.endsWith('/')) {
-        const iconMap = {
-          'pdf': 'picture_as_pdf',
-          'mp3': 'audiotrack',
-          'mp4': 'movie',
-          'jpg': 'image',
-          'jpeg': 'image',
-          'png': 'image',
-          'gif': 'image',
-          'webp': 'image',
-          'svg': 'image',
-          'doc': 'description',
-          'docx': 'description',
-          'xls': 'table_chart',
-          'xlsx': 'table_chart',
-          'ppt': 'slideshow',
-          'pptx': 'slideshow',
-          'zip': 'folder_zip',
-          'rar': 'folder_zip',
-          '7z': 'folder_zip',
-          'tar': 'folder_zip',
-          'gz': 'folder_zip',
-          'txt': 'article',
-          'md': 'article',
-          'json': 'data_object',
-          'js': 'code',
-          'ts': 'code',
-          'py': 'code',
-          'java': 'code',
-          'go': 'code',
-          'html': 'code',
-          'css': 'code',
-        };
-        return iconMap[ext.toLowerCase()] || 'insert_drive_file';
+        return getFileIcon(name);
       }
       return 'folder';
     },

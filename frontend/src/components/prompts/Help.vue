@@ -10,6 +10,10 @@
         <li><strong>F2</strong> - {{ $t("help.f2") }}</li>
         <li><strong>DEL</strong> - {{ $t("help.del") }}</li>
         <li><strong>ESC</strong> - {{ $t("help.esc") }}</li>
+        <li><strong>↑ ↓</strong> - {{ $t("help.arrowNav") }}</li>
+        <li><strong>Shift + ↑ ↓</strong> - {{ $t("help.arrowSelect") }}</li>
+        <li><strong>Enter</strong> - {{ $t("help.enterOpen") }}</li>
+        <li><strong>Home / End</strong> - {{ $t("help.homeEnd") }}</li>
         <li><strong>CTRL + S</strong> - {{ $t("help.ctrl.s") }}</li>
         <li><strong>CTRL + SHIFT + F</strong> - {{ $t("help.ctrl.f") }}</li>
         <li><strong>CTRL + Click</strong> - {{ $t("help.ctrl.click") }}</li>

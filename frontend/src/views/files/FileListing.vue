@@ -757,6 +757,78 @@ const keyEvent = (event: KeyboardEvent) => {
     fileStore.selected = [];
   }
 
+  // Arrow key navigation
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    const allItems = [...items.value.dirs, ...items.value.files];
+    if (allItems.length === 0) return;
+
+    const currentIndex = fileStore.selected.length > 0
+      ? fileStore.selected[fileStore.selected.length - 1]
+      : -1;
+
+    let newIndex: number;
+    if (event.key === "ArrowDown") {
+      newIndex = currentIndex < 0
+        ? allItems[0].index
+        : Math.min(currentIndex + 1, allItems[allItems.length - 1].index);
+    } else {
+      newIndex = currentIndex < 0
+        ? allItems[allItems.length - 1].index
+        : Math.max(currentIndex - 1, allItems[0].index);
+    }
+
+    // Shift+Arrow for range selection
+    if (event.shiftKey) {
+      if (fileStore.selected.indexOf(newIndex) === -1) {
+        fileStore.selected.push(newIndex);
+      }
+    } else {
+      fileStore.selected = [newIndex];
+    }
+
+    // Scroll selected item into view
+    nextTick(() => {
+      const items = document.querySelectorAll("#listing .item");
+      const targetItem = items[newIndex];
+      if (targetItem) {
+        targetItem.scrollIntoView({ block: "nearest" });
+      }
+    });
+    return;
+  }
+
+  // Enter key - open selected item
+  if (event.key === "Enter") {
+    if (fileStore.selectedCount === 1) {
+      const item = fileStore.req?.items[fileStore.selected[0]];
+      if (item) {
+        router.push({ path: item.url });
+      }
+    }
+    return;
+  }
+
+  // Home - jump to first item
+  if (event.key === "Home" && !event.ctrlKey && !event.metaKey) {
+    event.preventDefault();
+    const allItems = [...items.value.dirs, ...items.value.files];
+    if (allItems.length > 0) {
+      fileStore.selected = [allItems[0].index];
+    }
+    return;
+  }
+
+  // End - jump to last item
+  if (event.key === "End" && !event.ctrlKey && !event.metaKey) {
+    event.preventDefault();
+    const allItems = [...items.value.dirs, ...items.value.files];
+    if (allItems.length > 0) {
+      fileStore.selected = [allItems[allItems.length - 1].index];
+    }
+    return;
+  }
+
   if (event.key === "Delete") {
     if (!authStore.user?.perm.delete || fileStore.selectedCount == 0) return;
 

@@ -60,8 +60,7 @@
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in filteredResults" :key="k">
             <router-link v-on:click="close" :to="s.url">
-              <i v-if="s.dir" class="material-icons">folder</i>
-              <i v-else class="material-icons">insert_drive_file</i>
+              <i class="material-icons">{{ getFileIcon(s.path, s.dir) }}</i>
               <span>./{{ s.path }}</span>
             </router-link>
           </li>
@@ -77,6 +76,7 @@ import { useLayoutStore } from "@/stores/layout";
 
 import url from "@/utils/url";
 import { search } from "@/api";
+import { getFileIcon } from "@/utils/fileIcons";
 import { computed, inject, onMounted, ref, watch, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";

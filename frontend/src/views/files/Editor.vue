@@ -108,6 +108,7 @@ let savedContent = ""; // 保存一份内容用于模式切换时重建
 let initialMdContent = ""; // 记录 Markdown 初始内容用于 dirty 检测
 let mdInitialized = false; // Vditor 是否已完成初始化
 let userEdited = false; // 用户是否实际修改过内容
+let initialContent = ""; // 文件初始内容，用于 close 时的内容比对兜底
 
 onMounted(() => {
   window.addEventListener("keydown", keyEvent);
@@ -160,6 +161,11 @@ onBeforeUnmount(() => {
 });
 
 onBeforeRouteUpdate((to, from, next) => {
+  if (layoutStore.loading) {
+    next();
+    return;
+  }
+
   const isDirty = isMarkdownFile
     ? (vditorInstance && userEdited && mdInitialized)
     : !aceEditor?.session.getUndoManager().isClean();
@@ -169,15 +175,38 @@ onBeforeRouteUpdate((to, from, next) => {
     return;
   }
 
+  // 双重校验：flag 可能有误，用实际内容比对兜底
+  if (isMarkdownFile && vditorInstance && mdInitialized) {
+    try {
+      const currentContent = vditorInstance.getValue();
+      if (currentContent === initialContent) {
+        userEdited = false;
+        next();
+        return;
+      }
+    } catch {}
+  } else if (aceEditor) {
+    const currentContent = aceEditor.getValue();
+    if (currentContent === initialContent) {
+      aceEditor.session.getUndoManager().markClean();
+      next();
+      return;
+    }
+  }
+
   layoutStore.showHover({
     prompt: "discardEditorChanges",
     confirm: (event: Event) => {
       event.preventDefault();
+      if (aceEditor) aceEditor.session.getUndoManager().reset();
+      userEdited = false;
       next();
     },
     saveAction: async () => {
-      await save();
-      next();
+      try {
+        await save(true);
+        next();
+      } catch {}
     },
   });
 });
@@ -185,6 +214,7 @@ onBeforeRouteUpdate((to, from, next) => {
 const initVditor = async (content: string) => {
   savedContent = content;
   initialMdContent = content;
+  initialContent = content;
   mdInitialized = false;
   userEdited = false;
   await initVditorWithMode(content, 'ir');
@@ -300,8 +330,11 @@ const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
         const normalized = vditorInstance.getValue();
         savedContent = normalized;
         initialMdContent = normalized;
+        initialContent = normalized;
       } catch {}
       mdInitialized = true;
+      // 初始化期间可能触发 input 事件，重置 dirty 标记
+      userEdited = false;
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
     },
@@ -417,6 +450,7 @@ const initVditorPreview = async (content: string) => {
 };
 
 const initAceEditor = (content: string) => {
+  initialContent = content;
   ace.config.set(
     "basePath",
     `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
@@ -464,6 +498,8 @@ const initAceEditor = (content: string) => {
     });
   }
 
+  // 确保 undo manager 标记为 clean，避免误判为 dirty
+  aceEditor.session.getUndoManager().markClean();
   aceEditor.focus();
   aceEditorReady.value = true;
 
@@ -574,15 +610,24 @@ const keyEvent = (event: KeyboardEvent) => {
 };
 
 const handlePageChange = (event: BeforeUnloadEvent) => {
+  // 编辑器未初始化完成时，不提示
+  if (layoutStore.loading) return;
+
   if (isMarkdownFile && vditorInstance) {
-    // Vditor dirty 检测：用 userEdited 标记判断
+    // Vditor dirty 检测：用 userEdited 标记 + 内容比对双重判断
     if (userEdited && mdInitialized) {
+      try {
+        const currentContent = vditorInstance.getValue();
+        if (currentContent === initialContent) return;
+      } catch {}
       event.preventDefault();
       event.returnValue = true;
     }
     return;
   }
-  if (!aceEditor?.session.getUndoManager().isClean()) {
+  if (aceEditor && !aceEditor.session.getUndoManager().isClean()) {
+    const currentContent = aceEditor.getValue();
+    if (currentContent === initialContent) return;
     event.preventDefault();
     event.returnValue = true;
   }
@@ -604,6 +649,7 @@ const save = async (throwError?: boolean) => {
       initialMdContent = content;
       userEdited = false;
     }
+    initialContent = content;
     if (aceEditor) {
       aceEditor.session.getUndoManager().markClean();
     }
@@ -616,6 +662,12 @@ const save = async (throwError?: boolean) => {
 };
 
 const close = () => {
+  // 编辑器未初始化完成时，直接关闭
+  if (layoutStore.loading) {
+    finishClose();
+    return;
+  }
+
   const isDirty = isMarkdownFile
     ? (vditorInstance && userEdited && mdInitialized)
     : !aceEditor?.session.getUndoManager().isClean();
@@ -623,6 +675,25 @@ const close = () => {
   if (!isDirty) {
     finishClose();
     return;
+  }
+
+  // 双重校验：flag 可能有误，用实际内容比对兜底
+  if (isMarkdownFile && vditorInstance && mdInitialized) {
+    try {
+      const currentContent = vditorInstance.getValue();
+      if (currentContent === initialContent) {
+        userEdited = false;
+        finishClose();
+        return;
+      }
+    } catch {}
+  } else if (aceEditor) {
+    const currentContent = aceEditor.getValue();
+    if (currentContent === initialContent) {
+      aceEditor.session.getUndoManager().markClean();
+      finishClose();
+      return;
+    }
   }
 
   layoutStore.showHover({

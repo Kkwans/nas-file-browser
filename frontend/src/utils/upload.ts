@@ -255,6 +255,67 @@ function detectType(mimetype: string): ResourceType {
   return "blob";
 }
 
+/**
+ * Process files from an HTML file input element.
+ * Shared utility used by both Upload.vue and FileListing.vue.
+ */
+export function processFileInput(
+  event: Event,
+  basePath: string,
+  layoutStore: ReturnType<typeof useLayoutStore>
+) {
+  const files = (event.currentTarget as HTMLInputElement)?.files;
+  if (files === null || files.length === 0) return;
+
+  const folder_upload = !!files[0].webkitRelativePath;
+
+  const uploadFiles: UploadList = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const fullPath = folder_upload ? file.webkitRelativePath : undefined;
+    uploadFiles.push({
+      file,
+      name: file.name,
+      size: file.size,
+      isDir: false,
+      fullPath,
+    });
+  }
+
+  const path = basePath.endsWith("/") ? basePath : basePath + "/";
+
+  checkConflict(uploadFiles, path).then((conflict) => {
+    if (conflict.length > 0) {
+      layoutStore.showHover({
+        prompt: "resolve-conflict",
+        props: {
+          conflict,
+          isUploadAction: true,
+        },
+        confirm: (event: Event, result: Array<ConflictingResource>) => {
+          event.preventDefault();
+          layoutStore.closeHovers();
+          for (let i = result.length - 1; i >= 0; i--) {
+            const item = result[i];
+            if (item.checked.length == 2) {
+              continue;
+            } else if (item.checked.length == 1 && item.checked[0] == "origin") {
+              uploadFiles[item.index].overwrite = true;
+            } else {
+              uploadFiles.splice(item.index, 1);
+            }
+          }
+          if (uploadFiles.length > 0) {
+            handleFiles(uploadFiles, path, true);
+          }
+        },
+      });
+      return;
+    }
+    handleFiles(uploadFiles, path);
+  });
+}
+
 export function handleFiles(
   files: UploadList,
   base: string,

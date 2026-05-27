@@ -1089,58 +1089,8 @@ const drop = async (event: DragEvent) => {
   fileStore.preselect = preselect;
 };
 
-const uploadInput = async (event: Event) => {
-  const files = (event.currentTarget as HTMLInputElement)?.files;
-  if (files === null) return;
-
-  const folder_upload = !!files[0].webkitRelativePath;
-
-  const uploadFiles: UploadList = [];
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const fullPath = folder_upload ? file.webkitRelativePath : undefined;
-    uploadFiles.push({
-      file,
-      name: file.name,
-      size: file.size,
-      isDir: false,
-      fullPath,
-    });
-  }
-
-  const path = route.path.endsWith("/") ? route.path : route.path + "/";
-  const conflict = await upload.checkConflict(uploadFiles, path);
-
-  if (conflict.length > 0) {
-    layoutStore.showHover({
-      prompt: "resolve-conflict",
-      props: {
-        conflict: conflict,
-        isUploadAction: true,
-      },
-      confirm: (event: Event, result: Array<ConflictingResource>) => {
-        event.preventDefault();
-        layoutStore.closeHovers();
-        for (let i = result.length - 1; i >= 0; i--) {
-          const item = result[i];
-          if (item.checked.length == 2) {
-            continue;
-          } else if (item.checked.length == 1 && item.checked[0] == "origin") {
-            uploadFiles[item.index].overwrite = true;
-          } else {
-            uploadFiles.splice(item.index, 1);
-          }
-        }
-        if (uploadFiles.length > 0) {
-          upload.handleFiles(uploadFiles, path, true);
-        }
-      },
-    });
-
-    return;
-  }
-
-  upload.handleFiles(uploadFiles, path);
+const uploadInput = (event: Event) => {
+  upload.processFileInput(event, route.path, layoutStore);
 };
 
 const resetOpacity = () => {

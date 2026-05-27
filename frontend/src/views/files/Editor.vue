@@ -664,7 +664,7 @@ const finishClose = () => {
   font-size: 0.8em;
   font-weight: 500;
   color: var(--textSecondary);
-  background: var(--backgroundSecondary);
+  background: var(--surfaceSecondary);
   border: 1px solid var(--borderSecondary);
   text-transform: capitalize;
   white-space: nowrap;

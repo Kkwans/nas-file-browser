@@ -75,10 +75,6 @@ export async function checkConflict(
   files: UploadList,
   basePath: string
 ): Promise<ConflictingResource[]> {
-  console.log(
-    "Starting conflict check, " + files.length + " possible conflict found."
-  );
-
   const forest = flatToForest(files, basePath);
   if (forest.length === 0) return [];
 
@@ -153,8 +149,6 @@ export async function checkConflict(
 
   // Walk all root nodes synchronously against the pre-fetched data
   recursiveCheckConflict(forest);
-
-  console.log(conflicts.length + " conflicts found.");
 
   conflicts.sort((a, b) => a.index - b.index);
 

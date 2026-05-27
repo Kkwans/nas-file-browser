@@ -20,7 +20,7 @@
 }
 
 .epub-reader .titleArea {
-  color: var(--text);
+  color: var(--textPrimary);
 }
 
 .epub-reader .tocButtonBar {
@@ -28,7 +28,7 @@
 }
 
 .epub-reader .tocButton {
-  color: var(--text);
+  color: var(--textPrimary);
 }
 
 .epub-reader .tocButton.tocButtonExpanded {
@@ -45,7 +45,7 @@
 }
 
 .epub-reader .readerArea .arrow {
-  color: var(--text);
+  color: var(--textPrimary);
 }
 
 .epub-reader .readerArea .arrow:hover {

@@ -5,7 +5,7 @@
 
 /* --- Sidebar Container --- */
 nav.sidebar {
-  width: 16em;
+  width: var(--sidebar-width, 256px);
   position: fixed;
   top: 3.5em;
   left: 0;
@@ -773,23 +773,31 @@ html[dir="rtl"] .categories-header {
 .sidebar-resize-handle {
   position: absolute;
   top: 0;
-  right: -3px;
-  width: 6px;
+  right: -4px;
+  width: 8px;
   height: 100%;
   cursor: col-resize;
   z-index: 10;
-  transition: background 0.15s;
+  transition: background 0.15s, right 0.15s, width 0.15s;
 }
 
 .sidebar-resize-handle:hover,
 .sidebar-resize-handle:active {
   background: var(--blue, #2196F3);
-  opacity: 0.3;
+  opacity: 0.4;
+  right: -1px;
+  width: 3px;
+  border-radius: 2px;
 }
 
 html[dir="rtl"] .sidebar-resize-handle {
   right: auto;
-  left: -3px;
+  left: -4px;
+}
+
+html[dir="rtl"] .sidebar-resize-handle:hover,
+html[dir="rtl"] .sidebar-resize-handle:active {
+  left: -1px;
 }
 
 /* --- Favorite Groups --- */
@@ -925,7 +933,7 @@ html[dir="rtl"] .sidebar-resize-handle {
 /* --- Mobile Responsive --- */
 @media (max-width: 1024px) {
   nav.sidebar {
-    width: 14em;
+    width: var(--sidebar-width, 224px);
   }
 }
 
@@ -935,6 +943,7 @@ html[dir="rtl"] .sidebar-resize-handle {
     z-index: 99999;
     width: 17em;
     left: -18em;
+    /* On phone, sidebar is overlay — ignore --sidebar-width */
     box-shadow: none;
     transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1) left,
                 0.25s ease box-shadow;

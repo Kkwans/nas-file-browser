@@ -4,6 +4,8 @@
     <div
       class="sidebar-resize-handle"
       @mousedown="startResize"
+      @touchstart="startResize"
+      @dblclick="resetSidebarWidth"
       :title="$t('sidebar.resizeSidebar')"
     ></div>
     <template v-if="isLoggedIn">
@@ -477,17 +479,24 @@ export default {
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
     startResize(event) {
+      // Support both mouse and touch
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
       this.isResizing = true;
-      this.startX = event.clientX;
+      this.startX = clientX;
       this.startWidth = this.sidebarWidth;
       document.addEventListener('mousemove', this.onResize);
       document.addEventListener('mouseup', this.stopResize);
+      document.addEventListener('touchmove', this.onResize, { passive: false });
+      document.addEventListener('touchend', this.stopResize);
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
     },
     onResize(event) {
       if (!this.isResizing) return;
-      const diff = event.clientX - this.startX;
+      // Prevent scrolling on touch
+      if (event.cancelable) event.preventDefault();
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+      const diff = clientX - this.startX;
       const newWidth = Math.min(500, Math.max(180, this.startWidth + diff));
       this.sidebarWidth = newWidth;
       document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
@@ -496,10 +505,20 @@ export default {
       this.isResizing = false;
       document.removeEventListener('mousemove', this.onResize);
       document.removeEventListener('mouseup', this.stopResize);
+      document.removeEventListener('touchmove', this.onResize);
+      document.removeEventListener('touchend', this.stopResize);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       try {
         localStorage.setItem('nas-file-browser-sidebar-width', this.sidebarWidth.toString());
+      } catch {}
+    },
+    resetSidebarWidth() {
+      const defaultWidth = 256;
+      this.sidebarWidth = defaultWidth;
+      document.documentElement.style.setProperty('--sidebar-width', defaultWidth + 'px');
+      try {
+        localStorage.setItem('nas-file-browser-sidebar-width', defaultWidth.toString());
       } catch {}
     },
     getKnownDirs(volBase) {

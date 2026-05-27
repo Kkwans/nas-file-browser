@@ -10,8 +10,8 @@
 /* === Tablet (<= 1024px) === */
 @media (max-width: 1024px) {
   main {
-    margin-left: var(--sidebar-width, 14em);
-    width: calc(100% - var(--sidebar-width, 14em) - 1em);
+    margin-left: var(--sidebar-width, 224px);
+    width: calc(100% - var(--sidebar-width, 224px) - 1em);
   }
 
   #listing.mosaic .item {

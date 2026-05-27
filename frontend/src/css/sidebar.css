@@ -16,8 +16,9 @@ nav.sidebar {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  transition: 0.25s ease background, 0.25s ease border-color;
+  transition: 0.25s ease background, 0.25s ease border-color, 0.15s ease box-shadow;
   z-index: 999;
+  box-shadow: 1px 0 8px rgba(0, 0, 0, 0.03);
 }
 
 html[dir="rtl"] nav.sidebar {
@@ -53,13 +54,13 @@ nav.sidebar .action {
   display: flex;
   align-items: center;
   border-radius: 0;
-  font-size: 0.9em;
-  padding: 0.65em 1em;
+  font-size: 0.88em;
+  padding: 0.6em 1em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  gap: 0.7em;
-  transition: 0.15s ease background-color, 0.15s ease color;
+  gap: 0.65em;
+  transition: 0.15s ease background-color, 0.15s ease color, 0.15s ease border-left-color;
   position: relative;
   color: var(--textSecondary);
   border-left: 3px solid transparent;
@@ -232,11 +233,13 @@ nav.sidebar .credits a:hover {
 :root.dark nav.sidebar {
   background: var(--surfacePrimary);
   border-right-color: var(--divider);
+  box-shadow: 1px 0 12px rgba(0, 0, 0, 0.15);
 }
 
 html.dark nav.sidebar {
   background: var(--surfacePrimary);
   border-right-color: var(--divider);
+  box-shadow: 1px 0 12px rgba(0, 0, 0, 0.15);
 }
 
 :root.dark nav.sidebar .action i,
@@ -254,19 +257,20 @@ html.dark nav.sidebar > button.action:first-child {
   border-top: 1px solid var(--divider);
   padding: 0.3em 0;
   margin-top: 0.2em;
+  background: linear-gradient(180deg, rgba(245, 166, 35, 0.02) 0%, transparent 100%);
 }
 
 .favorites-header {
   display: flex;
   align-items: center;
-  gap: 0.7em;
-  padding: 0.6em 1em 0.35em;
-  font-size: 0.72em;
+  gap: 0.6em;
+  padding: 0.55em 1em 0.3em;
+  font-size: 0.7em;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--textPrimary);
-  opacity: 0.55;
+  opacity: 0.6;
   cursor: pointer;
   background: none;
   border: none;
@@ -290,8 +294,8 @@ html[dir="rtl"] .favorites-header {
 
 .favorite-item {
   position: relative;
-  padding: 0.5em 0.8em 0.5em 0.6em !important;
-  margin: 0.1em 0.4em;
+  padding: 0.45em 0.8em 0.45em 0.6em !important;
+  margin: 0.08em 0.4em;
   border-radius: 6px;
   transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
@@ -374,11 +378,11 @@ html[dir="rtl"] .favorite-info {
 .section-empty {
   display: flex;
   align-items: center;
-  gap: 0.6em;
-  padding: 0.6em 1em 0.7em;
-  font-size: 0.76em;
+  gap: 0.5em;
+  padding: 0.5em 1em 0.6em;
+  font-size: 0.74em;
   color: var(--textPrimary);
-  opacity: 0.35;
+  opacity: 0.3;
   font-style: italic;
   letter-spacing: 0.01em;
 }
@@ -456,12 +460,12 @@ html[dir="rtl"] .favorite-info {
 .tags-header {
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  padding: 0.45em 1em 0.25em;
+  gap: 0.6em;
+  padding: 0.55em 1em 0.3em;
   font-size: 0.7em;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--textPrimary);
   opacity: 0.6;
   cursor: pointer;
@@ -541,12 +545,12 @@ html[dir="rtl"] .tags-header {
 .volumes-header {
   display: flex;
   align-items: center;
-  gap: 0.7em;
-  padding: 0.5em 1em 0.3em;
-  font-size: 0.75em;
-  font-weight: 600;
+  gap: 0.6em;
+  padding: 0.55em 1em 0.3em;
+  font-size: 0.7em;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--textPrimary);
   opacity: 0.6;
   cursor: pointer;
@@ -630,12 +634,12 @@ html[dir="rtl"] .volumes-header {
 .categories-header {
   display: flex;
   align-items: center;
-  gap: 0.7em;
-  padding: 0.5em 1em 0.3em;
-  font-size: 0.75em;
-  font-weight: 600;
+  gap: 0.6em;
+  padding: 0.55em 1em 0.3em;
+  font-size: 0.7em;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--textPrimary);
   opacity: 0.6;
   cursor: pointer;

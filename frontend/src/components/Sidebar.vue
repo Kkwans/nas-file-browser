@@ -600,11 +600,13 @@ export default {
     removeFavorite(id) {
       this.favoritesStore.removeFavorite(id);
     },
-    clearAllFavorites() {
+    async clearAllFavorites() {
       if (this.favoritesStore.sortedFavorites.length === 0) return;
-      // Clear all favorites
-      this.favoritesStore.favorites = [];
-      this.favoritesStore.saveFavorites();
+      // Delete each favorite from backend then clear local state
+      const favs = [...this.favoritesStore.favorites];
+      for (const fav of favs) {
+        await this.favoritesStore.removeFavorite(fav.id);
+      }
     },
     async createGroup() {
       const name = this.newGroupName.trim();

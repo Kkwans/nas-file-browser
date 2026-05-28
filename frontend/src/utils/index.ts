@@ -6,7 +6,7 @@ import { partial } from "filesize";
 export const filesize = partial({ base: 2 });
 
 export const vClickOutside = {
-  created(el: HTMLElement, binding: any) {
+  created(el: HTMLElement, binding: { value: (event: Event) => void }) {
     el.clickOutsideEvent = (event: Event) => {
       const target = event.target;
 

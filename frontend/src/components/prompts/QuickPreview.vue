@@ -106,6 +106,7 @@ import { useI18n } from "vue-i18n";
 import { useLayoutStore } from "@/stores/layout";
 import { useFileStore } from "@/stores/file";
 import { files as api } from "@/api";
+import type { ResourceItem } from "@/types/file";
 import { filesize } from "@/utils";
 import { getFileIcon, isTextFile, isPreviewable } from "@/utils/fileIcons";
 import {
@@ -207,7 +208,9 @@ const navigateFile = (direction: number) => {
   if (!listing || listing.length === 0) return;
 
   const currentName = item.value.name;
-  const currentIndex = listing.findIndex((it: any) => it.name === currentName);
+  const currentIndex = listing.findIndex(
+    (it: ResourceItem) => it.name === currentName
+  );
   if (currentIndex === -1) return;
 
   let idx = currentIndex;

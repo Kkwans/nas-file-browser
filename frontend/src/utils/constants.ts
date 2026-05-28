@@ -1,3 +1,4 @@
+import type { TusSettings } from "@/types/api";
 import type { UserTheme } from "@/types/user";
 
 const name: string = window.FileBrowser.Name || "File Browser";
@@ -14,11 +15,11 @@ const noAuth: boolean = window.FileBrowser.NoAuth;
 const authMethod = window.FileBrowser.AuthMethod;
 const logoutPage: string = window.FileBrowser.LogoutPage;
 const loginPage: boolean = window.FileBrowser.LoginPage;
-const theme: UserTheme = window.FileBrowser.Theme;
+const theme: UserTheme = window.FileBrowser.Theme as UserTheme;
 const enableThumbs: boolean = window.FileBrowser.EnableThumbs;
 const resizePreview: boolean = window.FileBrowser.ResizePreview;
 const enableExec: boolean = window.FileBrowser.EnableExec;
-const tusSettings = window.FileBrowser.TusSettings;
+const tusSettings = window.FileBrowser.TusSettings as TusSettings;
 const origin = window.location.origin;
 const tusEndpoint = `/api/tus`;
 const hideLoginButton = window.FileBrowser.HideLoginButton;

@@ -32,10 +32,10 @@ const props = withDefaults(
   defineProps<{
     source: string;
     subtitles?: string[];
-    options?: any;
+    options?: Record<string, unknown>;
   }>(),
   {
-    options: {},
+    options: () => ({}),
   }
 );
 

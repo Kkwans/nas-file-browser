@@ -6,7 +6,7 @@ import type { ApiOpts } from "@/types/api";
 
 export class StatusError extends Error {
   constructor(
-    message: any,
+    message: string,
     public status?: number,
     public is_canceled?: boolean
   ) {

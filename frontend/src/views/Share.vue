@@ -389,7 +389,7 @@ const modTime = computed(() =>
 );
 
 // Functions
-const base64 = (name: any) => Base64.encodeURI(name);
+const base64 = (name: string) => Base64.encodeURI(name);
 const play = () => {
   if (tag.value) {
     audio.value?.pause();

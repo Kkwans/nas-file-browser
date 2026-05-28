@@ -114,7 +114,7 @@ const showLineNumbers = ref(true);
 const langCaption = ref("");
 
 const currentMode = ref<"ir" | "sv" | "preview">("ir");
-let vditorInstance: any = null;
+let vditorInstance: VditorInstance | null = null;
 let aceEditor: Ace.Editor | null = null;
 // Content tracking removed - unused variables
 let mdInitialized = false; // Vditor 是否已完成初始化
@@ -310,7 +310,7 @@ const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
       // 编辑器初始化完成后，捕获 Vditor 规范化后的内容作为基线
       // 这样即使 Vditor 对内容做了微调（如尾部换行），也不会误判为 dirty
       try {
-        const normalized = vditorInstance.getValue();
+        const normalized = vditorInstance!.getValue();
         initialContent = normalized;
       } catch {}
       mdInitialized = true;

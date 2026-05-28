@@ -10,7 +10,7 @@ export interface ISettings {
   userHomeBasePath: string;
   defaults: SettingsDefaults;
   authMethod: string;
-  rules: any[];
+  rules: Rule[];
   branding: SettingsBranding;
   tus: SettingsTus;
   shell: string[];
@@ -25,10 +25,17 @@ interface SettingsDefaults {
   redirectAfterCopyMove: boolean;
   sorting: Sorting;
   perm: Permissions;
-  commands: any[];
+  commands: string[];
   hideDotfiles: boolean;
   dateFormat: boolean;
   aceEditorTheme: string;
+}
+
+interface Rule {
+  allow: boolean;
+  path: string;
+  regex: boolean;
+  regexp: { raw: string };
 }
 
 interface SettingsBranding {

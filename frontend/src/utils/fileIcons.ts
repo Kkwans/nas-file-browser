@@ -227,16 +227,6 @@ export function getFileIcon(fileName: string, isDir?: boolean): string {
 }
 
 /**
- * Get Material Icon name for a file item object.
- * Compatible with search results and listing items.
- */
-export function getFileIconFromItem(item: { name?: string; isDir?: boolean; type?: string }): string {
-  if (item.isDir) return "folder";
-  if (item.name) return getFileIcon(item.name);
-  return "insert_drive_file";
-}
-
-/**
  * Check if a path looks like a file (has a recognized file extension).
  * Used by Sidebar to determine whether to navigate as file or directory.
  */

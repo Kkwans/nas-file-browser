@@ -48,6 +48,7 @@ import Errors from "@/views/Errors.vue";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
+import type { IUser } from "@/types/user";
 
 const error = ref<StatusError | null>(null);
 const users = ref<IUser[]>([]);

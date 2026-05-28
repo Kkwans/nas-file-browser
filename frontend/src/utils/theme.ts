@@ -1,6 +1,7 @@
 import { theme } from "./constants";
 import "ace-builds";
 import { themesByName } from "ace-builds/src-noconflict/ext-themelist";
+import type { UserTheme } from "@/types/user";
 
 export const getTheme = (): UserTheme => {
   return (document.documentElement.className as UserTheme) || theme;

@@ -100,7 +100,7 @@ import { useI18n } from "vue-i18n";
 interface IProps {
   src: string;
   moveDisabledTime?: number;
-  classList?: any[];
+  classList?: string[];
   zoomStep?: number;
   fileName?: string;
   fileSizeBytes?: number;

@@ -4,6 +4,7 @@ import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { computed, inject, markRaw, ref } from "vue";
 import * as tus from "@/api/tus";
+import type { ResourceType } from "@/types/file";
 
 // TODO: make this into a user setting
 const UPLOADS_LIMIT = 5;

@@ -1,4 +1,13 @@
-interface ISettings {
+export {}
+
+import type {
+  ViewModeType,
+  Sorting,
+  Permissions,
+  UserTheme,
+} from "./user";
+
+export interface ISettings {
   signup: boolean;
   createUserDir: boolean;
   hideLoginButton: boolean;
@@ -41,7 +50,7 @@ interface SettingsTus {
   retryCount: number;
 }
 
-interface SettingsCommand {
+export interface SettingsCommand {
   after_copy?: string[];
   after_delete?: string[];
   after_rename?: string[];
@@ -54,7 +63,7 @@ interface SettingsCommand {
   before_upload?: string[];
 }
 
-interface SettingsUnit {
+export interface SettingsUnit {
   KB: number;
   MB: number;
   GB: number;

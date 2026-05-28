@@ -118,6 +118,7 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import TagPicker from "@/components/TagPicker.vue";
 import FavoriteGroupPicker from "@/components/FavoriteGroupPicker.vue";
+import type { Resource, ConflictingResource } from "@/types/file";
 
 const touches = ref<number>(0);
 

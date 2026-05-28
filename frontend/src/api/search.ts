@@ -1,11 +1,12 @@
 import { fetchURL, removePrefix, StatusError } from "./utils";
 import url from "../utils/url";
+import type { SearchResult } from "@/types/file";
 
 export default async function search(
   base: string,
   query: string,
   signal: AbortSignal,
-  callback: (item: ResourceItem) => void
+  callback: (item: SearchResult) => void
 ) {
   base = removePrefix(base);
   query = encodeURIComponent(query);
@@ -38,12 +39,9 @@ export default async function search(
 
         for (const line of lines) {
           if (line) {
-            const item = JSON.parse(line) as ResourceItem;
-            item.url = `/files${base}` + url.encodePath(item.path);
-            if (item.isDir) {
-              item.url += "/";
-            }
-            callback(item);
+            const item = JSON.parse(line) as SearchResult;
+            const searchUrl = `/files${base}` + url.encodePath(item.path);
+            callback({ ...item, url: item.dir ? searchUrl + "/" : searchUrl });
           }
         }
         if (done) break;
@@ -54,12 +52,9 @@ export default async function search(
       const lines = text.split(/\n/);
       for (const line of lines) {
         if (line) {
-          const item = JSON.parse(line) as ResourceItem;
-          item.url = `/files${base}` + url.encodePath(item.path);
-          if (item.isDir) {
-            item.url += "/";
-          }
-          callback(item);
+          const item = JSON.parse(line) as SearchResult;
+          const searchUrl = `/files${base}` + url.encodePath(item.path);
+          callback({ ...item, url: item.dir ? searchUrl + "/" : searchUrl });
         }
       }
     }

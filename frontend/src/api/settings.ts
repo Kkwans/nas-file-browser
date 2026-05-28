@@ -1,4 +1,5 @@
 import { fetchURL, fetchJSON } from "./utils";
+import type { ISettings } from "@/types/settings";
 
 export function get() {
   return fetchJSON<ISettings>(`/api/settings`, {});

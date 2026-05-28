@@ -1,3 +1,8 @@
+// This file contains type definitions used globally across the application.
+// Types can be imported via `import type { X } from "@/types/file"` or used as ambient globals.
+
+export {}
+
 interface ResourceBase {
   path: string;
   name: string;
@@ -11,7 +16,7 @@ interface ResourceBase {
   url: string;
 }
 
-interface Resource extends ResourceBase {
+export interface Resource extends ResourceBase {
   items: ResourceItem[];
   numDirs: number;
   numFiles: number;
@@ -24,12 +29,12 @@ interface Resource extends ResourceBase {
   rawContent?: ArrayBuffer;
 }
 
-interface ResourceItem extends ResourceBase {
+export interface ResourceItem extends ResourceBase {
   index: number;
   subtitles?: string[];
 }
 
-type ResourceType =
+export type ResourceType =
   | "dir"
   | "video"
   | "audio"
@@ -39,7 +44,7 @@ type ResourceType =
   | "blob"
   | "textImmutable";
 
-type DownloadFormat =
+export type DownloadFormat =
   | "zip"
   | "tar"
   | "targz"
@@ -49,24 +54,24 @@ type DownloadFormat =
   | "tarsz"
   | null;
 
-interface ClipItem {
+export interface ClipItem {
   from: string;
   name: string;
   size?: number;
   modified?: string;
 }
 
-interface BreadCrumb {
+export interface BreadCrumb {
   name: string;
   url: string;
 }
 
-interface ConflictingItem {
+export interface ConflictingItem {
   lastModified: number | string | undefined;
   size: number | undefined;
 }
 
-interface ConflictingResource {
+export interface ConflictingResource {
   index: number;
   name: string;
   origin: ConflictingItem;
@@ -75,15 +80,41 @@ interface ConflictingResource {
   isSmallerOnServer?: boolean;
 }
 
-interface CsvData {
+export interface CsvData {
   headers: string[];
   rows: string[][];
 }
 
-interface RecursiveEntry {
+export interface RecursiveEntry {
   path: string;
   name: string;
   size: number;
   modified: string;
   isDir: boolean;
+}
+
+export interface SearchResult {
+  dir: boolean;
+  path: string;
+  name: string;
+  size: number;
+  modified: string;
+  url?: string;
+}
+
+export interface MoveCopyItem extends ClipItem {
+  to: string;
+  overwrite: boolean;
+  rename: boolean;
+}
+
+export interface PasteItem {
+  name: string;
+  size: number;
+  modified?: string;
+  from: string;
+  to: string;
+  isDir: boolean;
+  overwrite: boolean;
+  rename: boolean;
 }

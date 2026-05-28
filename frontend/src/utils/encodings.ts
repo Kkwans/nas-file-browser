@@ -1,3 +1,6 @@
+import type { Resource } from "@/types/file";
+import type { Sorting } from "@/types/user";
+
 export const availableEncodings = [
   // encodings
   "utf-8",

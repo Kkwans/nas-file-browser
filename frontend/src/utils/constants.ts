@@ -1,3 +1,5 @@
+import type { UserTheme } from "@/types/user";
+
 const name: string = window.FileBrowser.Name || "File Browser";
 const disableExternal: boolean = window.FileBrowser.DisableExternal;
 const disableUsedPercentage: boolean = window.FileBrowser.DisableUsedPercentage;

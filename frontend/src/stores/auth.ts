@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { setLocale } from "@/i18n";
 import { cloneDeep } from "lodash-es";
+import type { IUser } from "@/types/user";
 
 export const useAuthStore = defineStore("auth", {
   // convert to a function

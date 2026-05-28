@@ -4,6 +4,12 @@ import { baseURL } from "@/utils/constants";
 import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
+import type {
+  ClipItem,
+  Resource,
+  ResourceItem,
+  RecursiveEntry,
+} from "@/types/file";
 
 export async function fetch(url: string, signal?: AbortSignal) {
   const encoding = isEncodableResponse(url);
@@ -178,13 +184,14 @@ async function postResources(
 }
 
 function moveCopy(
-  items: any[],
+  items: { from: string; to?: string; overwrite?: boolean; rename?: boolean }[],
   copy = false,
   overwrite = false,
   rename = false
 ) {
+  // Note: items may have extra properties (to, overwrite, rename) from paste operation
   const layoutStore = useLayoutStore();
-  const promises = [];
+  const promises: Promise<Response>[] = [];
 
   for (const item of items) {
     const from = item.from;
@@ -201,11 +208,19 @@ function moveCopy(
   return Promise.all(promises);
 }
 
-export function move(items: any[], overwrite = false, rename = false) {
+export function move(
+  items: { from: string; to?: string; overwrite?: boolean; rename?: boolean }[],
+  overwrite = false,
+  rename = false
+) {
   return moveCopy(items, false, overwrite, rename);
 }
 
-export function copy(items: any[], overwrite = false, rename = false) {
+export function copy(
+  items: { from: string; to?: string; overwrite?: boolean; rename?: boolean }[],
+  overwrite = false,
+  rename = false
+) {
   return moveCopy(items, true, overwrite, rename);
 }
 

@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import type { Resource } from "@/types/file";
 
 export const useFileStore = defineStore("file", {
   // convert to a function

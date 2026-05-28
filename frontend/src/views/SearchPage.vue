@@ -67,7 +67,7 @@
         <router-link
           v-for="(item, index) in filteredResults"
           :key="index"
-          :to="item.url"
+          :to="item.url ?? '#'"
           class="search-result-item"
         >
           <i class="material-icons">{{ fileIcon(item) }}</i>
@@ -76,7 +76,7 @@
             <span class="search-result-path">{{ item.path }}</span>
           </div>
           <div class="search-result-meta">
-            <span v-if="!item.isDir" class="search-result-size">{{
+            <span v-if="!item.dir" class="search-result-size">{{
               formatSize(item.size)
             }}</span>
             <span v-if="item.modified" class="search-result-time">{{
@@ -91,6 +91,7 @@
 
 <script setup lang="ts">
 import HeaderBar from "@/components/header/HeaderBar.vue";
+import type { SearchResult } from "@/types/file";
 import { search } from "@/api";
 import { StatusError } from "@/api/utils";
 import { useFileStore } from "@/stores/file";
@@ -124,7 +125,7 @@ const $showError = inject<IToastError>("$showError")!;
 
 const prompt = ref<string>("");
 const ongoing = ref<boolean>(false);
-const results = ref<any[]>([]);
+const results = ref<SearchResult[]>([]);
 const resultsCount = ref<number>(100);
 const inputRef = ref<HTMLInputElement | null>(null);
 const resultsRef = ref<HTMLElement | null>(null);
@@ -202,8 +203,8 @@ const formatTime = (time: string): string => {
   return dayjs(time).fromNow();
 };
 
-const fileIcon = (item: any): string => {
-  return getFileIcon(item.name, item.isDir);
+const fileIcon = (item: SearchResult): string => {
+  return getFileIcon(item.name, item.dir);
 };
 </script>
 

@@ -60,6 +60,7 @@ import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
 import { authMethod } from "@/utils/constants";
 import { logout } from "@/utils/auth";
+import type { IUser } from "@/types/user";
 
 const error = ref<StatusError>();
 const originalUser = ref<IUser>();

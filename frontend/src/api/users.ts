@@ -1,4 +1,5 @@
 import { fetchURL, fetchJSON, StatusError } from "./utils";
+import type { IUser } from "@/types/user";
 
 export async function getAll() {
   return fetchJSON<IUser[]>(`/api/users`, {});

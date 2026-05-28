@@ -1,5 +1,6 @@
 import { fetchURL, removePrefix, createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
+import type { Resource, DownloadFormat } from "@/types/file";
 
 export async function fetch(url: string, password: string = "") {
   url = removePrefix(url);

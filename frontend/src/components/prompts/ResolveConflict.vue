@@ -162,6 +162,7 @@ import { computed, ref } from "vue";
 import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
+import type { ConflictingResource } from "@/types/file";
 
 const layoutStore = useLayoutStore();
 const { currentPrompt } = layoutStore;

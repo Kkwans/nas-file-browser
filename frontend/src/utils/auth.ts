@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { authMethod, baseURL, noAuth, logoutPage } from "./constants";
 import { StatusError } from "@/api/utils";
 import { setSafeTimeout } from "@/api/utils";
+import type { IUser } from "@/types/user";
 
 export function parseToken(token: string) {
   // falsy or malformed jwt will throw InvalidTokenError

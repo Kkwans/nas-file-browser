@@ -201,6 +201,7 @@ import { VueReader } from "vue-reader";
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { Rendition } from "epubjs";
+import type { ResourceItem, ResourceType } from "@/types/file";
 import { getTheme } from "@/utils/theme";
 import { useI18n } from "vue-i18n";
 

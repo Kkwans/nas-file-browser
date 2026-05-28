@@ -251,6 +251,11 @@ import { StatusError } from "@/api/utils";
 import Rules from "@/components/settings/Rules.vue";
 import Themes from "@/components/settings/Themes.vue";
 import UserForm from "@/components/settings/UserForm.vue";
+import type {
+  ISettings,
+  SettingsCommand,
+  SettingsUnit,
+} from "@/types/settings";
 import { useLayoutStore } from "@/stores/layout";
 import { enableExec } from "@/utils/constants";
 import { getTheme, setTheme } from "@/utils/theme";

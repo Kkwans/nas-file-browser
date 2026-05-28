@@ -97,6 +97,7 @@ import { parse } from "csv-parse/browser/esm";
 import { useI18n } from "vue-i18n";
 import { availableEncodings, decode } from "@/utils/encodings";
 import DropdownModal from "../DropdownModal.vue";
+import type { CsvData } from "@/types/file";
 
 const { t } = useI18n({});
 

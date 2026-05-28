@@ -506,6 +506,15 @@ import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import LoadingSkeleton from "@/components/LoadingSkeleton.vue";
+import type {
+  ResourceItem,
+  Resource,
+  ClipItem,
+  PasteItem,
+  MoveCopyItem,
+  ConflictingResource,
+} from "@/types/file";
+import type { ViewModeType } from "@/types/user";
 import {
   computed,
   inject,
@@ -637,8 +646,8 @@ const toggleSystemDirs = () => {
 };
 
 const items = computed(() => {
-  const dirs: any[] = [];
-  const files: any[] = [];
+  const dirs: ResourceItem[] = [];
+  const files: ResourceItem[] = [];
 
   // Get the parent path for constructing full paths
   const parentPath = fileStore.req?.path ?? "";
@@ -664,7 +673,7 @@ const items = computed(() => {
   return { dirs, files };
 });
 
-const files = computed((): Resource[] => {
+const files = computed((): ResourceItem[] => {
   let _showLimit = showLimit.value - items.value.dirs.length;
 
   if (_showLimit < 0) _showLimit = 0;
@@ -1031,7 +1040,7 @@ const paste = async (event: Event) => {
   if ((event.target as HTMLElement).tagName?.toLowerCase() === "input") return;
 
   // TODO router location should it be
-  const items: any[] = [];
+  const items: PasteItem[] = [];
 
   for (const item of clipboardStore.items) {
     const from = item.from.endsWith("/") ? item.from.slice(0, -1) : item.from;
@@ -1040,8 +1049,9 @@ const paste = async (event: Event) => {
       from,
       to,
       name: item.name,
-      size: item.size,
+      size: item.size ?? 0, // ClipboardItem.size is optional, default to 0
       modified: item.modified,
+      isDir: false, // clipboard items don't have isDir
       overwrite: false,
       rename: clipboardStore.path == route.path,
     });
@@ -1077,7 +1087,7 @@ const paste = async (event: Event) => {
   }
 
   const path = route.path.endsWith("/") ? route.path : route.path + "/";
-  const conflict = await upload.checkConflict(items, path);
+  const conflict = await upload.checkConflict(items as PasteItem[], path);
 
   if (conflict.length > 0) {
     layoutStore.showHover({

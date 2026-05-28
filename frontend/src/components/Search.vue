@@ -59,7 +59,7 @@
         </template>
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in filteredResults" :key="k">
-            <router-link v-on:click="close" :to="s.url">
+            <router-link v-on:click="close" :to="s.url ?? '#'">
               <i class="material-icons">{{ getFileIcon(s.path, s.dir) }}</i>
               <span>./{{ s.path }}</span>
             </router-link>
@@ -77,6 +77,7 @@ import { useLayoutStore } from "@/stores/layout";
 import url from "@/utils/url";
 import { search } from "@/api";
 import { getFileIcon } from "@/utils/fileIcons";
+import type { SearchResult } from "@/types/file";
 import { computed, inject, onMounted, ref, watch, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
@@ -99,7 +100,7 @@ const { currentPromptName } = storeToRefs(layoutStore);
 const prompt = ref<string>("");
 const active = ref<boolean>(false);
 const ongoing = ref<boolean>(false);
-const results = ref<any[]>([]);
+const results = ref<SearchResult[]>([]);
 const reload = ref<boolean>(false);
 const resultsCount = ref<number>(50);
 

@@ -84,7 +84,7 @@ const initVideoPlayer = async () => {
   }
 };
 
-const getOptions = (...srcOpt: any[]) => {
+const getOptions = (...srcOpt: Record<string, unknown>[]) => {
   const options = {
     controlBar: {
       skipButtons: {

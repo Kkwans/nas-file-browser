@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import type { ClipItem } from "@/types/file";
 
 export const useClipboardStore = defineStore("clipboard", {
   // convert to a function

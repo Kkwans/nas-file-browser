@@ -3,6 +3,11 @@ import { useUploadStore } from "@/stores/upload";
 import url from "@/utils/url";
 import { files as api } from "@/api";
 import { removePrefix } from "@/api/utils";
+import type {
+  ConflictingResource,
+  RecursiveEntry,
+  ResourceType,
+} from "@/types/file";
 
 interface UploadEntryWithChild extends UploadEntry {
   children?: UploadEntryWithChild[];

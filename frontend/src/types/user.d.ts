@@ -1,4 +1,6 @@
-interface IUser {
+export {}
+
+export interface IUser {
   id: number;
   username: string;
   password: string;
@@ -17,7 +19,7 @@ interface IUser {
   aceEditorTheme: string;
 }
 
-type ViewModeType = "list" | "mosaic" | "mosaic gallery" | "compact";
+export type ViewModeType = "list" | "mosaic" | "mosaic gallery" | "compact";
 
 interface IUserForm {
   id?: number;
@@ -35,7 +37,7 @@ interface IUserForm {
   dateFormat?: boolean;
 }
 
-interface Permissions {
+export interface Permissions {
   admin: boolean;
   copy: boolean;
   create: boolean;
@@ -50,7 +52,7 @@ interface Permissions {
   upload: boolean;
 }
 
-interface Sorting {
+export interface Sorting {
   by: string;
   asc: boolean;
 }
@@ -66,4 +68,4 @@ interface IRegexp {
   raw: string;
 }
 
-type UserTheme = "light" | "dark" | "";
+export type UserTheme = "light" | "dark" | "";

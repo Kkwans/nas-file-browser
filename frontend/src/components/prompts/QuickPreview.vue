@@ -81,7 +81,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { useFileStore } from "@/stores/file";
 import { files as api } from "@/api";
 import { filesize } from "@/utils";
-import { getFileIcon } from "@/utils/fileIcons";
+import { getFileIcon, isTextFile, isPreviewable } from "@/utils/fileIcons";
 import { loadMarkdownResources, highlightAndAnnotateCodeBlocks } from "@/utils/externalResources";
 import dayjs from "dayjs";
 import { useRouter, useRoute } from "vue-router";
@@ -122,19 +122,7 @@ export default {
       return ext === ".md" || ext === ".markdown";
     },
     isText() {
-      // Markdown files are handled separately by isMarkdown
-      if (this.isMarkdown) return false;
-      const textTypes = ["text", "textImmutable"];
-      const textExts = [
-        ".txt", ".md", ".json", ".xml", ".yml", ".yaml", ".csv", ".log",
-        ".ini", ".conf", ".cfg", ".sh", ".bash", ".py", ".js", ".ts",
-        ".go", ".java", ".c", ".cpp", ".h", ".css", ".html", ".vue",
-        ".rs", ".rb", ".php", ".sql", ".toml", ".env", ".gitignore",
-        ".dockerfile", ".makefile", ".srt", ".vtt", ".ass",
-      ];
-      if (textTypes.includes(this.item.type)) return true;
-      const ext = this.item.extension?.toLowerCase() || "";
-      return textExts.includes(ext);
+      return isTextFile(this.item.type || "", this.item.extension);
     },
     fileIcon() {
       const typeIcons = {
@@ -202,16 +190,6 @@ export default {
       const listing = this.fileStoreRef?.oldReq?.items;
       if (!listing || listing.length === 0) return;
 
-      // All previewable types (media + text + markdown)
-      const previewableTypes = ["image", "video", "audio", "blob", "text", "textImmutable"];
-      const previewableExts = [".md", ".markdown", ".txt", ".json", ".xml", ".yml", ".yaml", ".csv", ".log", ".ini", ".conf", ".cfg", ".sh", ".py", ".js", ".ts", ".go", ".java", ".c", ".cpp", ".h", ".css", ".html", ".vue", ".rs", ".rb", ".php", ".sql", ".toml", ".env", ".pdf", ".epub", ".srt", ".vtt", ".ass"];
-
-      const isPreviewable = (item) => {
-        if (previewableTypes.includes(item.type)) return true;
-        const ext = item.extension?.toLowerCase() || "";
-        return previewableExts.includes(ext);
-      };
-
       const currentName = this.item.name;
       const currentIndex = listing.findIndex((it) => it.name === currentName);
       if (currentIndex === -1) return;
@@ -223,7 +201,7 @@ export default {
         if (idx < 0) idx = listing.length - 1;
         if (idx >= listing.length) idx = 0;
         if (idx === currentIndex) return; // wrapped around, no other file
-      } while (!isPreviewable(listing[idx]));
+      } while (!isPreviewable(listing[idx].type, listing[idx].extension));
 
       const target = listing[idx];
       this.closeHovers();

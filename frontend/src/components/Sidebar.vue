@@ -481,7 +481,7 @@ export default {
     const isResizing = ref(false);
     const startX = ref(0);
     const startWidth = ref(0);
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition, sidebarWidth, isResizing, startX, startWidth, showCreateGroup, newGroupName, collapsedGroups, dragOverGroupId, draggedFavId };
+    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition, sidebarWidth, isResizing, startX, startWidth, showCreateGroup, newGroupName, collapsedGroups, dragOverGroupId, draggedFavId, _usageDebounceTimer: null };
   },
   components: {
     ProgressBar,
@@ -534,6 +534,10 @@ export default {
     },
     abortOngoingFetchUsage() {
       this.usageAbortController.abort();
+    },
+    debouncedFetchUsage() {
+      if (this._usageDebounceTimer) clearTimeout(this._usageDebounceTimer);
+      this._usageDebounceTimer = setTimeout(() => this.fetchUsage(), 300);
     },
     async fetchUsage() {
       const path = this.$route.path.endsWith("/")
@@ -760,16 +764,18 @@ export default {
     $route: {
       handler(to) {
         if (to.path.includes("/files")) {
-          this.fetchUsage();
+          this.debouncedFetchUsage();
         }
       },
       immediate: true,
     },
   },
   mounted() {
-    // Load favorites and tags for all users
-    this.favoritesStore.loadFavorites();
-    this.tagsStore.loadTags();
+    // Load favorites and tags in parallel for all users
+    Promise.all([
+      this.favoritesStore.loadFavorites(),
+      this.tagsStore.loadTags(),
+    ]);
     // Fetch volumes for admin users
     if (this.user?.perm?.admin) {
       this.volumesStore.fetchVolumes();
@@ -777,6 +783,7 @@ export default {
     }
   },
   unmounted() {
+    if (this._usageDebounceTimer) clearTimeout(this._usageDebounceTimer);
     this.abortOngoingFetchUsage();
   },
 };

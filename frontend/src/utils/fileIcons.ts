@@ -247,3 +247,54 @@ export function isFileByExtension(path: string): boolean {
   const ext = lastSegment.slice(dotIdx + 1).toLowerCase();
   return ext in EXT_ICON_MAP;
 }
+
+// --- Previewable / Text file classification ---
+
+/** File types that are always text-based (by backend type string) */
+export const TEXT_TYPES = ["text", "textImmutable"] as const;
+
+/** File extensions treated as text files (for preview and editor) */
+export const TEXT_EXTENSIONS: ReadonlySet<string> = new Set([
+  ".txt", ".md", ".markdown", ".json", ".xml", ".yml", ".yaml",
+  ".csv", ".log", ".ini", ".conf", ".cfg", ".sh", ".bash", ".py",
+  ".js", ".ts", ".go", ".java", ".c", ".cpp", ".h", ".css",
+  ".html", ".vue", ".rs", ".rb", ".php", ".sql", ".toml", ".env",
+  ".gitignore", ".dockerfile", ".makefile", ".srt", ".vtt", ".ass",
+  ".scss", ".less", ".jsx", ".tsx", ".swift", ".kt", ".lua",
+  ".r", ".scala", ".dart", ".zig", ".graphql", ".proto",
+  ".tf", ".hcl", ".gradle", ".groovy", ".ex", ".exs", ".hs",
+  ".properties", ".toml", ".tscn", ".tres",
+]);
+
+/** File extensions that can be previewed (text + markdown + pdf + epub + subtitles) */
+export const PREVIEWABLE_EXTENSIONS: ReadonlySet<string> = new Set([
+  ...TEXT_EXTENSIONS,
+  ".pdf", ".epub",
+]);
+
+/** Backend file types that support preview (media + text + blob) */
+export const PREVIEWABLE_TYPES: ReadonlySet<string> = new Set([
+  "image", "video", "audio", "blob", "text", "textImmutable",
+]);
+
+/**
+ * Check if a file can be previewed based on its type and extension.
+ * @param type - Backend file type string (e.g. "text", "image")
+ * @param extension - File extension with dot (e.g. ".md", ".pdf")
+ */
+export function isPreviewable(type: string, extension?: string): boolean {
+  if (PREVIEWABLE_TYPES.has(type)) return true;
+  const ext = (extension || "").toLowerCase();
+  return PREVIEWABLE_EXTENSIONS.has(ext);
+}
+
+/**
+ * Check if a file is a text file based on its type and extension.
+ */
+export function isTextFile(type: string, extension?: string): boolean {
+  const ext = (extension || "").toLowerCase();
+  // Markdown files are handled separately (rendered)
+  if (ext === ".md" || ext === ".markdown") return false;
+  if (TEXT_TYPES.includes(type as typeof TEXT_TYPES[number])) return true;
+  return TEXT_EXTENSIONS.has(ext);
+}

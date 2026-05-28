@@ -114,6 +114,7 @@
     "csvTooLarge": "CSV file is too large for preview (>5MB). Please download to view.",
     "csvLoadFailed": "Failed to load CSV file.",
     "showingRows": "Showing {count} row(s)",
+    "csvColumn": "Column {index}",
     "columnSeparator": "Column Separator",
     "csvSeparators": {
       "comma": "Comma (,)",

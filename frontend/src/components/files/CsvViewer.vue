@@ -67,7 +67,7 @@
         <thead>
           <tr>
             <th v-for="(header, index) in parsed.headers" :key="index">
-              {{ header || `Column ${index + 1}` }}
+              {{ header || $t('files.csvColumn', { index: index + 1 }) }}
             </th>
           </tr>
         </thead>

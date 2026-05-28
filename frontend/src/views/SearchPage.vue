@@ -86,6 +86,7 @@ import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import dayjs from "dayjs";
 import { computed, inject, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { throttle } from "lodash-es";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
@@ -122,12 +123,12 @@ onUnmounted(() => {
   resultsRef.value?.removeEventListener("scroll", onScroll);
 });
 
-const onScroll = (event: Event) => {
+const onScroll = throttle((event: Event) => {
   const el = event.target as HTMLElement;
   if (el.offsetHeight + el.scrollTop >= el.scrollHeight - 100) {
     resultsCount.value += 50;
   }
-};
+}, 200);
 
 const goBack = () => {
   router.back();

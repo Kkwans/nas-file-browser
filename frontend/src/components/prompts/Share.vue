@@ -150,6 +150,7 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import * as api from "@/api/index";
 import dayjs from "dayjs";
+import type { Share } from "@/types/api";
 import { copy } from "@/utils/clipboard";
 
 const { t } = useI18n();
@@ -166,7 +167,7 @@ const { req, selected, selectedCount, isListing } = storeToRefs(fileStore);
 
 const time = ref(0);
 const unit = ref("hours");
-const links = ref<any[]>([]);
+const links = ref<Share[]>([]);
 const password = ref("");
 const listing = ref(true);
 
@@ -221,7 +222,7 @@ const submit = async () => {
       );
     }
 
-    links.value.push(res);
+    links.value.push(res as unknown as Share);
     sortLinks();
 
     time.value = 0;
@@ -234,7 +235,7 @@ const submit = async () => {
   }
 };
 
-const deleteLink = async (event: Event, link: any) => {
+const deleteLink = async (event: Event, link: Share) => {
   event.preventDefault();
   try {
     await api.share.remove(link.hash);
@@ -251,13 +252,13 @@ const deleteLink = async (event: Event, link: any) => {
 const humanTime = (time: number | string) =>
   dayjs(Number(time) * 1000).fromNow();
 
-const buildLink = (share: any) => api.share.getShareURL(share);
+const buildLink = (share: Share) => api.share.getShareURL(share);
 
-const buildDownloadLink = (share: any) =>
+const buildDownloadLink = (share: Share) =>
   (api.pub as any).getDownloadURL({ hash: share.hash, path: "" }, true);
 
 const sortLinks = () => {
-  links.value = links.value.sort((a, b) => {
+  links.value = links.value.sort((a: Share, b: Share) => {
     if (a.expire === 0) return -1;
     if (b.expire === 0) return 1;
     return new Date(a.expire).getTime() - new Date(b.expire).getTime();

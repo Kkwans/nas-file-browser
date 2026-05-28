@@ -7,6 +7,7 @@ import type {
   ConflictingResource,
   RecursiveEntry,
   ResourceType,
+  MoveCopyItemUploadList,
 } from "@/types/file";
 
 interface UploadEntryWithChild extends UploadEntry {
@@ -79,8 +80,16 @@ function flatToForest(
 export async function checkConflict(
   files: UploadList,
   basePath: string
+): Promise<ConflictingResource[]>;
+export async function checkConflict(
+  files: MoveCopyItemUploadList,
+  basePath: string
+): Promise<ConflictingResource[]>;
+export async function checkConflict(
+  files: UploadList | MoveCopyItemUploadList,
+  basePath: string
 ): Promise<ConflictingResource[]> {
-  const forest = flatToForest(files, basePath);
+  const forest = flatToForest(files as UploadList, basePath);
   if (forest.length === 0) return [];
 
   // Single API call: fetch the entire server tree under basePath.

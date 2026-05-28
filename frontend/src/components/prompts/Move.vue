@@ -131,6 +131,7 @@ const executeMove = async () => {
       name: req.value!.items[item].name,
       size: req.value!.items[item].size,
       modified: req.value!.items[item].modified,
+      isDir: req.value!.items[item].isDir,
       overwrite: false,
       rename: false,
     });

@@ -1,4 +1,5 @@
 import { fetchURL, fetchJSON, removePrefix, createURL } from "./utils";
+import type { Share } from "@/types/api";
 
 export async function list() {
   return fetchJSON<Share[]>("/api/shares");

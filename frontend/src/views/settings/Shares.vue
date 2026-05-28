@@ -66,6 +66,7 @@
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { share as api, users } from "@/api";
+import type { Share } from "@/types/api";
 import dayjs from "dayjs";
 import Errors from "@/views/Errors.vue";
 import { inject, ref, onMounted } from "vue";
@@ -129,7 +130,7 @@ const copyToClipboard = (text: string) => {
   );
 };
 
-const deleteLink = async (event: Event, link: any) => {
+const deleteLink = async (event: Event, link: Share) => {
   event.preventDefault();
 
   layoutStore.showHover({

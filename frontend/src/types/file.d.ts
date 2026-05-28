@@ -104,9 +104,13 @@ export interface SearchResult {
 
 export interface MoveCopyItem extends ClipItem {
   to: string;
+  isDir: boolean;
   overwrite: boolean;
   rename: boolean;
 }
+
+// Re-export for convenience
+export type MoveCopyItemUploadList = MoveCopyItem[];
 
 export interface PasteItem {
   name: string;

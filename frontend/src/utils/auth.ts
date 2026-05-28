@@ -21,7 +21,7 @@ export function parseToken(token: string) {
 
   // proxy auth with custom logout subject to unknown external timeout
   if (logoutPage !== "/login" && authMethod === "proxy") {
-    console.warn("idle timeout disabled with proxy auth and custom logout");
+    // Silent fail - auth detection should not produce side effects
     return;
   }
 
@@ -44,7 +44,7 @@ export async function validateLogin() {
       await renew(<string>localStorage.getItem("jwt"));
     }
   } catch (error) {
-    console.warn("Invalid JWT token in storage");
+    // Silent fail - invalid JWT is expected during normal flow
     throw error;
   }
 }

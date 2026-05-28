@@ -118,7 +118,7 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import TagPicker from "@/components/TagPicker.vue";
 import FavoriteGroupPicker from "@/components/FavoriteGroupPicker.vue";
-import type { Resource, ConflictingResource } from "@/types/file";
+import type { Resource, ConflictingResource, MoveCopyItem } from "@/types/file";
 
 const touches = ref<number>(0);
 
@@ -289,8 +289,6 @@ const drop = async (event: Event) => {
     }
   }
 
-  import type { MoveCopyItem } from "@/types/file";
-
   const items: MoveCopyItem[] = [];
 
   for (const i of fileStore.selected) {
@@ -301,6 +299,7 @@ const drop = async (event: Event) => {
         name: fileStore.req?.items[i].name,
         size: fileStore.req?.items[i].size,
         modified: fileStore.req?.items[i].modified,
+        isDir: fileStore.req?.items[i].isDir,
         overwrite: false,
         rename: false,
       });

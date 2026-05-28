@@ -2,6 +2,7 @@ import { useAuthStore } from "@/stores/auth";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
 import { encodePath } from "@/utils/url";
+import type { ApiOpts } from "@/types/api";
 
 export class StatusError extends Error {
   constructor(

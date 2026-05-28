@@ -3,6 +3,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { baseURL } from "@/utils/constants";
 import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
+import type { ApiMethod, ApiOpts, ApiContent, ChecksumAlg } from "@/types/api";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
 import type { Resource, ResourceItem, RecursiveEntry } from "@/types/file";
 

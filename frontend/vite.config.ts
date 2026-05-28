@@ -1,15 +1,12 @@
 import path from "node:path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import legacy from "@vitejs/plugin-legacy";
 import { compression } from "vite-plugin-compression2";
 
 const plugins = [
   vue(),
-  VueI18nPlugin({
-    include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
-  }),
+  // VueI18nPlugin removed - using fixed zh-cn locale, no runtime i18n needed
   legacy({
     // defaults already drop IE support
     targets: ["defaults"],
@@ -54,13 +51,10 @@ export default defineConfig(({ command }) => {
           output: {
             manualChunks: (id) => {
               // bundle dayjs files in a single chunk
-              // this avoids having small files for each locale
               if (id.includes("dayjs/")) {
                 return "dayjs";
-                // bundle i18n in a separate chunk
-              } else if (id.includes("i18n/")) {
-                return "i18n";
               }
+              // i18n chunk removed - using fixed zh-cn, no runtime i18n
             },
           },
         },

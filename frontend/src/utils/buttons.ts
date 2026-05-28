@@ -4,7 +4,7 @@ function loading(button: string) {
   );
 
   if (el === undefined || el === null) {
-    console.warn("Button not found: " + button);
+    // Silent fail - tool function should not produce side effects
     return;
   }
 
@@ -30,7 +30,7 @@ function done(button: string) {
   );
 
   if (el === undefined || el === null) {
-    console.warn("Button not found: " + button);
+    // Silent fail - tool function should not produce side effects
     return;
   }
 
@@ -51,7 +51,7 @@ function success(button: string) {
   );
 
   if (el === undefined || el === null) {
-    console.warn("Button not found: " + button);
+    // Silent fail - tool function should not produce side effects
     return;
   }
 

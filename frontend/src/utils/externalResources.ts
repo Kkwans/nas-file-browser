@@ -62,6 +62,8 @@ export function isDarkTheme(): boolean {
  * Automatically selects dark/light theme based on current app theme.
  */
 export async function loadHighlightCSS(): Promise<void> {
+  if (hljsCSSLoaded) return;
+
   const isDark = isDarkTheme();
   const themeCSS = isDark ? "github-dark" : "github";
 
@@ -149,7 +151,7 @@ export function highlightAndAnnotateCodeBlocks(container: HTMLElement): void {
         });
         codeEl.innerHTML = result.value;
         codeEl.classList.add("hljs");
-      } catch (e) {
+      } catch {
         // Language not supported, skip highlighting
       }
     }

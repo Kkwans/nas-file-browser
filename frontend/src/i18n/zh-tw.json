@@ -128,7 +128,8 @@
     "showSystemDirs": "顯示系統資料夾",
     "sortByType": "按類型排序",
     "riskHighTitle": "高風險目錄 - 修改或刪除可能導致系統不穩定",
-    "riskMediumTitle": "中風險目錄 - 請謹慎操作"
+    "riskMediumTitle": "中風險目錄 - 請謹慎操作",
+    "videoNotSupported": "您的瀏覽器不支援嵌入式影片播放，請下載後觀看。"
   },
   "help": {
     "click": "選擇檔案或目錄",

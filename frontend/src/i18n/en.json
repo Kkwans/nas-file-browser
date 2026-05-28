@@ -128,7 +128,8 @@
     "hideSystemDirs": "Hide system folders",
     "showSystemDirs": "Show system folders",
     "riskHighTitle": "High-risk directory - modification or deletion may cause system instability",
-    "riskMediumTitle": "Medium-risk directory - proceed with caution"
+    "riskMediumTitle": "Medium-risk directory - proceed with caution",
+    "videoNotSupported": "Your browser does not support embedded videos. Please download to watch."
   },
   "help": {
     "click": "select file or directory",

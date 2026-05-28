@@ -98,7 +98,6 @@ export default {
         const categoriesStore = useCategoriesStore();
         const risk = categoriesStore.getRiskLevel(item.path);
         if (risk === "high" || risk === "medium") {
-          const self = this;
           this.showHover({
             prompt: "risk-confirm",
             props: {
@@ -106,7 +105,7 @@ export default {
               targetPath: item.path,
               actionType: "rename",
               onconfirm: () => {
-                self.executeRename();
+                this.executeRename();
               },
             },
           });

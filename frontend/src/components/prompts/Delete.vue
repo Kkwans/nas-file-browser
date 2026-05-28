@@ -68,7 +68,6 @@ export default {
             if (risk === "high" || risk === "medium") {
               buttons.done("delete");
               // Show risk confirmation dialog
-              const self = this;
               this.showHover({
                 prompt: "risk-confirm",
                 props: {
@@ -76,7 +75,7 @@ export default {
                   targetPath: item.path,
                   actionType: "delete",
                   onconfirm: () => {
-                    self.executeDelete();
+                    this.executeDelete();
                   },
                 },
               });

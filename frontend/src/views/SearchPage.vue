@@ -85,7 +85,7 @@ import { useFileStore } from "@/stores/file";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import dayjs from "dayjs";
-import { computed, inject, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { throttle } from "lodash-es";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -114,8 +114,16 @@ const filteredResults = computed(() => results.value.slice(0, resultsCount.value
 
 onMounted(() => {
   inputRef.value?.focus();
-  // 滚动加载更多
-  resultsRef.value?.addEventListener("scroll", onScroll);
+});
+
+// 滚动加载更多：resultsRef 是条件渲染的，需要 watch 等元素挂载后再绑定
+let scrollListenerBound = false;
+watch(resultsRef, (el, oldEl) => {
+  if (oldEl) oldEl.removeEventListener("scroll", onScroll);
+  if (el && !scrollListenerBound) {
+    el.addEventListener("scroll", onScroll);
+    scrollListenerBound = true;
+  }
 });
 
 onUnmounted(() => {

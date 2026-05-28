@@ -10,9 +10,8 @@
       :default="index === 0"
     />
     <p class="vjs-no-js">
-      Sorry, your browser doesn't support embedded videos, but don't worry, you
-      can <a :href="source">download it</a>
-      and watch it with your favorite video player!
+      {{ $t('files.videoNotSupported') }}
+      <a :href="source">{{ $t('buttons.download') }}</a>
     </p>
   </video>
 </template>
@@ -47,7 +46,7 @@ nextTick(() => {
   initVideoPlayer();
 });
 
-onMounted(() => {});
+
 
 onBeforeUnmount(() => {
   if (player.value) {
@@ -64,9 +63,6 @@ const initVideoPlayer = async () => {
     )?.();
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);
-    sourceType.value = "";
-
-    //
     sourceType.value = getSourceType(source.value);
 
     const srcOpt = { sources: { src: props.source, type: sourceType.value } };

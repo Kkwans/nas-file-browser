@@ -128,7 +128,8 @@
     "hideSystemDirs": "隐藏系统文件夹",
     "showSystemDirs": "显示系统文件夹",
     "riskHighTitle": "高危目录 - 修改或删除可能导致系统不稳定",
-    "riskMediumTitle": "中危目录 - 请谨慎操作"
+    "riskMediumTitle": "中危目录 - 请谨慎操作",
+    "videoNotSupported": "您的浏览器不支持嵌入式视频播放，请下载后观看。"
   },
   "help": {
     "click": "选择文件或文件夹",

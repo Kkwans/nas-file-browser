@@ -94,15 +94,15 @@ export default {
       loading: true,
       textContent: "",
       markdownHtml: "",
-      _fileStore: null,
-      _router: null,
-      _route: null,
+      fileStoreRef: null,
+      routerRef: null,
+      routeRef: null,
     };
   },
   created() {
-    this._fileStore = useFileStore();
-    this._router = useRouter();
-    this._route = useRoute();
+    this.fileStoreRef = useFileStore();
+    this.routerRef = useRouter();
+    this.routeRef = useRoute();
   },
   computed: {
     ...mapState(useLayoutStore, ["currentPrompt"]),
@@ -200,7 +200,7 @@ export default {
       }
     },
     navigateFile(direction) {
-      const listing = this._fileStore?.oldReq?.items;
+      const listing = this.fileStoreRef?.oldReq?.items;
       if (!listing || listing.length === 0) return;
 
       // All previewable types (media + text + markdown)
@@ -228,7 +228,7 @@ export default {
 
       const target = listing[idx];
       this.closeHovers();
-      this._router?.push({ path: target.url });
+      this.routerRef?.push({ path: target.url });
     },
     close() {
       this.closeHovers();

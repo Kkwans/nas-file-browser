@@ -99,15 +99,14 @@ export default {
         if (item.isDir && item.path) {
           const risk = categoriesStore.getRiskLevel(item.path);
           if (risk === "high" || risk === "medium") {
-            const self = this;
-            this.showHover({
+              this.showHover({
               prompt: "risk-confirm",
               props: {
                 riskLevel: risk,
                 targetPath: item.path,
                 actionType: "move",
                 onconfirm: () => {
-                  self.executeMove();
+                  this.executeMove();
                 },
               },
             });

@@ -31,13 +31,14 @@
       />
 
       <div v-if="recaptcha" id="recaptcha"></div>
-      <button
-        class="button button--block"
-        type="submit"
-        :disabled="loading"
-      >
-        <i v-if="loading" class="material-icons spin" style="font-size: 1em; margin-right: 0.5em;">autorenew</i>
-        {{ createMode ? t('login.signup') : t('login.submit') }}
+      <button class="button button--block" type="submit" :disabled="loading">
+        <i
+          v-if="loading"
+          class="material-icons spin"
+          style="font-size: 1em; margin-right: 0.5em"
+          >autorenew</i
+        >
+        {{ createMode ? t("login.signup") : t("login.submit") }}
       </button>
 
       <p @click="toggleMode" v-if="signup">

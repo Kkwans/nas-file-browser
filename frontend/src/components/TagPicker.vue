@@ -2,7 +2,11 @@
   <div class="tag-picker" @click.stop>
     <div class="tag-picker-header">
       <span>{{ $t("tags.assignTags") }}</span>
-      <button class="tag-picker-manage" @click="openManager" :title="$t('tags.manage')">
+      <button
+        class="tag-picker-manage"
+        @click="openManager"
+        :title="$t('tags.manage')"
+      >
         <i class="material-icons">settings</i>
       </button>
     </div>
@@ -143,7 +147,7 @@ function openManager() {
 
 .tag-check {
   font-size: 0.875em;
-  color: var(--blue, #2196F3);
+  color: var(--blue, #2196f3);
 }
 
 /* Dark mode */

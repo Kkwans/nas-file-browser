@@ -55,5 +55,3 @@ const { t } = useI18n();
 
 const ifActionsSlot = computed(() => (slots.actions ? true : false));
 </script>
-
-

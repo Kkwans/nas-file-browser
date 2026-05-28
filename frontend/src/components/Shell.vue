@@ -80,7 +80,9 @@ const historyPos = ref(0);
 const canInput = ref(true);
 const shellDrag = ref(false);
 const shellHeight = ref(25);
-const fontsize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+const fontsize = parseFloat(
+  getComputedStyle(document.documentElement).fontSize
+);
 
 const scrollable = ref<HTMLElement | null>(null);
 const input = ref<HTMLElement | null>(null);
@@ -105,7 +107,9 @@ function stopDrag() {
 const handleDrag = throttle(function (event: PointerEvent) {
   const top = window.innerHeight / fontsize - 4;
   const userPos = (window.innerHeight - event.clientY) / fontsize;
-  const divider = document.querySelector(".shell__divider") as HTMLElement | null;
+  const divider = document.querySelector(
+    ".shell__divider"
+  ) as HTMLElement | null;
   const bottom = 2.25 + (divider ? divider.offsetHeight / fontsize : 0);
 
   if (userPos <= top && userPos >= bottom) {
@@ -115,7 +119,9 @@ const handleDrag = throttle(function (event: PointerEvent) {
 
 const resize = throttle(function () {
   const top = window.innerHeight / fontsize - 4;
-  const divider = document.querySelector(".shell__divider") as HTMLElement | null;
+  const divider = document.querySelector(
+    ".shell__divider"
+  ) as HTMLElement | null;
   const bottom = 2.25 + (divider ? divider.offsetHeight / fontsize : 0);
 
   if (shellHeight.value > top) {

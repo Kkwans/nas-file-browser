@@ -162,7 +162,15 @@
               "
               style="height: 12em; padding: 0; margin: 0"
             >
-              <img style="height: 12em" :src="raw" :alt="fileStore.selectedCount === 1 ? req.items[fileStore.selected[0]].name : ''" />
+              <img
+                style="height: 12em"
+                :src="raw"
+                :alt="
+                  fileStore.selectedCount === 1
+                    ? req.items[fileStore.selected[0]].name
+                    : ''
+                "
+              />
             </a>
             <div
               v-else-if="

@@ -53,7 +53,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ t('pdf.loading') }}</span>
+        <span>{{ t("pdf.loading") }}</span>
       </div>
       <iframe
         ref="iframeRef"
@@ -65,8 +65,10 @@
       ></iframe>
       <div v-if="error" class="pdf-error">
         <i class="material-icons">error_outline</i>
-        <span>{{ t('pdf.loadFailed') }}</span>
-        <button class="pdf-btn-text" @click="download">{{ t('pdf.downloadFile') }}</button>
+        <span>{{ t("pdf.loadFailed") }}</span>
+        <button class="pdf-btn-text" @click="download">
+          {{ t("pdf.downloadFile") }}
+        </button>
       </div>
     </div>
   </div>

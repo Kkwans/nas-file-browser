@@ -22,6 +22,4 @@ onMounted(() => {
     loading?.parentNode?.removeChild(loading);
   }, 200);
 });
-
-
 </script>

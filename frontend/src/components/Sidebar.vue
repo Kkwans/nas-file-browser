@@ -1,6 +1,10 @@
 <template>
   <div v-show="active" @click="closeHovers" class="overlay"></div>
-  <nav class="sidebar" :class="{ active }" :style="{ width: sidebarWidth + 'px' }">
+  <nav
+    class="sidebar"
+    :class="{ active }"
+    :style="{ width: sidebarWidth + 'px' }"
+  >
     <div
       class="sidebar-resize-handle"
       @mousedown="startResize"
@@ -35,10 +39,7 @@
 
       <!-- Favorites Section -->
       <div class="favorites-section">
-        <button
-          class="favorites-header"
-          @click="toggleSection('favorites')"
-        >
+        <button class="favorites-header" @click="toggleSection('favorites')">
           <i class="material-icons">star</i>
           <span>{{ $t("sidebar.favorites") }}</span>
           <button
@@ -56,89 +57,51 @@
           >
             <i class="material-icons">delete_sweep</i>
           </button>
-          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.favorites }">expand_more</i>
+          <i
+            class="material-icons section-arrow"
+            :class="{ expanded: !collapsedSections.favorites }"
+            >expand_more</i
+          >
         </button>
         <template v-if="!collapsedSections.favorites">
-        <!-- Create group input -->
-        <div v-if="showCreateGroup" class="create-group-input">
-          <input
-            v-model="newGroupName"
-            :placeholder="$t('sidebar.groupNamePlaceholder')"
-            @keyup.enter="createGroup"
-            @keyup.escape="showCreateGroup = false"
-            ref="groupInputRef"
-          />
-          <button @click="createGroup" :disabled="!newGroupName.trim()">
-            <i class="material-icons">check</i>
-          </button>
-          <button @click="showCreateGroup = false">
-            <i class="material-icons">close</i>
-          </button>
-        </div>
-        <!-- Empty state -->
-        <div v-if="favoritesStore.sortedFavorites.length === 0 && favoritesStore.sortedGroups.length === 0" class="section-empty">
-          <i class="material-icons">star_border</i>
-          <span>{{ $t("sidebar.noFavorites") }}</span>
-        </div>
-        <!-- Ungrouped favorites -->
-        <template v-if="favoritesStore.favoritesByGroup[''] && favoritesStore.favoritesByGroup[''].length > 0">
-          <button
-            v-for="fav in favoritesStore.favoritesByGroup['']"
-            :key="fav.id"
-            class="action favorite-item"
-            draggable="true"
-            @click="navigateVolume(fav.path)"
-            :title="fav.path"
-            @dragstart="onFavDragStart($event, fav.id)"
-            @dragover.prevent="onFavDragOverItem($event)"
-            @dragleave="onFavDragLeaveItem"
-            @drop="onFavDropOnItem($event)"
-            @dragend="onFavDragEnd"
-          >
-            <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
-            <i class="material-icons favorite-icon">{{ favoriteIcon(fav.name) }}</i>
-            <div class="favorite-info">
-              <span class="favorite-name">{{ fav.name }}</span>
-              <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
-            </div>
-            <i
-              class="material-icons favorite-remove"
-              :title="$t('sidebar.removeFavorite')"
-              @click.stop.prevent="removeFavorite(fav.id)"
-            >close</i>
-          </button>
-        </template>
-        <!-- Groups -->
-        <div
-          v-for="group in favoritesStore.sortedGroups"
-          :key="group.id"
-          class="favorite-group"
-        >
-          <button
-            class="favorite-group-header"
-            @click="toggleGroupCollapse(group.id)"
-            @dragover.prevent="onFavDragOverGroup($event, group.id)"
-            @drop="onFavDropOnGroup($event, group.id)"
-            @dragleave="onFavDragLeaveGroup"
-            :class="{ 'drag-over-group': dragOverGroupId === group.id }"
-          >
-            <i class="material-icons" :style="{ color: group.color || 'var(--blue)' }">folder</i>
-            <span class="group-name">{{ group.name }}</span>
-            <span class="category-count">{{ (favoritesStore.favoritesByGroup[group.id] || []).length }}</span>
-            <button
-              class="section-action-btn"
-              :title="$t('sidebar.deleteGroup')"
-              @click.stop.prevent="deleteGroup(group.id)"
-            >
+          <!-- Create group input -->
+          <div v-if="showCreateGroup" class="create-group-input">
+            <input
+              v-model="newGroupName"
+              :placeholder="$t('sidebar.groupNamePlaceholder')"
+              @keyup.enter="createGroup"
+              @keyup.escape="showCreateGroup = false"
+              ref="groupInputRef"
+            />
+            <button @click="createGroup" :disabled="!newGroupName.trim()">
+              <i class="material-icons">check</i>
+            </button>
+            <button @click="showCreateGroup = false">
               <i class="material-icons">close</i>
             </button>
-            <i class="material-icons category-arrow" :class="{ expanded: !collapsedGroups[group.id] }">expand_more</i>
-          </button>
-          <template v-if="!collapsedGroups[group.id]">
+          </div>
+          <!-- Empty state -->
+          <div
+            v-if="
+              favoritesStore.sortedFavorites.length === 0 &&
+              favoritesStore.sortedGroups.length === 0
+            "
+            class="section-empty"
+          >
+            <i class="material-icons">star_border</i>
+            <span>{{ $t("sidebar.noFavorites") }}</span>
+          </div>
+          <!-- Ungrouped favorites -->
+          <template
+            v-if="
+              favoritesStore.favoritesByGroup[''] &&
+              favoritesStore.favoritesByGroup[''].length > 0
+            "
+          >
             <button
-              v-for="fav in (favoritesStore.favoritesByGroup[group.id] || [])"
+              v-for="fav in favoritesStore.favoritesByGroup['']"
               :key="fav.id"
-              class="action favorite-item category-path-item"
+              class="action favorite-item"
               draggable="true"
               @click="navigateVolume(fav.path)"
               :title="fav.path"
@@ -148,32 +111,111 @@
               @drop="onFavDropOnItem($event)"
               @dragend="onFavDragEnd"
             >
-              <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
-              <i class="material-icons favorite-icon">{{ favoriteIcon(fav.name) }}</i>
+              <i class="material-icons favorite-icon favorite-drag-handle"
+                >drag_indicator</i
+              >
+              <i class="material-icons favorite-icon">{{
+                favoriteIcon(fav.name)
+              }}</i>
               <div class="favorite-info">
                 <span class="favorite-name">{{ fav.name }}</span>
-                <span class="favorite-path" v-if="fav.path !== fav.name">{{ fav.path }}</span>
+                <span class="favorite-path" v-if="fav.path !== fav.name">{{
+                  fav.path
+                }}</span>
               </div>
               <i
                 class="material-icons favorite-remove"
                 :title="$t('sidebar.removeFavorite')"
                 @click.stop.prevent="removeFavorite(fav.id)"
-              >close</i>
+                >close</i
+              >
             </button>
-            <div v-if="(favoritesStore.favoritesByGroup[group.id] || []).length === 0" class="section-empty">
-              <span>{{ $t('sidebar.noFavoritesInGroup') }}</span>
-            </div>
           </template>
-        </div>
+          <!-- Groups -->
+          <div
+            v-for="group in favoritesStore.sortedGroups"
+            :key="group.id"
+            class="favorite-group"
+          >
+            <button
+              class="favorite-group-header"
+              @click="toggleGroupCollapse(group.id)"
+              @dragover.prevent="onFavDragOverGroup($event, group.id)"
+              @drop="onFavDropOnGroup($event, group.id)"
+              @dragleave="onFavDragLeaveGroup"
+              :class="{ 'drag-over-group': dragOverGroupId === group.id }"
+            >
+              <i
+                class="material-icons"
+                :style="{ color: group.color || 'var(--blue)' }"
+                >folder</i
+              >
+              <span class="group-name">{{ group.name }}</span>
+              <span class="category-count">{{
+                (favoritesStore.favoritesByGroup[group.id] || []).length
+              }}</span>
+              <button
+                class="section-action-btn"
+                :title="$t('sidebar.deleteGroup')"
+                @click.stop.prevent="deleteGroup(group.id)"
+              >
+                <i class="material-icons">close</i>
+              </button>
+              <i
+                class="material-icons category-arrow"
+                :class="{ expanded: !collapsedGroups[group.id] }"
+                >expand_more</i
+              >
+            </button>
+            <template v-if="!collapsedGroups[group.id]">
+              <button
+                v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
+                :key="fav.id"
+                class="action favorite-item category-path-item"
+                draggable="true"
+                @click="navigateVolume(fav.path)"
+                :title="fav.path"
+                @dragstart="onFavDragStart($event, fav.id)"
+                @dragover.prevent="onFavDragOverItem($event)"
+                @dragleave="onFavDragLeaveItem"
+                @drop="onFavDropOnItem($event)"
+                @dragend="onFavDragEnd"
+              >
+                <i class="material-icons favorite-icon favorite-drag-handle"
+                  >drag_indicator</i
+                >
+                <i class="material-icons favorite-icon">{{
+                  favoriteIcon(fav.name)
+                }}</i>
+                <div class="favorite-info">
+                  <span class="favorite-name">{{ fav.name }}</span>
+                  <span class="favorite-path" v-if="fav.path !== fav.name">{{
+                    fav.path
+                  }}</span>
+                </div>
+                <i
+                  class="material-icons favorite-remove"
+                  :title="$t('sidebar.removeFavorite')"
+                  @click.stop.prevent="removeFavorite(fav.id)"
+                  >close</i
+                >
+              </button>
+              <div
+                v-if="
+                  (favoritesStore.favoritesByGroup[group.id] || []).length === 0
+                "
+                class="section-empty"
+              >
+                <span>{{ $t("sidebar.noFavoritesInGroup") }}</span>
+              </div>
+            </template>
+          </div>
         </template>
       </div>
 
       <!-- Tags Filter Section -->
       <div class="tags-section">
-        <button
-          class="tags-header"
-          @click="toggleSection('tags')"
-        >
+        <button class="tags-header" @click="toggleSection('tags')">
           <i class="material-icons">label</i>
           <span>{{ $t("sidebar.tags") }}</span>
           <button
@@ -183,136 +225,186 @@
           >
             <i class="material-icons">settings</i>
           </button>
-          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.tags }">expand_more</i>
+          <i
+            class="material-icons section-arrow"
+            :class="{ expanded: !collapsedSections.tags }"
+            >expand_more</i
+          >
         </button>
         <template v-if="!collapsedSections.tags">
-        <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
-          <i class="material-icons">turned_in_not</i>
-          <span>{{ $t("tags.noTags") }}</span>
-        </div>
-        <button
-          v-for="tag in tagsStore.sortedTags"
-          :key="tag.id"
-          class="action tag-filter-item"
-          :class="{ active: tagsStore.activeFilter === tag.id }"
-          @click="filterByTag(tag.id)"
-        >
-          <i class="material-icons tag-filter-dot" :style="{ color: tag.color }">label</i>
-          <span class="tag-filter-name">{{ tag.name }}</span>
-          <span class="tag-filter-count">{{ tag.paths.length }}</span>
-        </button>
-        <button
-          v-if="tagsStore.activeFilter"
-          class="action tag-filter-clear"
-          @click="clearTagFilter"
-        >
-          <i class="material-icons">filter_list_off</i>
-          <span>{{ $t("tags.clearFilter") }}</span>
-        </button>
+          <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
+            <i class="material-icons">turned_in_not</i>
+            <span>{{ $t("tags.noTags") }}</span>
+          </div>
+          <button
+            v-for="tag in tagsStore.sortedTags"
+            :key="tag.id"
+            class="action tag-filter-item"
+            :class="{ active: tagsStore.activeFilter === tag.id }"
+            @click="filterByTag(tag.id)"
+          >
+            <i
+              class="material-icons tag-filter-dot"
+              :style="{ color: tag.color }"
+              >label</i
+            >
+            <span class="tag-filter-name">{{ tag.name }}</span>
+            <span class="tag-filter-count">{{ tag.paths.length }}</span>
+          </button>
+          <button
+            v-if="tagsStore.activeFilter"
+            class="action tag-filter-clear"
+            @click="clearTagFilter"
+          >
+            <i class="material-icons">filter_list_off</i>
+            <span>{{ $t("tags.clearFilter") }}</span>
+          </button>
         </template>
       </div>
 
       <!-- Storage Volumes Section (admin only) -->
-      <div v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0" class="volumes-section">
-        <button
-          class="volumes-header"
-          @click="toggleSection('volumes')"
-        >
+      <div
+        v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
+        class="volumes-section"
+      >
+        <button class="volumes-header" @click="toggleSection('volumes')">
           <i class="material-icons">storage</i>
           <span>{{ $t("sidebar.storageVolumes") }}</span>
-          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.volumes }">expand_more</i>
+          <i
+            class="material-icons section-arrow"
+            :class="{ expanded: !collapsedSections.volumes }"
+            >expand_more</i
+          >
         </button>
         <template v-if="!collapsedSections.volumes">
-        <button
-          v-for="vol in volumesStore.systemVolumes"
-          :key="vol.path"
-          class="action volume-item"
-          @click="navigateVolume(vol.path)"
-        >
-          <i class="material-icons" :style="{ color: vol.color }">{{ vol.icon }}</i>
-          <div class="volume-info">
-            <span class="volume-name">{{ vol.displayName }}</span>
-            <div class="volume-bar-wrap">
-              <div class="volume-bar">
-                <div
-                  class="volume-bar-fill"
-                  :style="{ width: vol.usedPercentage + '%', background: volumeBarColor(vol.usedPercentage) }"
-                ></div>
+          <button
+            v-for="vol in volumesStore.systemVolumes"
+            :key="vol.path"
+            class="action volume-item"
+            @click="navigateVolume(vol.path)"
+          >
+            <i class="material-icons" :style="{ color: vol.color }">{{
+              vol.icon
+            }}</i>
+            <div class="volume-info">
+              <span class="volume-name">{{ vol.displayName }}</span>
+              <div class="volume-bar-wrap">
+                <div class="volume-bar">
+                  <div
+                    class="volume-bar-fill"
+                    :style="{
+                      width: vol.usedPercentage + '%',
+                      background: volumeBarColor(vol.usedPercentage),
+                    }"
+                  ></div>
+                </div>
+                <span class="volume-usage"
+                  >{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span
+                >
               </div>
-              <span class="volume-usage">{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span>
             </div>
-          </div>
-        </button>
-        <button
-          v-for="vol in volumesStore.otherVolumes"
-          :key="vol.path"
-          class="action volume-item"
-          @click="navigateVolume(vol.path)"
-        >
-          <i class="material-icons" :style="{ color: vol.color }">{{ vol.icon }}</i>
-          <div class="volume-info">
-            <span class="volume-name">{{ vol.displayName }}</span>
-            <div class="volume-bar-wrap">
-              <div class="volume-bar">
-                <div
-                  class="volume-bar-fill"
-                  :style="{ width: vol.usedPercentage + '%', background: volumeBarColor(vol.usedPercentage) }"
-                ></div>
+          </button>
+          <button
+            v-for="vol in volumesStore.otherVolumes"
+            :key="vol.path"
+            class="action volume-item"
+            @click="navigateVolume(vol.path)"
+          >
+            <i class="material-icons" :style="{ color: vol.color }">{{
+              vol.icon
+            }}</i>
+            <div class="volume-info">
+              <span class="volume-name">{{ vol.displayName }}</span>
+              <div class="volume-bar-wrap">
+                <div class="volume-bar">
+                  <div
+                    class="volume-bar-fill"
+                    :style="{
+                      width: vol.usedPercentage + '%',
+                      background: volumeBarColor(vol.usedPercentage),
+                    }"
+                  ></div>
+                </div>
+                <span class="volume-usage"
+                  >{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span
+                >
               </div>
-              <span class="volume-usage">{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span>
             </div>
-          </div>
-        </button>
+          </button>
         </template>
       </div>
 
       <!-- Category Quick Navigation (admin only) -->
-      <div v-if="user?.perm?.admin && categoryGroups.length > 0" class="categories-section">
-        <button
-          class="categories-header"
-          @click="toggleSection('categories')"
-        >
+      <div
+        v-if="user?.perm?.admin && categoryGroups.length > 0"
+        class="categories-section"
+      >
+        <button class="categories-header" @click="toggleSection('categories')">
           <i class="material-icons">category</i>
           <span>{{ $t("sidebar.directoryCategories") }}</span>
-          <i class="material-icons section-arrow" :class="{ expanded: !collapsedSections.categories }">expand_more</i>
+          <i
+            class="material-icons section-arrow"
+            :class="{ expanded: !collapsedSections.categories }"
+            >expand_more</i
+          >
         </button>
         <template v-if="!collapsedSections.categories">
-        <div v-for="group in categoryGroups" :key="group.id" class="category-group">
-          <div class="category-group-header-row">
-            <button
-              class="action category-group-header category-group-nav"
-              @click="navigateCategoryFirst(group)"
-              :title="$t('sidebar.viewCategoryContents')"
-            >
-              <i class="material-icons" :style="{ color: group.color }">{{ group.icon }}</i>
-              <span>{{ group.name }}</span>
-              <span class="category-count">{{ group.paths.length }}</span>
-            </button>
-            <button
-              class="category-expand-btn"
-              @click="toggleCategory(group.id)"
-              :title="expandedCategories[group.id] ? 'Collapse' : 'Expand'"
-            >
-              <i class="material-icons category-arrow" :class="{ expanded: expandedCategories[group.id] }">expand_more</i>
-            </button>
+          <div
+            v-for="group in categoryGroups"
+            :key="group.id"
+            class="category-group"
+          >
+            <div class="category-group-header-row">
+              <button
+                class="action category-group-header category-group-nav"
+                @click="navigateCategoryFirst(group)"
+                :title="$t('sidebar.viewCategoryContents')"
+              >
+                <i class="material-icons" :style="{ color: group.color }">{{
+                  group.icon
+                }}</i>
+                <span>{{ group.name }}</span>
+                <span class="category-count">{{ group.paths.length }}</span>
+              </button>
+              <button
+                class="category-expand-btn"
+                @click="toggleCategory(group.id)"
+                :title="expandedCategories[group.id] ? 'Collapse' : 'Expand'"
+              >
+                <i
+                  class="material-icons category-arrow"
+                  :class="{ expanded: expandedCategories[group.id] }"
+                  >expand_more</i
+                >
+              </button>
+            </div>
+            <div v-if="expandedCategories[group.id]" class="category-paths">
+              <button
+                v-for="p in group.paths"
+                :key="p.path"
+                class="action category-path-item"
+                @click="navigateVolume(p.path)"
+                :title="p.path"
+              >
+                <i class="material-icons" :class="'risk-' + p.risk">{{
+                  riskIcon(p.risk)
+                }}</i>
+                <div class="category-path-info">
+                  <span class="category-path-name">{{ p.name }}</span>
+                  <span
+                    v-if="isDuplicateName(p.name, group.id)"
+                    class="category-path-volume"
+                    >{{ getVolumeLabel(p.path) }}</span
+                  >
+                  <span
+                    v-else-if="p.volumeType && p.volumeType !== 'system'"
+                    class="category-path-type"
+                    >{{ p.volumeType }}</span
+                  >
+                </div>
+              </button>
+            </div>
           </div>
-          <div v-if="expandedCategories[group.id]" class="category-paths">
-            <button
-              v-for="p in group.paths"
-              :key="p.path"
-              class="action category-path-item"
-              @click="navigateVolume(p.path)"
-              :title="p.path"
-            >
-              <i class="material-icons" :class="'risk-' + p.risk">{{ riskIcon(p.risk) }}</i>
-              <div class="category-path-info">
-                <span class="category-path-name">{{ p.name }}</span>
-                <span v-if="isDuplicateName(p.name, group.id)" class="category-path-volume">{{ getVolumeLabel(p.path) }}</span>
-                <span v-else-if="p.volumeType && p.volumeType !== 'system'" class="category-path-type">{{ p.volumeType }}</span>
-              </div>
-            </button>
-          </div>
-        </div>
         </template>
       </div>
 
@@ -415,7 +507,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  inject,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
@@ -475,7 +575,7 @@ const collapsedSections = reactive({
 });
 // Load collapsed state from localStorage
 try {
-  const saved = localStorage.getItem('nas-file-browser-collapsed-sections');
+  const saved = localStorage.getItem("nas-file-browser-collapsed-sections");
   if (saved) {
     const parsed = JSON.parse(saved);
     Object.assign(collapsedSections, parsed);
@@ -484,14 +584,19 @@ try {
 
 const dragFromIndex = ref(-1);
 const dragOverIndex = ref(-1);
-const dragOverPosition = ref('');
+const dragOverPosition = ref("");
 const showCreateGroup = ref(false);
-const newGroupName = ref('');
+const newGroupName = ref("");
 const collapsedGroups = reactive<Record<string, boolean>>({});
-const dragOverGroupId = ref('');
-const draggedFavId = ref('');
-const sidebarWidth = ref(parseInt(localStorage.getItem('nas-file-browser-sidebar-width') || '256'));
-document.documentElement.style.setProperty('--sidebar-width', sidebarWidth.value + 'px');
+const dragOverGroupId = ref("");
+const draggedFavId = ref("");
+const sidebarWidth = ref(
+  parseInt(localStorage.getItem("nas-file-browser-sidebar-width") || "256")
+);
+document.documentElement.style.setProperty(
+  "--sidebar-width",
+  sidebarWidth.value + "px"
+);
 const isResizing = ref(false);
 const startX = ref(0);
 const startWidth = ref(0);
@@ -499,7 +604,9 @@ const groupInputRef = ref<HTMLInputElement | null>(null);
 
 // Computed
 const active = computed(() => currentPromptName.value === "sidebar");
-const canLogout = computed(() => !noAuth && (loginPage || logoutPage !== "/login"));
+const canLogout = computed(
+  () => !noAuth && (loginPage || logoutPage !== "/login")
+);
 
 const categoryGroups = computed(() => {
   const subDirs = volumesStore.allSubDirs;
@@ -528,7 +635,7 @@ const categoryGroups = computed(() => {
         path: dir.path,
         name: dir.name,
         risk,
-        volumeType: '',
+        volumeType: "",
       });
     }
   }
@@ -540,48 +647,60 @@ const categoryGroups = computed(() => {
 
 // Methods
 const startResize = (event: MouseEvent | TouchEvent) => {
-  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+  const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
   isResizing.value = true;
   startX.value = clientX;
   startWidth.value = sidebarWidth.value;
-  document.addEventListener('mousemove', onResize);
-  document.addEventListener('mouseup', stopResize);
-  document.addEventListener('touchmove', onResize, { passive: false });
-  document.addEventListener('touchend', stopResize);
-  document.body.style.cursor = 'col-resize';
-  document.body.style.userSelect = 'none';
+  document.addEventListener("mousemove", onResize);
+  document.addEventListener("mouseup", stopResize);
+  document.addEventListener("touchmove", onResize, { passive: false });
+  document.addEventListener("touchend", stopResize);
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
 };
 
 const onResize = (event: Event) => {
   if (!isResizing.value) return;
   if (event.cancelable) event.preventDefault();
   const e = event as MouseEvent | TouchEvent;
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+  const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
   const diff = clientX - startX.value;
   const newWidth = Math.min(500, Math.max(180, startWidth.value + diff));
   sidebarWidth.value = newWidth;
-  document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+  document.documentElement.style.setProperty(
+    "--sidebar-width",
+    newWidth + "px"
+  );
 };
 
 const stopResize = () => {
   isResizing.value = false;
-  document.removeEventListener('mousemove', onResize);
-  document.removeEventListener('mouseup', stopResize);
-  document.removeEventListener('touchmove', onResize);
-  document.removeEventListener('touchend', stopResize);
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
+  document.removeEventListener("mousemove", onResize);
+  document.removeEventListener("mouseup", stopResize);
+  document.removeEventListener("touchmove", onResize);
+  document.removeEventListener("touchend", stopResize);
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
   try {
-    localStorage.setItem('nas-file-browser-sidebar-width', sidebarWidth.value.toString());
+    localStorage.setItem(
+      "nas-file-browser-sidebar-width",
+      sidebarWidth.value.toString()
+    );
   } catch {}
 };
 
 const resetSidebarWidth = () => {
   const defaultWidth = 256;
   sidebarWidth.value = defaultWidth;
-  document.documentElement.style.setProperty('--sidebar-width', defaultWidth + 'px');
+  document.documentElement.style.setProperty(
+    "--sidebar-width",
+    defaultWidth + "px"
+  );
   try {
-    localStorage.setItem('nas-file-browser-sidebar-width', defaultWidth.toString());
+    localStorage.setItem(
+      "nas-file-browser-sidebar-width",
+      defaultWidth.toString()
+    );
   } catch {}
 };
 
@@ -595,9 +714,7 @@ const debouncedFetchUsage = () => {
 };
 
 const fetchUsage = async () => {
-  const path = route.path.endsWith("/")
-    ? route.path
-    : route.path + "/";
+  const path = route.path.endsWith("/") ? route.path : route.path + "/";
   let usageStats = { ...USAGE_DEFAULT };
   if (disableUsedPercentage) {
     return Object.assign(usage, usageStats);
@@ -629,7 +746,10 @@ const toggleCategory = (id: string) => {
 const toggleSection = (id: keyof typeof collapsedSections) => {
   collapsedSections[id] = !collapsedSections[id];
   try {
-    localStorage.setItem('nas-file-browser-collapsed-sections', JSON.stringify(collapsedSections));
+    localStorage.setItem(
+      "nas-file-browser-collapsed-sections",
+      JSON.stringify(collapsedSections)
+    );
   } catch {}
 };
 
@@ -651,7 +771,7 @@ const removeFavorite = (id: string) => {
 };
 
 const favoriteIcon = (name: string) => {
-  return isFileByExtension(name) ? getFileIcon(name) : 'folder';
+  return isFileByExtension(name) ? getFileIcon(name) : "folder";
 };
 
 const clearAllFavorites = async () => {
@@ -666,14 +786,14 @@ const createGroup = async () => {
   const name = newGroupName.value.trim();
   if (!name) return;
   await favoritesStore.addGroup(name);
-  newGroupName.value = '';
+  newGroupName.value = "";
   showCreateGroup.value = false;
 };
 
 const deleteGroup = async (id: string) => {
   const result = await favoritesStore.deleteGroup(id);
   if (result.conflict) {
-    $showError(new Error('Cannot delete group with favorites'));
+    $showError(new Error("Cannot delete group with favorites"));
   }
 };
 
@@ -683,51 +803,53 @@ const toggleGroupCollapse = (id: string) => {
 
 const onFavDragStart = (event: DragEvent, favId: string) => {
   draggedFavId.value = favId;
-  event.dataTransfer!.effectAllowed = 'move';
-  event.dataTransfer!.setData('text/plain', favId);
+  event.dataTransfer!.effectAllowed = "move";
+  event.dataTransfer!.setData("text/plain", favId);
 };
 
 const onFavDragOverItem = (event: DragEvent) => {
-  event.dataTransfer!.dropEffect = 'move';
+  event.dataTransfer!.dropEffect = "move";
 };
 
 const onFavDragLeaveItem = () => {};
 
 const onFavDropOnItem = async (event: DragEvent) => {
   event.preventDefault();
-  dragOverGroupId.value = '';
+  dragOverGroupId.value = "";
 };
 
 const onFavDragOverGroup = (event: DragEvent, groupId: string) => {
-  event.dataTransfer!.dropEffect = 'move';
+  event.dataTransfer!.dropEffect = "move";
   dragOverGroupId.value = groupId;
 };
 
 const onFavDragLeaveGroup = (event: DragEvent) => {
-  if (!(event.currentTarget as HTMLElement)?.contains(event.relatedTarget as Node)) {
-    dragOverGroupId.value = '';
+  if (
+    !(event.currentTarget as HTMLElement)?.contains(event.relatedTarget as Node)
+  ) {
+    dragOverGroupId.value = "";
   }
 };
 
 const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
   event.preventDefault();
-  dragOverGroupId.value = '';
+  dragOverGroupId.value = "";
   if (draggedFavId.value) {
     await favoritesStore.moveFavoriteToGroup(draggedFavId.value, groupId);
-    draggedFavId.value = '';
+    draggedFavId.value = "";
   }
 };
 
 const onFavDragEnd = () => {
   dragFromIndex.value = -1;
   dragOverIndex.value = -1;
-  dragOverPosition.value = '';
-  dragOverGroupId.value = '';
-  draggedFavId.value = '';
+  dragOverPosition.value = "";
+  dragOverGroupId.value = "";
+  draggedFavId.value = "";
 };
 
 const openTagManager = () => {
-  showHover({ prompt: 'tag-manager' });
+  showHover({ prompt: "tag-manager" });
 };
 
 const filterByTag = (tagId: string) => {
@@ -740,7 +862,7 @@ const clearTagFilter = () => {
 };
 
 const openSearch = () => {
-  router.push('/search');
+  router.push("/search");
   closeHovers();
 };
 
@@ -760,9 +882,9 @@ const isDuplicateName = (name: string, groupId: string) => {
 const getVolumeLabel = (path: string) => {
   const match = path.match(/^\/(volume\d+)/);
   if (match) return match[1];
-  const parts = path.split('/').filter(Boolean);
+  const parts = path.split("/").filter(Boolean);
   if (parts.length > 0) return parts[0];
-  return '';
+  return "";
 };
 
 const toRoot = () => {
@@ -799,10 +921,7 @@ watch(
 
 // Lifecycle
 onMounted(() => {
-  Promise.all([
-    favoritesStore.loadFavorites(),
-    tagsStore.loadTags(),
-  ]);
+  Promise.all([favoritesStore.loadFavorites(), tagsStore.loadTags()]);
   if (user.value?.perm?.admin) {
     volumesStore.fetchVolumes();
     categoriesStore.fetchCategories();

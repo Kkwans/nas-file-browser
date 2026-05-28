@@ -172,7 +172,10 @@ const resolution = computed(() => {
   return null;
 });
 
-const checksum = async (event: Event, algo: "md5" | "sha1" | "sha256" | "sha512") => {
+const checksum = async (
+  event: Event,
+  algo: "md5" | "sha1" | "sha256" | "sha512"
+) => {
   event.preventDefault();
   const target = event.target as HTMLElement;
 

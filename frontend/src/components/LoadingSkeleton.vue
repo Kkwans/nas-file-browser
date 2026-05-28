@@ -6,14 +6,13 @@
     </div>
     <!-- Item skeletons -->
     <div class="skeleton-listing">
-      <div
-        v-for="n in count"
-        :key="n"
-        class="skeleton-item"
-      >
+      <div v-for="n in count" :key="n" class="skeleton-item">
         <div class="skeleton-bone skeleton-icon"></div>
         <div class="skeleton-info">
-          <div class="skeleton-bone skeleton-name" :style="{ width: nameWidth(n) }"></div>
+          <div
+            class="skeleton-bone skeleton-name"
+            :style="{ width: nameWidth(n) }"
+          ></div>
           <div class="skeleton-meta">
             <div class="skeleton-bone skeleton-size"></div>
             <div class="skeleton-bone skeleton-modified"></div>
@@ -25,17 +24,33 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
-  count?: number;
-  viewMode?: string;
-}>(), {
-  count: 12,
-  viewMode: 'mosaic',
-});
+withDefaults(
+  defineProps<{
+    count?: number;
+    viewMode?: string;
+  }>(),
+  {
+    count: 12,
+    viewMode: "mosaic",
+  }
+);
 
 // Vary name widths for a natural look
 const nameWidth = (index: number): string => {
-  const widths = ['65%', '80%', '55%', '70%', '60%', '75%', '50%', '85%', '68%', '72%', '58%', '78%'];
+  const widths = [
+    "65%",
+    "80%",
+    "55%",
+    "70%",
+    "60%",
+    "75%",
+    "50%",
+    "85%",
+    "68%",
+    "72%",
+    "58%",
+    "78%",
+  ];
   return widths[(index - 1) % widths.length];
 };
 </script>
@@ -59,7 +74,7 @@ const nameWidth = (index: number): string => {
 }
 
 .skeleton-bone::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -85,8 +100,12 @@ const nameWidth = (index: number): string => {
 }
 
 @keyframes skeleton-shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* --- Header skeleton --- */

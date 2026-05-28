@@ -2,7 +2,11 @@
   <div class="fav-group-picker" @click.stop>
     <div class="fav-group-picker-header">
       <span>{{ $t("sidebar.assignToGroup") || "收藏到分组" }}</span>
-      <button class="fav-group-picker-manage" @click="createNew" :title="$t('sidebar.createGroup')">
+      <button
+        class="fav-group-picker-manage"
+        @click="createNew"
+        :title="$t('sidebar.createGroup')"
+      >
         <i class="material-icons">add</i>
       </button>
     </div>
@@ -13,8 +17,12 @@
       @click="assignTo('')"
     >
       <i class="material-icons">star</i>
-      <span class="fav-group-name">{{ $t("sidebar.ungrouped") || "未分组" }}</span>
-      <i v-if="currentGroupId === ''" class="material-icons fav-group-check">check</i>
+      <span class="fav-group-name">{{
+        $t("sidebar.ungrouped") || "未分组"
+      }}</span>
+      <i v-if="currentGroupId === ''" class="material-icons fav-group-check"
+        >check</i
+      >
     </button>
     <!-- Existing groups -->
     <button
@@ -24,9 +32,15 @@
       :class="{ active: currentGroupId === group.id }"
       @click="assignTo(group.id)"
     >
-      <i class="material-icons" :style="{ color: group.color || 'var(--blue)' }">folder</i>
+      <i class="material-icons" :style="{ color: group.color || 'var(--blue)' }"
+        >folder</i
+      >
       <span class="fav-group-name">{{ group.name }}</span>
-      <i v-if="currentGroupId === group.id" class="material-icons fav-group-check">check</i>
+      <i
+        v-if="currentGroupId === group.id"
+        class="material-icons fav-group-check"
+        >check</i
+      >
     </button>
     <!-- Create new group inline -->
     <div v-if="showCreate" class="fav-group-create">
@@ -51,7 +65,9 @@
       @click="remove"
     >
       <i class="material-icons">star_border</i>
-      <span class="fav-group-name">{{ $t("sidebar.removeFavorite") || "取消收藏" }}</span>
+      <span class="fav-group-name">{{
+        $t("sidebar.removeFavorite") || "取消收藏"
+      }}</span>
     </button>
   </div>
 </template>
@@ -80,7 +96,7 @@ const isFavorited = computed(() => favoritesStore.isFavorite(cleaned.value));
 
 const currentGroupId = computed(() => {
   const fav = favoritesStore.favorites.find((f) => f.path === cleaned.value);
-  return fav ? (fav.groupId || "") : "";
+  return fav ? fav.groupId || "" : "";
 });
 
 function assignTo(groupId: string) {
@@ -198,16 +214,16 @@ async function confirmCreate() {
 
 .fav-group-check {
   font-size: 0.875em !important;
-  color: var(--blue, #2196F3) !important;
+  color: var(--blue, #2196f3) !important;
 }
 
 .fav-group-remove {
   border-top: 1px solid var(--divider, rgba(0, 0, 0, 0.06));
-  color: var(--icon-red, #DA4453);
+  color: var(--icon-red, #da4453);
 }
 
 .fav-group-remove .material-icons {
-  color: var(--icon-red, #DA4453) !important;
+  color: var(--icon-red, #da4453) !important;
 }
 
 .fav-group-create {
@@ -230,7 +246,7 @@ async function confirmCreate() {
 }
 
 .fav-group-create input:focus {
-  border-color: var(--blue, #2196F3);
+  border-color: var(--blue, #2196f3);
 }
 
 .fav-group-create button {

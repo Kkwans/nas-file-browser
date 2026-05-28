@@ -52,7 +52,10 @@ export const useFavoritesStore = defineStore("favorites", () => {
     }
   }
 
-  async function apiUpdate(id: string, fav: Partial<Favorite>): Promise<boolean> {
+  async function apiUpdate(
+    id: string,
+    fav: Partial<Favorite>
+  ): Promise<boolean> {
     try {
       const res = await fetch(`${API_BASE}/${id}`, {
         method: "PUT",
@@ -99,7 +102,9 @@ export const useFavoritesStore = defineStore("favorites", () => {
     }
   }
 
-  async function apiCreateGroup(group: Partial<FavoriteGroup>): Promise<FavoriteGroup | null> {
+  async function apiCreateGroup(
+    group: Partial<FavoriteGroup>
+  ): Promise<FavoriteGroup | null> {
     try {
       const res = await fetch(GROUPS_API_BASE, {
         method: "POST",
@@ -113,7 +118,10 @@ export const useFavoritesStore = defineStore("favorites", () => {
     }
   }
 
-  async function apiUpdateGroup(id: string, group: Partial<FavoriteGroup>): Promise<boolean> {
+  async function apiUpdateGroup(
+    id: string,
+    group: Partial<FavoriteGroup>
+  ): Promise<boolean> {
     try {
       const res = await fetch(`${GROUPS_API_BASE}/${id}`, {
         method: "PUT",
@@ -126,7 +134,9 @@ export const useFavoritesStore = defineStore("favorites", () => {
     }
   }
 
-  async function apiDeleteGroup(id: string): Promise<{ ok: boolean; conflict?: boolean }> {
+  async function apiDeleteGroup(
+    id: string
+  ): Promise<{ ok: boolean; conflict?: boolean }> {
     try {
       const res = await fetch(`${GROUPS_API_BASE}/${id}`, { method: "DELETE" });
       if (res.status === 409) return { ok: false, conflict: true };
@@ -327,7 +337,9 @@ export const useFavoritesStore = defineStore("favorites", () => {
     await apiUpdateGroup(id, updates);
   }
 
-  async function deleteGroup(id: string): Promise<{ ok: boolean; conflict?: boolean }> {
+  async function deleteGroup(
+    id: string
+  ): Promise<{ ok: boolean; conflict?: boolean }> {
     const result = await apiDeleteGroup(id);
     if (result.ok) {
       groups.value = groups.value.filter((g) => g.id !== id);

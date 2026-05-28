@@ -44,11 +44,7 @@
       <div v-if="tagsStore.sortedTags.length === 0" class="tag-empty">
         {{ $t("tags.noTags") }}
       </div>
-      <div
-        v-for="tag in tagsStore.sortedTags"
-        :key="tag.id"
-        class="tag-item"
-      >
+      <div v-for="tag in tagsStore.sortedTags" :key="tag.id" class="tag-item">
         <!-- View mode -->
         <template v-if="editingId !== tag.id">
           <span class="tag-dot" :style="{ background: tag.color }"></span>
@@ -104,8 +100,12 @@
     <div v-if="deleteTarget" class="tag-delete-confirm">
       <p>{{ $t("tags.confirmDelete") }}「{{ deleteTarget.name }}」？</p>
       <div class="tag-delete-actions">
-        <button class="btn-cancel" @click="deleteTarget = null">{{ $t("buttons.cancel") }}</button>
-        <button class="btn-delete" @click="doDelete">{{ $t("buttons.delete") }}</button>
+        <button class="btn-cancel" @click="deleteTarget = null">
+          {{ $t("buttons.cancel") }}
+        </button>
+        <button class="btn-delete" @click="doDelete">
+          {{ $t("buttons.delete") }}
+        </button>
       </div>
     </div>
   </div>
@@ -233,7 +233,7 @@ function close() {
 }
 
 .tag-input:focus {
-  border-color: var(--blue, #2196F3);
+  border-color: var(--blue, #2196f3);
 }
 
 .tag-input.small {
@@ -257,7 +257,9 @@ function close() {
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
 }
 
 .color-dot.small {
@@ -278,7 +280,7 @@ function close() {
   align-items: center;
   gap: 0.25em;
   padding: 0.4em 0.75em;
-  background: var(--blue, #2196F3);
+  background: var(--blue, #2196f3);
   color: #fff;
   border: none;
   border-radius: 0.5em;
@@ -376,11 +378,11 @@ function close() {
 }
 
 .tag-action-btn.delete:hover {
-  color: var(--icon-red, #DA4453);
+  color: var(--icon-red, #da4453);
 }
 
 .tag-action-btn.save {
-  color: var(--icon-green, #27AE60);
+  color: var(--icon-green, #27ae60);
   opacity: 1;
 }
 
@@ -424,7 +426,7 @@ function close() {
 }
 
 .btn-delete {
-  background: var(--icon-red, #DA4453);
+  background: var(--icon-red, #da4453);
   color: #fff;
 }
 

@@ -248,7 +248,8 @@ const deleteLink = async (event: Event, link: any) => {
   }
 };
 
-const humanTime = (time: number | string) => dayjs(Number(time) * 1000).fromNow();
+const humanTime = (time: number | string) =>
+  dayjs(Number(time) * 1000).fromNow();
 
 const buildLink = (share: any) => api.share.getShareURL(share);
 

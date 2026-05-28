@@ -15,8 +15,12 @@
         </h2>
         <div class="upload-info">
           <div class="upload-speed">{{ speedText }}/s</div>
-          <div class="upload-eta">{{ formattedETA }} {{ t('uploading.remaining') }}</div>
-          <div class="upload-percentage">{{ sentPercent }}% {{ t('uploading.completed') }}</div>
+          <div class="upload-eta">
+            {{ formattedETA }} {{ t("uploading.remaining") }}
+          </div>
+          <div class="upload-percentage">
+            {{ sentPercent }}% {{ t("uploading.completed") }}
+          </div>
           <div class="upload-fraction">
             {{ sentMbytes }} /
             {{ totalMbytes }}

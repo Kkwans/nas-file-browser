@@ -68,7 +68,9 @@ export async function loadHighlightCSS(): Promise<void> {
   const themeCSS = isDark ? "github-dark" : "github";
 
   // Update existing theme if already loaded
-  const existing = document.getElementById("hljs-theme") as HTMLLinkElement | null;
+  const existing = document.getElementById(
+    "hljs-theme"
+  ) as HTMLLinkElement | null;
   if (existing) {
     const expectedHref = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
     if (existing.href !== expectedHref) {

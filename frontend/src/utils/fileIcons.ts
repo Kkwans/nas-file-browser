@@ -231,8 +231,8 @@ export function getFileIcon(fileName: string, isDir?: boolean): string {
  * Used by Sidebar to determine whether to navigate as file or directory.
  */
 export function isFileByExtension(path: string): boolean {
-  const lastSegment = path.split('/').pop() || '';
-  const dotIdx = lastSegment.lastIndexOf('.');
+  const lastSegment = path.split("/").pop() || "";
+  const dotIdx = lastSegment.lastIndexOf(".");
   if (dotIdx <= 0) return false;
   const ext = lastSegment.slice(dotIdx + 1).toLowerCase();
   return ext in EXT_ICON_MAP;
@@ -245,26 +245,84 @@ export const TEXT_TYPES = ["text", "textImmutable"] as const;
 
 /** File extensions treated as text files (for preview and editor) */
 export const TEXT_EXTENSIONS: ReadonlySet<string> = new Set([
-  ".txt", ".md", ".markdown", ".json", ".xml", ".yml", ".yaml",
-  ".csv", ".log", ".ini", ".conf", ".cfg", ".sh", ".bash", ".py",
-  ".js", ".ts", ".go", ".java", ".c", ".cpp", ".h", ".css",
-  ".html", ".vue", ".rs", ".rb", ".php", ".sql", ".toml", ".env",
-  ".gitignore", ".dockerfile", ".makefile", ".srt", ".vtt", ".ass",
-  ".scss", ".less", ".jsx", ".tsx", ".swift", ".kt", ".lua",
-  ".r", ".scala", ".dart", ".zig", ".graphql", ".proto",
-  ".tf", ".hcl", ".gradle", ".groovy", ".ex", ".exs", ".hs",
-  ".properties", ".toml", ".tscn", ".tres",
+  ".txt",
+  ".md",
+  ".markdown",
+  ".json",
+  ".xml",
+  ".yml",
+  ".yaml",
+  ".csv",
+  ".log",
+  ".ini",
+  ".conf",
+  ".cfg",
+  ".sh",
+  ".bash",
+  ".py",
+  ".js",
+  ".ts",
+  ".go",
+  ".java",
+  ".c",
+  ".cpp",
+  ".h",
+  ".css",
+  ".html",
+  ".vue",
+  ".rs",
+  ".rb",
+  ".php",
+  ".sql",
+  ".toml",
+  ".env",
+  ".gitignore",
+  ".dockerfile",
+  ".makefile",
+  ".srt",
+  ".vtt",
+  ".ass",
+  ".scss",
+  ".less",
+  ".jsx",
+  ".tsx",
+  ".swift",
+  ".kt",
+  ".lua",
+  ".r",
+  ".scala",
+  ".dart",
+  ".zig",
+  ".graphql",
+  ".proto",
+  ".tf",
+  ".hcl",
+  ".gradle",
+  ".groovy",
+  ".ex",
+  ".exs",
+  ".hs",
+  ".properties",
+  ".toml",
+  ".tscn",
+  ".tres",
 ]);
 
 /** File extensions that can be previewed (text + markdown + pdf + epub + subtitles) */
 export const PREVIEWABLE_EXTENSIONS: ReadonlySet<string> = new Set([
   ...TEXT_EXTENSIONS,
-  ".pdf", ".epub",
+  ".pdf",
+  ".epub",
 ]);
 
 /** Backend file types that support preview (media + text + blob) */
 export const PREVIEWABLE_TYPES: ReadonlySet<string> = new Set([
-  "image", "video", "audio", "blob", "text", "textImmutable",
+  "image",
+  "video",
+  "audio",
+  "blob",
+  "text",
+  "textImmutable",
 ]);
 
 /**
@@ -285,6 +343,6 @@ export function isTextFile(type: string, extension?: string): boolean {
   const ext = (extension || "").toLowerCase();
   // Markdown files are handled separately (rendered)
   if (ext === ".md" || ext === ".markdown") return false;
-  if (TEXT_TYPES.includes(type as typeof TEXT_TYPES[number])) return true;
+  if (TEXT_TYPES.includes(type as (typeof TEXT_TYPES)[number])) return true;
   return TEXT_EXTENSIONS.has(ext);
 }

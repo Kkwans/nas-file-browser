@@ -63,7 +63,10 @@ export const useTagsStore = defineStore("tags", () => {
     }
   }
 
-  async function apiUpdate(id: string, updates: Partial<Tag>): Promise<boolean> {
+  async function apiUpdate(
+    id: string,
+    updates: Partial<Tag>
+  ): Promise<boolean> {
     try {
       const res = await fetch(`${API_BASE}/${id}`, {
         method: "PUT",
@@ -165,7 +168,10 @@ export const useTagsStore = defineStore("tags", () => {
   }
 
   // Update a tag
-  async function updateTag(id: string, updates: Partial<Pick<Tag, "name" | "color">>) {
+  async function updateTag(
+    id: string,
+    updates: Partial<Pick<Tag, "name" | "color">>
+  ) {
     const tag = tags.value.find((t) => t.id === id);
     if (!tag) return;
     if (updates.name !== undefined) tag.name = updates.name.trim();

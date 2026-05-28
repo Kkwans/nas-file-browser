@@ -2,24 +2,48 @@
   <div class="card floating quick-preview-card">
     <div class="quick-preview-header">
       <div class="quick-preview-info">
-        <i class="material-icons file-type-icon" :class="fileTypeClass">{{ fileIcon }}</i>
+        <i class="material-icons file-type-icon" :class="fileTypeClass">{{
+          fileIcon
+        }}</i>
         <span class="quick-preview-name">{{ item.name }}</span>
-        <span class="quick-preview-meta">{{ humanSize }} · {{ humanTime }}</span>
+        <span class="quick-preview-meta"
+          >{{ humanSize }} · {{ humanTime }}</span
+        >
       </div>
       <div class="quick-preview-actions">
-        <button class="quick-preview-btn" @click="navigateFile(-1)" :title="$t('buttons.previous')">
+        <button
+          class="quick-preview-btn"
+          @click="navigateFile(-1)"
+          :title="$t('buttons.previous')"
+        >
           <i class="material-icons">chevron_left</i>
         </button>
-        <button class="quick-preview-btn" @click="navigateFile(1)" :title="$t('buttons.next')">
+        <button
+          class="quick-preview-btn"
+          @click="navigateFile(1)"
+          :title="$t('buttons.next')"
+        >
           <i class="material-icons">chevron_right</i>
         </button>
-        <button class="quick-preview-btn" @click="downloadFile" :title="$t('buttons.download')">
+        <button
+          class="quick-preview-btn"
+          @click="downloadFile"
+          :title="$t('buttons.download')"
+        >
           <i class="material-icons">file_download</i>
         </button>
-        <button class="quick-preview-btn" @click="openFull" :title="$t('buttons.openFile')">
+        <button
+          class="quick-preview-btn"
+          @click="openFull"
+          :title="$t('buttons.openFile')"
+        >
           <i class="material-icons">open_in_new</i>
         </button>
-        <button class="quick-preview-btn close-btn" @click="close" :title="$t('buttons.close')">
+        <button
+          class="quick-preview-btn close-btn"
+          @click="close"
+          :title="$t('buttons.close')"
+        >
           <i class="material-icons">close</i>
         </button>
       </div>
@@ -46,11 +70,7 @@
         <audio :src="directUrl" controls autoplay class="quick-preview-audio" />
       </div>
       <!-- PDF -->
-      <iframe
-        v-else-if="isPdf"
-        :src="directUrl"
-        class="quick-preview-pdf"
-      />
+      <iframe v-else-if="isPdf" :src="directUrl" class="quick-preview-pdf" />
       <!-- Markdown (rendered) -->
       <div
         v-else-if="isMarkdown"
@@ -58,11 +78,14 @@
         ref="markdownBody"
       ></div>
       <!-- Text / Code -->
-      <pre v-else-if="isText" class="quick-preview-text"><code>{{ textContent }}</code></pre>
+      <pre
+        v-else-if="isText"
+        class="quick-preview-text"
+      ><code>{{ textContent }}</code></pre>
       <!-- Blob (no preview) -->
       <div v-else class="quick-preview-no-preview">
         <i class="material-icons">feedback</i>
-        <span>{{ $t('files.noPreview') }}</span>
+        <span>{{ $t("files.noPreview") }}</span>
       </div>
     </div>
     <div v-if="loading" class="quick-preview-loading">
@@ -85,7 +108,10 @@ import { useFileStore } from "@/stores/file";
 import { files as api } from "@/api";
 import { filesize } from "@/utils";
 import { getFileIcon, isTextFile, isPreviewable } from "@/utils/fileIcons";
-import { loadMarkdownResources, highlightAndAnnotateCodeBlocks } from "@/utils/externalResources";
+import {
+  loadMarkdownResources,
+  highlightAndAnnotateCodeBlocks,
+} from "@/utils/externalResources";
 import dayjs from "dayjs";
 
 const { t } = useI18n();
@@ -110,7 +136,9 @@ const isMarkdown = computed(() => {
   const ext = item.value.extension?.toLowerCase() || "";
   return ext === ".md" || ext === ".markdown";
 });
-const isText = computed(() => isTextFile(item.value.type || "", item.value.extension));
+const isText = computed(() =>
+  isTextFile(item.value.type || "", item.value.extension)
+);
 
 const fileIcon = computed(() => {
   const typeIcons: Record<string, string> = {
@@ -250,7 +278,9 @@ const renderMarkdown = async (content: string) => {
 
   const VditorClass = (window as any).Vditor;
   const isDark = document.documentElement.className === "dark";
-  const htmlResult = VditorClass.md2html(content, { theme: isDark ? "dark" : "light" });
+  const htmlResult = VditorClass.md2html(content, {
+    theme: isDark ? "dark" : "light",
+  });
   const html = await Promise.resolve(htmlResult);
 
   if (typeof html === "string" && markdownBody.value) {

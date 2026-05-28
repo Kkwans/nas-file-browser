@@ -136,10 +136,7 @@ const copy = async (event: Event) => {
           const item = result[i];
           if (item.checked.length == 2) {
             items[item.index].rename = true;
-          } else if (
-            item.checked.length == 1 &&
-            item.checked[0] == "origin"
-          ) {
+          } else if (item.checked.length == 1 && item.checked[0] == "origin") {
             items[item.index].overwrite = true;
           } else {
             items.splice(item.index, 1);

@@ -69,7 +69,11 @@
             >
               <i class="material-icons">{{ mode.icon }}</i>
               <span>{{ t(mode.label) }}</span>
-              <i v-if="currentViewMode === mode.value" class="material-icons check">check</i>
+              <i
+                v-if="currentViewMode === mode.value"
+                class="material-icons check"
+                >check</i
+              >
             </button>
           </div>
         </div>
@@ -90,14 +94,19 @@
             >
               <i class="material-icons">{{ opt.icon }}</i>
               <span>{{ t(opt.label) }}</span>
-              <i v-if="currentSortBy === opt.by" class="material-icons sort-arrow">
-                {{ currentSortAsc ? 'arrow_upward' : 'arrow_downward' }}
+              <i
+                v-if="currentSortBy === opt.by"
+                class="material-icons sort-arrow"
+              >
+                {{ currentSortAsc ? "arrow_upward" : "arrow_downward" }}
               </i>
             </button>
             <div class="dropdown-divider"></div>
             <button class="dropdown-item" @click="toggleSortDirection">
               <i class="material-icons">swap_vert</i>
-              <span>{{ currentSortAsc ? t('files.descending') : t('files.ascending') }}</span>
+              <span>{{
+                currentSortAsc ? t("files.descending") : t("files.ascending")
+              }}</span>
             </button>
           </div>
         </div>
@@ -255,9 +264,19 @@
 
         <!-- Tag filter indicator -->
         <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
-          <i class="material-icons" :style="{ color: tagsStore.activeFilterTag.color }">label</i>
-          <span>{{ $t("tags.filtered") }}: <strong>{{ tagsStore.activeFilterTag.name }}</strong></span>
-          <button class="tag-filter-clear-btn" @click="tagsStore.setFilter(null)">
+          <i
+            class="material-icons"
+            :style="{ color: tagsStore.activeFilterTag.color }"
+            >label</i
+          >
+          <span
+            >{{ $t("tags.filtered") }}:
+            <strong>{{ tagsStore.activeFilterTag.name }}</strong></span
+          >
+          <button
+            class="tag-filter-clear-btn"
+            @click="tagsStore.setFilter(null)"
+          >
             <i class="material-icons">close</i>
           </button>
         </div>
@@ -268,9 +287,15 @@
             v-if="hasSystemDirs"
             class="system-dirs-toggle"
             @click="toggleSystemDirs"
-            :title="showSystemDirs ? t('files.hideSystemDirs') : t('files.showSystemDirs')"
+            :title="
+              showSystemDirs
+                ? t('files.hideSystemDirs')
+                : t('files.showSystemDirs')
+            "
           >
-            <i class="material-icons">{{ showSystemDirs ? 'expand_less' : 'expand_more' }}</i>
+            <i class="material-icons">{{
+              showSystemDirs ? "expand_less" : "expand_more"
+            }}</i>
             <span>@({{ systemDirs.length }})</span>
           </button>
         </h2>
@@ -396,7 +421,7 @@
               :aria-label="t('buttons.selectAll')"
             >
               <i class="material-icons">select_all</i>
-              <span>{{ t('buttons.selectAll') }}</span>
+              <span>{{ t("buttons.selectAll") }}</span>
             </button>
             <button
               v-if="fileStore.selectedCount > 0"
@@ -406,7 +431,7 @@
               :aria-label="t('buttons.invertSelection')"
             >
               <i class="material-icons">flip</i>
-              <span>{{ t('buttons.invertSelection') }}</span>
+              <span>{{ t("buttons.invertSelection") }}</span>
             </button>
             <template v-if="fileStore.selectedCount > 0">
               <button
@@ -415,7 +440,7 @@
                 @click="layoutStore.showHover('copy')"
               >
                 <i class="material-icons">content_copy</i>
-                <span>{{ t('buttons.copyFile') }}</span>
+                <span>{{ t("buttons.copyFile") }}</span>
               </button>
               <button
                 v-if="headerButtons.move"
@@ -423,7 +448,7 @@
                 @click="layoutStore.showHover('move')"
               >
                 <i class="material-icons">forward</i>
-                <span>{{ t('buttons.moveFile') }}</span>
+                <span>{{ t("buttons.moveFile") }}</span>
               </button>
               <button
                 v-if="headerButtons.download"
@@ -431,7 +456,7 @@
                 @click="download"
               >
                 <i class="material-icons">file_download</i>
-                <span>{{ t('buttons.download') }}</span>
+                <span>{{ t("buttons.download") }}</span>
               </button>
               <button
                 v-if="headerButtons.delete"
@@ -439,12 +464,17 @@
                 @click="layoutStore.showHover('delete')"
               >
                 <i class="material-icons">delete</i>
-                <span>{{ t('buttons.delete') }}</span>
+                <span>{{ t("buttons.delete") }}</span>
               </button>
             </template>
             <button
               class="selection-btn close-btn"
-              @click="() => { fileStore.multiple = false; fileStore.selected = []; }"
+              @click="
+                () => {
+                  fileStore.multiple = false;
+                  fileStore.selected = [];
+                }
+              "
               :title="t('buttons.close')"
               :aria-label="t('buttons.close')"
             >
@@ -509,32 +539,48 @@ const layoutStore = useLayoutStore();
 const showViewDropdown = ref<boolean>(false);
 const viewDropdownRef = ref<HTMLElement | null>(null);
 const currentViewMode = ref<ViewModeType>(
-  (localStorage.getItem('nas-file-browser-view-mode') as ViewModeType) ||
-  authStore.user?.viewMode ||
-  'mosaic'
+  (localStorage.getItem("nas-file-browser-view-mode") as ViewModeType) ||
+    authStore.user?.viewMode ||
+    "mosaic"
 );
 const viewModes = [
-  { value: 'mosaic' as ViewModeType, icon: 'grid_view', label: 'buttons.gridView' },
-  { value: 'list' as ViewModeType, icon: 'view_list', label: 'buttons.listView' },
-  { value: 'mosaic gallery' as ViewModeType, icon: 'view_module', label: 'buttons.detailView' },
-  { value: 'compact' as ViewModeType, icon: 'density_medium', label: 'buttons.compactView' },
+  {
+    value: "mosaic" as ViewModeType,
+    icon: "grid_view",
+    label: "buttons.gridView",
+  },
+  {
+    value: "list" as ViewModeType,
+    icon: "view_list",
+    label: "buttons.listView",
+  },
+  {
+    value: "mosaic gallery" as ViewModeType,
+    icon: "view_module",
+    label: "buttons.detailView",
+  },
+  {
+    value: "compact" as ViewModeType,
+    icon: "density_medium",
+    label: "buttons.compactView",
+  },
 ];
 
 // Sort dropdown
 const showSortDropdown = ref<boolean>(false);
 const sortDropdownRef = ref<HTMLElement | null>(null);
-const currentSortBy = ref<string>(fileStore.req?.sorting?.by || 'name');
+const currentSortBy = ref<string>(fileStore.req?.sorting?.by || "name");
 const currentSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
 const sortOptions = [
-  { by: 'name', icon: 'sort_by_alpha', label: 'files.sortByName' },
-  { by: 'size', icon: 'data_usage', label: 'files.sortBySize' },
-  { by: 'modified', icon: 'schedule', label: 'files.sortByLastModified' },
-  { by: 'type', icon: 'category', label: 'files.sortByType' },
+  { by: "name", icon: "sort_by_alpha", label: "files.sortByName" },
+  { by: "size", icon: "data_usage", label: "files.sortBySize" },
+  { by: "modified", icon: "schedule", label: "files.sortByLastModified" },
+  { by: "type", icon: "category", label: "files.sortByType" },
 ];
 
 // @-prefix folder collapse
 const showSystemDirs = ref<boolean>(
-  localStorage.getItem('nas-file-browser-show-system-dirs') === 'true'
+  localStorage.getItem("nas-file-browser-show-system-dirs") === "true"
 );
 
 const { req } = storeToRefs(fileStore);
@@ -566,10 +612,14 @@ const ascOrdered = computed(() =>
 );
 
 const normalDirs = computed(() =>
-  items.value.dirs.filter((d) => !d.name.startsWith('@')).slice(0, showLimit.value)
+  items.value.dirs
+    .filter((d) => !d.name.startsWith("@"))
+    .slice(0, showLimit.value)
 );
 const systemDirs = computed(() =>
-  items.value.dirs.filter((d) => d.name.startsWith('@')).slice(0, showLimit.value)
+  items.value.dirs
+    .filter((d) => d.name.startsWith("@"))
+    .slice(0, showLimit.value)
 );
 const dirs = computed(() => {
   if (showSystemDirs.value) {
@@ -580,7 +630,10 @@ const dirs = computed(() => {
 const hasSystemDirs = computed(() => systemDirs.value.length > 0);
 const toggleSystemDirs = () => {
   showSystemDirs.value = !showSystemDirs.value;
-  localStorage.setItem('nas-file-browser-show-system-dirs', String(showSystemDirs.value));
+  localStorage.setItem(
+    "nas-file-browser-show-system-dirs",
+    String(showSystemDirs.value)
+  );
 };
 
 const items = computed(() => {
@@ -646,18 +699,18 @@ const modifiedIcon = computed(() => {
 const skeletonViewMode = computed(() => {
   // Map 'mosaic gallery' to 'gallery' for skeleton
   const mode = currentViewMode.value;
-  if (mode === 'mosaic gallery') return 'gallery';
+  if (mode === "mosaic gallery") return "gallery";
   return mode;
 });
 
 const viewIcon = computed(() => {
   const icons: Record<string, string> = {
-    list: 'view_list',
-    mosaic: 'grid_view',
-    'mosaic gallery': 'view_module',
-    compact: 'density_medium',
+    list: "view_list",
+    mosaic: "grid_view",
+    "mosaic gallery": "view_module",
+    compact: "density_medium",
   };
-  return icons[currentViewMode.value] || 'grid_view';
+  return icons[currentViewMode.value] || "grid_view";
 });
 
 const headerButtons = computed(() => {
@@ -762,19 +815,22 @@ const keyEvent = (event: KeyboardEvent) => {
     const allItems = [...items.value.dirs, ...items.value.files];
     if (allItems.length === 0) return;
 
-    const currentIndex = fileStore.selected.length > 0
-      ? fileStore.selected[fileStore.selected.length - 1]
-      : -1;
+    const currentIndex =
+      fileStore.selected.length > 0
+        ? fileStore.selected[fileStore.selected.length - 1]
+        : -1;
 
     let newIndex: number;
     if (event.key === "ArrowDown") {
-      newIndex = currentIndex < 0
-        ? allItems[0].index
-        : Math.min(currentIndex + 1, allItems[allItems.length - 1].index);
+      newIndex =
+        currentIndex < 0
+          ? allItems[0].index
+          : Math.min(currentIndex + 1, allItems[allItems.length - 1].index);
     } else {
-      newIndex = currentIndex < 0
-        ? allItems[allItems.length - 1].index
-        : Math.max(currentIndex - 1, allItems[0].index);
+      newIndex =
+        currentIndex < 0
+          ? allItems[allItems.length - 1].index
+          : Math.max(currentIndex - 1, allItems[0].index);
     }
 
     // Shift+Arrow for range selection
@@ -836,15 +892,17 @@ const keyEvent = (event: KeyboardEvent) => {
 
     // Estimate visible items from viewport height
     const pageSize = Math.max(5, Math.floor((window.innerHeight - 200) / 60));
-    const currentIndex = fileStore.selected.length > 0
-      ? fileStore.selected[fileStore.selected.length - 1]
-      : -1;
+    const currentIndex =
+      fileStore.selected.length > 0
+        ? fileStore.selected[fileStore.selected.length - 1]
+        : -1;
 
     // Find position in allItems array
     const pos = allItems.findIndex((it) => it.index === currentIndex);
     let newPos: number;
     if (event.key === "PageDown") {
-      newPos = pos < 0 ? pageSize - 1 : Math.min(pos + pageSize, allItems.length - 1);
+      newPos =
+        pos < 0 ? pageSize - 1 : Math.min(pos + pageSize, allItems.length - 1);
     } else {
       newPos = pos < 0 ? 0 : Math.max(pos - pageSize, 0);
     }
@@ -890,7 +948,7 @@ const keyEvent = (event: KeyboardEvent) => {
             size: item.size,
             modified: item.modified,
             path: item.path,
-            extension: item.extension || '',
+            extension: item.extension || "",
           },
         },
       });
@@ -907,7 +965,7 @@ const keyEvent = (event: KeyboardEvent) => {
     case "F":
       if (event.shiftKey) {
         event.preventDefault();
-        router.push('/search');
+        router.push("/search");
       }
       break;
     case "c":
@@ -1054,7 +1112,10 @@ const paste = async (event: Event) => {
 
 const columnsResize = () => {
   // Update the columns size based on the window width.
-  const items_ = css(["#listing.mosaic:not(.gallery) .item", ".mosaic:not(.gallery)#listing .item"]);
+  const items_ = css([
+    "#listing.mosaic:not(.gallery) .item",
+    ".mosaic:not(.gallery)#listing .item",
+  ]);
   if (items_ === null) return;
 
   const mainWidth = document.querySelector("main")?.offsetWidth ?? 0;
@@ -1237,7 +1298,7 @@ const sort = async (by: string) => {
 };
 
 const openSearch = () => {
-  router.push('/search');
+  router.push("/search");
 };
 
 const toggleMultipleSelection = () => {
@@ -1320,12 +1381,14 @@ const toggleSortDropdown = () => {
 
 const selectViewMode = (mode: ViewModeType) => {
   currentViewMode.value = mode;
-  localStorage.setItem('nas-file-browser-view-mode', mode);
+  localStorage.setItem("nas-file-browser-view-mode", mode);
   showViewDropdown.value = false;
 
   // Also update server-side preference if logged in
   if (authStore.user?.id) {
-    users.update({ id: authStore.user.id, viewMode: mode }, ['viewMode']).catch(() => {});
+    users
+      .update({ id: authStore.user.id, viewMode: mode }, ["viewMode"])
+      .catch(() => {});
     authStore.updateUser({ viewMode: mode });
   }
 
@@ -1339,7 +1402,10 @@ const selectSort = async (by: string) => {
 
   try {
     if (authStore.user?.id) {
-      await users.update({ id: authStore.user.id, sorting: { by, asc: currentSortAsc.value } }, ['sorting']);
+      await users.update(
+        { id: authStore.user.id, sorting: { by, asc: currentSortAsc.value } },
+        ["sorting"]
+      );
     }
   } catch (e: any) {
     $showError(e);
@@ -1354,7 +1420,13 @@ const toggleSortDirection = async () => {
 
   try {
     if (authStore.user?.id) {
-      await users.update({ id: authStore.user.id, sorting: { by: currentSortBy.value, asc: currentSortAsc.value } }, ['sorting']);
+      await users.update(
+        {
+          id: authStore.user.id,
+          sorting: { by: currentSortBy.value, asc: currentSortAsc.value },
+        },
+        ["sorting"]
+      );
     }
   } catch (e: any) {
     $showError(e);
@@ -1366,10 +1438,18 @@ const toggleSortDirection = async () => {
 // Close dropdowns on outside click
 const handleOutsideClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement;
-  if (showViewDropdown.value && viewDropdownRef.value && !viewDropdownRef.value.contains(target)) {
+  if (
+    showViewDropdown.value &&
+    viewDropdownRef.value &&
+    !viewDropdownRef.value.contains(target)
+  ) {
     showViewDropdown.value = false;
   }
-  if (showSortDropdown.value && sortDropdownRef.value && !sortDropdownRef.value.contains(target)) {
+  if (
+    showSortDropdown.value &&
+    sortDropdownRef.value &&
+    !sortDropdownRef.value.contains(target)
+  ) {
     showSortDropdown.value = false;
   }
 };

@@ -10,8 +10,8 @@
       :default="index === 0"
     />
     <p class="vjs-no-js">
-      {{ $t('files.videoNotSupported') }}
-      <a :href="source">{{ $t('buttons.download') }}</a>
+      {{ $t("files.videoNotSupported") }}
+      <a :href="source">{{ $t("buttons.download") }}</a>
     </p>
   </video>
 </template>
@@ -45,8 +45,6 @@ const sourceType = ref("");
 nextTick(() => {
   initVideoPlayer();
 });
-
-
 
 onBeforeUnmount(() => {
   if (player.value) {

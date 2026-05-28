@@ -498,9 +498,9 @@ const close = () => {
 };
 
 const download = () => {
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = downloadUrl.value;
-  a.style.display = 'none';
+  a.style.display = "none";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

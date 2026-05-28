@@ -80,7 +80,9 @@ const submit = async () => {
   }
 
   // Check risk level before renaming
-  const item = isListing.value ? req.value!.items[selected.value[0]] : req.value!;
+  const item = isListing.value
+    ? req.value!.items[selected.value[0]]
+    : req.value!;
   if (item?.isDir && item?.path) {
     const categoriesStore = useCategoriesStore();
     const risk = categoriesStore.getRiskLevel(item.path);
@@ -116,8 +118,7 @@ const executeRename = async () => {
     oldLink = req.value!.items[selected.value[0]].url;
   }
 
-  newLink =
-    url.removeLastDir(oldLink) + "/" + encodeURIComponent(name.value);
+  newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(name.value);
 
   try {
     await api.move([{ from: oldLink, to: newLink }]);

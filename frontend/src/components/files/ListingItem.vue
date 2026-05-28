@@ -40,28 +40,44 @@
           class="material-icons risk-icon"
           :class="'risk-' + riskLevel"
           :title="riskTitle"
-        >{{ riskLevel === 'high' ? 'warning' : 'info' }}</i>
+          >{{ riskLevel === "high" ? "warning" : "info" }}</i
+        >
         <i
           class="material-icons favorite-star"
           :class="{ 'is-fav': isFavorited }"
-          :title="isFavorited ? $t('sidebar.removeFavorite') : $t('sidebar.addFavorite')"
+          :title="
+            isFavorited
+              ? $t('sidebar.removeFavorite')
+              : $t('sidebar.addFavorite')
+          "
           @click.stop.prevent="toggleFav"
-        >{{ isFavorited ? 'star' : 'star_border' }}</i>
+          >{{ isFavorited ? "star" : "star_border" }}</i
+        >
         <i
           v-if="isFavorited"
           class="material-icons favorite-group-btn"
           :title="$t('sidebar.assignToGroup')"
           @click.stop.prevent="toggleFavGroupPicker"
-        >folder_special</i>
-        <div v-if="showFavGroupPicker" class="fav-group-picker-popup" @click.stop>
-          <FavoriteGroupPicker :path="path || ''" :name="name" @close="closeFavGroupPicker" />
+          >folder_special</i
+        >
+        <div
+          v-if="showFavGroupPicker"
+          class="fav-group-picker-popup"
+          @click.stop
+        >
+          <FavoriteGroupPicker
+            :path="path || ''"
+            :name="name"
+            @close="closeFavGroupPicker"
+          />
         </div>
         <i
           class="material-icons tag-btn"
           :class="{ 'has-tags': pathTags.length > 0 }"
           :title="$t('tags.assignTags')"
           @click.stop.prevent="toggleTagPicker"
-        >label</i>
+          >label</i
+        >
         <span
           v-for="tag in pathTags"
           :key="tag.id"
@@ -175,8 +191,8 @@ const riskLevel = computed(() => {
 });
 
 const riskTitle = computed(() => {
-  if (riskLevel.value === "high") return t('files.riskHighTitle');
-  if (riskLevel.value === "medium") return t('files.riskMediumTitle');
+  if (riskLevel.value === "high") return t("files.riskHighTitle");
+  if (riskLevel.value === "medium") return t("files.riskMediumTitle");
   return "";
 });
 

@@ -29,6 +29,9 @@ export async function getCategories(): Promise<CategoryInfo> {
 }
 
 export async function classifyPath(path: string): Promise<ClassifyResult> {
-  const res = await fetchURL(`/api/classify?path=${encodeURIComponent(path)}`, {});
+  const res = await fetchURL(
+    `/api/classify?path=${encodeURIComponent(path)}`,
+    {}
+  );
   return (await res.json()) as ClassifyResult;
 }

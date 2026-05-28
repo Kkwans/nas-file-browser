@@ -16,13 +16,18 @@
           autofocus
         />
         <i v-show="ongoing" class="material-icons spin">autorenew</i>
-        <span v-show="results.length > 0" class="result-count">{{ results.length }}</span>
+        <span v-show="results.length > 0" class="result-count">{{
+          results.length
+        }}</span>
       </div>
     </header-bar>
 
     <div class="search-page-content">
       <!-- 初始状态：搜索类型快捷入口 -->
-      <div v-if="prompt.length === 0 && results.length === 0" class="search-hints">
+      <div
+        v-if="prompt.length === 0 && results.length === 0"
+        class="search-hints"
+      >
         <p>{{ t("search.typeToSearch") }}</p>
         <div class="search-types">
           <div
@@ -49,7 +54,10 @@
       </div>
 
       <!-- 无结果 -->
-      <div v-else-if="!ongoing && prompt.length > 0 && results.length === 0" class="search-empty">
+      <div
+        v-else-if="!ongoing && prompt.length > 0 && results.length === 0"
+        class="search-empty"
+      >
         <i class="material-icons">search_off</i>
         <p>{{ t("search.noResults") }}</p>
       </div>
@@ -68,8 +76,12 @@
             <span class="search-result-path">{{ item.path }}</span>
           </div>
           <div class="search-result-meta">
-            <span v-if="!item.isDir" class="search-result-size">{{ formatSize(item.size) }}</span>
-            <span v-if="item.modified" class="search-result-time">{{ formatTime(item.modified) }}</span>
+            <span v-if="!item.isDir" class="search-result-size">{{
+              formatSize(item.size)
+            }}</span>
+            <span v-if="item.modified" class="search-result-time">{{
+              formatTime(item.modified)
+            }}</span>
           </div>
         </router-link>
       </div>
@@ -85,7 +97,15 @@ import { useFileStore } from "@/stores/file";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import dayjs from "dayjs";
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue";
 import { throttle } from "lodash-es";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -110,7 +130,9 @@ const inputRef = ref<HTMLInputElement | null>(null);
 const resultsRef = ref<HTMLElement | null>(null);
 let searchAbortController = new AbortController();
 
-const filteredResults = computed(() => results.value.slice(0, resultsCount.value));
+const filteredResults = computed(() =>
+  results.value.slice(0, resultsCount.value)
+);
 
 onMounted(() => {
   inputRef.value?.focus();
@@ -247,7 +269,9 @@ const fileIcon = (item: any): string => {
   border-radius: 12px;
   background: var(--surfaceSecondary);
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition:
+    background 0.2s,
+    transform 0.1s;
   color: var(--textPrimary);
 }
 

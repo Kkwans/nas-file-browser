@@ -14,7 +14,9 @@
         <li><strong>Shift + ↑ ↓</strong> - {{ $t("help.arrowSelect") }}</li>
         <li><strong>Enter</strong> - {{ $t("help.enterOpen") }}</li>
         <li><strong>Home / End</strong> - {{ $t("help.homeEnd") }}</li>
-        <li><strong>PageUp / PageDown</strong> - {{ $t("help.pageUpDown") }}</li>
+        <li>
+          <strong>PageUp / PageDown</strong> - {{ $t("help.pageUpDown") }}
+        </li>
         <li><strong>CTRL + S</strong> - {{ $t("help.ctrl.s") }}</li>
         <li><strong>CTRL + C</strong> - {{ $t("help.ctrlCopy") }}</li>
         <li><strong>CTRL + X</strong> - {{ $t("help.ctrlCut") }}</li>

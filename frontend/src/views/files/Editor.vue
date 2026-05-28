@@ -19,7 +19,9 @@
           {{ langCaption }}
         </span>
         <action
-          :icon="showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'"
+          :icon="
+            showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
+          "
           :label="t('buttons.toggleLineNumbers')"
           @action="toggleLineNumbers()"
         />
@@ -57,7 +59,11 @@
     </div>
     <template v-else>
       <!-- Vditor 容器（Markdown 文件） -->
-      <div v-if="isMarkdownFile" id="vditor-mount" class="vditor-mount markdown-editor-active"></div>
+      <div
+        v-if="isMarkdownFile"
+        id="vditor-mount"
+        class="vditor-mount markdown-editor-active"
+      ></div>
       <!-- Ace 编辑器（非 Markdown 文件） -->
       <form v-else id="editor"></form>
     </template>
@@ -68,7 +74,12 @@
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
-import { loadMarkdownResources, loadHighlight, isDarkTheme, highlightAndAnnotateCodeBlocks } from "@/utils/externalResources";
+import {
+  loadMarkdownResources,
+  loadHighlight,
+  isDarkTheme,
+  highlightAndAnnotateCodeBlocks,
+} from "@/utils/externalResources";
 import ace, { Ace, version as ace_version } from "ace-builds";
 import "ace-builds/src-noconflict/ext-language_tools";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -144,13 +155,15 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("beforeunload", handlePageChange);
-  const mountEl = document.getElementById('vditor-mount');
+  const mountEl = document.getElementById("vditor-mount");
   if (mountEl) {
-    mountEl.removeEventListener('click', handleOutlineCapture, true);
+    mountEl.removeEventListener("click", handleOutlineCapture, true);
   }
   _outlineHandlerBound = false;
   if (vditorInstance) {
-    try { vditorInstance.destroy(); } catch {}
+    try {
+      vditorInstance.destroy();
+    } catch {}
     vditorInstance = null;
   }
   if (aceEditor) {
@@ -166,7 +179,7 @@ onBeforeRouteUpdate((to, from, next) => {
   }
 
   const isDirty = isMarkdownFile
-    ? (vditorInstance && userEdited && mdInitialized)
+    ? vditorInstance && userEdited && mdInitialized
     : !aceEditor?.session.getUndoManager().isClean();
 
   if (!isDirty) {
@@ -214,40 +227,60 @@ const initVditor = async (content: string) => {
   initialContent = content;
   mdInitialized = false;
   userEdited = false;
-  await initVditorWithMode(content, 'ir');
+  await initVditorWithMode(content, "ir");
 };
 
 const loadVditorResources = async () => {
   await loadMarkdownResources();
 };
 
-const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
+const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
   await loadVditorResources();
 
   const VditorClass = (window as any).Vditor;
-  const mountEl = document.getElementById('vditor-mount');
+  const mountEl = document.getElementById("vditor-mount");
   if (!mountEl) return;
 
   const isDark = isDarkTheme();
 
-  vditorInstance = new VditorClass('vditor-mount', {
+  vditorInstance = new VditorClass("vditor-mount", {
     value: content,
-    lang: 'zh_CN',
-    theme: isDark ? 'dark' : 'classic',
+    lang: "zh_CN",
+    theme: isDark ? "dark" : "classic",
     mode: mode,
     toolbar: [
-      'emoji', 'headings', 'bold', 'italic', 'strike', '|',
-      'line', 'quote', 'list', 'ordered-list', 'check', '|',
-      'code', 'inline-code', 'table', '|',
-      'link', 'upload', '|',
-      'undo', 'redo', '|',
-      'edit-mode', 'preview', 'fullscreen', '|',
+      "emoji",
+      "headings",
+      "bold",
+      "italic",
+      "strike",
+      "|",
+      "line",
+      "quote",
+      "list",
+      "ordered-list",
+      "check",
+      "|",
+      "code",
+      "inline-code",
+      "table",
+      "|",
+      "link",
+      "upload",
+      "|",
+      "undo",
+      "redo",
+      "|",
+      "edit-mode",
+      "preview",
+      "fullscreen",
+      "|",
       {
-        name: 'source-mode',
-        tipPosition: 's',
-        tip: t('buttons.sourceMode'),
+        name: "source-mode",
+        tipPosition: "s",
+        tip: t("buttons.sourceMode"),
         icon: '<svg viewBox="0 0 1024 1024"><path d="M586.185 280.418l44.206-44.206L816 421.812l-185.609 185.61-44.206-44.207L727.588 421.812zM437.815 743.582l-44.206 44.206L208 602.188l185.609-185.61 44.206 44.207L296.412 602.188z"/></svg>',
-        click: () => switchMode('sv'),
+        click: () => switchMode("sv"),
       },
     ],
     toolbarConfig: {
@@ -255,17 +288,17 @@ const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
     },
     outline: {
       enable: true,
-      position: 'right',
+      position: "right",
     },
     counter: {
       enable: true,
     },
     typewriterMode: true,
     undoDelay: 200,
-    tab: '\t',
+    tab: "\t",
     preview: {
       theme: {
-        current: isDark ? 'dark' : 'light',
+        current: isDark ? "dark" : "light",
       },
       markdown: {
         sanitize: true,
@@ -303,13 +336,13 @@ const handleOutlineCapture = (e: MouseEvent) => {
   if (!target) return;
 
   // 检查是否点击了展开/折叠按钮，放行
-  if (target.closest('.vditor-outline__action')) return;
+  if (target.closest(".vditor-outline__action")) return;
 
   // 向上查找带有 data-target-id 的元素
-  const outlineItem = target.closest('[data-target-id]') as HTMLElement;
+  const outlineItem = target.closest("[data-target-id]") as HTMLElement;
   if (!outlineItem) return;
 
-  const targetId = outlineItem.getAttribute('data-target-id');
+  const targetId = outlineItem.getAttribute("data-target-id");
   if (!targetId) return;
 
   e.preventDefault();
@@ -320,7 +353,7 @@ const handleOutlineCapture = (e: MouseEvent) => {
   if (!headingEl) return;
 
   // 找到实际的滚动容器（vditor-mount 内部的可滚动元素）
-  const mountEl = document.getElementById('vditor-mount');
+  const mountEl = document.getElementById("vditor-mount");
   if (!mountEl) return;
 
   // 在 IR/SV 模式下，内容区域是可滚动的
@@ -329,8 +362,10 @@ const handleOutlineCapture = (e: MouseEvent) => {
   let cur: HTMLElement | null = headingEl;
   while (cur && cur !== mountEl) {
     const style = window.getComputedStyle(cur);
-    if (/(auto|scroll)/.test(style.overflow + style.overflowY) &&
-        cur.scrollHeight > cur.clientHeight) {
+    if (
+      /(auto|scroll)/.test(style.overflow + style.overflowY) &&
+      cur.scrollHeight > cur.clientHeight
+    ) {
       scrollContainer = cur;
       break;
     }
@@ -341,20 +376,21 @@ const handleOutlineCapture = (e: MouseEvent) => {
     // 标题在内部滚动容器中，手动计算偏移量
     const containerRect = scrollContainer.getBoundingClientRect();
     const headingRect = headingEl.getBoundingClientRect();
-    const offset = headingRect.top - containerRect.top + scrollContainer.scrollTop - 20;
-    scrollContainer.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+    const offset =
+      headingRect.top - containerRect.top + scrollContainer.scrollTop - 20;
+    scrollContainer.scrollTo({ top: Math.max(0, offset), behavior: "smooth" });
   } else {
     // 回退: scrollIntoView 或 window scrollTo
-    headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    headingEl.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 };
 
 const setupOutlineClickHandler = () => {
-  const mountEl = document.getElementById('vditor-mount');
+  const mountEl = document.getElementById("vditor-mount");
   if (!mountEl || _outlineHandlerBound) return;
 
   // 使用捕获阶段监听，确保在 Vditor 的冒泡处理器之前执行
-  mountEl.addEventListener('click', handleOutlineCapture, true);
+  mountEl.addEventListener("click", handleOutlineCapture, true);
   _outlineHandlerBound = true;
 };
 
@@ -362,22 +398,24 @@ const initVditorPreview = async (content: string) => {
   await loadHighlight();
 
   const VditorClass = (window as any).Vditor;
-  const mountEl = document.getElementById('vditor-mount');
+  const mountEl = document.getElementById("vditor-mount");
   if (!mountEl) return;
 
   const isDark = isDarkTheme();
 
   // 阅读模式：用 Vditor 的预览方法渲染为纯 HTML
   // md2html 可能返回 Promise 或 string，统一用 Promise.resolve 包裹确保 await
-  const htmlResult = VditorClass.md2html(content, { theme: isDark ? 'dark' : 'light' });
+  const htmlResult = VditorClass.md2html(content, {
+    theme: isDark ? "dark" : "light",
+  });
   const html = await Promise.resolve(htmlResult);
-  if (typeof html !== 'string') {
-    console.error('[Vditor] md2html returned non-string:', html);
+  if (typeof html !== "string") {
+    console.error("[Vditor] md2html returned non-string:", html);
     return;
   }
 
-  const previewElement = document.createElement('div');
-  previewElement.className = 'vditor-reset vditor-preview--content';
+  const previewElement = document.createElement("div");
+  previewElement.className = "vditor-reset vditor-preview--content";
   previewElement.innerHTML = html;
   mountEl.appendChild(previewElement);
 
@@ -387,7 +425,9 @@ const initVditorPreview = async (content: string) => {
   // 保存一个伪实例，getValue 时返回原始内容
   vditorInstance = {
     getValue: () => content,
-    destroy: () => { previewElement.remove(); },
+    destroy: () => {
+      previewElement.remove();
+    },
   };
   // 预览模式基线与实际内容一致
   mdInitialized = true;
@@ -427,7 +467,8 @@ const initAceEditor = (content: string) => {
     cursorStyle: "smooth",
     fadeFoldWidgets: false,
     // 字体渲染
-    fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', 'Monaco', monospace",
+    fontFamily:
+      "'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', 'Monaco', monospace",
     fontSize: parseInt(localStorage.getItem("editorFontSize") || "14"),
     // 偏好设置
     tabSize: 2,
@@ -461,8 +502,6 @@ const toggleLineNumbers = () => {
   });
 };
 
-
-
 const switchMode = async (mode: "ir" | "sv" | "preview") => {
   if (!vditorInstance) return;
   if (currentMode.value === mode) return;
@@ -474,7 +513,9 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
   // userEdited 保持不变，因为用户之前可能已经编辑过
 
   // 销毁旧实例，按新模式重建（Vditor 不支持运行时切换模式）
-  try { vditorInstance.destroy(); } catch {}
+  try {
+    vditorInstance.destroy();
+  } catch {}
   vditorInstance = null;
   mdInitialized = false;
 
@@ -482,9 +523,9 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
   _outlineHandlerBound = false;
 
   // 等待 DOM 更新
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise((r) => setTimeout(r, 50));
 
-  if (mode === 'preview') {
+  if (mode === "preview") {
     // 阅读模式：用 Vditor 的预览模式（只有预览面板）
     await initVditorPreview(content);
   } else {
@@ -534,7 +575,7 @@ const save = async (throwError?: boolean) => {
   buttons.loading("save");
 
   try {
-    let content = '';
+    let content = "";
     if (isMarkdownFile && vditorInstance) {
       content = vditorInstance.getValue();
     } else if (aceEditor) {
@@ -564,7 +605,7 @@ const close = () => {
   }
 
   const isDirty = isMarkdownFile
-    ? (vditorInstance && userEdited && mdInitialized)
+    ? vditorInstance && userEdited && mdInitialized
     : !aceEditor?.session.getUndoManager().isClean();
 
   if (!isDirty) {

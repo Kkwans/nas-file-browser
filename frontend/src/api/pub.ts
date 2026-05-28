@@ -63,9 +63,9 @@ export function download(
   }
 
   // Use a temporary <a> element to trigger download without popup blocker issues
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.style.display = 'none';
+  a.style.display = "none";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

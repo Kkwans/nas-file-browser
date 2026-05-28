@@ -12,7 +12,7 @@ export async function upload(
   filePath: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: any
+  onupload: (progress: { loaded: number }) => void
 ) {
   if (!tusSettings) {
     // Shouldn't happen as we check for tus support before calling this function

@@ -114,7 +114,7 @@ export const useUploadStore = defineStore("upload", () => {
       if (upload.type === "dir") {
         await api.post(upload.path).catch($showError);
       } else {
-        const onUpload = (event: ProgressEvent) => {
+        const onUpload = (event: { loaded: number }) => {
           upload.rawProgress.sentBytes = event.loaded;
         };
 

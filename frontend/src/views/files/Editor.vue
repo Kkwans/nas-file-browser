@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { files as api } from "@/api";
+import type { ApiContent } from "@/types/api";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 import {
@@ -581,7 +582,7 @@ const save = async (throwError?: boolean) => {
     } else if (aceEditor) {
       content = aceEditor.getValue();
     }
-    await api.put(route.path, content);
+    await api.put(route.path, content as ApiContent);
     if (isMarkdownFile) {
       userEdited = false;
     }

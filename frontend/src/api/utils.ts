@@ -64,8 +64,8 @@ export async function fetchURL(
   return res;
 }
 
-export async function fetchJSON<T>(url: string, opts?: any): Promise<T> {
-  const res = await fetchURL(url, opts);
+export async function fetchJSON<T>(url: string, opts?: ApiOpts): Promise<T> {
+  const res = await fetchURL(url, opts ?? {});
 
   if (res.status === 200) {
     return res.json() as Promise<T>;

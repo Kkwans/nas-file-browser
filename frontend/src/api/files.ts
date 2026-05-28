@@ -5,7 +5,12 @@ import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import type { ApiMethod, ApiOpts, ApiContent, ChecksumAlg } from "@/types/api";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
-import type { Resource, ResourceItem, RecursiveEntry } from "@/types/file";
+import type {
+  Resource,
+  ResourceItem,
+  RecursiveEntry,
+  DownloadFormat,
+} from "@/types/file";
 
 export async function fetch(url: string, signal?: AbortSignal) {
   const encoding = isEncodableResponse(url);
@@ -36,7 +41,7 @@ export async function fetch(url: string, signal?: AbortSignal) {
   if (data.isDir) {
     if (!data.url.endsWith("/")) data.url += "/";
     // Perhaps change the any
-    data.items = data.items.map((item: any, index: any) => {
+    data.items = data.items.map((item: ResourceItem, index: number) => {
       item.index = index;
       item.url = `${data.url}${encodeURIComponent(item.name)}`;
 
@@ -57,7 +62,11 @@ export async function fetchAll(url: string): Promise<RecursiveEntry[]> {
   return (await res.json()) as RecursiveEntry[];
 }
 
-async function resourceAction(url: string, method: ApiMethod, content?: any) {
+async function resourceAction(
+  url: string,
+  method: ApiMethod,
+  content?: ApiContent
+) {
   url = removePrefix(url);
 
   const opts: ApiOpts = {
@@ -77,11 +86,11 @@ export async function remove(url: string) {
   return resourceAction(url, "DELETE");
 }
 
-export async function put(url: string, content = "") {
+export async function put(url: string, content: ApiContent = "") {
   return resourceAction(url, "PUT", content);
 }
 
-export function download(format: any, ...files: string[]) {
+export function download(format: DownloadFormat, ...files: string[]) {
   let url = `${baseURL}/api/raw`;
 
   if (files.length === 1) {
@@ -115,7 +124,7 @@ export async function post(
   url: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: any = () => {}
+  onupload: (progress: { loaded: number }) => void = () => {}
 ) {
   // Use the pre-existing API if:
   const useResourcesApi =
@@ -135,7 +144,7 @@ async function postResources(
   url: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: any
+  onupload: (progress: { loaded: number }) => void = () => {}
 ) {
   url = removePrefix(url);
 
@@ -225,7 +234,7 @@ export async function checksum(url: string, algo: ChecksumAlg) {
   return (await data.json()).checksums[algo];
 }
 
-export function getDownloadURL(file: ResourceItem, inline: any) {
+export function getDownloadURL(file: ResourceItem, inline: boolean) {
   const params = {
     ...(inline && { inline: "true" }),
   };

@@ -491,7 +491,6 @@ import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
 
 const showLimit = ref<number>(50);
-const columnWidth = ref<number>(280);
 const tagsStore = useTagsStore();
 const dragCounter = ref<number>(0);
 const width = ref<number>(window.innerWidth);
@@ -1143,9 +1142,8 @@ const drop = async (event: DragEvent) => {
     el.classList.contains("item") &&
     el.dataset.dir === "true"
   ) {
-    // Get url from ListingItem instance
-    // TODO: Don't know what is happening here
-    path = el.__vue__.url;
+    // Get url from data attribute
+    path = el.dataset.url || path;
 
     try {
       (await api.fetch(path)).items;
@@ -1308,24 +1306,6 @@ const download = () => {
       api.download(format, ...files);
     },
   });
-};
-
-const switchView = async () => {
-  layoutStore.closeHovers();
-
-  const modes: Record<string, string> = {
-    list: 'mosaic',
-    mosaic: 'mosaic gallery',
-    'mosaic gallery': 'compact',
-    compact: 'list',
-  };
-
-  const data = {
-    id: authStore.user?.id,
-    viewMode: (modes[currentViewMode.value] || 'list') as ViewModeType,
-  };
-
-  selectViewMode(data.viewMode);
 };
 
 const toggleViewDropdown = () => {

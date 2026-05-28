@@ -94,7 +94,6 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
-const editor = ref<Ace.Editor | null>(null);
 const isMarkdownFile =
   fileStore.req?.name.endsWith(".md") ||
   fileStore.req?.name.endsWith(".markdown");
@@ -105,8 +104,7 @@ const langCaption = ref("");
 const currentMode = ref<"ir" | "sv" | "preview">("ir");
 let vditorInstance: any = null;
 let aceEditor: Ace.Editor | null = null;
-let savedContent = ""; // 保存一份内容用于模式切换时重建
-let initialMdContent = ""; // 记录 Markdown 初始内容用于 dirty 检测
+// Content tracking removed - unused variables
 let mdInitialized = false; // Vditor 是否已完成初始化
 let userEdited = false; // 用户是否实际修改过内容
 let initialContent = ""; // 文件初始内容，用于 close 时的内容比对兜底
@@ -213,8 +211,6 @@ onBeforeRouteUpdate((to, from, next) => {
 });
 
 const initVditor = async (content: string) => {
-  savedContent = content;
-  initialMdContent = content;
   initialContent = content;
   mdInitialized = false;
   userEdited = false;
@@ -281,8 +277,6 @@ const initVditorWithMode = async (content: string, mode: 'ir' | 'sv') => {
       // 这样即使 Vditor 对内容做了微调（如尾部换行），也不会误判为 dirty
       try {
         const normalized = vditorInstance.getValue();
-        savedContent = normalized;
-        initialMdContent = normalized;
         initialContent = normalized;
       } catch {}
       mdInitialized = true;
@@ -396,8 +390,6 @@ const initVditorPreview = async (content: string) => {
     destroy: () => { previewElement.remove(); },
   };
   // 预览模式基线与实际内容一致
-  savedContent = content;
-  initialMdContent = content;
   mdInitialized = true;
 };
 
@@ -477,7 +469,6 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
 
   // 保存当前内容
   const content = vditorInstance.getValue();
-  savedContent = content;
   currentMode.value = mode;
   // 模式切换不算用户编辑
   // userEdited 保持不变，因为用户之前可能已经编辑过
@@ -551,7 +542,6 @@ const save = async (throwError?: boolean) => {
     }
     await api.put(route.path, content);
     if (isMarkdownFile) {
-      initialMdContent = content;
       userEdited = false;
     }
     initialContent = content;

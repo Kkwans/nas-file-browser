@@ -91,7 +91,7 @@
       <div class="hint-item"><kbd>Esc</kbd> {{ t('buttons.close') }}</div>
     </div>
 
-    <img class="image-ex-img image-ex-img-center" ref="imgex" @load="onLoad" />
+    <img class="image-ex-img image-ex-img-center" ref="imgex" @load="onLoad" :alt="fileName" />
   </div>
 </template>
 

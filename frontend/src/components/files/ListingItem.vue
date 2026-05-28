@@ -17,6 +17,7 @@
     @touchmove="handleTouchMove"
     :data-dir="isDir"
     :data-type="type"
+    :data-url="url"
     :aria-label="name"
     :aria-selected="isSelected"
     :data-ext="getExtension(name).toLowerCase()"
@@ -31,7 +32,7 @@
     </div>
 
     <div>
-      <p class="name">
+      <div class="name">
         {{ name }}
         <i
           v-if="isDir && riskLevel !== 'low'"
@@ -70,7 +71,7 @@
         <div v-if="showTagPicker" class="tag-picker-popup" @click.stop>
           <TagPicker :path="path || ''" @manage="openTagManager" />
         </div>
-      </p>
+      </div>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
       <p v-else class="size" :data-order="humanSize()">{{ humanSize() }}</p>
@@ -213,10 +214,6 @@ const toggleTagPicker = (e: Event) => {
   showTagPicker.value = !showTagPicker.value;
 };
 
-const closeTagPicker = () => {
-  showTagPicker.value = false;
-};
-
 const openTagManager = () => {
   showTagPicker.value = false;
   layoutStore.showHover({ prompt: "tag-manager" });
@@ -290,11 +287,11 @@ const drop = async (event: Event) => {
     }
   }
 
-  // Get url from ListingItem instance
+  // Get url from data attribute
   if (el === null) {
     return;
   }
-  const path = el.__vue__.url;
+  const path = el.dataset.url || props.url;
 
   const action = (overwrite?: boolean, rename?: boolean) => {
     const action =

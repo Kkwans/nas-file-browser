@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onBeforeUnmount, nextTick } from "vue";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
 import "videojs-mobile-ui";

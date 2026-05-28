@@ -84,7 +84,6 @@ import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import { loadMarkdownResources, highlightAndAnnotateCodeBlocks } from "@/utils/externalResources";
 import dayjs from "dayjs";
-import url from "@/utils/url";
 import { useRouter, useRoute } from "vue-router";
 
 export default {

@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useFavoritesStore } from "@/stores/favorites";
 
 const props = defineProps<{

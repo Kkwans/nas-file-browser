@@ -83,7 +83,7 @@
         <!-- Ungrouped favorites -->
         <template v-if="favoritesStore.favoritesByGroup[''] && favoritesStore.favoritesByGroup[''].length > 0">
           <button
-            v-for="(fav, index) in favoritesStore.favoritesByGroup['']"
+            v-for="fav in favoritesStore.favoritesByGroup['']"
             :key="fav.id"
             class="action favorite-item"
             draggable="true"
@@ -478,9 +478,9 @@ export default {
     const sidebarWidth = ref(parseInt(localStorage.getItem('nas-file-browser-sidebar-width') || '256'));
     // Set CSS variable for main content area adjustment
     document.documentElement.style.setProperty('--sidebar-width', sidebarWidth.value + 'px');
-    let isResizing = false;
-    let startX = 0;
-    let startWidth = 0;
+    const isResizing = ref(false);
+    const startX = ref(0);
+    const startWidth = ref(0);
     return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition, sidebarWidth, isResizing, startX, startWidth, showCreateGroup, newGroupName, collapsedGroups, dragOverGroupId, draggedFavId };
   },
   components: {
@@ -656,11 +656,11 @@ export default {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', favId);
     },
-    onFavDragOverItem(event, favId) {
+    onFavDragOverItem(event) {
       event.dataTransfer.dropEffect = 'move';
     },
     onFavDragLeaveItem() {},
-    async onFavDropOnItem(event, targetFavId) {
+    async onFavDropOnItem(event) {
       event.preventDefault();
       this.dragOverGroupId = '';
       // If dropped on a favorite, no action needed for now

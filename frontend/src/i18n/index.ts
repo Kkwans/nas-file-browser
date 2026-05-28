@@ -13,12 +13,11 @@ export const i18n = createI18n({
 
 dayjs.locale("zh-cn");
 
-export function setLocale(_locale: string) {
-  // 固定中文，无需切换
+export function setLocale(): void {
   dayjs.locale("zh-cn");
 }
 
-export function setHtmlLocale(_locale: string) {
+export function setHtmlLocale(): void {
   const html = document.documentElement;
   html.lang = "zh-cn";
   html.dir = "ltr";

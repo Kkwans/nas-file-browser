@@ -25,12 +25,12 @@ export const useAuthStore = defineStore("auth", {
         return;
       }
 
-      setLocale("zh-cn");
+      setLocale();
       this.user = user;
     },
     updateUser(user: Partial<IUser>) {
       if (user.locale) {
-        setLocale(user.locale);
+        setLocale();
       }
 
       this.user = { ...this.user, ...cloneDeep(user) } as IUser;

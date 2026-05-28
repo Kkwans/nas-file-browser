@@ -1,11 +1,6 @@
-export {}
+export {};
 
-import type {
-  ViewModeType,
-  Sorting,
-  Permissions,
-  UserTheme,
-} from "./user";
+import type { ViewModeType, Sorting, Permissions, UserTheme } from "./user";
 
 export interface ISettings {
   signup: boolean;

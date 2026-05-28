@@ -1,7 +1,7 @@
 // This file contains type definitions used globally across the application.
 // Types can be imported via `import type { X } from "@/types/file"` or used as ambient globals.
 
-export {}
+export {};
 
 interface ResourceBase {
   path: string;

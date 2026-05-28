@@ -4,12 +4,7 @@ import { baseURL } from "@/utils/constants";
 import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
-import type {
-  ClipItem,
-  Resource,
-  ResourceItem,
-  RecursiveEntry,
-} from "@/types/file";
+import type { Resource, ResourceItem, RecursiveEntry } from "@/types/file";
 
 export async function fetch(url: string, signal?: AbortSignal) {
   const encoding = isEncodableResponse(url);

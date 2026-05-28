@@ -508,10 +508,7 @@ import ContextMenu from "@/components/ContextMenu.vue";
 import LoadingSkeleton from "@/components/LoadingSkeleton.vue";
 import type {
   ResourceItem,
-  Resource,
-  ClipItem,
   PasteItem,
-  MoveCopyItem,
   ConflictingResource,
 } from "@/types/file";
 import type { ViewModeType } from "@/types/user";

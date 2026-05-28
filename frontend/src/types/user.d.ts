@@ -1,4 +1,4 @@
-export {}
+export {};
 
 export interface IUser {
   id: number;
@@ -20,22 +20,6 @@ export interface IUser {
 }
 
 export type ViewModeType = "list" | "mosaic" | "mosaic gallery" | "compact";
-
-interface IUserForm {
-  id?: number;
-  username?: string;
-  password?: string;
-  scope?: string;
-  locale?: string;
-  perm?: Permissions;
-  commands?: string[];
-  rules?: IRule[];
-  lockPassword?: boolean;
-  hideDotfiles?: boolean;
-  singleClick?: boolean;
-  redirectAfterCopyMove?: boolean;
-  dateFormat?: boolean;
-}
 
 export interface Permissions {
   admin: boolean;

@@ -49,7 +49,7 @@
         <i
           v-if="isFavorited"
           class="material-icons favorite-group-btn"
-          :title="$t('sidebar.assignToGroup') || '收藏到分组'"
+          :title="$t('sidebar.assignToGroup')"
           @click.stop.prevent="toggleFavGroupPicker"
         >folder_special</i>
         <div v-if="showFavGroupPicker" class="fav-group-picker-popup" @click.stop>

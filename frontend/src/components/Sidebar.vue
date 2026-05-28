@@ -43,7 +43,7 @@
           <span>{{ $t("sidebar.favorites") }}</span>
           <button
             class="section-action-btn"
-            :title="$t('sidebar.createGroup') || 'New Group'"
+            :title="$t('sidebar.createGroup')"
             @click.stop.prevent="showCreateGroup = !showCreateGroup"
           >
             <i class="material-icons">create_new_folder</i>
@@ -63,7 +63,7 @@
         <div v-if="showCreateGroup" class="create-group-input">
           <input
             v-model="newGroupName"
-            :placeholder="$t('sidebar.groupNamePlaceholder') || 'Group name...'"
+            :placeholder="$t('sidebar.groupNamePlaceholder')"
             @keyup.enter="createGroup"
             @keyup.escape="showCreateGroup = false"
             ref="groupInputRef"
@@ -127,7 +127,7 @@
             <span class="category-count">{{ (favoritesStore.favoritesByGroup[group.id] || []).length }}</span>
             <button
               class="section-action-btn"
-              :title="$t('sidebar.deleteGroup') || 'Delete Group'"
+              :title="$t('sidebar.deleteGroup')"
               @click.stop.prevent="deleteGroup(group.id)"
             >
               <i class="material-icons">close</i>
@@ -161,7 +161,7 @@
               >close</i>
             </button>
             <div v-if="(favoritesStore.favoritesByGroup[group.id] || []).length === 0" class="section-empty">
-              <span>{{ $t('sidebar.noFavoritesInGroup') || 'No favorites in this group' }}</span>
+              <span>{{ $t('sidebar.noFavoritesInGroup') }}</span>
             </div>
           </template>
         </div>
@@ -282,7 +282,7 @@
             <button
               class="action category-group-header category-group-nav"
               @click="navigateCategoryFirst(group)"
-              :title="$t('sidebar.viewCategoryContents') || 'View contents'"
+              :title="$t('sidebar.viewCategoryContents')"
             >
               <i class="material-icons" :style="{ color: group.color }">{{ group.icon }}</i>
               <span>{{ group.name }}</span>

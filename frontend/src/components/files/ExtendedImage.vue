@@ -50,33 +50,33 @@
       <div class="toolbar-divider"></div>
       <button
         @click.stop="zoomFit"
-        :title="t('buttons.fitToScreen') || 'Fit to screen'"
+        :title="t('buttons.fitToScreen')"
       >
         <i class="material-icons">fit_screen</i>
       </button>
       <button
         @click.stop="zoomOriginal"
-        :title="t('buttons.originalSize') || 'Original size (1:1)'"
+        :title="t('buttons.originalSize')"
       >
         <i class="material-icons">aspect_ratio</i>
       </button>
       <div class="toolbar-divider"></div>
       <button
         @click.stop="rotateLeft"
-        :title="t('buttons.rotateLeft') || 'Rotate left'"
+        :title="t('buttons.rotateLeft')"
       >
         <i class="material-icons">rotate_left</i>
       </button>
       <button
         @click.stop="rotateRight"
-        :title="t('buttons.rotateRight') || 'Rotate right'"
+        :title="t('buttons.rotateRight')"
       >
         <i class="material-icons">rotate_right</i>
       </button>
       <div class="toolbar-divider"></div>
       <button
         @click.stop="zoomAuto"
-        :title="t('buttons.toggleZoom') || 'Toggle zoom'"
+        :title="t('buttons.toggleZoom')"
       >
         <i class="material-icons">search</i>
       </button>
@@ -84,10 +84,10 @@
 
     <!-- Keyboard hints (bottom-right) -->
     <div class="image-viewer-hints" :class="{ visible: showUI && imageLoaded }">
-      <div class="hint-item"><kbd>+</kbd> / <kbd>-</kbd> {{ t('buttons.zoom') || 'Zoom' }}</div>
-      <div class="hint-item"><kbd>0</kbd> {{ t('buttons.fitToScreen') || 'Fit' }}</div>
-      <div class="hint-item"><kbd>1</kbd> {{ t('buttons.originalSize') || '1:1' }}</div>
-      <div class="hint-item"><kbd>R</kbd> {{ t('buttons.rotate') || 'Rotate' }}</div>
+      <div class="hint-item"><kbd>+</kbd> / <kbd>-</kbd> {{ t('buttons.zoom') }}</div>
+      <div class="hint-item"><kbd>0</kbd> {{ t('buttons.fitToScreen') }}</div>
+      <div class="hint-item"><kbd>1</kbd> {{ t('buttons.originalSize') }}</div>
+      <div class="hint-item"><kbd>R</kbd> {{ t('buttons.rotate') }}</div>
       <div class="hint-item"><kbd>Esc</kbd> {{ t('buttons.close') }}</div>
     </div>
 

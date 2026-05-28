@@ -2,7 +2,7 @@
   <div class="fav-group-picker" @click.stop>
     <div class="fav-group-picker-header">
       <span>{{ $t("sidebar.assignToGroup") || "收藏到分组" }}</span>
-      <button class="fav-group-picker-manage" @click="createNew" :title="$t('sidebar.createGroup') || '新建分组'">
+      <button class="fav-group-picker-manage" @click="createNew" :title="$t('sidebar.createGroup')">
         <i class="material-icons">add</i>
       </button>
     </div>
@@ -32,7 +32,7 @@
     <div v-if="showCreate" class="fav-group-create">
       <input
         v-model="newGroupName"
-        :placeholder="$t('sidebar.groupNamePlaceholder') || '分组名称...'"
+        :placeholder="$t('sidebar.groupNamePlaceholder')"
         @keyup.enter="confirmCreate"
         @keyup.escape="cancelCreate"
         ref="createInput"

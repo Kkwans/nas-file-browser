@@ -11,7 +11,7 @@
     <template v-if="isLoggedIn">
       <button @click="toAccountSettings" class="action">
         <i class="material-icons">person</i>
-        <span>{{ user.username }}</span>
+        <span>{{ user?.username }}</span>
       </button>
       <button
         class="action"
@@ -90,9 +90,9 @@
             @click="navigateVolume(fav.path)"
             :title="fav.path"
             @dragstart="onFavDragStart($event, fav.id)"
-            @dragover.prevent="onFavDragOverItem($event, fav.id)"
+            @dragover.prevent="onFavDragOverItem($event)"
             @dragleave="onFavDragLeaveItem"
-            @drop="onFavDropOnItem($event, fav.id)"
+            @drop="onFavDropOnItem($event)"
             @dragend="onFavDragEnd"
           >
             <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
@@ -143,9 +143,9 @@
               @click="navigateVolume(fav.path)"
               :title="fav.path"
               @dragstart="onFavDragStart($event, fav.id)"
-              @dragover.prevent="onFavDragOverItem($event, fav.id)"
+              @dragover.prevent="onFavDragOverItem($event)"
               @dragleave="onFavDragLeaveItem"
-              @drop="onFavDropOnItem($event, fav.id)"
+              @drop="onFavDropOnItem($event)"
               @dragend="onFavDragEnd"
             >
               <i class="material-icons favorite-icon favorite-drag-handle">drag_indicator</i>
@@ -213,7 +213,7 @@
       </div>
 
       <!-- Storage Volumes Section (admin only) -->
-      <div v-if="user.perm.admin && volumesStore.displayVolumes.length > 0" class="volumes-section">
+      <div v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0" class="volumes-section">
         <button
           class="volumes-header"
           @click="toggleSection('volumes')"
@@ -267,7 +267,7 @@
       </div>
 
       <!-- Category Quick Navigation (admin only) -->
-      <div v-if="user.perm.admin && categoryGroups.length > 0" class="categories-section">
+      <div v-if="user?.perm?.admin && categoryGroups.length > 0" class="categories-section">
         <button
           class="categories-header"
           @click="toggleSection('categories')"
@@ -316,7 +316,7 @@
         </template>
       </div>
 
-      <div v-if="user.perm.create">
+      <div v-if="user?.perm?.create">
         <button
           @click="showHover('newDir')"
           class="action"
@@ -338,7 +338,7 @@
         </button>
       </div>
 
-      <div v-if="user.perm.admin">
+      <div v-if="user?.perm?.admin">
         <button
           class="action"
           @click="toGlobalSettings"
@@ -414,9 +414,10 @@
   </nav>
 </template>
 
-<script>
-import { reactive, ref } from "vue";
-import { mapActions, mapState } from "pinia";
+<script setup lang="ts">
+import { computed, inject, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -443,348 +444,373 @@ import prettyBytes from "pretty-bytes";
 
 const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };
 
-export default {
-  name: "sidebar",
-  setup() {
-    const usage = reactive(USAGE_DEFAULT);
-    const volumesStore = useVolumesStore();
-    const categoriesStore = useCategoriesStore();
-    const favoritesStore = useFavoritesStore();
-    const tagsStore = useTagsStore();
-    const expandedCategories = reactive({});
-    const collapsedSections = reactive({
-      favorites: false,
-      tags: false,
-      volumes: false,
-      categories: false,
-    });
-    // Load collapsed state from localStorage
-    try {
-      const saved = localStorage.getItem('nas-file-browser-collapsed-sections');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        Object.assign(collapsedSections, parsed);
-      }
-    } catch {}
-    const dragFromIndex = ref(-1);
-    const dragOverIndex = ref(-1);
-    const dragOverPosition = ref('');
-    // Group-related state
-    const showCreateGroup = ref(false);
-    const newGroupName = ref('');
-    const collapsedGroups = reactive({});
-    const dragOverGroupId = ref('');
-    const draggedFavId = ref('');
-    const sidebarWidth = ref(parseInt(localStorage.getItem('nas-file-browser-sidebar-width') || '256'));
-    // Set CSS variable for main content area adjustment
-    document.documentElement.style.setProperty('--sidebar-width', sidebarWidth.value + 'px');
-    const isResizing = ref(false);
-    const startX = ref(0);
-    const startWidth = ref(0);
-    return { usage, usageAbortController: new AbortController(), volumesStore, categoriesStore, favoritesStore, tagsStore, expandedCategories, collapsedSections, dragFromIndex, dragOverIndex, dragOverPosition, sidebarWidth, isResizing, startX, startWidth, showCreateGroup, newGroupName, collapsedGroups, dragOverGroupId, draggedFavId, _usageDebounceTimer: null };
-  },
-  components: {
-    ProgressBar,
-  },
-  inject: ["$showError"],
-  methods: {
-    ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
-    startResize(event) {
-      // Support both mouse and touch
-      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-      this.isResizing = true;
-      this.startX = clientX;
-      this.startWidth = this.sidebarWidth;
-      document.addEventListener('mousemove', this.onResize);
-      document.addEventListener('mouseup', this.stopResize);
-      document.addEventListener('touchmove', this.onResize, { passive: false });
-      document.addEventListener('touchend', this.stopResize);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    },
-    onResize(event) {
-      if (!this.isResizing) return;
-      // Prevent scrolling on touch
-      if (event.cancelable) event.preventDefault();
-      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-      const diff = clientX - this.startX;
-      const newWidth = Math.min(500, Math.max(180, this.startWidth + diff));
-      this.sidebarWidth = newWidth;
-      document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
-    },
-    stopResize() {
-      this.isResizing = false;
-      document.removeEventListener('mousemove', this.onResize);
-      document.removeEventListener('mouseup', this.stopResize);
-      document.removeEventListener('touchmove', this.onResize);
-      document.removeEventListener('touchend', this.stopResize);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      try {
-        localStorage.setItem('nas-file-browser-sidebar-width', this.sidebarWidth.toString());
-      } catch {}
-    },
-    resetSidebarWidth() {
-      const defaultWidth = 256;
-      this.sidebarWidth = defaultWidth;
-      document.documentElement.style.setProperty('--sidebar-width', defaultWidth + 'px');
-      try {
-        localStorage.setItem('nas-file-browser-sidebar-width', defaultWidth.toString());
-      } catch {}
-    },
-    abortOngoingFetchUsage() {
-      this.usageAbortController.abort();
-    },
-    debouncedFetchUsage() {
-      if (this._usageDebounceTimer) clearTimeout(this._usageDebounceTimer);
-      this._usageDebounceTimer = setTimeout(() => this.fetchUsage(), 300);
-    },
-    async fetchUsage() {
-      const path = this.$route.path.endsWith("/")
-        ? this.$route.path
-        : this.$route.path + "/";
-      let usageStats = USAGE_DEFAULT;
-      if (this.disableUsedPercentage) {
-        return Object.assign(this.usage, usageStats);
-      }
-      try {
-        this.abortOngoingFetchUsage();
-        this.usageAbortController = new AbortController();
-        const usage = await api.usage(path, this.usageAbortController.signal);
-        usageStats = {
-          used: prettyBytes(usage.used, { binary: true }),
-          total: prettyBytes(usage.total, { binary: true }),
-          usedPercentage: Math.round((usage.used / usage.total) * 100),
-        };
-      } finally {
-        return Object.assign(this.usage, usageStats);
-      }
-    },
-    volumeBarColor(percent) {
-      if (percent >= 90) return "var(--icon-red, #DA4453)";
-      if (percent >= 70) return "var(--icon-orange, #F5A623)";
-      return "var(--blue, #2196F3)";
-    },
-    toggleCategory(id) {
-      this.expandedCategories[id] = !this.expandedCategories[id];
-    },
-    toggleSection(id) {
-      this.collapsedSections[id] = !this.collapsedSections[id];
-      try {
-        localStorage.setItem('nas-file-browser-collapsed-sections', JSON.stringify(this.collapsedSections));
-      } catch {}
-    },
-    riskIcon(risk) {
-      if (risk === "high") return "warning";
-      if (risk === "medium") return "info";
-      return "check_circle";
-    },
-    navigateVolume(path) {
-      const isFile = isFileByExtension(path);
-      const url = isFile ? "/files" + path : "/files" + path + "/";
-      this.$router.push({ path: url });
-      this.closeHovers();
-    },
-    removeFavorite(id) {
-      this.favoritesStore.removeFavorite(id);
-    },
-    favoriteIcon(name) {
-      return isFileByExtension(name) ? getFileIcon(name) : 'folder';
-    },
-    async clearAllFavorites() {
-      if (this.favoritesStore.sortedFavorites.length === 0) return;
-      // Delete each favorite from backend then clear local state
-      const favs = [...this.favoritesStore.favorites];
-      for (const fav of favs) {
-        await this.favoritesStore.removeFavorite(fav.id);
-      }
-    },
-    async createGroup() {
-      const name = this.newGroupName.trim();
-      if (!name) return;
-      await this.favoritesStore.addGroup(name);
-      this.newGroupName = '';
-      this.showCreateGroup = false;
-    },
-    async deleteGroup(id) {
-      const result = await this.favoritesStore.deleteGroup(id);
-      if (result.conflict) {
-        this.$showError(new Error(this.$t('sidebar.deleteGroupConflict')));
-      }
-    },
-    toggleGroupCollapse(id) {
-      this.collapsedGroups[id] = !this.collapsedGroups[id];
-    },
-    onFavDragStart(event, favId) {
-      this.draggedFavId = favId;
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', favId);
-    },
-    onFavDragOverItem(event) {
-      event.dataTransfer.dropEffect = 'move';
-    },
-    onFavDragLeaveItem() {},
-    async onFavDropOnItem(event) {
-      event.preventDefault();
-      this.dragOverGroupId = '';
-      // If dropped on a favorite, no action needed for now
-    },
-    onFavDragOverGroup(event, groupId) {
-      event.dataTransfer.dropEffect = 'move';
-      this.dragOverGroupId = groupId;
-    },
-    onFavDragLeaveGroup(event) {
-      if (!event.currentTarget.contains(event.relatedTarget)) {
-        this.dragOverGroupId = '';
-      }
-    },
-    async onFavDropOnGroup(event, groupId) {
-      event.preventDefault();
-      this.dragOverGroupId = '';
-      if (this.draggedFavId) {
-        await this.favoritesStore.moveFavoriteToGroup(this.draggedFavId, groupId);
-        this.draggedFavId = '';
-      }
-    },
-    onFavDragEnd() {
-      this.dragFromIndex = -1;
-      this.dragOverIndex = -1;
-      this.dragOverPosition = '';
-      this.dragOverGroupId = '';
-      this.draggedFavId = '';
-    },
-    openTagManager() {
-      this.showHover({ prompt: 'tag-manager' });
-    },
-    filterByTag(tagId) {
-      this.tagsStore.setFilter(tagId);
-      this.closeHovers();
-    },
-    clearTagFilter() {
-      this.tagsStore.setFilter(null);
-    },
-    openSearch() {
-      this.$router.push('/search');
-      this.closeHovers();
-    },
-    navigateCategoryFirst(group) {
-      // Navigate to the first path in the category
-      if (group.paths.length > 0) {
-        this.navigateVolume(group.paths[0].path);
-      }
-      // Also expand the category to show all paths
-      this.expandedCategories[group.id] = true;
-    },
-    isDuplicateName(name, groupId) {
-      // Check if this folder name appears in multiple paths within the same category
-      const group = this.categoryGroups.find(g => g.id === groupId);
-      if (!group) return false;
-      return group.paths.filter(p => p.name === name).length > 1;
-    },
-    getVolumeLabel(path) {
-      // Extract volume label from path, e.g. /volume1/Docker -> volume1
-      const match = path.match(/^\/(volume\d+)/);
-      if (match) return match[1];
-      // For root paths, show the first directory
-      const parts = path.split('/').filter(Boolean);
-      if (parts.length > 0) return parts[0];
-      return '';
-    },
-    toRoot() {
-      this.$router.push({ path: "/files" });
-      this.closeHovers();
-    },
-    toAccountSettings() {
-      this.$router.push({ path: "/settings/profile" });
-      this.closeHovers();
-    },
-    toGlobalSettings() {
-      this.$router.push({ path: "/settings/global" });
-      this.closeHovers();
-    },
-    help() {
-      this.showHover("help");
-    },
-    logout: auth.logout,
-  },
-  computed: {
-    ...mapState(useAuthStore, ["user", "isLoggedIn"]),
-    ...mapState(useFileStore, ["isFiles", "reload"]),
-    ...mapState(useLayoutStore, ["currentPromptName"]),
-    active() {
-      return this.currentPromptName === "sidebar";
-    },
-    signup: () => signup,
-    hideLoginButton: () => hideLoginButton,
-    version: () => version,
-    disableExternal: () => disableExternal,
-    disableUsedPercentage: () => disableUsedPercentage,
-    canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
-    categoryGroups() {
-      const subDirs = this.volumesStore.allSubDirs;
-      if (!subDirs.length) return [];
+const $showError = inject<IToastError>("$showError")!;
+const route = useRoute();
+const router = useRouter();
 
-      const groups = {};
-      const catOrder = ["personal", "shared", "system", "other"];
+const authStore = useAuthStore();
+const fileStore = useFileStore();
+const layoutStore = useLayoutStore();
+const volumesStore = useVolumesStore();
+const categoriesStore = useCategoriesStore();
+const favoritesStore = useFavoritesStore();
+const tagsStore = useTagsStore();
 
-      // Initialize groups from categories
-      for (const cat of this.categoriesStore.categories) {
-        if (!groups[cat.id]) {
-          groups[cat.id] = {
-            id: cat.id,
-            name: cat.name,
-            icon: cat.icon,
-            color: cat.color,
-            paths: [],
-          };
-        }
-      }
+const { closeHovers, showHover } = layoutStore;
+const { user, isLoggedIn } = storeToRefs(authStore);
+const { isFiles, reload } = storeToRefs(fileStore);
+const { currentPromptName } = storeToRefs(layoutStore);
 
-      // Classify each subdirectory into a category based on its path
-      for (const dir of subDirs) {
-        const cat = this.categoriesStore.classifyPath(dir.path);
-        const risk = this.categoriesStore.getRiskLevel(dir.path);
-        if (groups[cat.id]) {
-          groups[cat.id].paths.push({
-            path: dir.path,
-            name: dir.name,
-            risk,
-            volumeType: '',
-          });
-        }
-      }
+// State
+const usage = reactive({ ...USAGE_DEFAULT });
+let usageAbortController = new AbortController();
+let usageDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-      // Sort by predefined order and filter empty groups
-      return catOrder
-        .filter((id) => groups[id] && groups[id].paths.length > 0)
-        .map((id) => groups[id]);
-    },
-  },
-  watch: {
-    $route: {
-      handler(to) {
-        if (to.path.includes("/files")) {
-          this.debouncedFetchUsage();
-        }
-      },
-      immediate: true,
-    },
-  },
-  mounted() {
-    // Load favorites and tags in parallel for all users
-    Promise.all([
-      this.favoritesStore.loadFavorites(),
-      this.tagsStore.loadTags(),
-    ]);
-    // Fetch volumes for admin users
-    if (this.user?.perm?.admin) {
-      this.volumesStore.fetchVolumes();
-      this.categoriesStore.fetchCategories();
+const expandedCategories = reactive<Record<string, boolean>>({});
+const collapsedSections = reactive({
+  favorites: false,
+  tags: false,
+  volumes: false,
+  categories: false,
+});
+// Load collapsed state from localStorage
+try {
+  const saved = localStorage.getItem('nas-file-browser-collapsed-sections');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    Object.assign(collapsedSections, parsed);
+  }
+} catch {}
+
+const dragFromIndex = ref(-1);
+const dragOverIndex = ref(-1);
+const dragOverPosition = ref('');
+const showCreateGroup = ref(false);
+const newGroupName = ref('');
+const collapsedGroups = reactive<Record<string, boolean>>({});
+const dragOverGroupId = ref('');
+const draggedFavId = ref('');
+const sidebarWidth = ref(parseInt(localStorage.getItem('nas-file-browser-sidebar-width') || '256'));
+document.documentElement.style.setProperty('--sidebar-width', sidebarWidth.value + 'px');
+const isResizing = ref(false);
+const startX = ref(0);
+const startWidth = ref(0);
+const groupInputRef = ref<HTMLInputElement | null>(null);
+
+// Computed
+const active = computed(() => currentPromptName.value === "sidebar");
+const canLogout = computed(() => !noAuth && (loginPage || logoutPage !== "/login"));
+
+const categoryGroups = computed(() => {
+  const subDirs = volumesStore.allSubDirs;
+  if (!subDirs.length) return [];
+
+  const groups: Record<string, any> = {};
+  const catOrder = ["personal", "shared", "system", "other"];
+
+  for (const cat of categoriesStore.categories) {
+    if (!groups[cat.id]) {
+      groups[cat.id] = {
+        id: cat.id,
+        name: cat.name,
+        icon: cat.icon,
+        color: cat.color,
+        paths: [],
+      };
+    }
+  }
+
+  for (const dir of subDirs) {
+    const cat = categoriesStore.classifyPath(dir.path);
+    const risk = categoriesStore.getRiskLevel(dir.path);
+    if (groups[cat.id]) {
+      groups[cat.id].paths.push({
+        path: dir.path,
+        name: dir.name,
+        risk,
+        volumeType: '',
+      });
+    }
+  }
+
+  return catOrder
+    .filter((id) => groups[id] && groups[id].paths.length > 0)
+    .map((id) => groups[id]);
+});
+
+// Methods
+const startResize = (event: MouseEvent | TouchEvent) => {
+  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+  isResizing.value = true;
+  startX.value = clientX;
+  startWidth.value = sidebarWidth.value;
+  document.addEventListener('mousemove', onResize);
+  document.addEventListener('mouseup', stopResize);
+  document.addEventListener('touchmove', onResize, { passive: false });
+  document.addEventListener('touchend', stopResize);
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+};
+
+const onResize = (event: Event) => {
+  if (!isResizing.value) return;
+  if (event.cancelable) event.preventDefault();
+  const e = event as MouseEvent | TouchEvent;
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+  const diff = clientX - startX.value;
+  const newWidth = Math.min(500, Math.max(180, startWidth.value + diff));
+  sidebarWidth.value = newWidth;
+  document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+};
+
+const stopResize = () => {
+  isResizing.value = false;
+  document.removeEventListener('mousemove', onResize);
+  document.removeEventListener('mouseup', stopResize);
+  document.removeEventListener('touchmove', onResize);
+  document.removeEventListener('touchend', stopResize);
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+  try {
+    localStorage.setItem('nas-file-browser-sidebar-width', sidebarWidth.value.toString());
+  } catch {}
+};
+
+const resetSidebarWidth = () => {
+  const defaultWidth = 256;
+  sidebarWidth.value = defaultWidth;
+  document.documentElement.style.setProperty('--sidebar-width', defaultWidth + 'px');
+  try {
+    localStorage.setItem('nas-file-browser-sidebar-width', defaultWidth.toString());
+  } catch {}
+};
+
+const abortOngoingFetchUsage = () => {
+  usageAbortController.abort();
+};
+
+const debouncedFetchUsage = () => {
+  if (usageDebounceTimer) clearTimeout(usageDebounceTimer);
+  usageDebounceTimer = setTimeout(() => fetchUsage(), 300);
+};
+
+const fetchUsage = async () => {
+  const path = route.path.endsWith("/")
+    ? route.path
+    : route.path + "/";
+  let usageStats = { ...USAGE_DEFAULT };
+  if (disableUsedPercentage) {
+    return Object.assign(usage, usageStats);
+  }
+  try {
+    abortOngoingFetchUsage();
+    usageAbortController = new AbortController();
+    const result = await api.usage(path, usageAbortController.signal);
+    usageStats = {
+      used: prettyBytes(result.used, { binary: true }),
+      total: prettyBytes(result.total, { binary: true }),
+      usedPercentage: Math.round((result.used / result.total) * 100),
+    };
+  } finally {
+    return Object.assign(usage, usageStats);
+  }
+};
+
+const volumeBarColor = (percent: number) => {
+  if (percent >= 90) return "var(--icon-red, #DA4453)";
+  if (percent >= 70) return "var(--icon-orange, #F5A623)";
+  return "var(--blue, #2196F3)";
+};
+
+const toggleCategory = (id: string) => {
+  expandedCategories[id] = !expandedCategories[id];
+};
+
+const toggleSection = (id: keyof typeof collapsedSections) => {
+  collapsedSections[id] = !collapsedSections[id];
+  try {
+    localStorage.setItem('nas-file-browser-collapsed-sections', JSON.stringify(collapsedSections));
+  } catch {}
+};
+
+const riskIcon = (risk: string) => {
+  if (risk === "high") return "warning";
+  if (risk === "medium") return "info";
+  return "check_circle";
+};
+
+const navigateVolume = (path: string) => {
+  const isFile = isFileByExtension(path);
+  const url = isFile ? "/files" + path : "/files" + path + "/";
+  router.push({ path: url });
+  closeHovers();
+};
+
+const removeFavorite = (id: string) => {
+  favoritesStore.removeFavorite(id);
+};
+
+const favoriteIcon = (name: string) => {
+  return isFileByExtension(name) ? getFileIcon(name) : 'folder';
+};
+
+const clearAllFavorites = async () => {
+  if (favoritesStore.sortedFavorites.length === 0) return;
+  const favs = [...favoritesStore.favorites];
+  for (const fav of favs) {
+    await favoritesStore.removeFavorite(fav.id);
+  }
+};
+
+const createGroup = async () => {
+  const name = newGroupName.value.trim();
+  if (!name) return;
+  await favoritesStore.addGroup(name);
+  newGroupName.value = '';
+  showCreateGroup.value = false;
+};
+
+const deleteGroup = async (id: string) => {
+  const result = await favoritesStore.deleteGroup(id);
+  if (result.conflict) {
+    $showError(new Error('Cannot delete group with favorites'));
+  }
+};
+
+const toggleGroupCollapse = (id: string) => {
+  collapsedGroups[id] = !collapsedGroups[id];
+};
+
+const onFavDragStart = (event: DragEvent, favId: string) => {
+  draggedFavId.value = favId;
+  event.dataTransfer!.effectAllowed = 'move';
+  event.dataTransfer!.setData('text/plain', favId);
+};
+
+const onFavDragOverItem = (event: DragEvent) => {
+  event.dataTransfer!.dropEffect = 'move';
+};
+
+const onFavDragLeaveItem = () => {};
+
+const onFavDropOnItem = async (event: DragEvent) => {
+  event.preventDefault();
+  dragOverGroupId.value = '';
+};
+
+const onFavDragOverGroup = (event: DragEvent, groupId: string) => {
+  event.dataTransfer!.dropEffect = 'move';
+  dragOverGroupId.value = groupId;
+};
+
+const onFavDragLeaveGroup = (event: DragEvent) => {
+  if (!(event.currentTarget as HTMLElement)?.contains(event.relatedTarget as Node)) {
+    dragOverGroupId.value = '';
+  }
+};
+
+const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
+  event.preventDefault();
+  dragOverGroupId.value = '';
+  if (draggedFavId.value) {
+    await favoritesStore.moveFavoriteToGroup(draggedFavId.value, groupId);
+    draggedFavId.value = '';
+  }
+};
+
+const onFavDragEnd = () => {
+  dragFromIndex.value = -1;
+  dragOverIndex.value = -1;
+  dragOverPosition.value = '';
+  dragOverGroupId.value = '';
+  draggedFavId.value = '';
+};
+
+const openTagManager = () => {
+  showHover({ prompt: 'tag-manager' });
+};
+
+const filterByTag = (tagId: string) => {
+  tagsStore.setFilter(tagId);
+  closeHovers();
+};
+
+const clearTagFilter = () => {
+  tagsStore.setFilter(null);
+};
+
+const openSearch = () => {
+  router.push('/search');
+  closeHovers();
+};
+
+const navigateCategoryFirst = (group: any) => {
+  if (group.paths.length > 0) {
+    navigateVolume(group.paths[0].path);
+  }
+  expandedCategories[group.id] = true;
+};
+
+const isDuplicateName = (name: string, groupId: string) => {
+  const group = categoryGroups.value.find((g: any) => g.id === groupId);
+  if (!group) return false;
+  return group.paths.filter((p: any) => p.name === name).length > 1;
+};
+
+const getVolumeLabel = (path: string) => {
+  const match = path.match(/^\/(volume\d+)/);
+  if (match) return match[1];
+  const parts = path.split('/').filter(Boolean);
+  if (parts.length > 0) return parts[0];
+  return '';
+};
+
+const toRoot = () => {
+  router.push({ path: "/files" });
+  closeHovers();
+};
+
+const toAccountSettings = () => {
+  router.push({ path: "/settings/profile" });
+  closeHovers();
+};
+
+const toGlobalSettings = () => {
+  router.push({ path: "/settings/global" });
+  closeHovers();
+};
+
+const help = () => {
+  showHover("help");
+};
+
+const logout = () => auth.logout();
+
+// Watchers
+watch(
+  () => route.path,
+  (path) => {
+    if (path.includes("/files")) {
+      debouncedFetchUsage();
     }
   },
-  unmounted() {
-    if (this._usageDebounceTimer) clearTimeout(this._usageDebounceTimer);
-    this.abortOngoingFetchUsage();
-  },
-};
+  { immediate: true }
+);
+
+// Lifecycle
+onMounted(() => {
+  Promise.all([
+    favoritesStore.loadFavorites(),
+    tagsStore.loadTags(),
+  ]);
+  if (user.value?.perm?.admin) {
+    volumesStore.fetchVolumes();
+    categoriesStore.fetchCategories();
+  }
+});
+
+onUnmounted(() => {
+  if (usageDebounceTimer) clearTimeout(usageDebounceTimer);
+  abortOngoingFetchUsage();
+});
 </script>

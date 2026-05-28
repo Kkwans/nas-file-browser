@@ -43,37 +43,46 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, watch } from "vue";
 import { enableExec } from "@/utils/constants";
-export default {
-  name: "permissions",
-  props: ["perm"],
-  computed: {
-    admin: {
-      get() {
-        return this.perm.admin;
-      },
-      set(value) {
-        if (value) {
-          for (const key in this.perm) {
-            this.perm[key] = true;
-          }
-        }
 
-        this.perm.admin = value;
-      },
-    },
-    isExecEnabled: () => enableExec,
+interface Permissions {
+  admin: boolean;
+  create: boolean;
+  delete: boolean;
+  download: boolean;
+  modify: boolean;
+  execute: boolean;
+  rename: boolean;
+  share: boolean;
+}
+
+const props = defineProps<{
+  perm: Permissions;
+}>();
+
+const isExecEnabled = enableExec;
+
+const admin = computed({
+  get: () => props.perm.admin,
+  set: (value: boolean) => {
+    if (value) {
+      for (const key in props.perm) {
+        (props.perm as any)[key] = true;
+      }
+    }
+    props.perm.admin = value;
   },
-  watch: {
-    perm: {
-      deep: true,
-      handler() {
-        if (this.perm.share === true) {
-          this.perm.download = true;
-        }
-      },
-    },
+});
+
+watch(
+  () => props.perm,
+  () => {
+    if (props.perm.share === true) {
+      props.perm.download = true;
+    }
   },
-};
+  { deep: true }
+);
 </script>

@@ -55,13 +55,13 @@
       {{ t("settings.lockPassword") }}
     </p>
 
-    <permissions v-model:perm="user.perm" />
-    <commands v-if="enableExec" v-model:commands="user.commands" />
+    <permissions v-if="user.perm" v-model:perm="user.perm" />
+    <commands v-if="enableExec && user.commands" v-model:commands="user.commands" />
 
     <div v-if="!isDefault">
       <h3>{{ t("settings.rules") }}</h3>
       <p class="small">{{ t("settings.rulesHelp") }}</p>
-      <rules v-model:rules="user.rules" />
+      <rules v-if="user.rules" v-model:rules="user.rules" />
     </div>
   </div>
 </template>
@@ -81,7 +81,7 @@ const createUserDirData = ref<boolean | null>(null);
 const originalUserScope = ref<string | null>(null);
 
 const props = defineProps<{
-  user: IUserForm;
+  user: any; // IUserForm - relaxed for v-model compatibility
   isNew: boolean;
   isDefault: boolean;
   createUserDir?: boolean;

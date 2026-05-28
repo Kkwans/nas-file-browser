@@ -43,41 +43,31 @@
   </div>
 </template>
 
-<script>
-import { mapActions, mapState } from "pinia";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useLayoutStore } from "@/stores/layout";
+import { storeToRefs } from "pinia";
 
-export default {
-  name: "risk-confirm",
-  computed: {
-    ...mapState(useLayoutStore, ["currentPrompt"]),
-    riskLevel() {
-      return this.currentPrompt?.props?.riskLevel || "high";
-    },
-    targetPath() {
-      return this.currentPrompt?.props?.targetPath || "";
-    },
-    actionType() {
-      return this.currentPrompt?.props?.actionType || "generic";
-    },
-    riskLevelText() {
-      if (this.riskLevel === "high") return "高危";
-      if (this.riskLevel === "medium") return "中危";
-      return "低危";
-    },
-  },
-  methods: {
-    ...mapActions(useLayoutStore, ["closeHovers"]),
-    cancel() {
-      this.closeHovers();
-      // Call the oncancel callback if provided
-      this.currentPrompt?.props?.oncancel?.();
-    },
-    confirm() {
-      // Call the onconfirm callback to proceed with the original action
-      this.currentPrompt?.props?.onconfirm?.();
-      this.closeHovers();
-    },
-  },
+const layoutStore = useLayoutStore();
+const { currentPrompt } = storeToRefs(layoutStore);
+const { closeHovers } = layoutStore;
+
+const riskLevel = computed(() => currentPrompt.value?.props?.riskLevel || "high");
+const targetPath = computed(() => currentPrompt.value?.props?.targetPath || "");
+const actionType = computed(() => currentPrompt.value?.props?.actionType || "generic");
+const riskLevelText = computed(() => {
+  if (riskLevel.value === "high") return "高危";
+  if (riskLevel.value === "medium") return "中危";
+  return "低危";
+});
+
+const cancel = () => {
+  closeHovers();
+  currentPrompt.value?.props?.oncancel?.();
+};
+
+const confirm = () => {
+  currentPrompt.value?.props?.onconfirm?.();
+  closeHovers();
 };
 </script>

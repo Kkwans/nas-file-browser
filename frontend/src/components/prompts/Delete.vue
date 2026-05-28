@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p v-if="!this.isListing || selectedCount === 1">
+      <p v-if="!isListing || selectedCount === 1">
         {{ $t("prompts.deleteMessageSingle") }}
       </p>
       <p v-else>
@@ -32,98 +32,93 @@
   </div>
 </template>
 
-<script>
-import { mapActions, mapState, mapWritableState } from "pinia";
+<script setup lang="ts">
+import { inject } from "vue";
+import { useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useCategoriesStore } from "@/stores/categories";
 
-export default {
-  name: "delete",
-  inject: ["$showError"],
-  computed: {
-    ...mapState(useFileStore, [
-      "isListing",
-      "selectedCount",
-      "req",
-      "selected",
-    ]),
-    ...mapState(useLayoutStore, ["currentPrompt"]),
-    ...mapWritableState(useFileStore, ["reload", "preselect"]),
-  },
-  methods: {
-    ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
-    submit: async function () {
-      buttons.loading("delete");
+const $showError = inject<IToastError>("$showError")!;
+const route = useRoute();
 
-      // Check risk level for selected items before deleting
-      if (this.isListing && this.selectedCount > 0) {
-        const categoriesStore = useCategoriesStore();
-        for (const index of this.selected) {
-          const item = this.req.items[index];
-          if (item.isDir && item.path) {
-            const risk = categoriesStore.getRiskLevel(item.path);
-            if (risk === "high" || risk === "medium") {
-              buttons.done("delete");
-              // Show risk confirmation dialog
-              this.showHover({
-                prompt: "risk-confirm",
-                props: {
-                  riskLevel: risk,
-                  targetPath: item.path,
-                  actionType: "delete",
-                  onconfirm: () => {
-                    this.executeDelete();
-                  },
-                },
-              });
-              return;
-            }
-          }
-        }
-      }
+const fileStore = useFileStore();
+const layoutStore = useLayoutStore();
+const { closeHovers, showHover } = layoutStore;
 
-      this.executeDelete();
-    },
-    executeDelete: async function () {
-      try {
-        if (!this.isListing) {
-          await api.remove(this.$route.path);
-          buttons.success("delete");
+const { isListing, selectedCount, req, selected } = storeToRefs(fileStore);
+const { reload, preselect } = storeToRefs(fileStore);
 
-          this.currentPrompt?.confirm();
-          this.closeHovers();
+const submit = async () => {
+  buttons.loading("delete");
+
+  // Check risk level for selected items before deleting
+  if (isListing.value && selectedCount.value > 0) {
+    const categoriesStore = useCategoriesStore();
+    for (const index of selected.value) {
+      const item = req.value!.items[index];
+      if (item.isDir && item.path) {
+        const risk = categoriesStore.getRiskLevel(item.path);
+        if (risk === "high" || risk === "medium") {
+          buttons.done("delete");
+          showHover({
+            prompt: "risk-confirm",
+            props: {
+              riskLevel: risk,
+              targetPath: item.path,
+              actionType: "delete",
+              onconfirm: () => {
+                executeDelete();
+              },
+            },
+          });
           return;
         }
-
-        this.closeHovers();
-
-        if (this.selectedCount === 0) {
-          return;
-        }
-
-        const promises = [];
-        for (const index of this.selected) {
-          promises.push(api.remove(this.req.items[index].url));
-        }
-
-        await Promise.all(promises);
-        buttons.success("delete");
-
-        const nearbyItem =
-          this.req.items[Math.max(0, Math.min(this.selected) - 1)];
-
-        this.preselect = nearbyItem?.path;
-
-        this.reload = true;
-      } catch (e) {
-        buttons.done("delete");
-        this.$showError(e);
-        if (this.isListing) this.reload = true;
       }
-    },
-  },
+    }
+  }
+
+  executeDelete();
+};
+
+const executeDelete = async () => {
+  try {
+    if (!isListing.value) {
+      await api.remove(route.path);
+      buttons.success("delete");
+
+      layoutStore.currentPrompt?.confirm();
+      closeHovers();
+      return;
+    }
+
+    closeHovers();
+
+    if (selectedCount.value === 0) {
+      return;
+    }
+
+    const promises = [];
+    for (const index of selected.value) {
+      promises.push(api.remove(req.value!.items[index].url));
+    }
+
+    await Promise.all(promises);
+    buttons.success("delete");
+
+    const nearbyItem =
+      req.value!.items[Math.max(0, Math.min(...selected.value) - 1)];
+
+    preselect.value = nearbyItem?.path;
+
+    reload.value = true;
+  } catch (e: any) {
+    buttons.done("delete");
+    $showError(e);
+    if (isListing.value) reload.value = true;
+  }
 };
 </script>

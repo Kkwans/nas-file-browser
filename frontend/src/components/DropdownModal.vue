@@ -2,6 +2,12 @@
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { vClickOutside } from "@/utils/index";
 
+defineOptions({
+  directives: {
+    clickOutside: vClickOutside,
+  },
+});
+
 const props = withDefaults(
   defineProps<{
     position?: "top-left" | "bottom-left" | "bottom-right" | "top-right";
@@ -67,14 +73,6 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowChange);
   window.removeEventListener("scroll", onWindowChange, true);
 });
-</script>
-
-<script lang="ts">
-export default {
-  directives: {
-    clickOutside: vClickOutside,
-  },
-};
 </script>
 
 <template>

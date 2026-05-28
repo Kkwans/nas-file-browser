@@ -7,7 +7,7 @@
     <div class="card-content">
       <p>{{ $t("prompts.copyMessage") }}</p>
       <file-list
-        ref="fileList"
+        ref="fileListRef"
         @update:selected="(val) => (dest = val)"
         tabindex="1"
       />
@@ -17,10 +17,10 @@
       class="card-action"
       style="display: flex; align-items: center; justify-content: space-between"
     >
-      <template v-if="user.perm.create">
+      <template v-if="user?.perm.create">
         <button
           class="button button--flat"
-          @click="$refs.fileList.createDir()"
+          @click="fileListRef?.createDir()"
           :aria-label="$t('sidebar.newFolder')"
           :title="$t('sidebar.newFolder')"
           style="justify-self: left"
@@ -53,8 +53,10 @@
   </div>
 </template>
 
-<script>
-import { mapActions, mapState, mapWritableState } from "pinia";
+<script setup lang="ts">
+import { inject, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useAuthStore } from "@/stores/auth";
@@ -64,99 +66,94 @@ import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { removePrefix } from "@/api/utils";
 
-export default {
-  name: "copy",
-  components: { FileList },
-  data: function () {
-    return {
-      current: window.location.pathname,
-      dest: null,
-    };
-  },
-  inject: ["$showError"],
-  computed: {
-    ...mapState(useFileStore, ["req", "selected"]),
-    ...mapState(useAuthStore, ["user"]),
-    ...mapWritableState(useFileStore, ["reload", "preselect"]),
-  },
-  methods: {
-    ...mapActions(useLayoutStore, ["showHover", "closeHovers"]),
-    copy: async function (event) {
-      event.preventDefault();
-      const items = [];
+const $showError = inject<IToastError>("$showError")!;
+const route = useRoute();
+const router = useRouter();
 
-      // Create a new promise for each file.
-      for (const item of this.selected) {
-        items.push({
-          from: this.req.items[item].url,
-          to: this.dest + encodeURIComponent(this.req.items[item].name),
-          name: this.req.items[item].name,
-          size: this.req.items[item].size,
-          modified: this.req.items[item].modified,
-          overwrite: false,
-          rename: this.$route.path === this.dest,
-        });
-      }
+const fileStore = useFileStore();
+const layoutStore = useLayoutStore();
+const authStore = useAuthStore();
+const { showHover, closeHovers } = layoutStore;
 
-      const action = async (overwrite, rename) => {
-        buttons.loading("copy");
+const { req, selected } = storeToRefs(fileStore);
+const { reload, preselect } = storeToRefs(fileStore);
+const { user } = storeToRefs(authStore);
 
-        await api
-          .copy(items, overwrite, rename)
-          .then(() => {
-            buttons.success("copy");
-            this.preselect = removePrefix(items[0].to);
+const fileListRef = ref<InstanceType<typeof FileList> | null>(null);
+const dest = ref<string | null>(null);
 
-            if (this.$route.path === this.dest) {
-              this.reload = true;
+const copy = async (event: Event) => {
+  event.preventDefault();
+  const items: any[] = [];
 
-              return;
-            }
+  for (const item of selected.value) {
+    items.push({
+      from: req.value!.items[item].url,
+      to: dest.value + encodeURIComponent(req.value!.items[item].name),
+      name: req.value!.items[item].name,
+      size: req.value!.items[item].size,
+      modified: req.value!.items[item].modified,
+      overwrite: false,
+      rename: route.path === dest.value,
+    });
+  }
 
-            if (this.user.redirectAfterCopyMove)
-              this.$router.push({ path: this.dest });
-          })
-          .catch((e) => {
-            buttons.done("copy");
-            this.$showError(e);
-          });
-      };
+  const action = async (overwrite?: boolean, rename?: boolean) => {
+    buttons.loading("copy");
 
-      const conflict = upload.checkConflict(items, this.dest);
+    await api
+      .copy(items, overwrite, rename)
+      .then(() => {
+        buttons.success("copy");
+        preselect.value = removePrefix(items[0].to);
 
-      if (conflict.length > 0) {
-        this.showHover({
-          prompt: "resolve-conflict",
-          props: {
-            conflict: conflict,
-          },
-          confirm: (event, result) => {
-            event.preventDefault();
-            this.closeHovers();
-            for (let i = result.length - 1; i >= 0; i--) {
-              const item = result[i];
-              if (item.checked.length == 2) {
-                items[item.index].rename = true;
-              } else if (
-                item.checked.length == 1 &&
-                item.checked[0] == "origin"
-              ) {
-                items[item.index].overwrite = true;
-              } else {
-                items.splice(item.index, 1);
-              }
-            }
-            if (items.length > 0) {
-              action();
-            }
-          },
-        });
+        if (route.path === dest.value) {
+          reload.value = true;
+          return;
+        }
 
-        return;
-      }
+        if (user.value?.redirectAfterCopyMove)
+          router.push({ path: dest.value! });
+      })
+      .catch((e: any) => {
+        buttons.done("copy");
+        $showError(e);
+      });
+  };
 
-      action(false, false);
-    },
-  },
+  const conflict = await upload.checkConflict(items, dest.value!);
+
+  if (conflict.length > 0) {
+    showHover({
+      prompt: "resolve-conflict",
+      props: {
+        conflict: conflict,
+      },
+      confirm: (event: Event, result: any[]) => {
+        event.preventDefault();
+        closeHovers();
+        for (let i = result.length - 1; i >= 0; i--) {
+          const item = result[i];
+          if (item.checked.length == 2) {
+            items[item.index].rename = true;
+          } else if (
+            item.checked.length == 1 &&
+            item.checked[0] == "origin"
+          ) {
+            items[item.index].overwrite = true;
+          } else {
+            items.splice(item.index, 1);
+          }
+        }
+        if (items.length > 0) {
+          action();
+        }
+      },
+    });
+
+    return;
+  }
+
+  action(false, false);
 };
 </script>

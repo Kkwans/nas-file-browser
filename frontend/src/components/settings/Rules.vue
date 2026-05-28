@@ -1,6 +1,6 @@
 <template>
   <form class="rules small">
-    <div v-for="(rule, index) in rules" :key="index">
+    <div v-for="(rule, index) in props.rules" :key="index">
       <input type="checkbox" v-model="rule.regex" /><label>Regex</label>
       <input type="checkbox" v-model="rule.allow" /><label>Allow</label>
 
@@ -32,32 +32,39 @@
   </form>
 </template>
 
-<script>
-export default {
-  name: "rules-textarea",
-  props: ["rules"],
-  methods: {
-    remove(event, index) {
-      event.preventDefault();
-      const rules = [...this.rules];
-      rules.splice(index, 1);
-      this.$emit("update:rules", [...rules]);
-    },
-    create(event) {
-      event.preventDefault();
+<script setup lang="ts">
+interface Rule {
+  allow: boolean;
+  path: string;
+  regex: boolean;
+  regexp: { raw: string };
+}
 
-      this.$emit("update:rules", [
-        ...this.rules,
-        {
-          allow: true,
-          path: "",
-          regex: false,
-          regexp: {
-            raw: "",
-          },
-        },
-      ]);
+const props = defineProps<{
+  rules: Rule[];
+}>();
+
+const emit = defineEmits<{
+  "update:rules": [value: Rule[]];
+}>();
+
+const remove = (event: Event, index: number) => {
+  event.preventDefault();
+  const rules = [...props.rules];
+  rules.splice(index, 1);
+  emit("update:rules", [...rules]);
+};
+
+const create = (event: Event) => {
+  event.preventDefault();
+  emit("update:rules", [
+    ...props.rules,
+    {
+      allow: true,
+      path: "",
+      regex: false,
+      regexp: { raw: "" },
     },
-  },
+  ]);
 };
 </script>

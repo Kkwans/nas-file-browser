@@ -41,8 +41,10 @@
   </div>
 </template>
 
-<script>
-import { mapActions, mapState, mapWritableState } from "pinia";
+<script setup lang="ts">
+import { computed, inject, ref } from "vue";
+import { useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useCategoriesStore } from "@/stores/categories";
@@ -50,103 +52,87 @@ import url from "@/utils/url";
 import { files as api } from "@/api";
 import { removePrefix } from "@/api/utils";
 
-export default {
-  name: "rename",
-  data: function () {
-    return {
-      name: "",
-    };
-  },
-  created() {
-    this.name = this.oldName;
-  },
-  inject: ["$showError"],
-  computed: {
-    ...mapState(useFileStore, [
-      "req",
-      "selected",
-      "selectedCount",
-      "isListing",
-    ]),
-    ...mapWritableState(useFileStore, ["reload", "preselect"]),
-    oldName() {
-      if (!this.isListing) {
-        return this.req.name;
-      }
+const $showError = inject<IToastError>("$showError")!;
+const router = useRouter();
 
-      if (this.selectedCount === 0 || this.selectedCount > 1) {
-        // This shouldn't happen.
-        return "";
-      }
+const fileStore = useFileStore();
+const layoutStore = useLayoutStore();
+const { closeHovers, showHover } = layoutStore;
 
-      return this.req.items[this.selected[0]].name;
-    },
-  },
-  methods: {
-    ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
-    cancel: function () {
-      this.closeHovers();
-    },
-    submit: async function () {
-      if (this.name === "" || this.name === this.oldName) {
-        return;
-      }
+const { req, selected, selectedCount, isListing } = storeToRefs(fileStore);
+const { reload, preselect } = storeToRefs(fileStore);
 
-      // Check risk level before renaming
-      const item = this.isListing ? this.req.items[this.selected[0]] : this.req;
-      if (item?.isDir && item?.path) {
-        const categoriesStore = useCategoriesStore();
-        const risk = categoriesStore.getRiskLevel(item.path);
-        if (risk === "high" || risk === "medium") {
-          this.showHover({
-            prompt: "risk-confirm",
-            props: {
-              riskLevel: risk,
-              targetPath: item.path,
-              actionType: "rename",
-              onconfirm: () => {
-                this.executeRename();
-              },
-            },
-          });
-          return;
-        }
-      }
+const oldName = computed(() => {
+  if (!isListing.value) {
+    return req.value!.name;
+  }
+  if (selectedCount.value === 0 || selectedCount.value > 1) {
+    return "";
+  }
+  return req.value!.items[selected.value[0]].name;
+});
 
-      this.executeRename();
-    },
-    executeRename: async function () {
-      if (this.name === "" || this.name === this.oldName) {
-        return;
-      }
-      let oldLink = "";
-      let newLink = "";
+const name = ref(oldName.value);
 
-      if (!this.isListing) {
-        oldLink = this.req.url;
-      } else {
-        oldLink = this.req.items[this.selected[0]].url;
-      }
+const submit = async () => {
+  if (name.value === "" || name.value === oldName.value) {
+    return;
+  }
 
-      newLink =
-        url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
+  // Check risk level before renaming
+  const item = isListing.value ? req.value!.items[selected.value[0]] : req.value!;
+  if (item?.isDir && item?.path) {
+    const categoriesStore = useCategoriesStore();
+    const risk = categoriesStore.getRiskLevel(item.path);
+    if (risk === "high" || risk === "medium") {
+      showHover({
+        prompt: "risk-confirm",
+        props: {
+          riskLevel: risk,
+          targetPath: item.path,
+          actionType: "rename",
+          onconfirm: () => {
+            executeRename();
+          },
+        },
+      });
+      return;
+    }
+  }
 
-      try {
-        await api.move([{ from: oldLink, to: newLink }]);
-        if (!this.isListing) {
-          this.$router.push({ path: newLink });
-          return;
-        }
+  executeRename();
+};
 
-        this.preselect = removePrefix(newLink);
+const executeRename = async () => {
+  if (name.value === "" || name.value === oldName.value) {
+    return;
+  }
+  let oldLink = "";
+  let newLink = "";
 
-        this.reload = true;
-      } catch (e) {
-        this.$showError(e);
-      }
+  if (!isListing.value) {
+    oldLink = req.value!.url;
+  } else {
+    oldLink = req.value!.items[selected.value[0]].url;
+  }
 
-      this.closeHovers();
-    },
-  },
+  newLink =
+    url.removeLastDir(oldLink) + "/" + encodeURIComponent(name.value);
+
+  try {
+    await api.move([{ from: oldLink, to: newLink }]);
+    if (!isListing.value) {
+      router.push({ path: newLink });
+      return;
+    }
+
+    preselect.value = removePrefix(newLink);
+
+    reload.value = true;
+  } catch (e: any) {
+    $showError(e);
+  }
+
+  closeHovers();
 };
 </script>

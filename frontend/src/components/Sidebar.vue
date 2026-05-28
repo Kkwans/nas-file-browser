@@ -523,6 +523,7 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useVolumesStore } from "@/stores/volumes";
 import { useCategoriesStore } from "@/stores/categories";
+import type { CategoryGroup } from "@/api/categories";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
 
@@ -612,7 +613,7 @@ const categoryGroups = computed(() => {
   const subDirs = volumesStore.allSubDirs;
   if (!subDirs.length) return [];
 
-  const groups: Record<string, any> = {};
+  const groups: Record<string, CategoryGroup> = {};
   const catOrder = ["personal", "shared", "system", "other"];
 
   for (const cat of categoriesStore.categories) {
@@ -866,7 +867,7 @@ const openSearch = () => {
   closeHovers();
 };
 
-const navigateCategoryFirst = (group: any) => {
+const navigateCategoryFirst = (group: CategoryGroup) => {
   if (group.paths.length > 0) {
     navigateVolume(group.paths[0].path);
   }
@@ -874,9 +875,9 @@ const navigateCategoryFirst = (group: any) => {
 };
 
 const isDuplicateName = (name: string, groupId: string) => {
-  const group = categoryGroups.value.find((g: any) => g.id === groupId);
+  const group = categoryGroups.value.find((g) => g.id === groupId);
   if (!group) return false;
-  return group.paths.filter((p: any) => p.name === name).length > 1;
+  return group.paths.filter((p) => p.name === name).length > 1;
 };
 
 const getVolumeLabel = (path: string) => {

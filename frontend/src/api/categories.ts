@@ -8,6 +8,21 @@ export interface CategoryRule {
   patterns: string[];
 }
 
+export interface CategoryPath {
+  path: string;
+  name: string;
+  risk: "high" | "medium" | "low";
+  volumeType: string;
+}
+
+export interface CategoryGroup {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  paths: CategoryPath[];
+}
+
 export interface CategoryInfo {
   categories: CategoryRule[];
 }

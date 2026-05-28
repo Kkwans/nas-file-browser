@@ -426,7 +426,7 @@ import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
 
 import * as auth from "@/utils/auth";
-import { getFileIcon } from "@/utils/fileIcons";
+import { getFileIcon, isFileByExtension } from "@/utils/fileIcons";
 import {
   version,
   signup,
@@ -532,36 +532,6 @@ export default {
         localStorage.setItem('nas-file-browser-sidebar-width', defaultWidth.toString());
       } catch {}
     },
-    getKnownDirs(volBase) {
-      // Return known subdirectories for a volume based on NAS structure
-      const t = this.$t;
-      const dirs = [
-        { path: volBase + "/@home", name: t('sidebar.knownDir_home') },
-        { path: volBase + "/@docker", name: t('sidebar.knownDir_docker') },
-        { path: volBase + "/@appstore", name: t('sidebar.knownDir_appstore') },
-        { path: volBase + "/@tmp", name: t('sidebar.knownDir_tmp') },
-        { path: volBase + "/@upload", name: t('sidebar.knownDir_upload') },
-        { path: volBase + "/@search", name: t('sidebar.knownDir_search') },
-        { path: volBase + "/@thumbnail", name: t('sidebar.knownDir_thumbnail') },
-        { path: volBase + "/Docker", name: t('sidebar.knownDir_Docker') },
-        { path: volBase + "/Download", name: t('sidebar.knownDir_Download') },
-        { path: volBase + "/Movie", name: t('sidebar.knownDir_Movie') },
-        { path: volBase + "/Movies", name: t('sidebar.knownDir_Movies') },
-        { path: volBase + "/Music", name: t('sidebar.knownDir_Music') },
-        { path: volBase + "/Photos", name: t('sidebar.knownDir_Photos') },
-        { path: volBase + "/Pictures", name: t('sidebar.knownDir_Pictures') },
-        { path: volBase + "/TV", name: t('sidebar.knownDir_TV') },
-        { path: volBase + "/Video", name: t('sidebar.knownDir_Video') },
-        { path: volBase + "/Videos", name: t('sidebar.knownDir_Videos') },
-        { path: volBase + "/Documents", name: t('sidebar.knownDir_Documents') },
-        { path: volBase + "/Common", name: t('sidebar.knownDir_Common') },
-        { path: volBase + "/迅雷下载", name: t('sidebar.knownDir_xunlei') },
-      ];
-
-      // Filter to only include directories that likely exist
-      // (we can't check existence without an API call, so show all)
-      return dirs;
-    },
     abortOngoingFetchUsage() {
       this.usageAbortController.abort();
     },
@@ -606,12 +576,7 @@ export default {
       return "check_circle";
     },
     navigateVolume(path) {
-      // Check if path looks like a file (has a common file extension)
-      const lastSegment = path.split('/').pop() || '';
-      const dotIdx = lastSegment.lastIndexOf('.');
-      const ext = dotIdx > 0 ? lastSegment.slice(dotIdx + 1).toLowerCase() : '';
-      const fileExts = ['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','md','json','js','ts','py','java','go','html','css','xml','yaml','yml','csv','mp3','mp4','avi','mkv','mov','wav','flac','jpg','jpeg','png','gif','webp','svg','bmp','ico','zip','rar','7z','tar','gz','bz2','xz','exe','sh','bat','ps1','sql','rb','php','swift','kt','rs','c','cpp','h','hpp'];
-      const isFile = ext && fileExts.includes(ext);
+      const isFile = isFileByExtension(path);
       const url = isFile ? "/files" + path : "/files" + path + "/";
       this.$router.push({ path: url });
       this.closeHovers();
@@ -620,12 +585,7 @@ export default {
       this.favoritesStore.removeFavorite(id);
     },
     favoriteIcon(name) {
-      // Heuristic: if name has a file extension, it's likely a file
-      const ext = name.split('.').pop();
-      if (ext && ext !== name && ext.length <= 5 && !name.endsWith('/')) {
-        return getFileIcon(name);
-      }
-      return 'folder';
+      return isFileByExtension(name) ? getFileIcon(name) : 'folder';
     },
     async clearAllFavorites() {
       if (this.favoritesStore.sortedFavorites.length === 0) return;

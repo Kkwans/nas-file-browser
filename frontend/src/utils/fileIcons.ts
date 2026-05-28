@@ -235,3 +235,15 @@ export function getFileIconFromItem(item: { name?: string; isDir?: boolean; type
   if (item.name) return getFileIcon(item.name);
   return "insert_drive_file";
 }
+
+/**
+ * Check if a path looks like a file (has a recognized file extension).
+ * Used by Sidebar to determine whether to navigate as file or directory.
+ */
+export function isFileByExtension(path: string): boolean {
+  const lastSegment = path.split('/').pop() || '';
+  const dotIdx = lastSegment.lastIndexOf('.');
+  if (dotIdx <= 0) return false;
+  const ext = lastSegment.slice(dotIdx + 1).toLowerCase();
+  return ext in EXT_ICON_MAP;
+}

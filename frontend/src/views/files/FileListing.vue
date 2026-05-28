@@ -510,6 +510,7 @@ import type {
   ResourceItem,
   PasteItem,
   ConflictingResource,
+  DownloadFormat,
 } from "@/types/file";
 import type { ViewModeType } from "@/types/user";
 import {
@@ -1358,7 +1359,7 @@ const download = () => {
 
   layoutStore.showHover({
     prompt: "download",
-    confirm: (format: any) => {
+    confirm: (format: DownloadFormat) => {
       layoutStore.closeHovers();
 
       const files = [];

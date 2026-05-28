@@ -118,3 +118,12 @@ export interface PasteItem {
   overwrite: boolean;
   rename: boolean;
 }
+
+/**
+ * Result item type returned by the conflict resolution dialog (ResolveConflict.vue).
+ * Each item carries the resolution decision made by the user for a conflicting entry.
+ */
+export interface ConflictResult {
+  index: number;
+  checked: string[];
+}

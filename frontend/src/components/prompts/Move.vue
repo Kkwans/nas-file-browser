@@ -64,6 +64,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { useAuthStore } from "@/stores/auth";
 import { useCategoriesStore } from "@/stores/categories";
 import FileList from "./FileList.vue";
+import type { MoveCopyItem, ConflictResult } from "@/types/file";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
@@ -121,7 +122,7 @@ const move = async (event: Event) => {
 };
 
 const executeMove = async () => {
-  const items: any[] = [];
+  const items: MoveCopyItem[] = [];
 
   for (const item of selected.value) {
     items.push({
@@ -162,7 +163,7 @@ const executeMove = async () => {
         conflict: conflict,
         files: items,
       },
-      confirm: (event: Event, result: any[]) => {
+      confirm: (event: Event, result: ConflictResult[]) => {
         event.preventDefault();
         closeHovers();
         for (let i = result.length - 1; i >= 0; i--) {

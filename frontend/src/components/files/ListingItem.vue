@@ -289,7 +289,9 @@ const drop = async (event: Event) => {
     }
   }
 
-  const items: any[] = [];
+  import type { MoveCopyItem } from "@/types/file";
+
+  const items: MoveCopyItem[] = [];
 
   for (const i of fileStore.selected) {
     if (fileStore.req) {

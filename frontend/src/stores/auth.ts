@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import { setLocale } from "@/i18n";
 import { cloneDeep } from "lodash-es";
 import type { IUser } from "@/types/user";
 
@@ -26,14 +25,9 @@ export const useAuthStore = defineStore("auth", {
         return;
       }
 
-      setLocale();
       this.user = user;
     },
     updateUser(user: Partial<IUser>) {
-      if (user.locale) {
-        setLocale();
-      }
-
       this.user = { ...this.user, ...cloneDeep(user) } as IUser;
     },
     // easily reset state using `$reset`

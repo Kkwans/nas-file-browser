@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { detectLocale, setLocale } from "@/i18n";
+import { setLocale } from "@/i18n";
 import { cloneDeep } from "lodash-es";
 
 export const useAuthStore = defineStore("auth", {
@@ -25,7 +25,7 @@ export const useAuthStore = defineStore("auth", {
         return;
       }
 
-      setLocale(user.locale || detectLocale());
+      setLocale("zh-cn");
       this.user = user;
     },
     updateUser(user: Partial<IUser>) {

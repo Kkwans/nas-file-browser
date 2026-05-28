@@ -458,7 +458,7 @@ const tagsStore = useTagsStore();
 
 const { closeHovers, showHover } = layoutStore;
 const { user, isLoggedIn } = storeToRefs(authStore);
-const { isFiles, reload } = storeToRefs(fileStore);
+const { isFiles } = storeToRefs(fileStore);
 const { currentPromptName } = storeToRefs(layoutStore);
 
 // State

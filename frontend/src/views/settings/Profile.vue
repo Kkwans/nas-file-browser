@@ -27,12 +27,6 @@
             <input type="checkbox" name="dateFormat" v-model="dateFormat" />
             {{ t("settings.setDateFormat") }}
           </p>
-          <h3>{{ t("settings.language") }}</h3>
-          <languages
-            class="input input--block"
-            v-model:locale="locale"
-          ></languages>
-
           <h3>{{ t("settings.aceEditorTheme") }}</h3>
           <AceEditorTheme
             class="input input--block"
@@ -106,7 +100,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { users as api } from "@/api";
 import AceEditorTheme from "@/components/settings/AceEditorTheme.vue";
-import Languages from "@/components/settings/Languages.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { authMethod, noAuth } from "@/utils/constants";
@@ -126,7 +119,6 @@ const hideDotfiles = ref<boolean>(false);
 const singleClick = ref<boolean>(false);
 const redirectAfterCopyMove = ref<boolean>(false);
 const dateFormat = ref<boolean>(false);
-const locale = ref<string>("");
 const aceEditorTheme = ref<string>("");
 
 const passwordClass = computed(() => {
@@ -146,7 +138,6 @@ const passwordClass = computed(() => {
 onMounted(async () => {
   layoutStore.loading = true;
   if (authStore.user === null) return false;
-  locale.value = authStore.user.locale;
   hideDotfiles.value = authStore.user.hideDotfiles;
   singleClick.value = authStore.user.singleClick;
   redirectAfterCopyMove.value = authStore.user.redirectAfterCopyMove;
@@ -194,7 +185,6 @@ const updateSettings = async (event: Event) => {
     const data = {
       ...authStore.user,
       id: authStore.user.id,
-      locale: locale.value,
       hideDotfiles: hideDotfiles.value,
       singleClick: singleClick.value,
       redirectAfterCopyMove: redirectAfterCopyMove.value,
@@ -203,7 +193,6 @@ const updateSettings = async (event: Event) => {
     };
 
     await api.update(data, [
-      "locale",
       "hideDotfiles",
       "singleClick",
       "redirectAfterCopyMove",

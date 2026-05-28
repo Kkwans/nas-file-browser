@@ -37,15 +37,6 @@
       {{ t("settings.createUserHomeDirectory") }}
     </p>
 
-    <p>
-      <label for="locale">{{ t("settings.language") }}</label>
-      <languages
-        class="input input--block"
-        id="locale"
-        v-model:locale="user.locale"
-      ></languages>
-    </p>
-
     <p v-if="!isDefault && user.perm">
       <input
         type="checkbox"
@@ -67,7 +58,6 @@
 </template>
 
 <script setup lang="ts">
-import Languages from "./Languages.vue";
 import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";

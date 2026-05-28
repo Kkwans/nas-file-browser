@@ -62,8 +62,7 @@ const components = new Map<string, any>([
 
 const modal = computed(() => {
   const modal = components.get(currentPromptName.value!);
-  if (!modal) null;
-
+  if (!modal) return null;
   return modal;
 });
 

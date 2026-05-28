@@ -27,6 +27,7 @@
       <img
         v-if="!readOnly && type === 'image' && isThumbsEnabled"
         v-lazy="thumbnailUrl"
+        :alt="name"
       />
       <i v-else class="material-icons"></i>
     </div>
@@ -74,10 +75,10 @@
       </div>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
-      <p v-else class="size" :data-order="humanSize()">{{ humanSize() }}</p>
+      <p v-else class="size" :data-order="humanSize">{{ humanSize }}</p>
 
       <p class="modified">
-        <time :datetime="modified">{{ humanTime() }}</time>
+        <time :datetime="modified">{{ humanTime }}</time>
       </p>
     </div>
   </div>
@@ -219,16 +220,16 @@ const openTagManager = () => {
   layoutStore.showHover({ prompt: "tag-manager" });
 };
 
-const humanSize = () => {
+const humanSize = computed(() => {
   return props.type == "invalid_link" ? "invalid link" : filesize(props.size);
-};
+});
 
-const humanTime = () => {
+const humanTime = computed(() => {
   if (!props.readOnly && authStore.user?.dateFormat) {
     return dayjs(props.modified).format("L LT");
   }
   return dayjs(props.modified).fromNow();
-};
+});
 
 const dragStart = () => {
   if (fileStore.selectedCount === 0) {

@@ -4,8 +4,8 @@
     <div class="column">
       <form @submit="save" class="card">
         <div class="card-title">
-          <h2 v-if="user?.id === 0">新建用户</h2>
-          <h2 v-else>用户 {{ user?.username }}</h2>
+          <h2 v-if="user?.id === 0">{{ t('users.newUser') }}</h2>
+          <h2 v-else>{{ t('users.editingUser', { name: user?.username }) }}</h2>
         </div>
 
         <div class="card-content" v-if="user">
@@ -23,21 +23,21 @@
             @click.prevent="deletePrompt"
             type="button"
             class="button button--flat button--red"
-            :aria-label="'删除'"
-            :title="'删除'"
+            :aria-label="t('buttons.delete')"
+            :title="t('buttons.delete')"
           >
             删除
           </button>
           <router-link to="/settings/users">
             <button
               class="button button--flat button--grey"
-              :aria-label="'取消'"
-              :title="'取消'"
+              :aria-label="t('buttons.cancel')"
+              :title="t('buttons.cancel')"
             >
               取消
             </button>
           </router-link>
-          <input class="button button--flat" type="submit" :value="'保存'" />
+          <input class="button button--flat" type="submit" :value="t('buttons.save')" />
         </div>
       </form>
     </div>

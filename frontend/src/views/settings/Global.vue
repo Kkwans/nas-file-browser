@@ -44,7 +44,7 @@
             />
           </p>
 
-          <h3>{{ "规则" }}</h3>
+          <h3>{{ t('settings.rules') }}</h3>
           <p class="small">{{ t("settings.globalRules") }}</p>
           <rules v-model:rules="settings.rules" />
 
@@ -59,15 +59,15 @@
             />
           </div>
 
-          <h3>{{ "品牌定制" }}</h3>
+          <h3>{{ t('settings.brandCustomization') }}</h3>
 
           <p class="small">
-            如需自定义品牌，请参考
+            {{ t('settings.brandDescription') }}
             <a
               class="link"
               target="_blank"
               href="https://filebrowser.org/customization.html#custom-branding"
-              >官方文档</a
+              >{{ t('settings.officialDoc') }}</a
             >
             。
           </p>
@@ -196,7 +196,7 @@
 
         <div class="card-content">
           <p class="small">
-            命令执行器允许在文件操作前后运行自定义命令。详情请查看
+            {{ t('settings.commandDescription') }}
             <a
               class="link"
               target="_blank"

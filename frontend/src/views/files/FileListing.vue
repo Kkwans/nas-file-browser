@@ -230,7 +230,7 @@
                 title="t('files.sortByName')"
                 aria-label="t('files.sortByName')"
               >
-                <span>{{ "名称" }}</span>
+                <span>{{ t('listing.name') }}</span>
                 <i class="material-icons">{{ nameIcon }}</i>
               </p>
 
@@ -243,7 +243,7 @@
                 title="t('files.sortBySize')"
                 aria-label="t('files.sortBySize')"
               >
-                <span>{{ "大小" }}</span>
+                <span>{{ t('listing.size') }}</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
               </p>
               <p
@@ -270,7 +270,7 @@
             >label</i
           >
           <span
-            >正在按标签筛选:
+            >{{ t('listing.filteringByTag') }}
             <strong>{{ tagsStore.activeFilterTag.name }}</strong></span
           >
           <button
@@ -440,7 +440,7 @@
                 @click="layoutStore.showHover('copy')"
               >
                 <i class="material-icons">content_copy</i>
-                <span>{{ "复制文件" }}</span>
+                <span>{{ t('listing.copyFile') }}</span>
               </button>
               <button
                 v-if="headerButtons.move"
@@ -456,7 +456,7 @@
                 @click="download"
               >
                 <i class="material-icons">file_download</i>
-                <span>{{ "下载" }}</span>
+                <span>{{ t('listing.download') }}</span>
               </button>
               <button
                 v-if="headerButtons.delete"
@@ -464,7 +464,7 @@
                 @click="layoutStore.showHover('delete')"
               >
                 <i class="material-icons">delete</i>
-                <span>{{ "删除" }}</span>
+                <span>{{ t('listing.delete') }}</span>
               </button>
             </template>
             <button

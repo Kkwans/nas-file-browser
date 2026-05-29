@@ -1,5 +1,5 @@
 # ============================================================
-# NAS File Browser - Custom Build (Multi-stage)
+# NAS File Browser - Build with New Frontend
 # ============================================================
 
 # --- Stage 1: Build Frontend ---
@@ -15,7 +15,6 @@ RUN corepack enable && \
 
 COPY frontend/ ./
 
-# Force rebuild - T4 mobile adaptation sync
 RUN pnpm build
 
 # --- Stage 2: Build Backend ---
@@ -35,8 +34,6 @@ COPY backend/ ./
 COPY --from=frontend-builder /src/frontend/dist/ ./frontend/dist/
 
 RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
-
-# JSON.sh copied from local (GitHub raw often blocked in China)
 
 # --- Stage 3: Runtime ---
 FROM alpine:3.21

@@ -1,22 +1,15 @@
 import path from "node:path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import legacy from "@vitejs/plugin-legacy";
 import { compression } from "vite-plugin-compression2";
 
 const plugins = [
   vue(),
-  // VueI18nPlugin removed - using fixed zh-cn locale, no runtime i18n needed
-  legacy({
-    // defaults already drop IE support
-    targets: ["defaults"],
-  }),
   compression({ include: /\.js$/, deleteOriginalAssets: false }),
 ];
 
 const resolve = {
   alias: {
-    // vue: "@vue/compat",
     "@/": `${path.resolve(__dirname, "src")}/`,
   },
 };
@@ -54,7 +47,6 @@ export default defineConfig(({ command }) => {
               if (id.includes("dayjs/")) {
                 return "dayjs";
               }
-              // i18n chunk removed - using fixed zh-cn, no runtime i18n
             },
           },
         },

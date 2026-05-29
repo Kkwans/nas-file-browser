@@ -20,7 +20,7 @@
         :autofocus="active"
         v-model.trim="prompt"
         :aria-label="'搜索'"
-        placeholder="search"
+        placeholder="搜索"
       />
       <i
         v-show="ongoing"

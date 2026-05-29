@@ -7,7 +7,7 @@
     @touchstart="toggleNavigation"
   >
     <header-bar v-if="isPdf || isEpub || isCsv || showNav">
-      <action icon="close" label="关闭" @action="close()" />
+      <action icon="close" :label="t('viewer.close')" @action="close()" />
       <title>{{ name }}</title>
       <action
         :disabled="layoutStore.loading"
@@ -21,7 +21,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.rename"
           icon="mode_edit"
-          label="重命名"
+          :label="t('buttons.rename')"
           show="rename"
         />
         <action
@@ -35,7 +35,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.delete"
           icon="delete"
-          label="删除"
+          :label="t('buttons.delete')"
           @action="deleteFile"
           id="delete-button"
         />
@@ -43,7 +43,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.download"
           icon="file_download"
-          label="下载"
+          :label="t('buttons.download')"
           @action="download"
         />
         <action
@@ -59,7 +59,7 @@
         <action
           :disabled="layoutStore.loading"
           icon="info"
-          label="信息"
+          :label="t('info.title')"
           show="info"
         />
       </template>
@@ -130,11 +130,11 @@
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
-            此文件无法预览。
+            {{ t('viewer.cannotPreview') }}
           </div>
           <div>
             <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div><i class="material-icons">file_download</i>下载</div>
+              <div><i class="material-icons">file_download</i>{{ t('buttons.download') }}</div>
             </a>
             <a
               target="_blank"
@@ -142,7 +142,7 @@
               class="button button--flat"
               v-if="!fileStore.req?.isDir"
             >
-              <div><i class="material-icons">open_in_new</i>打开文件</div>
+              <div><i class="material-icons">open_in_new</i>{{ t('buttons.openFile') }}</div>
             </a>
           </div>
         </div>
@@ -154,8 +154,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasPrevious || !showNav }"
-      aria-label="上一个"
-      title="上一个"
+      :aria-label="t('viewer.previous')"
+      :title="t('viewer.previous')"
     >
       <i class="material-icons">chevron_left</i>
     </button>
@@ -164,8 +164,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasNext || !showNav }"
-      aria-label="下一个"
-      title="下一个"
+      :aria-label="t('viewer.next')"
+      :title="t('viewer.next')"
     >
       <i class="material-icons">chevron_right</i>
     </button>

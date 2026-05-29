@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
+import { t } from "@/utils/translations";
 
 const layoutStore = useLayoutStore();
 const { currentPrompt } = storeToRefs(layoutStore);

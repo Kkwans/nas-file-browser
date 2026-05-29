@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>你确定要放弃所做的更改吗？</p>
+      <p>{{ t('discardEditorChanges.confirm') }}</p>
     </div>
     <div class="card-action">
       <button
@@ -11,7 +11,7 @@
         title="取消"
         tabindex="3"
       >
-        取消
+        {{ t('buttons.cancel') }}
       </button>
       <button
         class="button button--flat button--blue"
@@ -20,7 +20,7 @@
         title="保存更改"
         tabindex="1"
       >
-        保存更改
+        {{ t('buttons.saveChanges') }}
       </button>
       <button
         id="focus-prompt"
@@ -30,7 +30,7 @@
         title="放弃更改"
         tabindex="2"
       >
-        放弃更改
+        {{ t('buttons.discardEditorChanges') }}
       </button>
     </div>
   </div>
@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
+import { t } from "@/utils/translations";
 
 const layoutStore = useLayoutStore();
 const { currentPrompt } = storeToRefs(layoutStore);

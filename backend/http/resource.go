@@ -142,7 +142,7 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 		})
 		if err == nil {
 			if r.URL.Query().Get("override") != "true" {
-				return http.StatusConflict, fmt.Errorf("文件已存在")
+				return http.StatusConflict, fmt.Errorf("file already exists")
 			}
 
 			// Permission for overwriting the file
@@ -190,7 +190,7 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		return http.StatusInternalServerError, err
 	}
 	if !exists {
-		return http.StatusNotFound, fmt.Errorf("文件不存在")
+		return http.StatusNotFound, fmt.Errorf("file not found")
 	}
 
 	err = d.RunHook(func() error {

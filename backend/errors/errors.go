@@ -7,8 +7,8 @@ import (
 
 var (
 	ErrEmptyKey                 = errors.New("密钥为空")
-	ErrExist                    = errors.New("资源已存在")
-	ErrNotExist                 = errors.New("资源不存在")
+	ErrExist                    = errors.New("resource already exists")
+	ErrNotExist                 = errors.New("resource not found")
 	ErrEmptyPassword            = errors.New("密码不能为空")
 	ErrEasyPassword             = errors.New("密码强度不够，请使用更复杂的密码")
 	ErrEmptyUsername            = errors.New("用户名不能为空")

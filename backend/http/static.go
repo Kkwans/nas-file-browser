@@ -106,7 +106,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs fs.FS) (index, static http.Handler) {
 	index = handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.Method != http.MethodGet {
-			return http.StatusNotFound, fmt.Errorf("资源不存在")
+			return http.StatusNotFound, fmt.Errorf("resource not found")
 		}
 
 		w.Header().Set("x-xss-protection", "1; mode=block")
@@ -115,11 +115,11 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 
 	static = handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.Method != http.MethodGet {
-			return http.StatusNotFound, fmt.Errorf("资源不存在")
+			return http.StatusNotFound, fmt.Errorf("resource not found")
 		}
 
 		if strings.HasSuffix(r.URL.Path, "/") {
-			return http.StatusNotFound, fmt.Errorf("资源不存在")
+			return http.StatusNotFound, fmt.Errorf("resource not found")
 		}
 
 		const maxAge = 86400 // 1 day

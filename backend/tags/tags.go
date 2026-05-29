@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrNotExist = errors.New("标签不存在")
+	ErrNotExist = errors.New("tag not found")
 )
 
 // Tag represents a label that can be attached to file/folder paths.

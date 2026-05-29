@@ -178,7 +178,7 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 
 		switch {
 		case errors.Is(err, afero.ErrFileNotFound):
-			return http.StatusNotFound, fmt.Errorf("文件不存在")
+			return http.StatusNotFound, fmt.Errorf("file not found")
 		case err != nil:
 			return errToStatus(err), err
 		}

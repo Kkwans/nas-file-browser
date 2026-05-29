@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	ErrExist       = errors.New("收藏已存在")
-	ErrNotExist    = errors.New("收藏不存在")
-	ErrGroupExist  = errors.New("分组已存在")
-	ErrGroupInUse  = errors.New("分组下还有收藏")
+	ErrExist       = errors.New("favorite already exists")
+	ErrNotExist    = errors.New("favorite not found")
+	ErrGroupExist  = errors.New("group already exists")
+	ErrGroupInUse  = errors.New("group still contains favorites")
 )
 
 // FavoriteGroup represents a virtual directory for organizing favorites.

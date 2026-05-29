@@ -69,7 +69,7 @@ const admin = computed({
   set: (value: boolean) => {
     if (value) {
       for (const key in props.perm) {
-        (props.perm as any)[key] = true;
+        (props.perm as unknown as Record<string, boolean>)[key] = true;
       }
     }
     props.perm.admin = value;

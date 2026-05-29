@@ -151,6 +151,7 @@ import { useLayoutStore } from "@/stores/layout";
 import * as api from "@/api/index";
 import dayjs from "dayjs";
 import type { Share } from "@/types/api";
+import type { Resource } from "@/types/file";
 import { copy } from "@/utils/clipboard";
 
 const { t } = useI18n();

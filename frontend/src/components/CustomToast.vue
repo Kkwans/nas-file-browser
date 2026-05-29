@@ -15,7 +15,11 @@ defineProps<{
 }>();
 
 const clicked = () => {
-  window.open("https://github.com/filebrowser/filebrowser/issues/new/choose", "_blank", "noopener,noreferrer");
+  window.open(
+    "https://github.com/filebrowser/filebrowser/issues/new/choose",
+    "_blank",
+    "noopener,noreferrer"
+  );
 };
 </script>
 

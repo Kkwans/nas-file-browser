@@ -31,11 +31,7 @@
         <button class="quick-preview-btn" @click="openFull" title="打开文件">
           <i class="material-icons">open_in_new</i>
         </button>
-        <button
-          class="quick-preview-btn close-btn"
-          @click="close"
-          title="关闭"
-        >
+        <button class="quick-preview-btn close-btn" @click="close" title="关闭">
           <i class="material-icons">close</i>
         </button>
       </div>
@@ -91,7 +87,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -102,7 +97,6 @@ import type { ResourceItem } from "@/types/file";
 import { filesize } from "@/utils";
 import { getFileIcon, isTextFile, isPreviewable } from "@/utils/fileIcons";
 import {
-
   loadMarkdownResources,
   highlightAndAnnotateCodeBlocks,
 } from "@/utils/externalResources";
@@ -284,5 +278,4 @@ const renderMarkdown = async (content: string) => {
     highlightAndAnnotateCodeBlocks(markdownBody.value);
   }
 };
-
 </script>

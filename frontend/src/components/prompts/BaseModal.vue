@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { t } from "@/utils/translations";
 
 const emit = defineEmits(["closed"]);

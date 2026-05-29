@@ -14,7 +14,7 @@ const userTheme = ref<UserTheme>(getTheme() || getMediaPreference());
 onMounted(() => {
   setTheme(userTheme.value);
   document.documentElement.lang = "zh-cn";
-document.documentElement.dir = "ltr";
+  document.documentElement.dir = "ltr";
   // this might be null during HMR
   const loading = document.getElementById("loading");
   loading?.classList.add("done");

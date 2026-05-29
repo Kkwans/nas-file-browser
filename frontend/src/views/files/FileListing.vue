@@ -230,7 +230,7 @@
                 title="t('files.sortByName')"
                 aria-label="t('files.sortByName')"
               >
-                <span>{{ t('listing.name') }}</span>
+                <span>{{ t("listing.name") }}</span>
                 <i class="material-icons">{{ nameIcon }}</i>
               </p>
 
@@ -243,7 +243,7 @@
                 title="t('files.sortBySize')"
                 aria-label="t('files.sortBySize')"
               >
-                <span>{{ t('listing.size') }}</span>
+                <span>{{ t("listing.size") }}</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
               </p>
               <p
@@ -270,7 +270,7 @@
             >label</i
           >
           <span
-            >{{ t('listing.filteringByTag') }}
+            >{{ t("listing.filteringByTag") }}
             <strong>{{ tagsStore.activeFilterTag.name }}</strong></span
           >
           <button
@@ -409,7 +409,9 @@
           <div class="selection-info">
             <i class="material-icons">check_circle</i>
             <span v-if="fileStore.selectedCount > 0">
-              {{ t("prompts.filesSelected", { count: fileStore.selectedCount }) }}
+              {{
+                t("prompts.filesSelected", { count: fileStore.selectedCount })
+              }}
             </span>
             <span v-else>{{ t("files.multipleSelectionEnabled") }}</span>
           </div>
@@ -440,7 +442,7 @@
                 @click="layoutStore.showHover('copy')"
               >
                 <i class="material-icons">content_copy</i>
-                <span>{{ t('listing.copyFile') }}</span>
+                <span>{{ t("listing.copyFile") }}</span>
               </button>
               <button
                 v-if="headerButtons.move"
@@ -456,7 +458,7 @@
                 @click="download"
               >
                 <i class="material-icons">file_download</i>
-                <span>{{ t('listing.download') }}</span>
+                <span>{{ t("listing.download") }}</span>
               </button>
               <button
                 v-if="headerButtons.delete"
@@ -464,7 +466,7 @@
                 @click="layoutStore.showHover('delete')"
               >
                 <i class="material-icons">delete</i>
-                <span>{{ t('listing.delete') }}</span>
+                <span>{{ t("listing.delete") }}</span>
               </button>
             </template>
             <button
@@ -488,7 +490,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useAuthStore } from "@/stores/auth";
 import { useClipboardStore } from "@/stores/clipboard";
 import { useFileStore } from "@/stores/file";
@@ -508,7 +509,6 @@ import Item from "@/components/files/ListingItem.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import LoadingSkeleton from "@/components/LoadingSkeleton.vue";
 import type {
-
   ResourceItem,
   PasteItem,
   ConflictingResource,
@@ -532,7 +532,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -1553,7 +1553,6 @@ const handleEmptyAreaClick = (e: MouseEvent) => {
     fileStore.selected = [];
   }
 };
-
 </script>
 <style scoped>
 #listing {

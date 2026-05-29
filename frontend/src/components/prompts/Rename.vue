@@ -1,12 +1,13 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t('buttons.rename') }}</h2>
+      <h2>{{ t("buttons.rename") }}</h2>
     </div>
 
     <div class="card-content">
       <p>
-        请输入新名称，旧名称为： <code>{{ oldName }}</code>:
+        请输入新名称，旧名称为： <code>{{ oldName }}</code
+        >:
       </p>
       <input
         id="focus-prompt"
@@ -24,7 +25,7 @@
         :aria-label="t('buttons.cancel')"
         :title="t('buttons.cancel')"
       >
-        {{ t('buttons.cancel') }}
+        {{ t("buttons.cancel") }}
       </button>
       <button
         @click="submit"
@@ -34,7 +35,7 @@
         :title="t('buttons.rename')"
         :disabled="name === '' || name === oldName"
       >
-        {{ t('buttons.rename') }}
+        {{ t("buttons.rename") }}
       </button>
     </div>
   </div>

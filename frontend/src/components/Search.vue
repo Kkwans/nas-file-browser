@@ -82,8 +82,6 @@ import { computed, inject, onMounted, ref, watch, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { StatusError } from "@/api/utils";
-import { t } from "@/utils/translations";
-
 function getSearchLabel(label: string): string {
   const map: Record<string, string> = {
     images: "图像",
@@ -157,9 +155,7 @@ const text = computed(() => {
     return "";
   }
 
-  return prompt.value === ""
-    ? "输入关键词搜索"
-    : "按回车搜索";
+  return prompt.value === "" ? "输入关键词搜索" : "按回车搜索";
 });
 const filteredResults = computed(() => {
   return results.value.slice(0, resultsCount.value);

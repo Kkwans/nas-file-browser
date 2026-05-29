@@ -1,35 +1,39 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t('info.title') }}</h2>
+      <h2>{{ t("info.title") }}</h2>
     </div>
 
     <div class="card-content">
       <p v-if="selected.length > 1">
-        {{ t('info.selectedCount', { count: selected.length }) }}
+        {{ t("info.selectedCount", { count: selected.length }) }}
       </p>
 
       <p class="break-word" v-if="selected.length < 2">
-        <strong>{{ t('share.name') }}：</strong> {{ name }}
+        <strong>{{ t("share.name") }}：</strong> {{ name }}
       </p>
 
       <p v-if="!dir || selected.length > 1">
-        <strong>{{ t('share.size') }}:</strong>
+        <strong>{{ t("share.size") }}:</strong>
         <span id="content_length"></span> {{ humanSize }}
       </p>
 
       <div v-if="resolution">
-        <strong>{{ t('info.resolution') }}:</strong>
+        <strong>{{ t("info.resolution") }}:</strong>
         {{ resolution.width }} x {{ resolution.height }}
       </div>
 
       <p v-if="selected.length < 2" title="modTime">
-        <strong>{{ t('share.lastModified') }}:</strong> {{ humanTime }}
+        <strong>{{ t("share.lastModified") }}:</strong> {{ humanTime }}
       </p>
 
       <template v-if="dir && selected.length === 0">
-        <p><strong>{{ t('info.fileCount') }}:</strong> {{ req?.numFiles }}</p>
-        <p><strong>{{ t('info.folderCount') }}:</strong> {{ req?.numDirs }}</p>
+        <p>
+          <strong>{{ t("info.fileCount") }}:</strong> {{ req?.numFiles }}
+        </p>
+        <p>
+          <strong>{{ t("info.folderCount") }}:</strong> {{ req?.numDirs }}
+        </p>
       </template>
 
       <template v-if="!dir">
@@ -40,7 +44,7 @@
               @click="checksum($event, 'md5')"
               @keypress.enter="checksum($event, 'md5')"
               tabindex="2"
-              >{{ t('viewer.clickToDownload') }}</a
+              >{{ t("viewer.clickToDownload") }}</a
             ></code
           >
         </p>
@@ -89,7 +93,7 @@
         :aria-label="t('buttons.confirm')"
         :title="t('buttons.confirm')"
       >
-        {{ t('buttons.confirm') }}
+        {{ t("buttons.confirm") }}
       </button>
     </div>
   </div>
@@ -133,6 +137,7 @@ const humanTime = computed(() => {
   return dayjs(req.value!.items[selected.value[0]].modified).fromNow();
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const modTime = computed(() => {
   if (selectedCount.value === 0) {
     return new Date(Date.parse(req.value!.modified)).toLocaleString();

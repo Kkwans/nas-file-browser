@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { t } from "@/utils/translations";
 
 const props = defineProps<{

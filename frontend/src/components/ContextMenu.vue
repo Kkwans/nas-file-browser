@@ -14,6 +14,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onUnmounted } from "vue";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { t } from "@/utils/translations";
 
 const emit = defineEmits(["hide"]);

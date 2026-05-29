@@ -44,7 +44,7 @@
             />
           </p>
 
-          <h3>{{ t('settings.rules') }}</h3>
+          <h3>{{ t("settings.rules") }}</h3>
           <p class="small">{{ t("settings.globalRules") }}</p>
           <rules v-model:rules="settings.rules" />
 
@@ -59,15 +59,15 @@
             />
           </div>
 
-          <h3>{{ t('settings.brandCustomization') }}</h3>
+          <h3>{{ t("settings.brandCustomization") }}</h3>
 
           <p class="small">
-            {{ t('settings.brandDescription') }}
+            {{ t("settings.brandDescription") }}
             <a
               class="link"
               target="_blank"
               href="https://filebrowser.org/customization.html#custom-branding"
-              >{{ t('settings.officialDoc') }}</a
+              >{{ t("settings.officialDoc") }}</a
             >
             。
           </p>
@@ -196,7 +196,7 @@
 
         <div class="card-content">
           <p class="small">
-            {{ t('settings.commandDescription') }}
+            {{ t("settings.commandDescription") }}
             <a
               class="link"
               target="_blank"
@@ -238,14 +238,12 @@
 </template>
 
 <script setup lang="ts">
-
 import { settings as api } from "@/api";
 import { StatusError } from "@/api/utils";
 import Rules from "@/components/settings/Rules.vue";
 import Themes from "@/components/settings/Themes.vue";
 import UserForm from "@/components/settings/UserForm.vue";
 import type {
-
   ISettings,
   SettingsCommand,
   SettingsUnit,
@@ -260,7 +258,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -428,5 +426,4 @@ onBeforeUnmount(() => {
     clearTimeout(debounceTimeout.value);
   }
 });
-
 </script>

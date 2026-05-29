@@ -8,7 +8,7 @@
         @click="closeHovers"
         class="button button--flat button--grey"
         :aria-label="'取消'"
-        :title="'取消'",
+        :title="'取消'"
         tabindex="2"
       >
         取消
@@ -18,7 +18,7 @@
         @click="submit"
         class="button button--flat button--red"
         :aria-label="'删除'"
-        :title="'删除'",
+        :title="'取消'"
         tabindex="1"
       >
         删除
@@ -30,7 +30,6 @@
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
-import { t } from "@/utils/translations";
 
 const layoutStore = useLayoutStore();
 const { currentPrompt } = storeToRefs(layoutStore);

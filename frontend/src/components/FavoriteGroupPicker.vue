@@ -5,7 +5,7 @@
       <button
         class="fav-group-picker-manage"
         @click="createNew"
-        title='新建分组'
+        title="新建分组"
       >
         <i class="material-icons">add</i>
       </button>
@@ -71,7 +71,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
 import { useFavoritesStore } from "@/stores/favorites";
-import { t } from "@/utils/translations";
 
 const props = defineProps<{
   path: string;

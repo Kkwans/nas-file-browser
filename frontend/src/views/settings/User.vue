@@ -4,8 +4,8 @@
     <div class="column">
       <form @submit="save" class="card">
         <div class="card-title">
-          <h2 v-if="user?.id === 0">{{ t('users.newUser') }}</h2>
-          <h2 v-else>{{ t('users.editingUser', { name: user?.username }) }}</h2>
+          <h2 v-if="user?.id === 0">{{ t("users.newUser") }}</h2>
+          <h2 v-else>{{ t("users.editingUser", { name: user?.username }) }}</h2>
         </div>
 
         <div class="card-content" v-if="user">
@@ -37,7 +37,11 @@
               取消
             </button>
           </router-link>
-          <input class="button button--flat" type="submit" :value="t('buttons.save')" />
+          <input
+            class="button button--flat"
+            type="submit"
+            :value="t('buttons.save')"
+          />
         </div>
       </form>
     </div>
@@ -45,7 +49,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { users as api, settings } from "@/api";
@@ -63,7 +66,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -215,5 +218,4 @@ const send = async (currentPassword: string) => {
     $showError(e);
   }
 };
-
 </script>

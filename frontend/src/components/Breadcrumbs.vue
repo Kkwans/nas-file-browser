@@ -19,7 +19,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import type { BreadCrumb } from "@/types/file";
@@ -29,12 +28,11 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
 };
-
 
 const route = useRoute();
 
@@ -89,5 +87,4 @@ const element = computed(() => {
 
   return "router-link";
 });
-
 </script>

@@ -1,5 +1,4 @@
 <template>
-import { t } from "@/utils/translations";
   <form class="rules small">
     <div v-for="(rule, index) in props.rules" :key="index">
       <input type="checkbox" v-model="rule.regex" /><label>Regex</label>

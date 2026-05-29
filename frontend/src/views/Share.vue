@@ -45,7 +45,7 @@
             {{ t("login.wrongCredentials") }}
           </div>
           <div class="card-title">
-            <h2>{{ t('share.password') }}</h2>
+            <h2>{{ t("share.password") }}</h2>
           </div>
 
           <div class="card-content">
@@ -98,13 +98,13 @@
             <i class="material-icons">{{ icon }}</i>
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>{{ t('share.name') }}：</strong> {{ req.name }}
+            <strong>{{ t("share.name") }}：</strong> {{ req.name }}
           </div>
           <div v-if="!req.isDir" class="share__box__element" :title="modTime">
-            <strong>{{ t('share.lastModified') }}:</strong> {{ humanTime }}
+            <strong>{{ t("share.lastModified") }}:</strong> {{ humanTime }}
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>{{ t('share.size') }}:</strong> {{ humanSize }}
+            <strong>{{ t("share.size") }}:</strong> {{ humanSize }}
           </div>
           <div class="share__box__element share__box__center">
             <a
@@ -115,7 +115,7 @@
             >
               <div>
                 <i class="material-icons">file_download</i
-                >{{ t('buttons.download') }}
+                >{{ t("buttons.download") }}
               </div>
             </a>
             <a
@@ -126,7 +126,7 @@
             >
               <div>
                 <i class="material-icons">open_in_new</i
-                >{{ t('buttons.openFile') }}
+                >{{ t("buttons.openFile") }}
               </div>
             </a>
             <qrcode-vue
@@ -305,7 +305,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { pub as api } from "@/api";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
@@ -330,7 +329,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -391,6 +390,7 @@ const humanSize = computed(() => {
   }
 });
 const humanTime = computed(() => dayjs(req.value?.modified).fromNow());
+
 const modTime = computed(() =>
   req.value
     ? new Date(Date.parse(req.value.modified)).toLocaleString()
@@ -536,7 +536,6 @@ onBeforeUnmount(() => {
   // Destroyed
   window.removeEventListener("keydown", keyEvent);
 });
-
 </script>
 
 <style scoped>

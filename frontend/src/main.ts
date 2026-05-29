@@ -48,7 +48,10 @@ app.use(router);
 
 // 全局 t 函数，供所有 Vue 组件模板使用（替代 vue-i18n）
 // 支持嵌套键：t('buttons.save') → "保存"
-app.config.globalProperties.t = (key: string, opts?: Record<string, any>): string => {
+app.config.globalProperties.t = (
+  key: string,
+  opts?: Record<string, any>
+): string => {
   const keys = key.split(".");
   let result: any = T;
   for (const k of keys) {

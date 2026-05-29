@@ -10,8 +10,8 @@
       :default="index === 0"
     />
     <p class="vjs-no-js">
-      {{ t('videoPlayer.browserNotSupport') }}
-      <a :href="source">{{ t('buttons.download') }}</a>
+      {{ t("videoPlayer.browserNotSupport") }}
+      <a :href="source">{{ t("buttons.download") }}</a>
     </p>
   </video>
 </template>

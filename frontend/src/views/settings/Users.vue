@@ -4,7 +4,7 @@
     <div class="column">
       <div class="card">
         <div class="card-title">
-          <h2>{{ t('users.userManagement') }}</h2>
+          <h2>{{ t("users.userManagement") }}</h2>
           <router-link to="/settings/users/new"
             ><button class="button">
               {{ t("buttons.new") }}
@@ -42,7 +42,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useLayoutStore } from "@/stores/layout";
 import { users as api } from "@/api";
 import Errors from "@/views/Errors.vue";
@@ -55,7 +54,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -79,5 +78,4 @@ onMounted(async () => {
     layoutStore.loading = false;
   }
 });
-
 </script>

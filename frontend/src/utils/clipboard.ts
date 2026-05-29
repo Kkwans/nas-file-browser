@@ -68,15 +68,13 @@ export function read() {
 function getPermission(name: string) {
   return new Promise<void>((resolve, reject) => {
     typeof navigator.permissions !== "undefined" &&
-      navigator.permissions
-        .query({ name })
-        .then((permission) => {
-          if (permission.state === "granted" || permission.state === "prompt") {
-            resolve();
-          } else {
-            reject(new Error("Permission denied!"));
-          }
-        });
+      navigator.permissions.query({ name }).then((permission) => {
+        if (permission.state === "granted" || permission.state === "prompt") {
+          resolve();
+        } else {
+          reject(new Error("Permission denied!"));
+        }
+      });
   });
 }
 

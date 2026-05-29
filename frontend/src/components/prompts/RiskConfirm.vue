@@ -5,7 +5,9 @@
         <i class="material-icons risk-confirm-icon" :class="'risk-' + riskLevel"
           >warning</i
         >
-        <span class="risk-confirm-title">{{ t('confirm.riskOperationConfirm') }}</span>
+        <span class="risk-confirm-title">{{
+          t("confirm.riskOperationConfirm")
+        }}</span>
       </div>
       <div class="risk-confirm-body">
         <p class="risk-confirm-level">
@@ -15,19 +17,19 @@
           <span class="risk-path">{{ targetPath }}</span>
         </p>
         <p class="risk-confirm-message">
-          {{ t('confirm.warningProtectedDir') }}
+          {{ t("confirm.warningProtectedDir") }}
         </p>
         <div class="risk-confirm-details">
           <p v-if="actionType === 'delete'">
-            {{ t('confirm.warningDelete') }}
+            {{ t("confirm.warningDelete") }}
           </p>
           <p v-else-if="actionType === 'rename'">
-            {{ t('confirm.warningRename') }}
+            {{ t("confirm.warningRename") }}
           </p>
           <p v-else-if="actionType === 'move'">
-            {{ t('confirm.warningMove') }}
+            {{ t("confirm.warningMove") }}
           </p>
-          <p v-else>{{ t('confirm.warningGeneral') }}</p>
+          <p v-else>{{ t("confirm.warningGeneral") }}</p>
         </div>
       </div>
     </div>
@@ -39,7 +41,7 @@
         :title="t('buttons.cancel')"
         tabindex="2"
       >
-        {{ t('buttons.cancel') }}
+        {{ t("buttons.cancel") }}
       </button>
       <button
         id="focus-prompt"
@@ -49,7 +51,7 @@
         :title="t('confirm.confirmExecution')"
         tabindex="1"
       >
-        {{ t('confirm.confirmExecution') }}
+        {{ t("confirm.confirmExecution") }}
       </button>
     </div>
   </div>
@@ -57,10 +59,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { t } from "@/utils/translations";
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
-import { t } from "@/utils/translations";
-
 const layoutStore = useLayoutStore();
 const { currentPrompt } = storeToRefs(layoutStore);
 const { closeHovers } = layoutStore;

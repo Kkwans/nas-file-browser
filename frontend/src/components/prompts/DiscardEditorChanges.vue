@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>{{ t('discardEditorChanges.confirm') }}</p>
+      <p>{{ t("discardEditorChanges.confirm") }}</p>
     </div>
     <div class="card-action">
       <button
@@ -11,7 +11,7 @@
         title="取消"
         tabindex="3"
       >
-        {{ t('buttons.cancel') }}
+        {{ t("buttons.cancel") }}
       </button>
       <button
         class="button button--flat button--blue"
@@ -20,7 +20,7 @@
         title="保存更改"
         tabindex="1"
       >
-        {{ t('buttons.saveChanges') }}
+        {{ t("buttons.saveChanges") }}
       </button>
       <button
         id="focus-prompt"
@@ -30,7 +30,7 @@
         title="放弃更改"
         tabindex="2"
       >
-        {{ t('buttons.discardEditorChanges') }}
+        {{ t("buttons.discardEditorChanges") }}
       </button>
     </div>
   </div>

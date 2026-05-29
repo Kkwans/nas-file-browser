@@ -130,11 +130,14 @@
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
-            {{ t('viewer.cannotPreview') }}
+            {{ t("viewer.cannotPreview") }}
           </div>
           <div>
             <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div><i class="material-icons">file_download</i>{{ t('buttons.download') }}</div>
+              <div>
+                <i class="material-icons">file_download</i
+                >{{ t("buttons.download") }}
+              </div>
             </a>
             <a
               target="_blank"
@@ -142,7 +145,10 @@
               class="button button--flat"
               v-if="!fileStore.req?.isDir"
             >
-              <div><i class="material-icons">open_in_new</i>{{ t('buttons.openFile') }}</div>
+              <div>
+                <i class="material-icons">open_in_new</i
+                >{{ t("buttons.openFile") }}
+              </div>
             </a>
           </div>
         </div>
@@ -175,7 +181,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useStorage } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
@@ -204,7 +209,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -514,5 +519,4 @@ const openDirect = () => window.open(directUrl.value);
 const editAsText = () => {
   router.push({ path: route.path, query: { edit: "true" } });
 };
-
 </script>

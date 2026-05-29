@@ -28,7 +28,7 @@
         v-if="prompt.length === 0 && results.length === 0"
         class="search-hints"
       >
-        <p>{{ t('searchPage.typeToSearch') }}</p>
+        <p>{{ t("searchPage.typeToSearch") }}</p>
         <div class="search-types">
           <div
             tabindex="0"
@@ -59,7 +59,7 @@
         class="search-empty"
       >
         <i class="material-icons">search_off</i>
-        <p>{{ t('searchPage.noResults') }}</p>
+        <p>{{ t("searchPage.noResults") }}</p>
       </div>
 
       <!-- {{ t('searchPage.results') }} -->
@@ -90,7 +90,6 @@
 </template>
 
 <script setup lang="ts">
-
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import type { SearchResult } from "@/types/file";
 import { search } from "@/api";
@@ -100,7 +99,6 @@ import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import dayjs from "dayjs";
 import {
-
   computed,
   inject,
   nextTick,
@@ -116,7 +114,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -215,7 +213,6 @@ const formatTime = (time: string): string => {
 const fileIcon = (item: SearchResult): string => {
   return getFileIcon(item.name, item.dir);
 };
-
 </script>
 
 <style scoped>

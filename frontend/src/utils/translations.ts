@@ -80,7 +80,8 @@ export const T = {
 
   // === permissions ===
   "permissions.title": "权限",
-  "permissions.adminDescription": "你可以将该用户设置为管理员或单独选择各项权限。如果你选择了「管理员」，则其他的选项会被自动选中，同时该用户可以管理其他用户。",
+  "permissions.adminDescription":
+    "你可以将该用户设置为管理员或单独选择各项权限。如果你选择了「管理员」，则其他的选项会被自动选中，同时该用户可以管理其他用户。",
   "permissions.admin": "管理员",
   "permissions.createFiles": "创建文件和文件夹",
   "permissions.deleteFiles": "删除文件和文件夹",
@@ -92,7 +93,8 @@ export const T = {
 
   // === commands ===
   "commands.title": "用户命令（Shell 命令）",
-  "commands.description": "指定该用户可以执行的命令（Shell 命令），用空格分隔。例如：",
+  "commands.description":
+    "指定该用户可以执行的命令（Shell 命令），用空格分隔。例如：",
   "commands.placeholder": "输入正则表达式",
   "commands.pathPlaceholder": "输入路径",
 
@@ -117,8 +119,10 @@ export const T = {
   "confirm.deleteCountConfirm": "你确定要删除这 {count} 个文件吗？",
   "confirm.confirmExecution": "确认执行",
   "confirm.riskOperationConfirm": "风险操作确认",
-  "confirm.warningProtectedDir": "您正在对一个受保护的目录执行操作，请确认您了解可能的后果。",
-  "confirm.warningDelete": "删除此目录可能导致系统组件无法正常运行，数据可能无法恢复。",
+  "confirm.warningProtectedDir":
+    "您正在对一个受保护的目录执行操作，请确认您了解可能的后果。",
+  "confirm.warningDelete":
+    "删除此目录可能导致系统组件无法正常运行，数据可能无法恢复。",
   "confirm.warningRename": "重命名此目录可能导致依赖它的系统组件无法正常工作。",
   "confirm.warningMove": "移动此目录可能导致依赖它的系统组件无法正常工作。",
   "confirm.warningGeneral": "对此目录的操作可能影响系统稳定性。",
@@ -145,7 +149,8 @@ export const T = {
   "settings.brandDescription": "如需自定义品牌，请参考",
   "settings.officialDoc": "官方文档",
   "settings.commandExecutor": "命令执行器",
-  "settings.commandDescription": "命令执行器允许在文件操作前后运行自定义命令。详情请查看",
+  "settings.commandDescription":
+    "命令执行器允许在文件操作前后运行自定义命令。详情请查看",
   "settings.globalSettings": "全局设置",
   "settings.profileSettings": "账户设置",
   "settings.shareManagement": "分享管理",
@@ -250,7 +255,8 @@ export const T = {
   "other.favorites": "收藏夹",
   "other.resolveConflict": "解决冲突",
   "other.replaceOrSkip": "替换或跳过",
-  "other.keepBothDescription": "如果选择保留两个版本，副本文件名将添加数字后缀。",
+  "other.keepBothDescription":
+    "如果选择保留两个版本，副本文件名将添加数字后缀。",
   "other.sourceFile": "源位置文件",
   "other.uploadFile": "上传文件",
   "other.targetFile": "目标位置文件",
@@ -263,7 +269,8 @@ export const T = {
   "other.renameAllFiles": "重命名所有文件（创建副本）",
   "other.skipAllConflicts": "跳过所有冲突文件",
   "other.resumeTransfer": "恢复传输",
-  "other.skipSmallerFiles": "跳过所有冲突文件，除了服务器上较小的文件（可能传输中断）。",
+  "other.skipSmallerFiles":
+    "跳过所有冲突文件，除了服务器上较小的文件（可能传输中断）。",
   "other.handleIndividually": "逐个处理冲突文件",
   "other.columnSeparator": "列分隔符",
   "other.comma": "逗号",
@@ -323,7 +330,8 @@ export const T = {
 
   // === replace ===
   "replace.title": "替换",
-  "replace.conflict": "你尝试上传的文件中有一个与现有文件的名称存在冲突。是否替换现有的同名文件？",
+  "replace.conflict":
+    "你尝试上传的文件中有一个与现有文件的名称存在冲突。是否替换现有的同名文件？",
   "replace.newFolder": "新建文件夹",
   "replace.confirmCancel": "取消",
   "replace.confirmContinue": "继续",
@@ -340,7 +348,8 @@ export const T = {
   // === resolveConflict ===
   "resolveConflict.title": "解决冲突",
   "resolveConflict.replaceOrSkip": "替换或跳过",
-  "resolveConflict.keepBoth": "如果选择保留两个版本，副本文件名将添加数字后缀。",
+  "resolveConflict.keepBoth":
+    "如果选择保留两个版本，副本文件名将添加数字后缀。",
   "resolveConflict.sourceFile": "源位置文件",
   "resolveConflict.uploadFile": "上传文件",
   "resolveConflict.targetFile": "目标位置文件",
@@ -353,7 +362,8 @@ export const T = {
   "resolveConflict.renameAll": "重命名所有文件（创建副本）",
   "resolveConflict.skipAll": "跳过所有冲突文件",
   "resolveConflict.resume": "恢复传输",
-  "resolveConflict.skipSmaller": "跳过所有冲突文件，除了服务器上较小的文件（可能传输中断）。",
+  "resolveConflict.skipSmaller":
+    "跳过所有冲突文件，除了服务器上较小的文件（可能传输中断）。",
   "resolveConflict.handleIndividually": "逐个处理冲突文件",
   "resolveConflict.newFolder": "新建文件夹",
 
@@ -395,7 +405,8 @@ export const T = {
 
   // === videoPlayer ===
   "videoPlayer.download": "下载",
-  "videoPlayer.browserNotSupport": "您的浏览器不支持嵌入式视频播放，请下载后观看。",
+  "videoPlayer.browserNotSupport":
+    "您的浏览器不支持嵌入式视频播放，请下载后观看。",
 
   // === breadcrumbs ===
   "breadcrumbs.home": "首页",
@@ -416,7 +427,8 @@ export const T = {
   "global.brandDescription": "如需自定义品牌，请参考",
   "global.officialDoc": "官方文档",
   "global.commandExecutor": "命令执行器",
-  "global.commandDescription": "命令执行器允许在文件操作前后运行自定义命令。详情请查看",
+  "global.commandDescription":
+    "命令执行器允许在文件操作前后运行自定义命令。详情请查看",
 
   // === searchPage ===
   "searchPage.typeToSearch": "输入关键词搜索",

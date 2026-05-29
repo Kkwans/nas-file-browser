@@ -9,12 +9,8 @@
         <h2>上传文件 ({{ uploadStore.pendingUploadCount }})</h2>
         <div class="upload-info">
           <div class="upload-speed">{{ speedText }}/s</div>
-          <div class="upload-eta">
-            {{ formattedETA }} 剩余时间
-          </div>
-          <div class="upload-percentage">
-            {{ sentPercent }}% 已完成
-          </div>
+          <div class="upload-eta">{{ formattedETA }} 剩余时间</div>
+          <div class="upload-percentage">{{ sentPercent }}% 已完成</div>
           <div class="upload-fraction">
             {{ sentMbytes }} /
             {{ totalMbytes }}
@@ -66,7 +62,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useFileStore } from "@/stores/file";
 import { useUploadStore } from "@/stores/upload";
 import { storeToRefs } from "pinia";
@@ -79,7 +74,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -218,7 +213,6 @@ const abortAll = () => {
     fileStore.reload = true; // Trigger reload in the file store
   }
 };
-
 </script>
 
 <style scoped>

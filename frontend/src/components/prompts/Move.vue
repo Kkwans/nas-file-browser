@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t('move.title') }}</h2>
+      <h2>{{ t("move.title") }}</h2>
     </div>
 
     <div class="card-content">
-      <p>{{ t('copy.targetDirectory') }}</p>
+      <p>{{ t("copy.targetDirectory") }}</p>
       <file-list
         ref="fileListRef"
         @update:selected="(val) => (dest = val)"
@@ -26,7 +26,7 @@
           :title="t('buttons.createFolder')"
           style="justify-self: left"
         >
-          <span>{{ t('buttons.createFolder') }}</span>
+          <span>{{ t("buttons.createFolder") }}</span>
         </button>
       </template>
       <div>
@@ -37,7 +37,7 @@
           :title="t('buttons.cancel')"
           tabindex="3"
         >
-          {{ t('buttons.cancel') }}
+          {{ t("buttons.cancel") }}
         </button>
         <button
           id="focus-prompt"
@@ -48,7 +48,7 @@
           :title="t('buttons.move')"
           tabindex="2"
         >
-          {{ t('buttons.move') }}
+          {{ t("buttons.move") }}
         </button>
       </div>
     </div>
@@ -57,6 +57,7 @@
 
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
+import { t } from "@/utils/translations";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
@@ -69,8 +70,6 @@ import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { removePrefix } from "@/api/utils";
-import { t } from "@/utils/translations";
-
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();
 const router = useRouter();

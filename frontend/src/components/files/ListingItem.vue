@@ -97,7 +97,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -121,7 +120,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -197,6 +196,7 @@ const riskLevel = computed(() => {
   return categoriesStore.getRiskLevel(props.path);
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const riskTitle = computed(() => {
   if (riskLevel.value === "high") return t("files.riskHighTitle");
   if (riskLevel.value === "medium") return t("files.riskMediumTitle");
@@ -536,5 +536,4 @@ const handleTouchMove = (event: TouchEvent) => {
     }
   }
 };
-
 </script>

@@ -50,7 +50,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import HeaderBar from "@/components/header/HeaderBar.vue";
@@ -61,7 +60,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -72,5 +71,4 @@ const layoutStore = useLayoutStore();
 
 const user = computed(() => authStore.user);
 const loading = computed(() => layoutStore.loading);
-
 </script>

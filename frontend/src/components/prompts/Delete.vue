@@ -2,10 +2,10 @@
   <div class="card floating">
     <div class="card-content">
       <p v-if="!isListing || selectedCount === 1">
-        {{ t('confirm.deleteConfirm') }}
+        {{ t("confirm.deleteConfirm") }}
       </p>
       <p v-else>
-        {{ t('confirm.deleteCountConfirm', { count: selectedCount }) }}
+        {{ t("confirm.deleteCountConfirm", { count: selectedCount }) }}
       </p>
     </div>
     <div class="card-action">
@@ -16,7 +16,7 @@
         :title="t('buttons.cancel')"
         tabindex="2"
       >
-        {{ t('buttons.cancel') }}
+        {{ t("buttons.cancel") }}
       </button>
       <button
         id="focus-prompt"
@@ -26,7 +26,7 @@
         :title="t('buttons.delete')"
         tabindex="1"
       >
-        {{ t('buttons.delete') }}
+        {{ t("buttons.delete") }}
       </button>
     </div>
   </div>

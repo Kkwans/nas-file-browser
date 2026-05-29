@@ -27,8 +27,6 @@
 
 <script setup lang="ts">
 import { useTagsStore } from "@/stores/tags";
-import { t } from "@/utils/translations";
-
 const props = defineProps<{
   path: string;
 }>();

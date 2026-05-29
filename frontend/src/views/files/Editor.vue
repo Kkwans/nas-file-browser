@@ -71,13 +71,11 @@
 </template>
 
 <script setup lang="ts">
-
 import { files as api } from "@/api";
 import type { ApiContent } from "@/types/api";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 import {
-
   loadMarkdownResources,
   loadHighlight,
   isDarkTheme,
@@ -100,7 +98,7 @@ const t = (key: string, opts?: Record<string, any>): string => {
   let result = (T as any)[key] ?? key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
     }
   }
   return result;
@@ -663,7 +661,6 @@ const finishClose = () => {
   const uri = url.removeLastDir(route.path) + "/";
   router.push({ path: uri });
 };
-
 </script>
 
 <style scoped>

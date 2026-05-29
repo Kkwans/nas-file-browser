@@ -542,6 +542,7 @@ import {
 import { files as api } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import prettyBytes from "pretty-bytes";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { t } from "@/utils/translations";
 
 const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };

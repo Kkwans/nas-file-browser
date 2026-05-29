@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t('currentPassword.title') }}</h2>
+      <h2>{{ t("currentPassword.title") }}</h2>
     </div>
 
     <div class="card-content">
-      <p>{{ t('currentPassword.passwordRequired') }}</p>
+      <p>{{ t("currentPassword.passwordRequired") }}</p>
       <input
         id="focus-prompt"
         class="input input--block"
@@ -22,7 +22,7 @@
         aria-label="取消"
         title="取消"
       >
-        {{ t('buttons.cancel') }}
+        {{ t("buttons.cancel") }}
       </button>
       <button
         @click="submit"
@@ -31,7 +31,7 @@
         aria-label="确定"
         title="确定"
       >
-        {{ t('buttons.confirm') }}
+        {{ t("buttons.confirm") }}
       </button>
     </div>
   </div>
@@ -39,8 +39,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useLayoutStore } from "@/stores/layout";
 import { t } from "@/utils/translations";
+import { useLayoutStore } from "@/stores/layout";
 const layoutStore = useLayoutStore();
 
 const { currentPrompt } = layoutStore;

@@ -26,8 +26,8 @@
             <td class="small">
               <button
                 class="action"
-                :aria-label="复制到剪贴板"
-                :title="复制到剪贴板"
+                aria-label="复制到剪贴板"
+                title="复制到剪贴板"
                 @click="copyToClipboard(buildLink(link))"
               >
                 <i class="material-icons">content_paste</i>
@@ -36,8 +36,8 @@
             <td class="small">
               <button
                 class="action"
-                :aria-label="复制下载链接到剪贴板"
-                :title="复制下载链接到剪贴板"
+                aria-label="复制下载链接到剪贴板"
+                title="复制下载链接到剪贴板"
                 :disabled="!!link.password_hash"
                 @click="copyToClipboard(buildDownloadLink(link))"
               >
@@ -48,8 +48,8 @@
               <button
                 class="action"
                 @click="deleteLink($event, link)"
-                :aria-label="删除"
-                :title="删除"
+                aria-label="删除"
+                title="删除"
               >
                 <i class="material-icons">delete</i>
               </button>
@@ -62,8 +62,8 @@
         <button
           class="button button--flat button--grey"
           @click="closeHovers"
-          :aria-label="关闭"
-          :title="关闭"
+          aria-label="关闭"
+          title="关闭"
           tabindex="2"
         >
           关闭
@@ -72,8 +72,8 @@
           id="focus-prompt"
           class="button button--flat button--blue"
           @click="switchListing"
-          :aria-label="新建"
-          :title="新建"
+          aria-label="新建"
+          title="新建"
           tabindex="1"
         >
           新建
@@ -98,7 +98,7 @@
           <select
             class="right"
             v-model="unit"
-            :aria-label="时间单位"
+            aria-label="时间单位"
             tabindex="2"
           >
             <option value="seconds">秒</option>
@@ -120,8 +120,8 @@
         <button
           class="button button--flat button--grey"
           @click="switchListing"
-          :aria-label="取消"
-          :title="取消"
+          aria-label="取消"
+          title="取消"
           tabindex="5"
         >
           取消
@@ -130,8 +130,8 @@
           id="focus-prompt"
           class="button button--flat button--blue"
           @click="submit"
-          :aria-label="分享"
-          :title="分享"
+          aria-label="分享"
+          title="分享"
           tabindex="4"
         >
           分享
@@ -142,6 +142,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { computed, inject, onBeforeMount, ref } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -152,6 +153,17 @@ import dayjs from "dayjs";
 import type { Share } from "@/types/api";
 import type { Resource } from "@/types/file";
 import { copy } from "@/utils/clipboard";
+import { T } from "@/utils/translations";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 const route = useRoute();
 
 const $showError = inject<IToastError>("$showError")!;
@@ -276,4 +288,5 @@ const switchListing = () => {
   }
   listing.value = !listing.value;
 };
+
 </script>

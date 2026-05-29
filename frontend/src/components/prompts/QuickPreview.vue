@@ -14,27 +14,27 @@
         <button
           class="quick-preview-btn"
           @click="navigateFile(-1)"
-          :title="上一个"
+          title="上一个"
         >
           <i class="material-icons">chevron_left</i>
         </button>
         <button
           class="quick-preview-btn"
           @click="navigateFile(1)"
-          :title="下一个"
+          title="下一个"
         >
           <i class="material-icons">chevron_right</i>
         </button>
-        <button class="quick-preview-btn" @click="downloadFile" :title="下载">
+        <button class="quick-preview-btn" @click="downloadFile" title="下载">
           <i class="material-icons">file_download</i>
         </button>
-        <button class="quick-preview-btn" @click="openFull" :title="打开文件">
+        <button class="quick-preview-btn" @click="openFull" title="打开文件">
           <i class="material-icons">open_in_new</i>
         </button>
         <button
           class="quick-preview-btn close-btn"
           @click="close"
-          :title="关闭"
+          title="关闭"
         >
           <i class="material-icons">close</i>
         </button>
@@ -91,6 +91,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -101,10 +102,13 @@ import type { ResourceItem } from "@/types/file";
 import { filesize } from "@/utils";
 import { getFileIcon, isTextFile, isPreviewable } from "@/utils/fileIcons";
 import {
+
   loadMarkdownResources,
   highlightAndAnnotateCodeBlocks,
 } from "@/utils/externalResources";
 import dayjs from "dayjs";
+import { T } from "@/utils/translations";
+const t = (key: string): string => (T as any)[key] ?? key;
 const router = useRouter();
 
 const fileStore = useFileStore();
@@ -280,4 +284,5 @@ const renderMarkdown = async (content: string) => {
     highlightAndAnnotateCodeBlocks(markdownBody.value);
   }
 };
+
 </script>

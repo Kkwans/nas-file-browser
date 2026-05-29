@@ -23,7 +23,9 @@
 </template>
 
 <script setup lang="ts">
+
 import {
+
   computed,
   defineAsyncComponent,
   onBeforeUnmount,
@@ -44,6 +46,16 @@ import { useRoute } from "vue-router";
 import FileListing from "@/views/files/FileListing.vue";
 import { StatusError } from "@/api/utils";
 import { name } from "../utils/constants";
+import { T } from "@/utils/translations";
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 const Editor = defineAsyncComponent(() => import("@/views/files/Editor.vue"));
 const Preview = defineAsyncComponent(() => import("@/views/files/Preview.vue"));
@@ -178,4 +190,5 @@ const keyEvent = (event: KeyboardEvent) => {
     layoutStore.showHover("help");
   }
 };
+
 </script>

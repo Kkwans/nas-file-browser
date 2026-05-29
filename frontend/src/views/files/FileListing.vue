@@ -5,7 +5,7 @@
       <action
         class="search-button"
         icon="search"
-        :label="t('buttons.search')"
+        label="t('buttons.search')"
         @action="openSearch()"
       />
 
@@ -14,34 +14,34 @@
           <action
             v-if="headerButtons.share"
             icon="share"
-            :label="t('buttons.share')"
+            label="t('buttons.share')"
             show="share"
           />
           <action
             v-if="headerButtons.rename"
             icon="mode_edit"
-            :label="t('buttons.rename')"
+            label="t('buttons.rename')"
             show="rename"
           />
           <action
             v-if="headerButtons.copy"
             id="copy-button"
             icon="content_copy"
-            :label="t('buttons.copyFile')"
+            label="t('buttons.copyFile')"
             show="copy"
           />
           <action
             v-if="headerButtons.move"
             id="move-button"
             icon="forward"
-            :label="t('buttons.moveFile')"
+            label="t('buttons.moveFile')"
             show="move"
           />
           <action
             v-if="headerButtons.delete"
             id="delete-button"
             icon="delete"
-            :label="t('buttons.delete')"
+            label="t('buttons.delete')"
             show="delete"
           />
         </template>
@@ -49,14 +49,14 @@
         <action
           v-if="headerButtons.shell"
           icon="code"
-          :label="t('buttons.shell')"
+          label="t('buttons.shell')"
           @action="layoutStore.toggleShell"
         />
         <!-- View Mode Dropdown -->
         <div class="view-mode-dropdown" ref="viewDropdownRef">
           <action
             :icon="viewIcon"
-            :label="t('buttons.switchView')"
+            label="t('buttons.switchView')"
             @action="toggleViewDropdown"
           />
           <div v-if="showViewDropdown" class="dropdown-menu">
@@ -81,7 +81,7 @@
         <div class="sort-dropdown" ref="sortDropdownRef">
           <action
             icon="sort"
-            :label="t('buttons.sort')"
+            label="t('buttons.sort')"
             @action="toggleSortDropdown"
           />
           <div v-if="showSortDropdown" class="dropdown-menu">
@@ -113,7 +113,7 @@
         <action
           v-if="headerButtons.download"
           icon="file_download"
-          :label="t('buttons.download')"
+          label="t('buttons.download')"
           @action="download"
           :counter="fileStore.selectedCount"
         />
@@ -121,13 +121,13 @@
           v-if="headerButtons.upload"
           icon="file_upload"
           id="upload-button"
-          :label="t('buttons.upload')"
+          label="t('buttons.upload')"
           @action="uploadFunc"
         />
-        <action icon="info" :label="t('buttons.info')" show="info" />
+        <action icon="info" label="t('buttons.info')" show="info" />
         <action
           icon="check_circle"
-          :label="t('buttons.selectMultiple')"
+          label="t('buttons.selectMultiple')"
           @action="toggleMultipleSelection"
         />
       </template>
@@ -141,41 +141,41 @@
       }"
     >
       <span v-if="fileStore.selectedCount > 0">
-        {{ t("prompts.filesSelected", fileStore.selectedCount) }}
+        {{ t("prompts.filesSelected", { count: fileStore.selectedCount }) }}
       </span>
       <action
         icon="select_all"
-        :label="t('buttons.selectAll')"
+        label="t('buttons.selectAll')"
         @action="selectAll"
       />
       <action
         v-if="headerButtons.share"
         icon="share"
-        :label="t('buttons.share')"
+        label="t('buttons.share')"
         show="share"
       />
       <action
         v-if="headerButtons.rename"
         icon="mode_edit"
-        :label="t('buttons.rename')"
+        label="t('buttons.rename')"
         show="rename"
       />
       <action
         v-if="headerButtons.copy"
         icon="content_copy"
-        :label="t('buttons.copyFile')"
+        label="t('buttons.copyFile')"
         show="copy"
       />
       <action
         v-if="headerButtons.move"
         icon="forward"
-        :label="t('buttons.moveFile')"
+        label="t('buttons.moveFile')"
         show="move"
       />
       <action
         v-if="headerButtons.delete"
         icon="delete"
-        :label="t('buttons.delete')"
+        label="t('buttons.delete')"
         show="delete"
       />
     </div>
@@ -227,8 +227,8 @@
                 role="button"
                 tabindex="0"
                 @click="sort('name')"
-                :title="t('files.sortByName')"
-                :aria-label="t('files.sortByName')"
+                title="t('files.sortByName')"
+                aria-label="t('files.sortByName')"
               >
                 <span>{{ "名称" }}</span>
                 <i class="material-icons">{{ nameIcon }}</i>
@@ -240,8 +240,8 @@
                 role="button"
                 tabindex="0"
                 @click="sort('size')"
-                :title="t('files.sortBySize')"
-                :aria-label="t('files.sortBySize')"
+                title="t('files.sortBySize')"
+                aria-label="t('files.sortBySize')"
               >
                 <span>{{ "大小" }}</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
@@ -252,8 +252,8 @@
                 role="button"
                 tabindex="0"
                 @click="sort('modified')"
-                :title="t('files.sortByLastModified')"
-                :aria-label="t('files.sortByLastModified')"
+                title="t('files.sortByLastModified')"
+                aria-label="t('files.sortByLastModified')"
               >
                 <span>{{ t("files.lastModified") }}</span>
                 <i class="material-icons">{{ modifiedIcon }}</i>
@@ -287,7 +287,7 @@
             v-if="hasSystemDirs"
             class="system-dirs-toggle"
             @click="toggleSystemDirs"
-            :title="
+            title="
               showSystemDirs
                 ? t('files.hideSystemDirs')
                 : t('files.showSystemDirs')
@@ -349,44 +349,44 @@
           <action
             v-if="headerButtons.share"
             icon="share"
-            :label="t('buttons.share')"
+            label="t('buttons.share')"
             show="share"
           />
           <action
             v-if="headerButtons.rename"
             icon="mode_edit"
-            :label="t('buttons.rename')"
+            label="t('buttons.rename')"
             show="rename"
           />
           <action
             v-if="headerButtons.copy"
             id="copy-button"
             icon="content_copy"
-            :label="t('buttons.copyFile')"
+            label="t('buttons.copyFile')"
             show="copy"
           />
           <action
             v-if="headerButtons.move"
             id="move-button"
             icon="forward"
-            :label="t('buttons.moveFile')"
+            label="t('buttons.moveFile')"
             show="move"
           />
           <action
             v-if="headerButtons.delete"
             id="delete-button"
             icon="delete"
-            :label="t('buttons.delete')"
+            label="t('buttons.delete')"
             show="delete"
           />
           <action
             v-if="headerButtons.download"
             icon="file_download"
-            :label="t('buttons.download')"
+            label="t('buttons.download')"
             @action="download"
             :counter="fileStore.selectedCount"
           />
-          <action icon="info" :label="t('buttons.info')" show="info" />
+          <action icon="info" label="t('buttons.info')" show="info" />
         </context-menu>
 
         <input
@@ -409,7 +409,7 @@
           <div class="selection-info">
             <i class="material-icons">check_circle</i>
             <span v-if="fileStore.selectedCount > 0">
-              {{ t("prompts.filesSelected", fileStore.selectedCount) }}
+              {{ t("prompts.filesSelected", { count: fileStore.selectedCount }) }}
             </span>
             <span v-else>{{ t("files.multipleSelectionEnabled") }}</span>
           </div>
@@ -417,8 +417,8 @@
             <button
               class="selection-btn"
               @click="selectAll"
-              :title="t('buttons.selectAll')"
-              :aria-label="t('buttons.selectAll')"
+              title="t('buttons.selectAll')"
+              aria-label="t('buttons.selectAll')"
             >
               <i class="material-icons">select_all</i>
               <span>{{ t("buttons.selectAll") }}</span>
@@ -427,8 +427,8 @@
               v-if="fileStore.selectedCount > 0"
               class="selection-btn"
               @click="invertSelection"
-              :title="t('buttons.invertSelection')"
-              :aria-label="t('buttons.invertSelection')"
+              title="t('buttons.invertSelection')"
+              aria-label="t('buttons.invertSelection')"
             >
               <i class="material-icons">flip</i>
               <span>{{ t("buttons.invertSelection") }}</span>
@@ -475,8 +475,8 @@
                   fileStore.selected = [];
                 }
               "
-              :title="t('buttons.close')"
-              :aria-label="t('buttons.close')"
+              title="t('buttons.close')"
+              aria-label="t('buttons.close')"
             >
               <i class="material-icons">close</i>
             </button>
@@ -488,6 +488,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { useAuthStore } from "@/stores/auth";
 import { useClipboardStore } from "@/stores/clipboard";
 import { useFileStore } from "@/stores/file";
@@ -507,6 +508,7 @@ import Item from "@/components/files/ListingItem.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import LoadingSkeleton from "@/components/LoadingSkeleton.vue";
 import type {
+
   ResourceItem,
   PasteItem,
   ConflictingResource,
@@ -525,6 +527,16 @@ import {
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
+import { T } from "@/utils/translations";
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -1541,6 +1553,7 @@ const handleEmptyAreaClick = (e: MouseEvent) => {
     fileStore.selected = [];
   }
 };
+
 </script>
 <style scoped>
 #listing {

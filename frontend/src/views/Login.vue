@@ -14,20 +14,20 @@
         type="text"
         autocapitalize="off"
         v-model="username"
-        :placeholder="t('login.username')"
+        placeholder="t('login.username')"
       />
       <input
         class="input input--block"
         type="password"
         v-model="password"
-        :placeholder="t('login.password')"
+        placeholder="t('login.password')"
       />
       <input
         class="input input--block"
         v-if="createMode"
         type="password"
         v-model="passwordConfirm"
-        :placeholder="t('login.passwordConfirm')"
+        placeholder="t('login.passwordConfirm')"
       />
 
       <div v-if="recaptcha" id="recaptcha"></div>
@@ -49,9 +49,11 @@
 </template>
 
 <script setup lang="ts">
+
 import { StatusError } from "@/api/utils";
 import * as auth from "@/utils/auth";
 import {
+
   name,
   logoURL,
   recaptcha,
@@ -60,6 +62,16 @@ import {
 } from "@/utils/constants";
 import { inject, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { T } from "@/utils/translations";
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 // Define refs
 const createMode = ref<boolean>(false);
@@ -142,4 +154,5 @@ onMounted(() => {
     });
   });
 });
+
 </script>

@@ -21,16 +21,16 @@
       <button
         class="button button--flat button--grey"
         @click="layoutStore.closeHovers"
-        :aria-label="t('buttons.cancel')"
-        :title="t('buttons.cancel')"
+        aria-label="t('buttons.cancel')"
+        title="t('buttons.cancel')"
         tabindex="3"
       >
         {{ "取消" }}
       </button>
       <button
         class="button button--flat"
-        :aria-label="创建"
-        :title="t('buttons.create')"
+        aria-label="创建"
+        title="t('buttons.create')"
         @click="submit"
         tabindex="2"
       >
@@ -41,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { computed, inject, ref } from "vue";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -49,6 +50,17 @@ import { files as api } from "@/api";
 import url from "@/utils/url";
 import { useRoute, useRouter } from "vue-router";
 import CreateFilePath from "@/components/prompts/CreateFilePath.vue";
+import { T } from "@/utils/translations";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 const $showError = inject<IToastError>("$showError")!;
 
@@ -100,4 +112,5 @@ const submit = async (event: Event) => {
 
   layoutStore.closeHovers();
 };
+
 </script>

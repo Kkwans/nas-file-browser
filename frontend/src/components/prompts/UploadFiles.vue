@@ -66,12 +66,24 @@
 </template>
 
 <script setup lang="ts">
+
 import { useFileStore } from "@/stores/file";
 import { useUploadStore } from "@/stores/upload";
 import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import buttons from "@/utils/buttons";
 import { partial } from "filesize";
+import { T } from "@/utils/translations";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 const open = ref<boolean>(false);
 const speed = ref<number>(0);
@@ -206,6 +218,7 @@ const abortAll = () => {
     fileStore.reload = true; // Trigger reload in the file store
   }
 };
+
 </script>
 
 <style scoped>

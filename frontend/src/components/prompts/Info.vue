@@ -23,7 +23,7 @@
         {{ resolution.width }} x {{ resolution.height }}
       </div>
 
-      <p v-if="selected.length < 2" :title="modTime">
+      <p v-if="selected.length < 2" title="modTime">
         <strong>最后修改:</strong> {{ humanTime }}
       </p>
 
@@ -86,8 +86,8 @@
         type="submit"
         @click="closeHovers"
         class="button button--flat"
-        :aria-label="确定"
-        :title="确定"
+        aria-label="确定"
+        title="确定"
       >
         确定
       </button>

@@ -7,7 +7,7 @@
     @touchstart="toggleNavigation"
   >
     <header-bar v-if="isPdf || isEpub || isCsv || showNav">
-      <action icon="close" :label="关闭" @action="close()" />
+      <action icon="close" label="关闭" @action="close()" />
       <title>{{ name }}</title>
       <action
         :disabled="layoutStore.loading"
@@ -21,21 +21,21 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.rename"
           icon="mode_edit"
-          :label="重命名"
+          label="重命名"
           show="rename"
         />
         <action
           :disabled="layoutStore.loading"
           v-if="isCsv && authStore.user?.perm.modify"
           icon="edit_note"
-          :label="t('buttons.editAsText')"
+          label="t('buttons.editAsText')"
           @action="editAsText"
         />
         <action
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.delete"
           icon="delete"
-          :label="删除"
+          label="删除"
           @action="deleteFile"
           id="delete-button"
         />
@@ -43,7 +43,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.download"
           icon="file_download"
-          :label="下载"
+          label="下载"
           @action="download"
         />
         <action
@@ -53,13 +53,13 @@
             authStore.user?.perm.download
           "
           icon="open_in_new"
-          :label="t('buttons.openDirect')"
+          label="t('buttons.openDirect')"
           @action="openDirect"
         />
         <action
           :disabled="layoutStore.loading"
           icon="info"
-          :label="信息"
+          label="信息"
           show="info"
         />
       </template>
@@ -154,8 +154,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasPrevious || !showNav }"
-      :aria-label="上一个"
-      :title="上一个"
+      aria-label="上一个"
+      title="上一个"
     >
       <i class="material-icons">chevron_left</i>
     </button>
@@ -164,8 +164,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasNext || !showNav }"
-      :aria-label="下一个"
-      :title="下一个"
+      aria-label="下一个"
+      title="下一个"
     >
       <i class="material-icons">chevron_right</i>
     </button>
@@ -175,6 +175,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { useStorage } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
@@ -197,6 +198,17 @@ import { useRoute, useRouter } from "vue-router";
 import type { Rendition } from "epubjs";
 import type { ResourceItem, ResourceType } from "@/types/file";
 import { getTheme } from "@/utils/theme";
+import { T } from "@/utils/translations";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 // CSV file size limit for preview (5MB)
 // Prevents browser memory issues with large files
@@ -502,4 +514,5 @@ const openDirect = () => window.open(directUrl.value);
 const editAsText = () => {
   router.push({ path: route.path, query: { edit: "true" } });
 };
+
 </script>

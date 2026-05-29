@@ -86,11 +86,23 @@
 </template>
 
 <script setup lang="ts">
+
 import { computed, ref, watch, watchEffect } from "vue";
 import { parse } from "csv-parse/browser/esm";
 import { availableEncodings, decode } from "@/utils/encodings";
 import DropdownModal from "../DropdownModal.vue";
 import type { CsvData } from "@/types/file";
+import { T } from "@/utils/translations";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 interface Props {
   content: ArrayBuffer | string;
@@ -154,6 +166,7 @@ watch(selectedEncoding, () => {
   isEncondingDropdownOpen.value = false;
   encodingSearch.value = "";
 });
+
 </script>
 
 <style scoped>

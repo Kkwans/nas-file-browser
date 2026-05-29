@@ -94,7 +94,18 @@
 import { throttle } from "lodash-es";
 import UTIF from "utif";
 import { filesize } from "@/utils";
+import { T } from "@/utils/translations";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 interface IProps {
   src: string;

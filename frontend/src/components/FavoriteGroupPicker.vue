@@ -5,7 +5,7 @@
       <button
         class="fav-group-picker-manage"
         @click="createNew"
-        :title='新建分组'
+        title='新建分组'
       >
         <i class="material-icons">add</i>
       </button>
@@ -44,7 +44,7 @@
     <div v-if="showCreate" class="fav-group-create">
       <input
         v-model="newGroupName"
-        :placeholder="'分组名称...'"
+        placeholder="'分组名称...'"
         @keyup.enter="confirmCreate"
         @keyup.escape="cancelCreate"
         ref="createInput"

@@ -12,8 +12,8 @@
       <button
         @click="closeHovers"
         class="button button--flat button--grey"
-        :aria-label="取消"
-        :title="取消"
+        aria-label="取消"
+        title="取消"
         tabindex="2"
       >
         取消
@@ -22,8 +22,8 @@
         id="focus-prompt"
         @click="submit"
         class="button button--flat button--red"
-        :aria-label="删除"
-        :title="删除"
+        aria-label="删除"
+        title="删除"
         tabindex="1"
       >
         删除

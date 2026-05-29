@@ -2,7 +2,7 @@
   <div class="tag-picker" @click.stop>
     <div class="tag-picker-header">
       <span>分配标签</span>
-      <button class="tag-picker-manage" @click="openManager" :title="管理标签">
+      <button class="tag-picker-manage" @click="openManager" title="管理标签">
         <i class="material-icons">settings</i>
       </button>
     </div>

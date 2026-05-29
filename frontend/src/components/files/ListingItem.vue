@@ -18,7 +18,7 @@
     :data-dir="isDir"
     :data-type="type"
     :data-url="url"
-    :aria-label="name"
+    aria-label="name"
     :aria-selected="isSelected"
     :data-ext="getExtension(name).toLowerCase()"
     @contextmenu="contextMenu"
@@ -39,20 +39,20 @@
           v-if="isDir && riskLevel !== 'low'"
           class="material-icons risk-icon"
           :class="'risk-' + riskLevel"
-          :title="riskTitle"
+          title="riskTitle"
           >{{ riskLevel === "high" ? "warning" : "info" }}</i
         >
         <i
           class="material-icons favorite-star"
           :class="{ 'is-fav': isFavorited }"
-          :title="isFavorited ? '取消收藏' : '添加收藏'"
+          title="isFavorited ? '取消收藏' : '添加收藏'"
           @click.stop.prevent="toggleFav"
           >{{ isFavorited ? "star" : "star_border" }}</i
         >
         <i
           v-if="isFavorited"
           class="material-icons favorite-group-btn"
-          :title="收藏到分组"
+          title="收藏到分组"
           @click.stop.prevent="toggleFavGroupPicker"
           >folder_special</i
         >
@@ -70,7 +70,7 @@
         <i
           class="material-icons tag-btn"
           :class="{ 'has-tags': pathTags.length > 0 }"
-          :title="分配标签"
+          title="分配标签"
           @click.stop.prevent="toggleTagPicker"
           >label</i
         >
@@ -79,7 +79,7 @@
           :key="tag.id"
           class="tag-dot"
           :style="{ background: tag.color }"
-          :title="tag.name"
+          title="tag.name"
         ></span>
         <div v-if="showTagPicker" class="tag-picker-popup" @click.stop>
           <TagPicker :path="path || ''" @manage="openTagManager" />
@@ -97,6 +97,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -114,6 +115,17 @@ import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
 import FavoriteGroupPicker from "@/components/FavoriteGroupPicker.vue";
 import type { Resource, ConflictingResource, MoveCopyItem } from "@/types/file";
+import { T } from "@/utils/translations";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 const touches = ref<number>(0);
 
@@ -524,4 +536,5 @@ const handleTouchMove = (event: TouchEvent) => {
     }
   }
 };
+
 </script>

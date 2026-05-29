@@ -22,8 +22,8 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        :aria-label="取消"
-        :title="取消"
+        aria-label="取消"
+        title="取消"
       >
         取消
       </button>
@@ -31,8 +31,8 @@
         @click="submit"
         class="button button--flat"
         type="submit"
-        :aria-label="重命名"
-        :title="重命名"
+        aria-label="重命名"
+        title="重命名"
         :disabled="name === '' || name === oldName"
       >
         重命名

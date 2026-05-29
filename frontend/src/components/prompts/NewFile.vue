@@ -38,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { inject, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useFileStore } from "@/stores/file";
@@ -46,6 +47,17 @@ import CreateFilePath from "@/components/prompts/CreateFilePath.vue";
 
 import { files as api } from "@/api";
 import url from "@/utils/url";
+import { T } from "@/utils/translations";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 const $showError = inject<IToastError>("$showError")!;
 
@@ -82,4 +94,5 @@ const submit = async (event: Event) => {
 
   layoutStore.closeHovers();
 };
+
 </script>

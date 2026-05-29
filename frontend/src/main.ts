@@ -11,6 +11,7 @@ import createPinia from "@/stores";
 import router from "@/router";
 import App from "@/App.vue";
 import CustomToast from "@/components/CustomToast.vue";
+import { T } from "@/utils/translations";
 
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -44,6 +45,17 @@ app.use(Toast, {
 
 app.use(pinia);
 app.use(router);
+
+// 全局 t 函数，供所有 Vue 组件模板使用（替代 vue-i18n）
+app.config.globalProperties.t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`\\{\\s*${k}\\s*\\}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 // provide v-focus for components
 app.directive("focus", {

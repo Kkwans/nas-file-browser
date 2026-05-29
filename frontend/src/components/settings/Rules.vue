@@ -9,14 +9,14 @@
         type="text"
         v-if="rule.regex"
         v-model="rule.regexp.raw"
-        :placeholder="插入正则表达式"
+        placeholder="输入正则表达式"
       />
       <input
         @keypress.enter.prevent
         type="text"
         v-else
+        placeholder="输入路径"
         v-model="rule.path"
-        :placeholder="插入路径"
       />
 
       <button class="button button--red" @click="remove($event, index)">

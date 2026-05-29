@@ -23,21 +23,21 @@
             @click.prevent="deletePrompt"
             type="button"
             class="button button--flat button--red"
-            :aria-label="删除"
-            :title="删除"
+            :aria-label="'删除'"
+            :title="'删除'"
           >
             删除
           </button>
           <router-link to="/settings/users">
             <button
               class="button button--flat button--grey"
-              :aria-label="取消"
-              :title="取消"
+              :aria-label="'取消'"
+              :title="'取消'"
             >
               取消
             </button>
           </router-link>
-          <input class="button button--flat" type="submit" :value="保存" />
+          <input class="button button--flat" type="submit" :value="'保存'" />
         </div>
       </form>
     </div>
@@ -45,6 +45,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { users as api, settings } from "@/api";
@@ -55,7 +56,18 @@ import { useRoute, useRouter } from "vue-router";
 import { StatusError } from "@/api/utils";
 import { authMethod } from "@/utils/constants";
 import { logout } from "@/utils/auth";
+import { T } from "@/utils/translations";
 import type { IUser } from "@/types/user";
+
+const t = (key: string, opts?: Record<string, any>): string => {
+  let result = (T as any)[key] ?? key;
+  if (opts) {
+    for (const [k, v] of Object.entries(opts)) {
+      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, 'g'), String(v));
+    }
+  }
+  return result;
+};
 
 const error = ref<StatusError>();
 const originalUser = ref<IUser>();
@@ -203,4 +215,5 @@ const send = async (currentPassword: string) => {
     $showError(e);
   }
 };
+
 </script>

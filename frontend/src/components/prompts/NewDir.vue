@@ -29,7 +29,7 @@
       </button>
       <button
         class="button button--flat"
-        :aria-label="$t('buttons.create')"
+        :aria-label="创建"
         :title="t('buttons.create')"
         @click="submit"
         tabindex="2"
@@ -48,7 +48,6 @@ import { useLayoutStore } from "@/stores/layout";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import { useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
 import CreateFilePath from "@/components/prompts/CreateFilePath.vue";
 
 const $showError = inject<IToastError>("$showError")!;
@@ -62,7 +61,6 @@ const base = computed(() => {
 
 const route = useRoute();
 const router = useRouter();
-const { t } = useI18n();
 
 const name = ref<string>("");
 

@@ -33,13 +33,10 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useLayoutStore } from "@/stores/layout";
 
 import * as upload from "@/utils/upload";
-
-const { t } = useI18n();
 const route = useRoute();
 
 const layoutStore = useLayoutStore();

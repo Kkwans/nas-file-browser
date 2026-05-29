@@ -1,32 +1,30 @@
 <template>
   <div class="card floating help">
     <div class="card-title">
-      <h2>{{ $t("help.help") }}</h2>
+      <h2>帮助</h2>
     </div>
 
     <div class="card-content">
       <ul>
-        <li><strong>F1</strong> - {{ $t("help.f1") }}</li>
-        <li><strong>F2</strong> - {{ $t("help.f2") }}</li>
-        <li><strong>DEL</strong> - {{ $t("help.del") }}</li>
-        <li><strong>ESC</strong> - {{ $t("help.esc") }}</li>
-        <li><strong>↑ ↓</strong> - {{ $t("help.arrowNav") }}</li>
-        <li><strong>Shift + ↑ ↓</strong> - {{ $t("help.arrowSelect") }}</li>
-        <li><strong>Enter</strong> - {{ $t("help.enterOpen") }}</li>
-        <li><strong>Home / End</strong> - {{ $t("help.homeEnd") }}</li>
-        <li>
-          <strong>PageUp / PageDown</strong> - {{ $t("help.pageUpDown") }}
-        </li>
-        <li><strong>CTRL + S</strong> - {{ $t("help.ctrl.s") }}</li>
-        <li><strong>CTRL + C</strong> - {{ $t("help.ctrlCopy") }}</li>
-        <li><strong>CTRL + X</strong> - {{ $t("help.ctrlCut") }}</li>
-        <li><strong>CTRL + V</strong> - {{ $t("help.ctrlPaste") }}</li>
-        <li><strong>CTRL + A</strong> - {{ $t("help.ctrlA") }}</li>
-        <li><strong>CTRL + SHIFT + F</strong> - {{ $t("help.ctrl.f") }}</li>
-        <li><strong>CTRL + Click</strong> - {{ $t("help.ctrl.click") }}</li>
-        <li><strong>Click</strong> - {{ $t("help.click") }}</li>
-        <li><strong>Double click</strong> - {{ $t("help.doubleClick") }}</li>
-        <li><strong>Space</strong> - {{ $t("help.space") }}</li>
+        <li><strong>F1</strong> - 显示该帮助信息</li>
+        <li><strong>F2</strong> - 重命名文件/文件夹</li>
+        <li><strong>DEL</strong> - 删除所选的文件/文件夹</li>
+        <li><strong>ESC</strong> - 清除已选项或关闭提示信息</li>
+        <li><strong>↑ ↓</strong> - 上下方向键导航文件列表</li>
+        <li><strong>Shift + ↑ ↓</strong> - Shift + 方向键多选文件</li>
+        <li><strong>Enter</strong> - 打开选中的文件/文件夹</li>
+        <li><strong>Home / End</strong> - 跳转到列表首/末尾</li>
+        <li><strong>PageUp / PageDown</strong> - 按页上下翻滚</li>
+        <li><strong>CTRL + S</strong> - 保存文件或下载当前文件夹</li>
+        <li><strong>CTRL + C</strong> - 复制选中文件</li>
+        <li><strong>CTRL + X</strong> - 剪切选中文件</li>
+        <li><strong>CTRL + V</strong> - 粘贴剪贴板中的文件</li>
+        <li><strong>CTRL + A</strong> - 全选所有文件和文件夹</li>
+        <li><strong>CTRL + SHIFT + F</strong> - 打开搜索框</li>
+        <li><strong>CTRL + Click</strong> - 选择多个文件或文件夹</li>
+        <li><strong>Click</strong> - 选择文件或文件夹</li>
+        <li><strong>Double click</strong> - 打开文件/文件夹</li>
+        <li><strong>Space</strong> - 快速预览文件（选中文件后按空格键）</li>
       </ul>
     </div>
 
@@ -36,11 +34,11 @@
         type="submit"
         @click="closeHovers"
         class="button button--flat"
-        :aria-label="$t('buttons.ok')"
-        :title="$t('buttons.ok')"
+        :aria-label="确定"
+        :title="确定"
         tabindex="1"
       >
-        {{ $t("buttons.ok") }}
+        确定
       </button>
     </div>
   </div>

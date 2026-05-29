@@ -1,39 +1,35 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ $t("prompts.fileInfo") }}</h2>
+      <h2>文件信息</h2>
     </div>
 
     <div class="card-content">
       <p v-if="selected.length > 1">
-        {{ $t("prompts.filesSelected", { count: selected.length }) }}
+        {{ "已选择 " + selected.length + " 个文件" }}
       </p>
 
       <p class="break-word" v-if="selected.length < 2">
-        <strong>{{ $t("prompts.displayName") }}</strong> {{ name }}
+        <strong>名称：</strong> {{ name }}
       </p>
 
       <p v-if="!dir || selected.length > 1">
-        <strong>{{ $t("prompts.size") }}:</strong>
+        <strong>大小:</strong>
         <span id="content_length"></span> {{ humanSize }}
       </p>
 
       <div v-if="resolution">
-        <strong>{{ $t("prompts.resolution") }}:</strong>
+        <strong>分辨率:</strong>
         {{ resolution.width }} x {{ resolution.height }}
       </div>
 
       <p v-if="selected.length < 2" :title="modTime">
-        <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }}
+        <strong>最后修改:</strong> {{ humanTime }}
       </p>
 
       <template v-if="dir && selected.length === 0">
-        <p>
-          <strong>{{ $t("prompts.numberFiles") }}:</strong> {{ req?.numFiles }}
-        </p>
-        <p>
-          <strong>{{ $t("prompts.numberDirs") }}:</strong> {{ req?.numDirs }}
-        </p>
+        <p><strong>文件数:</strong> {{ req?.numFiles }}</p>
+        <p><strong>文件夹数:</strong> {{ req?.numDirs }}</p>
       </template>
 
       <template v-if="!dir">
@@ -44,7 +40,7 @@
               @click="checksum($event, 'md5')"
               @keypress.enter="checksum($event, 'md5')"
               tabindex="2"
-              >{{ $t("prompts.show") }}</a
+              >点击以显示</a
             ></code
           >
         </p>
@@ -55,7 +51,7 @@
               @click="checksum($event, 'sha1')"
               @keypress.enter="checksum($event, 'sha1')"
               tabindex="3"
-              >{{ $t("prompts.show") }}</a
+              >点击以显示</a
             ></code
           >
         </p>
@@ -66,7 +62,7 @@
               @click="checksum($event, 'sha256')"
               @keypress.enter="checksum($event, 'sha256')"
               tabindex="4"
-              >{{ $t("prompts.show") }}</a
+              >点击以显示</a
             ></code
           >
         </p>
@@ -77,7 +73,7 @@
               @click="checksum($event, 'sha512')"
               @keypress.enter="checksum($event, 'sha512')"
               tabindex="5"
-              >{{ $t("prompts.show") }}</a
+              >点击以显示</a
             ></code
           >
         </p>
@@ -90,10 +86,10 @@
         type="submit"
         @click="closeHovers"
         class="button button--flat"
-        :aria-label="$t('buttons.ok')"
-        :title="$t('buttons.ok')"
+        :aria-label="确定"
+        :title="确定"
       >
-        {{ $t("buttons.ok") }}
+        确定
       </button>
     </div>
   </div>

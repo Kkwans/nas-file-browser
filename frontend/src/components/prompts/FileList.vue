@@ -18,7 +18,7 @@
     </ul>
 
     <p>
-      {{ $t("prompts.currentlyNavigating") }} <code>{{ nav }}</code
+      当前目录： <code>{{ nav }}</code
       >.
     </p>
   </div>

@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ $t("prompts.move") }}</h2>
+      <h2>移动</h2>
     </div>
 
     <div class="card-content">
-      <p>{{ $t("prompts.moveMessage") }}</p>
+      <p>请选择目标目录：</p>
       <file-list
         ref="fileListRef"
         @update:selected="(val) => (dest = val)"
@@ -22,33 +22,33 @@
         <button
           class="button button--flat"
           @click="fileListRef?.createDir()"
-          :aria-label="$t('sidebar.newFolder')"
-          :title="$t('sidebar.newFolder')"
+          :aria-label="新建文件夹"
+          :title="新建文件夹"
           style="justify-self: left"
         >
-          <span>{{ $t("sidebar.newFolder") }}</span>
+          <span>新建文件夹</span>
         </button>
       </template>
       <div>
         <button
           class="button button--flat button--grey"
           @click="closeHovers"
-          :aria-label="$t('buttons.cancel')"
-          :title="$t('buttons.cancel')"
+          :aria-label="取消"
+          :title="取消"
           tabindex="3"
         >
-          {{ $t("buttons.cancel") }}
+          取消
         </button>
         <button
           id="focus-prompt"
           class="button button--flat"
           @click="move"
           :disabled="route.path === dest"
-          :aria-label="$t('buttons.move')"
-          :title="$t('buttons.move')"
+          :aria-label="移动"
+          :title="移动"
           tabindex="2"
         >
-          {{ $t("buttons.move") }}
+          移动
         </button>
       </div>
     </div>

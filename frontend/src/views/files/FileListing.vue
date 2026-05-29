@@ -270,7 +270,7 @@
             >label</i
           >
           <span
-            >{{ $t("tags.filtered") }}:
+            >正在按标签筛选:
             <strong>{{ tagsStore.activeFilterTag.name }}</strong></span
           >
           <button
@@ -523,7 +523,6 @@ import {
   watch,
 } from "vue";
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
-import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
 
@@ -597,8 +596,6 @@ const router = useRouter();
 onBeforeRouteUpdate(() => {
   hideContextMenu();
 });
-
-const { t } = useI18n();
 
 const listing = ref<HTMLElement | null>(null);
 

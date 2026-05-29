@@ -6,20 +6,14 @@
   >
     <div class="card floating">
       <div class="card-title">
-        <h2>
-          {{
-            $t("prompts.uploadFiles", {
-              files: uploadStore.pendingUploadCount,
-            })
-          }}
-        </h2>
+        <h2>上传文件 ({{ uploadStore.pendingUploadCount }})</h2>
         <div class="upload-info">
           <div class="upload-speed">{{ speedText }}/s</div>
           <div class="upload-eta">
-            {{ formattedETA }} {{ t("uploading.remaining") }}
+            {{ formattedETA }} 剩余时间
           </div>
           <div class="upload-percentage">
-            {{ sentPercent }}% {{ t("uploading.completed") }}
+            {{ sentPercent }}% 已完成
           </div>
           <div class="upload-fraction">
             {{ sentMbytes }} /
@@ -77,10 +71,7 @@ import { useUploadStore } from "@/stores/upload";
 import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import buttons from "@/utils/buttons";
-import { useI18n } from "vue-i18n";
 import { partial } from "filesize";
-
-const { t } = useI18n({});
 
 const open = ref<boolean>(false);
 const speed = ref<number>(0);
@@ -208,7 +199,7 @@ const toggle = () => {
 };
 
 const abortAll = () => {
-  if (confirm(t("upload.abortUpload"))) {
+  if (confirm("确定中止上传？")) {
     buttons.done("upload");
     open.value = false;
     uploadStore.abort();

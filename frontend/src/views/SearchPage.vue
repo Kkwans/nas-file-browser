@@ -108,7 +108,6 @@ import {
   watch,
 } from "vue";
 import { throttle } from "lodash-es";
-import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 const boxes = {
@@ -117,8 +116,6 @@ const boxes = {
   video: { label: "video", icon: "movie" },
   pdf: { label: "pdf", icon: "picture_as_pdf" },
 };
-
-const { t } = useI18n();
 const router = useRouter();
 const fileStore = useFileStore();
 const $showError = inject<IToastError>("$showError")!;

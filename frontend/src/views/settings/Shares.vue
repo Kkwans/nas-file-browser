@@ -70,13 +70,11 @@ import type { Share } from "@/types/api";
 import dayjs from "dayjs";
 import Errors from "@/views/Errors.vue";
 import { inject, ref, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
 import { copy } from "@/utils/clipboard";
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
-const { t } = useI18n();
 
 const layoutStore = useLayoutStore();
 const authStore = useAuthStore();

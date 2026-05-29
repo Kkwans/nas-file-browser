@@ -2,18 +2,14 @@
   <div class="card floating">
     <div class="card-title">
       <h2>
-        {{
-          personalized
-            ? $t("prompts.resolveConflict")
-            : $t("prompts.replaceOrSkip")
-        }}
+        {{ personalized ? "解决冲突" : "替换或跳过" }}
       </h2>
     </div>
 
     <div class="card-content">
       <template v-if="personalized">
         <p v-if="isUploadAction != true">
-          {{ $t("prompts.singleConflictResolve") }}
+          如果选择保留两个版本，副本文件名将添加数字后缀。
         </p>
         <div class="conflict-list-container">
           <div>
@@ -24,11 +20,7 @@
                 :checked="originAllChecked"
                 value="origin"
               />
-              {{
-                isUploadAction != true
-                  ? $t("prompts.filesInOrigin")
-                  : $t("prompts.uploadingFiles")
-              }}
+              {{ isUploadAction != true ? "源位置文件" : "上传文件" }}
             </p>
             <p>
               <input
@@ -37,7 +29,7 @@
                 :checked="destAllChecked"
                 value="dest"
               />
-              {{ $t("prompts.filesInDest") }}
+              目标位置文件
             </p>
           </div>
           <div>
@@ -47,11 +39,9 @@
 
                 <template v-if="item.checked.length == 2">
                   <span v-if="isUploadAction != true" class="result-rename">
-                    {{ $t("prompts.rename") }}
+                    重命名
                   </span>
-                  <span v-else class="result-error">
-                    {{ $t("prompts.forbiddenError") }}
-                  </span>
+                  <span v-else class="result-error"> 权限错误 </span>
                 </template>
                 <span
                   v-else-if="
@@ -59,11 +49,9 @@
                   "
                   class="result-override"
                 >
-                  {{ $t("prompts.override") }}
+                  覆盖
                 </span>
-                <span v-else class="result-skip">
-                  {{ $t("prompts.skip") }}
-                </span>
+                <span v-else class="result-skip"> 跳过 </span>
               </div>
               <div>
                 <input v-model="item.checked" type="checkbox" value="origin" />
@@ -93,38 +81,38 @@
       </template>
       <template v-else>
         <p>
-          {{ $t("prompts.fastConflictResolve", { count: conflict.length }) }}
+          {{ "目标文件夹中有 " + conflict.length + " 个同名文件" }}
         </p>
 
         <div class="result-buttons">
           <button @click="(e) => resolve(e, ['origin'])">
             <i class="material-icons">done_all</i>
-            {{ $t("buttons.overrideAll") }}
+            替换目标文件夹中的所有文件
           </button>
           <button
             v-if="isUploadAction != true"
             @click="(e) => resolve(e, ['origin', 'dest'])"
           >
             <i class="material-icons">folder_copy</i>
-            {{ $t("buttons.renameAll") }}
+            重命名所有文件（创建副本）
           </button>
           <button @click="(e) => resolve(e, ['dest'])">
             <i class="material-icons">undo</i>
-            {{ $t("buttons.skipAll") }}
+            跳过所有冲突文件
           </button>
           <button @click="(e) => resume(e)">
             <i class="material-icons">replay</i>
-            {{ $t("buttons.resumeTransfer") }}
+            恢复传输
             <span class="info-tooltip" @click.stop="() => {}">
               <i class="material-icons info-icon">info_outline</i>
               <span class="info-tooltip-text">
-                {{ $t("buttons.resumeTransferTooltip") }}
+                跳过所有冲突文件，除了服务器上较小的文件（可能传输中断）。
               </span>
             </span>
           </button>
           <button @click="personalized = true">
             <i class="material-icons">checklist</i>
-            {{ $t("buttons.singleDecision") }}
+            逐个处理冲突文件
           </button>
         </div>
       </template>
@@ -135,22 +123,22 @@
         <button
           class="button button--flat button--grey"
           @click="close"
-          :aria-label="$t('buttons.cancel')"
-          :title="$t('buttons.cancel')"
+          :aria-label="取消"
+          :title="取消"
           tabindex="4"
         >
-          {{ $t("buttons.cancel") }}
+          取消
         </button>
         <button
           v-if="personalized"
           id="focus-prompt"
           class="button button--flat"
           @click="(event) => currentPrompt?.confirm(event, conflict)"
-          :aria-label="$t('buttons.ok')"
-          :title="$t('buttons.ok')"
+          :aria-label="确定"
+          :title="确定"
           tabindex="1"
         >
-          {{ $t("buttons.ok") }}
+          确定
         </button>
       </div>
     </div>

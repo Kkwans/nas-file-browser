@@ -41,7 +41,6 @@ import { logoURL, name } from "@/utils/constants";
 
 import Action from "@/components/header/Action.vue";
 import { computed, useSlots } from "vue";
-import { useI18n } from "vue-i18n";
 
 defineProps<{
   showLogo?: boolean;
@@ -50,8 +49,6 @@ defineProps<{
 
 const layoutStore = useLayoutStore();
 const slots = useSlots();
-
-const { t } = useI18n();
 
 const ifActionsSlot = computed(() => (slots.actions ? true : false));
 </script>

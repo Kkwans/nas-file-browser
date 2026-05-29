@@ -9,14 +9,14 @@
         type="text"
         v-if="rule.regex"
         v-model="rule.regexp.raw"
-        :placeholder="$t('settings.insertRegex')"
+        :placeholder="插入正则表达式"
       />
       <input
         @keypress.enter.prevent
         type="text"
         v-else
         v-model="rule.path"
-        :placeholder="$t('settings.insertPath')"
+        :placeholder="插入路径"
       />
 
       <button class="button button--red" @click="remove($event, index)">
@@ -25,9 +25,7 @@
     </div>
 
     <div>
-      <button class="button" @click="create" default="false">
-        {{ $t("buttons.new") }}
-      </button>
+      <button class="button" @click="create" default="false">新建</button>
     </div>
   </form>
 </template>

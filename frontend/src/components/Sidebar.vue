@@ -10,7 +10,7 @@
       @mousedown="startResize"
       @touchstart="startResize"
       @dblclick="resetSidebarWidth"
-      :title="$t('sidebar.resizeSidebar')"
+      :title="&apos;拖拽调节侧边栏宽度&apos;"
     ></div>
     <template v-if="isLoggedIn">
       <button @click="toAccountSettings" class="action">
@@ -20,31 +20,31 @@
       <button
         class="action"
         @click="toRoot"
-        :aria-label="$t('sidebar.myFiles')"
-        :title="$t('sidebar.myFiles')"
+        :aria-label="我的文件"
+        :title="&apos;我的文件&apos;"
       >
         <i class="material-icons">folder</i>
-        <span>{{ $t("sidebar.myFiles") }}</span>
+        <span>我的文件</span>
       </button>
 
       <button
         class="action"
         @click="openSearch"
-        :aria-label="$t('buttons.search')"
-        :title="$t('buttons.search')"
+        :aria-label="搜索"
+        :title="&apos;搜索&apos;"
       >
         <i class="material-icons">search</i>
-        <span>{{ $t("buttons.search") }}</span>
+        <span>搜索</span>
       </button>
 
       <!-- Favorites Section -->
       <div class="favorites-section">
         <button class="favorites-header" @click="toggleSection('favorites')">
           <i class="material-icons">star</i>
-          <span>{{ $t("sidebar.favorites") }}</span>
+          <span>收藏夹</span>
           <button
             class="section-action-btn"
-            :title="$t('sidebar.createGroup')"
+            :title="&apos;新建分组&apos;"
             @click.stop.prevent="showCreateGroup = !showCreateGroup"
           >
             <i class="material-icons">create_new_folder</i>
@@ -52,7 +52,7 @@
           <button
             v-if="favoritesStore.sortedFavorites.length > 0"
             class="section-action-btn"
-            :title="$t('sidebar.clearAllFavorites')"
+            :title="&apos;清空收藏夹&apos;"
             @click.stop.prevent="clearAllFavorites"
           >
             <i class="material-icons">delete_sweep</i>
@@ -68,7 +68,7 @@
           <div v-if="showCreateGroup" class="create-group-input">
             <input
               v-model="newGroupName"
-              :placeholder="$t('sidebar.groupNamePlaceholder')"
+              :placeholder="'group name'"
               @keyup.enter="createGroup"
               @keyup.escape="showCreateGroup = false"
               ref="groupInputRef"
@@ -89,7 +89,7 @@
             class="section-empty"
           >
             <i class="material-icons">star_border</i>
-            <span>{{ $t("sidebar.noFavorites") }}</span>
+            <span>暂无收藏目录</span>
           </div>
           <!-- Ungrouped favorites -->
           <template
@@ -125,7 +125,7 @@
               </div>
               <i
                 class="material-icons favorite-remove"
-                :title="$t('sidebar.removeFavorite')"
+                :title="&apos;取消收藏&apos;"
                 @click.stop.prevent="removeFavorite(fav.id)"
                 >close</i
               >
@@ -156,7 +156,7 @@
               }}</span>
               <button
                 class="section-action-btn"
-                :title="$t('sidebar.deleteGroup')"
+                :title="&apos;删除分组&apos;"
                 @click.stop.prevent="deleteGroup(group.id)"
               >
                 <i class="material-icons">close</i>
@@ -195,7 +195,7 @@
                 </div>
                 <i
                   class="material-icons favorite-remove"
-                  :title="$t('sidebar.removeFavorite')"
+                  :title="&apos;取消收藏&apos;"
                   @click.stop.prevent="removeFavorite(fav.id)"
                   >close</i
                 >
@@ -206,7 +206,7 @@
                 "
                 class="section-empty"
               >
-                <span>{{ $t("sidebar.noFavoritesInGroup") }}</span>
+                <span>该分组暂无收藏</span>
               </div>
             </template>
           </div>
@@ -217,10 +217,10 @@
       <div class="tags-section">
         <button class="tags-header" @click="toggleSection('tags')">
           <i class="material-icons">label</i>
-          <span>{{ $t("sidebar.tags") }}</span>
+          <span>标签</span>
           <button
             class="section-action-btn"
-            :title="$t('tags.manage')"
+            :title="&apos;管理标签&apos;"
             @click.stop.prevent="openTagManager"
           >
             <i class="material-icons">settings</i>
@@ -234,7 +234,7 @@
         <template v-if="!collapsedSections.tags">
           <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
             <i class="material-icons">turned_in_not</i>
-            <span>{{ $t("tags.noTags") }}</span>
+            <span>暂无标签，创建一个吧</span>
           </div>
           <button
             v-for="tag in tagsStore.sortedTags"
@@ -257,7 +257,7 @@
             @click="clearTagFilter"
           >
             <i class="material-icons">filter_list_off</i>
-            <span>{{ $t("tags.clearFilter") }}</span>
+            <span>清除筛选</span>
           </button>
         </template>
       </div>
@@ -269,7 +269,7 @@
       >
         <button class="volumes-header" @click="toggleSection('volumes')">
           <i class="material-icons">storage</i>
-          <span>{{ $t("sidebar.storageVolumes") }}</span>
+          <span>存储卷</span>
           <i
             class="material-icons section-arrow"
             :class="{ expanded: !collapsedSections.volumes }"
@@ -341,7 +341,7 @@
       >
         <button class="categories-header" @click="toggleSection('categories')">
           <i class="material-icons">category</i>
-          <span>{{ $t("sidebar.directoryCategories") }}</span>
+          <span>目录分类</span>
           <i
             class="material-icons section-arrow"
             :class="{ expanded: !collapsedSections.categories }"
@@ -358,7 +358,7 @@
               <button
                 class="action category-group-header category-group-nav"
                 @click="navigateCategoryFirst(group)"
-                :title="$t('sidebar.viewCategoryContents')"
+                :title="&apos;查看内容&apos;"
               >
                 <i class="material-icons" :style="{ color: group.color }">{{
                   group.icon
@@ -412,21 +412,21 @@
         <button
           @click="showHover('newDir')"
           class="action"
-          :aria-label="$t('sidebar.newFolder')"
-          :title="$t('sidebar.newFolder')"
+          :aria-label="新建文件夹"
+          :title="&apos;新建文件夹&apos;"
         >
           <i class="material-icons">create_new_folder</i>
-          <span>{{ $t("sidebar.newFolder") }}</span>
+          <span>新建文件夹</span>
         </button>
 
         <button
           @click="showHover('newFile')"
           class="action"
-          :aria-label="$t('sidebar.newFile')"
-          :title="$t('sidebar.newFile')"
+          :aria-label="新建文件"
+          :title="&apos;新建文件&apos;"
         >
           <i class="material-icons">note_add</i>
-          <span>{{ $t("sidebar.newFile") }}</span>
+          <span>新建文件</span>
         </button>
       </div>
 
@@ -434,11 +434,11 @@
         <button
           class="action"
           @click="toGlobalSettings"
-          :aria-label="$t('sidebar.settings')"
-          :title="$t('sidebar.settings')"
+          :aria-label="设置"
+          :title="&apos;设置&apos;"
         >
           <i class="material-icons">settings_applications</i>
-          <span>{{ $t("sidebar.settings") }}</span>
+          <span>设置</span>
         </button>
       </div>
       <button
@@ -446,11 +446,11 @@
         @click="logout"
         class="action"
         id="logout"
-        :aria-label="$t('sidebar.logout')"
-        :title="$t('sidebar.logout')"
+        :aria-label="退出"
+        :title="&apos;登出&apos;"
       >
         <i class="material-icons">exit_to_app</i>
-        <span>{{ $t("sidebar.logout") }}</span>
+        <span>登出</span>
       </button>
     </template>
     <template v-else>
@@ -458,22 +458,22 @@
         v-if="!hideLoginButton"
         class="action"
         to="/login"
-        :aria-label="$t('sidebar.login')"
-        :title="$t('sidebar.login')"
+        :aria-label="登录"
+        :title="&apos;登录&apos;"
       >
         <i class="material-icons">exit_to_app</i>
-        <span>{{ $t("sidebar.login") }}</span>
+        <span>登录</span>
       </router-link>
 
       <router-link
         v-if="signup"
         class="action"
         to="/login"
-        :aria-label="$t('sidebar.signup')"
-        :title="$t('sidebar.signup')"
+        :aria-label="注册"
+        :title="&apos;注册&apos;"
       >
         <i class="material-icons">person_add</i>
-        <span>{{ $t("sidebar.signup") }}</span>
+        <span>注册</span>
       </router-link>
     </template>
 
@@ -484,7 +484,7 @@
     >
       <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
       <br />
-      {{ $t("sidebar.diskUsed", { used: usage.used, total: usage.total }) }}
+      磁盘使用：{{ usage.used }} / {{ usage.total }}
     </div>
 
     <p class="credits">
@@ -500,7 +500,7 @@
         <span> {{ " " }} {{ version }}</span>
       </span>
       <span>
-        <a @click="help">{{ $t("sidebar.help") }}</a>
+        <a @click="help">帮助</a>
       </span>
     </p>
   </nav>

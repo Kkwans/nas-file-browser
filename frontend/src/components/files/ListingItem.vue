@@ -45,18 +45,14 @@
         <i
           class="material-icons favorite-star"
           :class="{ 'is-fav': isFavorited }"
-          :title="
-            isFavorited
-              ? $t('sidebar.removeFavorite')
-              : $t('sidebar.addFavorite')
-          "
+          :title="isFavorited ? '取消收藏' : '添加收藏'"
           @click.stop.prevent="toggleFav"
           >{{ isFavorited ? "star" : "star_border" }}</i
         >
         <i
           v-if="isFavorited"
           class="material-icons favorite-group-btn"
-          :title="$t('sidebar.assignToGroup')"
+          :title="收藏到分组"
           @click.stop.prevent="toggleFavGroupPicker"
           >folder_special</i
         >
@@ -74,7 +70,7 @@
         <i
           class="material-icons tag-btn"
           :class="{ 'has-tags': pathTags.length > 0 }"
-          :title="$t('tags.assignTags')"
+          :title="分配标签"
           @click.stop.prevent="toggleTagPicker"
           >label</i
         >
@@ -115,7 +111,6 @@ import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
 import TagPicker from "@/components/TagPicker.vue";
 import FavoriteGroupPicker from "@/components/FavoriteGroupPicker.vue";
 import type { Resource, ConflictingResource, MoveCopyItem } from "@/types/file";
@@ -130,7 +125,6 @@ const moveThreshold = ref<number>(10);
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
-const { t } = useI18n();
 
 const props = defineProps<{
   name: string;

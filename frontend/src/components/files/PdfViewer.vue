@@ -76,7 +76,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import { useI18n } from "vue-i18n";
 
 interface Props {
   src: string;
@@ -86,8 +85,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   name: "document.pdf",
 });
-
-const { t } = useI18n();
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);

@@ -1,8 +1,9 @@
 <template>
   <div>
-    <h3>{{ $t("settings.userCommands") }}</h3>
+    <h3>用户命令（Shell 命令）</h3>
     <p class="small">
-      {{ $t("settings.userCommandsHelp") }} <i>git svn hg</i>.
+      指定该用户可以执行的命令（Shell 命令），用空格分隔。例如：
+      <i>git svn hg</i>.
     </p>
     <input class="input input--block" type="text" v-model.trim="raw" />
   </div>

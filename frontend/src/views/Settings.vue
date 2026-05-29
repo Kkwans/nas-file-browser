@@ -54,9 +54,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
-
-const { t } = useI18n();
 
 const authStore = useAuthStore();
 const layoutStore = useLayoutStore();

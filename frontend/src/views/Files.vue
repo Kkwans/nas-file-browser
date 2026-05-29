@@ -40,7 +40,6 @@ import { useLayoutStore } from "@/stores/layout";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
-import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import FileListing from "@/views/files/FileListing.vue";
 import { StatusError } from "@/api/utils";
@@ -55,8 +54,6 @@ const fileStore = useFileStore();
 const { reload } = storeToRefs(fileStore);
 
 const route = useRoute();
-
-const { t } = useI18n({});
 
 let fetchDataController = new AbortController();
 

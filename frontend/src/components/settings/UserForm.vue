@@ -66,9 +66,6 @@ import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
 import { computed, onMounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-
-const { t } = useI18n();
 
 const createUserDirData = ref<boolean | null>(null);
 const originalUserScope = ref<string | null>(null);

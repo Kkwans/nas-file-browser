@@ -1,38 +1,36 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>
-        {{ $t("prompts.discardEditorChanges") }}
-      </p>
+      <p>你确定要放弃所做的更改吗？</p>
     </div>
     <div class="card-action">
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')"
+        :aria-label="取消"
+        :title="取消"
         tabindex="3"
       >
-        {{ $t("buttons.cancel") }}
+        取消
       </button>
       <button
         class="button button--flat button--blue"
         @click="currentPrompt?.saveAction"
-        :aria-label="$t('buttons.saveChanges')"
-        :title="$t('buttons.saveChanges')"
+        :aria-label="保存更改"
+        :title="保存更改"
         tabindex="1"
       >
-        {{ $t("buttons.saveChanges") }}
+        保存更改
       </button>
       <button
         id="focus-prompt"
         @click="currentPrompt?.confirm"
         class="button button--flat button--red"
-        :aria-label="$t('buttons.discardChanges')"
-        :title="$t('buttons.discardChanges')"
+        :aria-label="放弃更改"
+        :title="放弃更改"
         tabindex="2"
       >
-        {{ $t("buttons.discardChanges") }}
+        放弃更改
       </button>
     </div>
   </div>

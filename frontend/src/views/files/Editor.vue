@@ -92,7 +92,6 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { getEditorTheme, getTheme } from "@/utils/theme";
 import { inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 
 const $showError = inject<IToastError>("$showError")!;
@@ -100,8 +99,6 @@ const $showError = inject<IToastError>("$showError")!;
 const fileStore = useFileStore();
 const authStore = useAuthStore();
 const layoutStore = useLayoutStore();
-
-const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();

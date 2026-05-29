@@ -261,7 +261,6 @@ import { enableExec } from "@/utils/constants";
 import { getTheme, setTheme } from "@/utils/theme";
 import Errors from "@/views/Errors.vue";
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import { useI18n } from "vue-i18n";
 
 const error = ref<StatusError | null>(null);
 const originalSettings = ref<ISettings | null>(null);
@@ -275,8 +274,6 @@ const shellValue = ref<string>("");
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
-
-const { t } = useI18n();
 
 const layoutStore = useLayoutStore();
 

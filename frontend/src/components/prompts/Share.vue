@@ -1,7 +1,7 @@
 <template>
   <div class="card floating" id="share">
     <div class="card-title">
-      <h2>{{ $t("buttons.share") }}</h2>
+      <h2>分享</h2>
     </div>
 
     <template v-if="listing">
@@ -9,7 +9,7 @@
         <table>
           <tr>
             <th>#</th>
-            <th>{{ $t("settings.shareDuration") }}</th>
+            <th>分享期限</th>
             <th></th>
             <th></th>
             <th></th>
@@ -21,13 +21,13 @@
               <template v-if="link.expire !== 0">{{
                 humanTime(link.expire)
               }}</template>
-              <template v-else>{{ $t("permanent") }}</template>
+              <template v-else>永久</template>
             </td>
             <td class="small">
               <button
                 class="action"
-                :aria-label="$t('buttons.copyToClipboard')"
-                :title="$t('buttons.copyToClipboard')"
+                :aria-label="复制到剪贴板"
+                :title="复制到剪贴板"
                 @click="copyToClipboard(buildLink(link))"
               >
                 <i class="material-icons">content_paste</i>
@@ -36,8 +36,8 @@
             <td class="small">
               <button
                 class="action"
-                :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
-                :title="$t('buttons.copyDownloadLinkToClipboard')"
+                :aria-label="复制下载链接到剪贴板"
+                :title="复制下载链接到剪贴板"
                 :disabled="!!link.password_hash"
                 @click="copyToClipboard(buildDownloadLink(link))"
               >
@@ -48,8 +48,8 @@
               <button
                 class="action"
                 @click="deleteLink($event, link)"
-                :aria-label="$t('buttons.delete')"
-                :title="$t('buttons.delete')"
+                :aria-label="删除"
+                :title="删除"
               >
                 <i class="material-icons">delete</i>
               </button>
@@ -62,28 +62,28 @@
         <button
           class="button button--flat button--grey"
           @click="closeHovers"
-          :aria-label="$t('buttons.close')"
-          :title="$t('buttons.close')"
+          :aria-label="关闭"
+          :title="关闭"
           tabindex="2"
         >
-          {{ $t("buttons.close") }}
+          关闭
         </button>
         <button
           id="focus-prompt"
           class="button button--flat button--blue"
           @click="switchListing"
-          :aria-label="$t('buttons.new')"
-          :title="$t('buttons.new')"
+          :aria-label="新建"
+          :title="新建"
           tabindex="1"
         >
-          {{ $t("buttons.new") }}
+          新建
         </button>
       </div>
     </template>
 
     <template v-else>
       <div class="card-content">
-        <p>{{ $t("settings.shareDuration") }}</p>
+        <p>分享期限</p>
         <div class="input-group input">
           <vue-number-input
             center
@@ -98,16 +98,16 @@
           <select
             class="right"
             v-model="unit"
-            :aria-label="$t('time.unit')"
+            :aria-label="时间单位"
             tabindex="2"
           >
-            <option value="seconds">{{ $t("time.seconds") }}</option>
-            <option value="minutes">{{ $t("time.minutes") }}</option>
-            <option value="hours">{{ $t("time.hours") }}</option>
-            <option value="days">{{ $t("time.days") }}</option>
+            <option value="seconds">秒</option>
+            <option value="minutes">分钟</option>
+            <option value="hours">小时</option>
+            <option value="days">天</option>
           </select>
         </div>
-        <p>{{ $t("prompts.optionalPassword") }}</p>
+        <p>密码（选填，不填即无密码）</p>
         <input
           class="input input--block"
           type="password"
@@ -120,21 +120,21 @@
         <button
           class="button button--flat button--grey"
           @click="switchListing"
-          :aria-label="$t('buttons.cancel')"
-          :title="$t('buttons.cancel')"
+          :aria-label="取消"
+          :title="取消"
           tabindex="5"
         >
-          {{ $t("buttons.cancel") }}
+          取消
         </button>
         <button
           id="focus-prompt"
           class="button button--flat button--blue"
           @click="submit"
-          :aria-label="$t('buttons.share')"
-          :title="$t('buttons.share')"
+          :aria-label="分享"
+          :title="分享"
           tabindex="4"
         >
-          {{ $t("buttons.share") }}
+          分享
         </button>
       </div>
     </template>
@@ -145,7 +145,6 @@
 import { computed, inject, onBeforeMount, ref } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import * as api from "@/api/index";
@@ -153,8 +152,6 @@ import dayjs from "dayjs";
 import type { Share } from "@/types/api";
 import type { Resource } from "@/types/file";
 import { copy } from "@/utils/clipboard";
-
-const { t } = useI18n();
 const route = useRoute();
 
 const $showError = inject<IToastError>("$showError")!;

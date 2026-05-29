@@ -2,25 +2,19 @@
   <div class="csv-viewer">
     <div class="csv-header">
       <div class="header-select">
-        <label for="columnSeparator">{{ $t("files.columnSeparator") }}</label>
+        <label for="columnSeparator">列分隔符</label>
         <select
           id="columnSeparator"
           class="input input--block"
           v-model="columnSeparator"
         >
-          <option :value="[',']">
-            {{ $t("files.csvSeparators.comma") }}
-          </option>
-          <option :value="[';']">
-            {{ $t("files.csvSeparators.semicolon") }}
-          </option>
-          <option :value="[',', ';']">
-            {{ $t("files.csvSeparators.both") }}
-          </option>
+          <option :value="[',']">逗号 (,)</option>
+          <option :value="[';']">分号 (;)</option>
+          <option :value="[',', ';']">逗号 (,) 和分号 (;)</option>
         </select>
       </div>
       <div class="header-select" v-if="isEncodedContent">
-        <label for="fileEncoding">{{ $t("files.fileEncoding") }}</label>
+        <label for="fileEncoding">文件编码</label>
         <DropdownModal
           v-model="isEncondingDropdownOpen"
           :close-on-click="false"
@@ -31,14 +25,14 @@
           <template v-slot:list>
             <input
               v-model="encodingSearch"
-              :placeholder="$t('search.search')"
+              :placeholder="'搜索...'"
               class="input input--block"
               name="encoding"
             />
             <div class="encoding-list">
               <div v-if="encodingList.length == 0" class="message">
                 <i class="material-icons">sentiment_dissatisfied</i>
-                <span>{{ $t("files.lonely") }}</span>
+                <span>这里没有任何文件...</span>
               </div>
               <button
                 v-for="encoding in encodingList"
@@ -60,14 +54,14 @@
     </div>
     <div v-else-if="parsed.headers.length === 0" class="csv-empty">
       <i class="material-icons">description</i>
-      <p>{{ $t("files.lonely") }}</p>
+      <p>这里没有任何文件...</p>
     </div>
     <div v-else class="csv-table-container" @wheel.stop @touchmove.stop>
       <table class="csv-table">
         <thead>
           <tr>
             <th v-for="(header, index) in parsed.headers" :key="index">
-              {{ header || $t("files.csvColumn", { index: index + 1 }) }}
+              {{ header || "列 " + (index + 1) }}
             </th>
           </tr>
         </thead>
@@ -83,7 +77,7 @@
         <div class="csv-info" v-if="parsed.rows.length > 100">
           <i class="material-icons">info</i>
           <span>
-            {{ $t("files.showingRows", { count: parsed.rows.length }) }}
+            {{ "正在显示 " + parsed.rows.length + " 行" }}
           </span>
         </div>
       </div>
@@ -94,12 +88,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from "vue";
 import { parse } from "csv-parse/browser/esm";
-import { useI18n } from "vue-i18n";
 import { availableEncodings, decode } from "@/utils/encodings";
 import DropdownModal from "../DropdownModal.vue";
 import type { CsvData } from "@/types/file";
-
-const { t } = useI18n({});
 
 interface Props {
   content: ArrayBuffer | string;

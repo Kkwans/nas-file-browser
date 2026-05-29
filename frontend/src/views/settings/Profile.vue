@@ -101,12 +101,10 @@ import { useLayoutStore } from "@/stores/layout";
 import { users as api } from "@/api";
 import AceEditorTheme from "@/components/settings/AceEditorTheme.vue";
 import { computed, inject, onMounted, ref } from "vue";
-import { useI18n } from "vue-i18n";
 import { authMethod, noAuth } from "@/utils/constants";
 
 const layoutStore = useLayoutStore();
 const authStore = useAuthStore();
-const { t } = useI18n();
 
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const $showError = inject<IToastError>("$showError")!;

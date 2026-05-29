@@ -4,8 +4,8 @@
     <div class="column">
       <form @submit="save" class="card">
         <div class="card-title">
-          <h2 v-if="user?.id === 0">{{ $t("settings.newUser") }}</h2>
-          <h2 v-else>{{ $t("settings.user") }} {{ user?.username }}</h2>
+          <h2 v-if="user?.id === 0">新建用户</h2>
+          <h2 v-else>用户 {{ user?.username }}</h2>
         </div>
 
         <div class="card-content" v-if="user">
@@ -23,25 +23,21 @@
             @click.prevent="deletePrompt"
             type="button"
             class="button button--flat button--red"
-            :aria-label="$t('buttons.delete')"
-            :title="$t('buttons.delete')"
+            :aria-label="删除"
+            :title="删除"
           >
-            {{ $t("buttons.delete") }}
+            删除
           </button>
           <router-link to="/settings/users">
             <button
               class="button button--flat button--grey"
-              :aria-label="$t('buttons.cancel')"
-              :title="$t('buttons.cancel')"
+              :aria-label="取消"
+              :title="取消"
             >
-              {{ $t("buttons.cancel") }}
+              取消
             </button>
           </router-link>
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="$t('buttons.save')"
-          />
+          <input class="button button--flat" type="submit" :value="保存" />
         </div>
       </form>
     </div>
@@ -56,7 +52,6 @@ import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
 import { authMethod } from "@/utils/constants";
 import { logout } from "@/utils/auth";
@@ -75,7 +70,6 @@ const authStore = useAuthStore();
 const layoutStore = useLayoutStore();
 const route = useRoute();
 const router = useRouter();
-const { t } = useI18n();
 
 onMounted(() => {
   fetchData();

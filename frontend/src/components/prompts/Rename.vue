@@ -1,12 +1,12 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ $t("prompts.rename") }}</h2>
+      <h2>重命名</h2>
     </div>
 
     <div class="card-content">
       <p>
-        {{ $t("prompts.renameMessage") }} <code>{{ oldName }}</code
+        请输入新名称，旧名称为： <code>{{ oldName }}</code
         >:
       </p>
       <input
@@ -22,20 +22,20 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')"
+        :aria-label="取消"
+        :title="取消"
       >
-        {{ $t("buttons.cancel") }}
+        取消
       </button>
       <button
         @click="submit"
         class="button button--flat"
         type="submit"
-        :aria-label="$t('buttons.rename')"
-        :title="$t('buttons.rename')"
+        :aria-label="重命名"
+        :title="重命名"
         :disabled="name === '' || name === oldName"
       >
-        {{ $t("buttons.rename") }}
+        重命名
       </button>
     </div>
   </div>

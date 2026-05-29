@@ -98,13 +98,13 @@
             <i class="material-icons">{{ icon }}</i>
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
+            <strong>名称：</strong> {{ req.name }}
           </div>
           <div v-if="!req.isDir" class="share__box__element" :title="modTime">
-            <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }}
+            <strong>最后修改:</strong> {{ humanTime }}
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>{{ $t("prompts.size") }}:</strong> {{ humanSize }}
+            <strong>大小:</strong> {{ humanSize }}
           </div>
           <div class="share__box__element share__box__center">
             <a
@@ -144,7 +144,7 @@
             class="share__box__element share__box__header"
             style="height: 3em"
           >
-            {{ $t("sidebar.preview") }}
+            预览
           </div>
           <div
             v-if="req.isDir"
@@ -320,7 +320,6 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
 import { copy } from "@/utils/clipboard";
 import type { DownloadFormat } from "@/types/file";
@@ -336,8 +335,6 @@ const tag = ref<boolean>(false);
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
-
-const { t } = useI18n({});
 
 const route = useRoute();
 const fileStore = useFileStore();

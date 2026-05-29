@@ -14,7 +14,6 @@ import Errors from "@/views/Errors.vue";
 import SearchPage from "@/views/SearchPage.vue";
 import { useAuthStore } from "@/stores/auth";
 import { baseURL, name } from "@/utils/constants";
-import i18n from "@/i18n";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
 
@@ -199,7 +198,7 @@ const router = createRouter({
 });
 
 router.beforeResolve(async (to, from, next) => {
-  const title = i18n.global.t(titles[to.name as keyof typeof titles]);
+  const title = titles[to.name as keyof typeof titles];
   document.title = title + " - " + name;
 
   const authStore = useAuthStore();

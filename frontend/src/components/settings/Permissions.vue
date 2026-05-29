@@ -1,20 +1,22 @@
 <template>
   <div>
-    <h3>{{ $t("settings.permissions") }}</h3>
-    <p class="small">{{ $t("settings.permissionsHelp") }}</p>
+    <h3>权限</h3>
+    <p class="small">
+      你可以将该用户设置为管理员或单独选择各项权限。如果你选择了“管理员”，则其他的选项会被自动选中，同时该用户可以管理其他用户。
+    </p>
 
     <p>
       <input type="checkbox" v-model="admin" />
-      {{ $t("settings.administrator") }}
+      管理员
     </p>
 
     <p>
       <input type="checkbox" :disabled="admin" v-model="perm.create" />
-      {{ $t("settings.perm.create") }}
+      创建文件和文件夹
     </p>
     <p>
       <input type="checkbox" :disabled="admin" v-model="perm.delete" />
-      {{ $t("settings.perm.delete") }}
+      删除文件和文件夹
     </p>
     <p>
       <input
@@ -22,23 +24,23 @@
         :disabled="admin || perm.share"
         v-model="perm.download"
       />
-      {{ $t("settings.perm.download") }}
+      下载
     </p>
     <p>
       <input type="checkbox" :disabled="admin" v-model="perm.modify" />
-      {{ $t("settings.perm.modify") }}
+      编辑
     </p>
     <p v-if="isExecEnabled">
       <input type="checkbox" :disabled="admin" v-model="perm.execute" />
-      {{ $t("settings.perm.execute") }}
+      执行命令
     </p>
     <p>
       <input type="checkbox" :disabled="admin" v-model="perm.rename" />
-      {{ $t("settings.perm.rename") }}
+      重命名或移动文件和文件夹
     </p>
     <p>
       <input type="checkbox" :disabled="admin" v-model="perm.share" />
-      {{ $t("settings.perm.share") }}
+      分享文件（需要下载权限）
     </p>
   </div>
 </template>

@@ -9,7 +9,6 @@ import type {
 } from "vue-toastification/dist/types/types";
 import createPinia from "@/stores";
 import router from "@/router";
-import i18n, { isRtl } from "@/i18n";
 import App from "@/App.vue";
 import CustomToast from "@/components/CustomToast.vue";
 
@@ -43,7 +42,6 @@ app.use(Toast, {
   newestOnTop: true,
 } satisfies PluginOptions);
 
-app.use(i18n);
 app.use(pinia);
 app.use(router);
 
@@ -78,7 +76,7 @@ app.provide("$showSuccess", (message: string) => {
         message: message,
       },
     },
-    { ...toastConfig, rtl: isRtl() }
+    { ...toastConfig, rtl: false }
   );
 });
 
@@ -91,13 +89,13 @@ app.provide("$showError", (error: Error | string, displayReport = true) => {
         message: (error as Error).message || error,
         isReport: !disableExternal && displayReport,
         // TODO: could you add this to the component itself?
-        reportText: i18n.global.t("buttons.reportIssue"),
+        reportText: "报告问题",
       },
     },
     {
       ...toastConfig,
       timeout: 0,
-      rtl: isRtl(),
+      rtl: false,
     }
   );
 });

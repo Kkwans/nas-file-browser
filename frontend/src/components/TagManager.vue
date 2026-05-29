@@ -1,8 +1,8 @@
 <template>
   <div class="tag-manager">
     <div class="tag-manager-header">
-      <h3>{{ $t("tags.manage") }}</h3>
-      <button class="close-btn" @click="close" :title="$t('buttons.close')">
+      <h3>管理标签</h3>
+      <button class="close-btn" @click="close" :title="&apos;关闭&apos;">
         <i class="material-icons">close</i>
       </button>
     </div>
@@ -14,7 +14,7 @@
           v-model="newTagName"
           type="text"
           class="tag-input"
-          :placeholder="$t('tags.namePlaceholder')"
+          :placeholder="'标签名称...'"
           maxlength="20"
           @keyup.enter="createTag"
         />
@@ -34,7 +34,7 @@
           @click="createTag"
         >
           <i class="material-icons">add</i>
-          {{ $t("tags.create") }}
+          创建标签
         </button>
       </div>
     </div>
@@ -42,7 +42,7 @@
     <!-- Tag list -->
     <div class="tag-list">
       <div v-if="tagsStore.sortedTags.length === 0" class="tag-empty">
-        {{ $t("tags.noTags") }}
+        暂无标签，创建一个吧
       </div>
       <div v-for="tag in tagsStore.sortedTags" :key="tag.id" class="tag-item">
         <!-- View mode -->
@@ -52,14 +52,14 @@
           <span class="tag-count">{{ tag.paths.length }}</span>
           <button
             class="tag-action-btn"
-            :title="$t('tags.edit')"
+            :title="&apos;编辑标签&apos;"
             @click="startEdit(tag)"
           >
             <i class="material-icons">edit</i>
           </button>
           <button
             class="tag-action-btn delete"
-            :title="$t('tags.delete')"
+            :title="&apos;删除标签&apos;"
             @click="confirmDelete(tag)"
           >
             <i class="material-icons">delete</i>
@@ -98,14 +98,10 @@
 
     <!-- Delete confirmation -->
     <div v-if="deleteTarget" class="tag-delete-confirm">
-      <p>{{ $t("tags.confirmDelete") }}「{{ deleteTarget.name }}」？</p>
+      <p>确定删除标签「{{ deleteTarget.name }}」？</p>
       <div class="tag-delete-actions">
-        <button class="btn-cancel" @click="deleteTarget = null">
-          {{ $t("buttons.cancel") }}
-        </button>
-        <button class="btn-delete" @click="doDelete">
-          {{ $t("buttons.delete") }}
-        </button>
+        <button class="btn-cancel" @click="deleteTarget = null">取消</button>
+        <button class="btn-delete" @click="doDelete">删除</button>
       </div>
     </div>
   </div>

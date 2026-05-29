@@ -95,7 +95,6 @@ import { throttle } from "lodash-es";
 import UTIF from "utif";
 import { filesize } from "@/utils";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
 
 interface IProps {
   src: string;
@@ -113,8 +112,6 @@ const props = withDefaults(defineProps<IProps>(), {
   fileName: () => "",
   fileSizeBytes: () => 0,
 });
-
-const { t } = useI18n();
 
 const scale = ref<number>(1);
 const rotation = ref<number>(0);

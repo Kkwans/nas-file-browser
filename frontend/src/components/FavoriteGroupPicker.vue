@@ -1,11 +1,11 @@
 <template>
   <div class="fav-group-picker" @click.stop>
     <div class="fav-group-picker-header">
-      <span>{{ $t("sidebar.assignToGroup") || "收藏到分组" }}</span>
+      <span>{{ "收藏到分组" }}</span>
       <button
         class="fav-group-picker-manage"
         @click="createNew"
-        :title="$t('sidebar.createGroup')"
+        :title='新建分组'
       >
         <i class="material-icons">add</i>
       </button>
@@ -17,9 +17,7 @@
       @click="assignTo('')"
     >
       <i class="material-icons">star</i>
-      <span class="fav-group-name">{{
-        $t("sidebar.ungrouped") || "未分组"
-      }}</span>
+      <span class="fav-group-name">{{ "未分组" }}</span>
       <i v-if="currentGroupId === ''" class="material-icons fav-group-check"
         >check</i
       >
@@ -46,7 +44,7 @@
     <div v-if="showCreate" class="fav-group-create">
       <input
         v-model="newGroupName"
-        :placeholder="$t('sidebar.groupNamePlaceholder')"
+        :placeholder="'分组名称...'"
         @keyup.enter="confirmCreate"
         @keyup.escape="cancelCreate"
         ref="createInput"
@@ -65,9 +63,7 @@
       @click="remove"
     >
       <i class="material-icons">star_border</i>
-      <span class="fav-group-name">{{
-        $t("sidebar.removeFavorite") || "取消收藏"
-      }}</span>
+      <span class="fav-group-name">{{ "取消收藏" }}</span>
     </button>
   </div>
 </template>

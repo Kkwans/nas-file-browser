@@ -14,35 +14,27 @@
         <button
           class="quick-preview-btn"
           @click="navigateFile(-1)"
-          :title="$t('buttons.previous')"
+          :title="上一个"
         >
           <i class="material-icons">chevron_left</i>
         </button>
         <button
           class="quick-preview-btn"
           @click="navigateFile(1)"
-          :title="$t('buttons.next')"
+          :title="下一个"
         >
           <i class="material-icons">chevron_right</i>
         </button>
-        <button
-          class="quick-preview-btn"
-          @click="downloadFile"
-          :title="$t('buttons.download')"
-        >
+        <button class="quick-preview-btn" @click="downloadFile" :title="下载">
           <i class="material-icons">file_download</i>
         </button>
-        <button
-          class="quick-preview-btn"
-          @click="openFull"
-          :title="$t('buttons.openFile')"
-        >
+        <button class="quick-preview-btn" @click="openFull" :title="打开文件">
           <i class="material-icons">open_in_new</i>
         </button>
         <button
           class="quick-preview-btn close-btn"
           @click="close"
-          :title="$t('buttons.close')"
+          :title="关闭"
         >
           <i class="material-icons">close</i>
         </button>
@@ -85,7 +77,7 @@
       <!-- Blob (no preview) -->
       <div v-else class="quick-preview-no-preview">
         <i class="material-icons">feedback</i>
-        <span>{{ $t("files.noPreview") }}</span>
+        <span>此文件无法预览。</span>
       </div>
     </div>
     <div v-if="loading" class="quick-preview-loading">
@@ -102,7 +94,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
 import { useLayoutStore } from "@/stores/layout";
 import { useFileStore } from "@/stores/file";
 import { files as api } from "@/api";
@@ -114,8 +105,6 @@ import {
   highlightAndAnnotateCodeBlocks,
 } from "@/utils/externalResources";
 import dayjs from "dayjs";
-
-const { t } = useI18n();
 const router = useRouter();
 
 const fileStore = useFileStore();

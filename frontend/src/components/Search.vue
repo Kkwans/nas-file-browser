@@ -19,8 +19,8 @@
         ref="input"
         :autofocus="active"
         v-model.trim="prompt"
-        :aria-label="$t('search.search')"
-        :placeholder="$t('search.search')"
+        :aria-label="搜索"
+        :placeholder="搜索..."
       />
       <i
         v-show="ongoing"
@@ -40,7 +40,7 @@
 
           <template v-if="prompt.length === 0">
             <div class="boxes">
-              <h3>{{ $t("search.types") }}</h3>
+              <h3>类型</h3>
               <div>
                 <div
                   tabindex="0"
@@ -48,10 +48,10 @@
                   :key="k"
                   role="button"
                   @click="init('type:' + k)"
-                  :aria-label="$t('search.' + v.label)"
+                  :aria-label="getSearchLabel(v.label)"
                 >
                   <i class="material-icons">{{ v.icon }}</i>
-                  <p>{{ $t("search." + v.label) }}</p>
+                  <p>{{ getSearchLabel(v.label) }}</p>
                 </div>
               </div>
             </div>
@@ -79,10 +79,19 @@ import { search } from "@/api";
 import { getFileIcon } from "@/utils/fileIcons";
 import type { SearchResult } from "@/types/file";
 import { computed, inject, onMounted, ref, watch, onUnmounted } from "vue";
-import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { StatusError } from "@/api/utils";
+
+function getSearchLabel(label: string): string {
+  const map: Record<string, string> = {
+    images: "图像",
+    music: "音乐",
+    video: "视频",
+    pdf: "PDF",
+  };
+  return map[label] || label;
+}
 
 const boxes = {
   image: { label: "images", icon: "insert_photo" },
@@ -108,8 +117,6 @@ const $showError = inject<IToastError>("$showError")!;
 
 const input = ref<HTMLInputElement | null>(null);
 const result = ref<HTMLElement | null>(null);
-
-const { t } = useI18n();
 
 const route = useRoute();
 

@@ -1,17 +1,13 @@
 <template>
   <div class="tag-picker" @click.stop>
     <div class="tag-picker-header">
-      <span>{{ $t("tags.assignTags") }}</span>
-      <button
-        class="tag-picker-manage"
-        @click="openManager"
-        :title="$t('tags.manage')"
-      >
+      <span>分配标签</span>
+      <button class="tag-picker-manage" @click="openManager" :title="管理标签">
         <i class="material-icons">settings</i>
       </button>
     </div>
     <div v-if="tagsStore.sortedTags.length === 0" class="tag-picker-empty">
-      {{ $t("tags.noTags") }}
+      暂无标签，创建一个吧
     </div>
     <div v-else class="tag-picker-list">
       <button

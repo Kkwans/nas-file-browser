@@ -82,6 +82,7 @@ import { computed, inject, onMounted, ref, watch, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { StatusError } from "@/api/utils";
+import { t } from "@/utils/translations";
 
 function getSearchLabel(label: string): string {
   const map: Record<string, string> = {

@@ -5,7 +5,7 @@
         <i class="material-icons risk-confirm-icon" :class="'risk-' + riskLevel"
           >warning</i
         >
-        <span class="risk-confirm-title">风险操作确认</span>
+        <span class="risk-confirm-title">{{ t('confirm.riskOperationConfirm') }}</span>
       </div>
       <div class="risk-confirm-body">
         <p class="risk-confirm-level">
@@ -15,19 +15,19 @@
           <span class="risk-path">{{ targetPath }}</span>
         </p>
         <p class="risk-confirm-message">
-          您正在对一个受保护的目录执行操作，请确认您了解可能的后果。
+          {{ t('confirm.warningProtectedDir') }}
         </p>
         <div class="risk-confirm-details">
           <p v-if="actionType === 'delete'">
-            删除此目录可能导致系统组件无法正常运行，数据可能无法恢复。
+            {{ t('confirm.warningDelete') }}
           </p>
           <p v-else-if="actionType === 'rename'">
-            重命名此目录可能导致依赖它的系统组件无法正常工作。
+            {{ t('confirm.warningRename') }}
           </p>
           <p v-else-if="actionType === 'move'">
-            移动此目录可能导致依赖它的系统组件无法正常工作。
+            {{ t('confirm.warningMove') }}
           </p>
-          <p v-else>对此目录的操作可能影响系统稳定性。</p>
+          <p v-else>{{ t('confirm.warningGeneral') }}</p>
         </div>
       </div>
     </div>
@@ -35,21 +35,21 @@
       <button
         @click="cancel"
         class="button button--flat button--grey"
-        aria-label="取消"
-        title="取消"
+        :aria-label="t('buttons.cancel')"
+        :title="t('buttons.cancel')"
         tabindex="2"
       >
-        取消
+        {{ t('buttons.cancel') }}
       </button>
       <button
         id="focus-prompt"
         @click="confirm"
         class="button button--flat button--orange"
-        aria-label="确认执行"
-        title="确认执行"
+        :aria-label="t('confirm.confirmExecution')"
+        :title="t('confirm.confirmExecution')"
         tabindex="1"
       >
-        确认执行
+        {{ t('confirm.confirmExecution') }}
       </button>
     </div>
   </div>
@@ -59,6 +59,7 @@
 import { computed } from "vue";
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
+import { t } from "@/utils/translations";
 
 const layoutStore = useLayoutStore();
 const { currentPrompt } = storeToRefs(layoutStore);

@@ -47,14 +47,21 @@ app.use(pinia);
 app.use(router);
 
 // 全局 t 函数，供所有 Vue 组件模板使用（替代 vue-i18n）
+// 支持嵌套键：t('buttons.save') → "保存"
 app.config.globalProperties.t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
+  const keys = key.split(".");
+  let result: any = T;
+  for (const k of keys) {
+    result = result?.[k];
+    if (result === undefined) break;
+  }
+  let text = typeof result === "string" ? result : key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`\\{\\s*${k}\\s*\\}`, 'g'), String(v));
+      text = text.replace(new RegExp(`\\{\\s*${k}\\s*\\}`, "g"), String(v));
     }
   }
-  return result;
+  return text;
 };
 
 // provide v-focus for components

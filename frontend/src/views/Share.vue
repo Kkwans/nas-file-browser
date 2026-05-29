@@ -45,7 +45,7 @@
             {{ t("login.wrongCredentials") }}
           </div>
           <div class="card-title">
-            <h2>{{ "密码" }}</h2>
+            <h2>{{ t('share.password') }}</h2>
           </div>
 
           <div class="card-content">
@@ -98,13 +98,13 @@
             <i class="material-icons">{{ icon }}</i>
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>名称：</strong> {{ req.name }}
+            <strong>{{ t('share.name') }}：</strong> {{ req.name }}
           </div>
           <div v-if="!req.isDir" class="share__box__element" :title="modTime">
-            <strong>最后修改:</strong> {{ humanTime }}
+            <strong>{{ t('share.lastModified') }}:</strong> {{ humanTime }}
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>大小:</strong> {{ humanSize }}
+            <strong>{{ t('share.size') }}:</strong> {{ humanSize }}
           </div>
           <div class="share__box__element share__box__center">
             <a
@@ -115,7 +115,7 @@
             >
               <div>
                 <i class="material-icons">file_download</i
-                >{{ "下载" }}
+                >{{ t('buttons.download') }}
               </div>
             </a>
             <a
@@ -126,7 +126,7 @@
             >
               <div>
                 <i class="material-icons">open_in_new</i
-                >{{ "打开文件" }}
+                >{{ t('buttons.openFile') }}
               </div>
             </a>
             <qrcode-vue

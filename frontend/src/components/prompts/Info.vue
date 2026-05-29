@@ -1,35 +1,35 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>文件信息</h2>
+      <h2>{{ t('info.title') }}</h2>
     </div>
 
     <div class="card-content">
       <p v-if="selected.length > 1">
-        {{ "已选择 " + selected.length + " 个文件" }}
+        {{ t('info.selectedCount', { count: selected.length }) }}
       </p>
 
       <p class="break-word" v-if="selected.length < 2">
-        <strong>名称：</strong> {{ name }}
+        <strong>{{ t('share.name') }}：</strong> {{ name }}
       </p>
 
       <p v-if="!dir || selected.length > 1">
-        <strong>大小:</strong>
+        <strong>{{ t('share.size') }}:</strong>
         <span id="content_length"></span> {{ humanSize }}
       </p>
 
       <div v-if="resolution">
-        <strong>分辨率:</strong>
+        <strong>{{ t('info.resolution') }}:</strong>
         {{ resolution.width }} x {{ resolution.height }}
       </div>
 
       <p v-if="selected.length < 2" title="modTime">
-        <strong>最后修改:</strong> {{ humanTime }}
+        <strong>{{ t('share.lastModified') }}:</strong> {{ humanTime }}
       </p>
 
       <template v-if="dir && selected.length === 0">
-        <p><strong>文件数:</strong> {{ req?.numFiles }}</p>
-        <p><strong>文件夹数:</strong> {{ req?.numDirs }}</p>
+        <p><strong>{{ t('info.fileCount') }}:</strong> {{ req?.numFiles }}</p>
+        <p><strong>{{ t('info.folderCount') }}:</strong> {{ req?.numDirs }}</p>
       </template>
 
       <template v-if="!dir">
@@ -40,7 +40,7 @@
               @click="checksum($event, 'md5')"
               @keypress.enter="checksum($event, 'md5')"
               tabindex="2"
-              >点击以显示</a
+              >{{ t('viewer.clickToDownload') }}</a
             ></code
           >
         </p>
@@ -86,10 +86,10 @@
         type="submit"
         @click="closeHovers"
         class="button button--flat"
-        aria-label="确定"
-        title="确定"
+        :aria-label="t('buttons.confirm')"
+        :title="t('buttons.confirm')"
       >
-        确定
+        {{ t('buttons.confirm') }}
       </button>
     </div>
   </div>
@@ -104,6 +104,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
 import { files as api } from "@/api";
+import { t } from "@/utils/translations";
 
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();

@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
 import { useFavoritesStore } from "@/stores/favorites";
+import { t } from "@/utils/translations";
 
 const props = defineProps<{
   path: string;

@@ -151,6 +151,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
 import type { ConflictingResource } from "@/types/file";
+import { t } from "@/utils/translations";
 
 const layoutStore = useLayoutStore();
 const { currentPrompt } = layoutStore;

@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
+import { t } from "@/utils/translations";
 
 const props = defineProps<{
   icon?: string;

@@ -34,6 +34,7 @@ import { useLayoutStore } from "@/stores/layout";
 import url from "@/utils/url";
 import { files } from "@/api";
 import { StatusError } from "@/api/utils.js";
+import { t } from "@/utils/translations";
 
 interface FileItem {
   name: string;

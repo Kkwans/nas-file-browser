@@ -14,6 +14,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onUnmounted } from "vue";
+import { t } from "@/utils/translations";
 
 const emit = defineEmits(["hide"]);
 const props = defineProps<{ show: boolean; pos: { x: number; y: number } }>();

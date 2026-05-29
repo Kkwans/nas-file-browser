@@ -110,6 +110,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useTagsStore, TAG_COLORS, type Tag } from "@/stores/tags";
+import { t } from "@/utils/translations";
 
 const emit = defineEmits<{
   close: [];

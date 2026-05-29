@@ -1,13 +1,12 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>重命名</h2>
+      <h2>{{ t('buttons.rename') }}</h2>
     </div>
 
     <div class="card-content">
       <p>
-        请输入新名称，旧名称为： <code>{{ oldName }}</code
-        >:
+        请输入新名称，旧名称为： <code>{{ oldName }}</code>:
       </p>
       <input
         id="focus-prompt"
@@ -22,20 +21,20 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        aria-label="取消"
-        title="取消"
+        :aria-label="t('buttons.cancel')"
+        :title="t('buttons.cancel')"
       >
-        取消
+        {{ t('buttons.cancel') }}
       </button>
       <button
         @click="submit"
         class="button button--flat"
         type="submit"
-        aria-label="重命名"
-        title="重命名"
+        :aria-label="t('buttons.rename')"
+        :title="t('buttons.rename')"
         :disabled="name === '' || name === oldName"
       >
-        重命名
+        {{ t('buttons.rename') }}
       </button>
     </div>
   </div>
@@ -51,6 +50,7 @@ import { useCategoriesStore } from "@/stores/categories";
 import url from "@/utils/url";
 import { files as api } from "@/api";
 import { removePrefix } from "@/api/utils";
+import { t } from "@/utils/translations";
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();

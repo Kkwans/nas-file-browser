@@ -11,6 +11,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { t } from "@/utils/translations";
 
 const props = defineProps<{
   commands: string[];

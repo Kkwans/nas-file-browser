@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>移动</h2>
+      <h2>{{ t('move.title') }}</h2>
     </div>
 
     <div class="card-content">
-      <p>请选择目标目录：</p>
+      <p>{{ t('copy.targetDirectory') }}</p>
       <file-list
         ref="fileListRef"
         @update:selected="(val) => (dest = val)"
@@ -22,33 +22,33 @@
         <button
           class="button button--flat"
           @click="fileListRef?.createDir()"
-          aria-label="新建文件夹"
-          title="新建文件夹"
+          :aria-label="t('buttons.createFolder')"
+          :title="t('buttons.createFolder')"
           style="justify-self: left"
         >
-          <span>新建文件夹</span>
+          <span>{{ t('buttons.createFolder') }}</span>
         </button>
       </template>
       <div>
         <button
           class="button button--flat button--grey"
           @click="closeHovers"
-          aria-label="取消"
-          title="取消"
+          :aria-label="t('buttons.cancel')"
+          :title="t('buttons.cancel')"
           tabindex="3"
         >
-          取消
+          {{ t('buttons.cancel') }}
         </button>
         <button
           id="focus-prompt"
           class="button button--flat"
           @click="move"
           :disabled="route.path === dest"
-          aria-label="移动"
-          title="移动"
+          :aria-label="t('buttons.move')"
+          :title="t('buttons.move')"
           tabindex="2"
         >
-          移动
+          {{ t('buttons.move') }}
         </button>
       </div>
     </div>
@@ -69,6 +69,7 @@ import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { removePrefix } from "@/api/utils";
+import { t } from "@/utils/translations";
 
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();

@@ -2,7 +2,7 @@
   <div class="tag-manager">
     <div class="tag-manager-header">
       <h3>管理标签</h3>
-      <button class="close-btn" @click="close" :title="&apos;关闭&apos;">
+      <button class="close-btn" @click="close" :title="'关闭'">
         <i class="material-icons">close</i>
       </button>
     </div>
@@ -52,14 +52,14 @@
           <span class="tag-count">{{ tag.paths.length }}</span>
           <button
             class="tag-action-btn"
-            :title="&apos;编辑标签&apos;"
+            :title="'编辑标签'"
             @click="startEdit(tag)"
           >
             <i class="material-icons">edit</i>
           </button>
           <button
             class="tag-action-btn delete"
-            :title="&apos;删除标签&apos;"
+            :title="'删除标签'"
             @click="confirmDelete(tag)"
           >
             <i class="material-icons">delete</i>

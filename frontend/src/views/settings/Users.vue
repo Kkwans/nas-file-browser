@@ -4,7 +4,7 @@
     <div class="column">
       <div class="card">
         <div class="card-title">
-          <h2>{{ t("settings.users") }}</h2>
+          <h2>{{ "用户管理" }}</h2>
           <router-link to="/settings/users/new"
             ><button class="button">
               {{ t("buttons.new") }}

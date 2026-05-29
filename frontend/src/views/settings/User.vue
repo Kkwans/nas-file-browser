@@ -148,7 +148,7 @@ const deleteUser = async (currentPassword: string) => {
     $showSuccess(t("settings.userDeleted"));
   } catch (err) {
     if (err instanceof StatusError) {
-      err.status === 403 ? $showError(t("errors.forbidden")) : $showError(err);
+      err.status === 403 ? $showError("无权访问") : $showError(err);
     } else if (err instanceof Error) {
       $showError(err);
     }

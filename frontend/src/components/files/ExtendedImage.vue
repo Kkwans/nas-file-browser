@@ -78,7 +78,7 @@
       <div class="hint-item"><kbd>0</kbd> {{ t("buttons.fitToScreen") }}</div>
       <div class="hint-item"><kbd>1</kbd> {{ t("buttons.originalSize") }}</div>
       <div class="hint-item"><kbd>R</kbd> {{ t("buttons.rotate") }}</div>
-      <div class="hint-item"><kbd>Esc</kbd> {{ t("buttons.close") }}</div>
+      <div class="hint-item"><kbd>Esc</kbd> {{ "关闭" }}</div>
     </div>
 
     <img

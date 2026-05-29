@@ -19,8 +19,8 @@
         ref="input"
         :autofocus="active"
         v-model.trim="prompt"
-        :aria-label="搜索"
-        :placeholder="搜索..."
+        :aria-label="'搜索'"
+        placeholder="search"
       />
       <i
         v-show="ongoing"
@@ -157,15 +157,15 @@ const text = computed(() => {
   }
 
   return prompt.value === ""
-    ? t("search.typeToSearch")
-    : t("search.pressToSearch");
+    ? "输入关键词搜索"
+    : "按回车搜索";
 });
 const filteredResults = computed(() => {
   return results.value.slice(0, resultsCount.value);
 });
 
 const closeButtonTitle = computed(() => {
-  return ongoing.value ? t("buttons.stopSearch") : t("buttons.close");
+  return ongoing.value ? "停止搜索" : "关闭";
 });
 
 onMounted(() => {

@@ -13,14 +13,14 @@
         :title="t('buttons.cancel')"
         tabindex="1"
       >
-        {{ t("buttons.cancel") }}
+        {{ "取消" }}
       </button>
       <button
         class="button button--flat"
         @click="layoutStore.currentPrompt?.confirm"
         tabindex="2"
       >
-        {{ t("buttons.delete") }}
+        {{ "删除" }}
       </button>
     </div>
   </div>

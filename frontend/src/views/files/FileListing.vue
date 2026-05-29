@@ -230,7 +230,7 @@
                 :title="t('files.sortByName')"
                 :aria-label="t('files.sortByName')"
               >
-                <span>{{ t("files.name") }}</span>
+                <span>{{ "名称" }}</span>
                 <i class="material-icons">{{ nameIcon }}</i>
               </p>
 
@@ -243,7 +243,7 @@
                 :title="t('files.sortBySize')"
                 :aria-label="t('files.sortBySize')"
               >
-                <span>{{ t("files.size") }}</span>
+                <span>{{ "大小" }}</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
               </p>
               <p
@@ -440,7 +440,7 @@
                 @click="layoutStore.showHover('copy')"
               >
                 <i class="material-icons">content_copy</i>
-                <span>{{ t("buttons.copyFile") }}</span>
+                <span>{{ "复制文件" }}</span>
               </button>
               <button
                 v-if="headerButtons.move"
@@ -456,7 +456,7 @@
                 @click="download"
               >
                 <i class="material-icons">file_download</i>
-                <span>{{ t("buttons.download") }}</span>
+                <span>{{ "下载" }}</span>
               </button>
               <button
                 v-if="headerButtons.delete"
@@ -464,7 +464,7 @@
                 @click="layoutStore.showHover('delete')"
               >
                 <i class="material-icons">delete</i>
-                <span>{{ t("buttons.delete") }}</span>
+                <span>{{ "删除" }}</span>
               </button>
             </template>
             <button

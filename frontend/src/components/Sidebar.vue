@@ -10,7 +10,7 @@
       @mousedown="startResize"
       @touchstart="startResize"
       @dblclick="resetSidebarWidth"
-      :title="&apos;拖拽调节侧边栏宽度&apos;"
+      :title="'拖拽调节侧边栏宽度'"
     ></div>
     <template v-if="isLoggedIn">
       <button @click="toAccountSettings" class="action">
@@ -21,7 +21,7 @@
         class="action"
         @click="toRoot"
         :aria-label="我的文件"
-        :title="&apos;我的文件&apos;"
+        :title="'我的文件'"
       >
         <i class="material-icons">folder</i>
         <span>我的文件</span>
@@ -31,7 +31,7 @@
         class="action"
         @click="openSearch"
         :aria-label="搜索"
-        :title="&apos;搜索&apos;"
+        :title="'搜索'"
       >
         <i class="material-icons">search</i>
         <span>搜索</span>
@@ -44,7 +44,7 @@
           <span>收藏夹</span>
           <button
             class="section-action-btn"
-            :title="&apos;新建分组&apos;"
+            :title="'新建分组'"
             @click.stop.prevent="showCreateGroup = !showCreateGroup"
           >
             <i class="material-icons">create_new_folder</i>
@@ -52,7 +52,7 @@
           <button
             v-if="favoritesStore.sortedFavorites.length > 0"
             class="section-action-btn"
-            :title="&apos;清空收藏夹&apos;"
+            :title="'清空收藏夹'"
             @click.stop.prevent="clearAllFavorites"
           >
             <i class="material-icons">delete_sweep</i>
@@ -125,7 +125,7 @@
               </div>
               <i
                 class="material-icons favorite-remove"
-                :title="&apos;取消收藏&apos;"
+                :title="'取消收藏'"
                 @click.stop.prevent="removeFavorite(fav.id)"
                 >close</i
               >
@@ -156,7 +156,7 @@
               }}</span>
               <button
                 class="section-action-btn"
-                :title="&apos;删除分组&apos;"
+                :title="'删除分组'"
                 @click.stop.prevent="deleteGroup(group.id)"
               >
                 <i class="material-icons">close</i>
@@ -195,7 +195,7 @@
                 </div>
                 <i
                   class="material-icons favorite-remove"
-                  :title="&apos;取消收藏&apos;"
+                  :title="'取消收藏'"
                   @click.stop.prevent="removeFavorite(fav.id)"
                   >close</i
                 >
@@ -220,7 +220,7 @@
           <span>标签</span>
           <button
             class="section-action-btn"
-            :title="&apos;管理标签&apos;"
+            :title="'管理标签'"
             @click.stop.prevent="openTagManager"
           >
             <i class="material-icons">settings</i>
@@ -358,7 +358,7 @@
               <button
                 class="action category-group-header category-group-nav"
                 @click="navigateCategoryFirst(group)"
-                :title="&apos;查看内容&apos;"
+                :title="'查看内容'"
               >
                 <i class="material-icons" :style="{ color: group.color }">{{
                   group.icon
@@ -413,7 +413,7 @@
           @click="showHover('newDir')"
           class="action"
           :aria-label="新建文件夹"
-          :title="&apos;新建文件夹&apos;"
+          :title="'新建文件夹'"
         >
           <i class="material-icons">create_new_folder</i>
           <span>新建文件夹</span>
@@ -423,7 +423,7 @@
           @click="showHover('newFile')"
           class="action"
           :aria-label="新建文件"
-          :title="&apos;新建文件&apos;"
+          :title="'新建文件'"
         >
           <i class="material-icons">note_add</i>
           <span>新建文件</span>
@@ -435,7 +435,7 @@
           class="action"
           @click="toGlobalSettings"
           :aria-label="设置"
-          :title="&apos;设置&apos;"
+          :title="'设置'"
         >
           <i class="material-icons">settings_applications</i>
           <span>设置</span>
@@ -447,7 +447,7 @@
         class="action"
         id="logout"
         :aria-label="退出"
-        :title="&apos;登出&apos;"
+        :title="'登出'"
       >
         <i class="material-icons">exit_to_app</i>
         <span>登出</span>
@@ -458,8 +458,8 @@
         v-if="!hideLoginButton"
         class="action"
         to="/login"
-        :aria-label="登录"
-        :title="&apos;登录&apos;"
+        :aria-label="'登录'"
+        :title="'登录'"
       >
         <i class="material-icons">exit_to_app</i>
         <span>登录</span>
@@ -469,8 +469,8 @@
         v-if="signup"
         class="action"
         to="/login"
-        :aria-label="注册"
-        :title="&apos;注册&apos;"
+        :aria-label="'注册'"
+        :title="'注册'"
       >
         <i class="material-icons">person_add</i>
         <span>注册</span>

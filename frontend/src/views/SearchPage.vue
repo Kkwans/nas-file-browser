@@ -28,7 +28,7 @@
         v-if="prompt.length === 0 && results.length === 0"
         class="search-hints"
       >
-        <p>{{ t("search.typeToSearch") }}</p>
+        <p>{{ "输入关键词搜索" }}</p>
         <div class="search-types">
           <div
             tabindex="0"
@@ -59,7 +59,7 @@
         class="search-empty"
       >
         <i class="material-icons">search_off</i>
-        <p>{{ t("search.noResults") }}</p>
+        <p>{{ "无搜索结果" }}</p>
       </div>
 
       <!-- 搜索结果列表 -->

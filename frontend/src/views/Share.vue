@@ -45,7 +45,7 @@
             {{ t("login.wrongCredentials") }}
           </div>
           <div class="card-title">
-            <h2>{{ t("login.password") }}</h2>
+            <h2>{{ "密码" }}</h2>
           </div>
 
           <div class="card-content">
@@ -115,7 +115,7 @@
             >
               <div>
                 <i class="material-icons">file_download</i
-                >{{ t("buttons.download") }}
+                >{{ "下载" }}
               </div>
             </a>
             <a
@@ -126,7 +126,7 @@
             >
               <div>
                 <i class="material-icons">open_in_new</i
-                >{{ t("buttons.openFile") }}
+                >{{ "打开文件" }}
               </div>
             </a>
             <qrcode-vue

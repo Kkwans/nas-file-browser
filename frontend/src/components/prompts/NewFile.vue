@@ -23,7 +23,7 @@
         :aria-label="t('buttons.cancel')"
         :title="t('buttons.cancel')"
       >
-        {{ t("buttons.cancel") }}
+        {{ "取消" }}
       </button>
       <button
         class="button button--flat"
@@ -31,7 +31,7 @@
         :aria-label="t('buttons.create')"
         :title="t('buttons.create')"
       >
-        {{ t("buttons.create") }}
+        {{ "创建" }}
       </button>
     </div>
   </div>

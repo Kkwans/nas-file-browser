@@ -38,7 +38,7 @@
           style="font-size: 1em; margin-right: 0.5em"
           >autorenew</i
         >
-        {{ createMode ? t("login.signup") : t("login.submit") }}
+        {{ createMode ? "注册" : t("login.submit") }}
       </button>
 
       <p @click="toggleMode" v-if="signup">

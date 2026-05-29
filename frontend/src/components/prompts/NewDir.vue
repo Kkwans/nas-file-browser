@@ -25,7 +25,7 @@
         :title="t('buttons.cancel')"
         tabindex="3"
       >
-        {{ t("buttons.cancel") }}
+        {{ "取消" }}
       </button>
       <button
         class="button button--flat"
@@ -34,7 +34,7 @@
         @click="submit"
         tabindex="2"
       >
-        {{ t("buttons.create") }}
+        {{ "创建" }}
       </button>
     </div>
   </div>

@@ -53,7 +53,7 @@
     />
 
     <div v-if="!isDefault">
-      <h3>{{ t("settings.rules") }}</h3>
+      <h3>{{ "规则" }}</h3>
       <p class="small">{{ t("settings.rulesHelp") }}</p>
       <rules v-if="user.rules" v-model:rules="user.rules" />
     </div>

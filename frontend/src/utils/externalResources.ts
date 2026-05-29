@@ -27,7 +27,7 @@ export async function loadVditorCSS(): Promise<void> {
  * Load Vditor JS from CDN (once).
  */
 export async function loadVditorJS(): Promise<void> {
-  if (vditorJSLoaded || (window as any).Vditor) {
+  if (vditorJSLoaded || window.Vditor) {
     vditorJSLoaded = true;
     return;
   }
@@ -92,7 +92,7 @@ export async function loadHighlightCSS(): Promise<void> {
  * Load highlight.js JS from CDN (once).
  */
 export async function loadHighlightJS(): Promise<void> {
-  if (hljsJSLoaded || (window as any).hljs) {
+  if (hljsJSLoaded || window.hljs) {
     hljsJSLoaded = true;
     return;
   }
@@ -129,7 +129,7 @@ export async function loadMarkdownResources(): Promise<void> {
  */
 export function highlightAndAnnotateCodeBlocks(container: HTMLElement): void {
   const codeBlocks = container.querySelectorAll("pre > code");
-  const hljs = (window as any).hljs;
+  const hljs = window.hljs;
 
   codeBlocks.forEach((codeEl) => {
     // 1. Extract language from class

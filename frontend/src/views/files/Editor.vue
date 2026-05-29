@@ -245,7 +245,7 @@ const loadVditorResources = async () => {
 const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
   await loadVditorResources();
 
-  const VditorClass = (window as any).Vditor;
+  const VditorClass = window.Vditor;
   const mountEl = document.getElementById("vditor-mount");
   if (!mountEl) return;
 
@@ -405,7 +405,7 @@ const setupOutlineClickHandler = () => {
 const initVditorPreview = async (content: string) => {
   await loadHighlight();
 
-  const VditorClass = (window as any).Vditor;
+  const VditorClass = window.Vditor;
   const mountEl = document.getElementById("vditor-mount");
   if (!mountEl) return;
 

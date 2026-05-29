@@ -255,11 +255,15 @@ const humanTime = (time: number | string) =>
 
 const buildLink = (share: Share) => api.share.getShareURL(share);
 
-const buildDownloadLink = (share: Share) =>
-  api.pub.getDownloadURL(
-    { hash: share.hash, path: "", items: [], numDirs: 0, numFiles: 0, sorting: { by: "", asc: true } } as Resource,
-    true
-  );
+const buildDownloadLink = (share: Share) => {
+  // Build a minimal Resource-like object for the download URL
+  const res = {
+    hash: share.hash,
+    path: "",
+    token: undefined as string | undefined,
+  } as unknown as Resource;
+  return api.pub.getDownloadURL(res, true);
+};
 
 const sortLinks = () => {
   links.value = links.value.sort((a: Share, b: Share) => {

@@ -23,12 +23,12 @@
     </header-bar>
 
     <div class="search-page-content">
-      <!-- 初始状态：搜索类型快捷入口 -->
+      <!-- {{ t('searchPage.searchTypes') }} -->
       <div
         v-if="prompt.length === 0 && results.length === 0"
         class="search-hints"
       >
-        <p>{{ "输入关键词搜索" }}</p>
+        <p>{{ t('searchPage.typeToSearch') }}</p>
         <div class="search-types">
           <div
             tabindex="0"
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <!-- 搜索中提示 -->
+      <!-- {{ t('searchPage.searching') }} -->
       <div v-else-if="ongoing && results.length === 0" class="search-loading">
         <div class="spinner">
           <div class="bounce1"></div>
@@ -59,10 +59,10 @@
         class="search-empty"
       >
         <i class="material-icons">search_off</i>
-        <p>{{ "无搜索结果" }}</p>
+        <p>{{ t('searchPage.noResults') }}</p>
       </div>
 
-      <!-- 搜索结果列表 -->
+      <!-- {{ t('searchPage.results') }} -->
       <div v-else class="search-results" ref="resultsRef">
         <router-link
           v-for="(item, index) in filteredResults"

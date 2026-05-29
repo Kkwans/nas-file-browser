@@ -69,7 +69,6 @@ function getPermission(name: string) {
   return new Promise<void>((resolve, reject) => {
     typeof navigator.permissions !== "undefined" &&
       navigator.permissions
-        // @ts-expect-error chrome specific api
         .query({ name })
         .then((permission) => {
           if (permission.state === "granted" || permission.state === "prompt") {

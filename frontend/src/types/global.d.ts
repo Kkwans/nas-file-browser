@@ -43,4 +43,9 @@ declare global {
     blur?: () => void;
     destroy: () => void;
   }
+
+  // Permissions API type补充（部分浏览器支持但TS lib未完全覆盖）
+  interface Permissions {
+    query(permissionDesc: { name: string }): Promise<PermissionStatus>;
+  }
 }

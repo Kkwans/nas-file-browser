@@ -233,10 +233,10 @@ const loadTextContent = async () => {
     const text = await resp.text();
     textContent.value =
       text.length > 51200
-        ? text.substring(0, 51200) + "\n\n... " + t("files.fileTooLarge")
+        ? text.substring(0, 51200) + "\n\n... " + '文件过大'
         : text;
   } catch {
-    textContent.value = t("files.cannotLoadContent");
+    textContent.value = '无法加载内容';
   } finally {
     loading.value = false;
   }
@@ -248,11 +248,11 @@ const loadMarkdownContent = async () => {
     const text = await resp.text();
     const truncated =
       text.length > 51200
-        ? text.substring(0, 51200) + "\n\n... " + t("files.fileTooLarge")
+        ? text.substring(0, 51200) + "\n\n... " + '文件过大'
         : text;
     await renderMarkdown(truncated);
   } catch {
-    textContent.value = t("files.cannotLoadContent");
+    textContent.value = '无法加载内容';
     nextTick(() => {
       if (markdownBody.value) {
         markdownBody.value.textContent = textContent.value;

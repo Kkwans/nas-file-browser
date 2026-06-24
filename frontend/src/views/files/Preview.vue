@@ -7,7 +7,7 @@
     @touchstart="toggleNavigation"
   >
     <header-bar v-if="isPdf || isEpub || isCsv || showNav">
-      <action icon="close" :label="t('viewer.close')" @action="close()" />
+      <action icon="close" :label="'关闭'" @action="close()" />
       <title>{{ name }}</title>
       <action
         :disabled="layoutStore.loading"
@@ -21,21 +21,21 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.rename"
           icon="mode_edit"
-          :label="t('buttons.rename')"
+          :label="'重命名'"
           show="rename"
         />
         <action
           :disabled="layoutStore.loading"
           v-if="isCsv && authStore.user?.perm.modify"
           icon="edit_note"
-          label="t('buttons.editAsText')"
+          label="'编辑文本'"
           @action="editAsText"
         />
         <action
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.delete"
           icon="delete"
-          :label="t('buttons.delete')"
+          :label="'删除'"
           @action="deleteFile"
           id="delete-button"
         />
@@ -43,7 +43,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.download"
           icon="file_download"
-          :label="t('buttons.download')"
+          :label="'下载'"
           @action="download"
         />
         <action
@@ -53,13 +53,13 @@
             authStore.user?.perm.download
           "
           icon="open_in_new"
-          label="t('buttons.openDirect')"
+          label="'直接打开'"
           @action="openDirect"
         />
         <action
           :disabled="layoutStore.loading"
           icon="info"
-          :label="t('info.title')"
+          :label="'文件信息'"
           show="info"
         />
       </template>
@@ -130,13 +130,13 @@
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
-            {{ t("viewer.cannotPreview") }}
+            '此文件无法预览'
           </div>
           <div>
             <a target="_blank" :href="downloadUrl" class="button button--flat">
               <div>
                 <i class="material-icons">file_download</i
-                >{{ t("buttons.download") }}
+                >'下载'
               </div>
             </a>
             <a
@@ -147,7 +147,7 @@
             >
               <div>
                 <i class="material-icons">open_in_new</i
-                >{{ t("buttons.openFile") }}
+                >'打开文件'
               </div>
             </a>
           </div>
@@ -160,8 +160,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasPrevious || !showNav }"
-      :aria-label="t('viewer.previous')"
-      :title="t('viewer.previous')"
+      :aria-label="'上一个'"
+      :title="'上一个'"
     >
       <i class="material-icons">chevron_left</i>
     </button>
@@ -170,8 +170,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasNext || !showNav }"
-      :aria-label="t('viewer.next')"
-      :title="t('viewer.next')"
+      :aria-label="'下一个'"
+      :title="'下一个'"
     >
       <i class="material-icons">chevron_right</i>
     </button>
@@ -428,7 +428,7 @@ const updatePreview = async () => {
     csvError.value = "";
 
     if (fileStore.req.size > CSV_MAX_SIZE) {
-      csvError.value = t("files.csvTooLarge");
+      csvError.value = 'CSV 文件过大';
     } else {
       if (fileStore.req.rawContent != null) {
         csvContent.value = fileStore.req.rawContent;

@@ -4,7 +4,7 @@
 
     <h2 class="message">
       <i class="material-icons">{{ info.icon }}</i>
-      <span>{{ t(info.message) }}</span>
+      <span>{{ info.message }}</span>
     </h2>
   </div>
 </template>

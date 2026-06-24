@@ -198,8 +198,8 @@ const riskLevel = computed(() => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const riskTitle = computed(() => {
-  if (riskLevel.value === "high") return t("files.riskHighTitle");
-  if (riskLevel.value === "medium") return t("files.riskMediumTitle");
+  if (riskLevel.value === "high") return '高危操作';
+  if (riskLevel.value === "medium") return '中危操作';
   return "";
 });
 

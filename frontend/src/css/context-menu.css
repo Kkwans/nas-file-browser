@@ -1,20 +1,35 @@
 /* ============================================================
- *  CONTEXT MENU -- Right-click menu (Optimized)
+ *  CONTEXT MENU -- Right-click menu (Modern & Refined)
  * ============================================================ */
 
 .context-menu {
   position: absolute;
-  background: var(--surfacePrimary);
-  min-width: 180px;
-  max-width: 240px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 0.5em;
+  background: var(--surfacePrimary, #fff);
+  min-width: 200px;
+  max-width: 260px;
+  border: 1px solid var(--borderPrimary, rgba(0, 0, 0, 0.08));
+  border-radius: 0.65em;
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    0 2px 6px rgba(0, 0, 0, 0.08);
+    0 12px 36px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
   z-index: 999;
-  padding: 0.35em 0;
+  padding: 0.4em 0;
   overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: contextMenuIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes contextMenuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .context-menu .action {
@@ -22,24 +37,66 @@
   width: 100%;
   border-radius: 0;
   align-items: center;
-  padding: 0.45em 0.75em;
-  gap: 0.5em;
-  transition: 0.1s ease background-color;
+  padding: 0.55em 0.85em;
+  gap: 0.6em;
+  margin: 0.1em 0.3em;
+  border-radius: 0.35em;
+  transition: 0.12s ease background-color, 0.1s ease transform;
+  cursor: pointer;
 }
 
 .context-menu .action:hover {
-  background-color: var(--hover);
+  background-color: var(--hover, rgba(33, 150, 243, 0.06));
+  transform: translateX(2px);
+}
+
+.context-menu .action:active {
+  transform: scale(0.98);
+  transition-duration: 0.05s;
 }
 
 .context-menu .action i {
-  font-size: 1.25em;
-  padding: 0.15em;
+  font-size: 1.15em;
+  padding: 0.1em;
+  color: var(--textSecondary, #666);
+  transition: color 0.15s;
+}
+
+.context-menu .action:hover i {
+  color: var(--blue, #2196f3);
 }
 
 .context-menu .action span {
-  font-size: 0.9em;
+  font-size: 0.88em;
+  font-weight: 500;
+  color: var(--textPrimary, #333);
 }
 
 .context-menu .action .counter {
   left: 1.75em;
+}
+
+/* Dark mode */
+:root.dark .context-menu,
+html.dark .context-menu {
+  background: var(--surfacePrimary, #1e2030);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.20);
+}
+
+:root.dark .context-menu .action:hover,
+html.dark .context-menu .action:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+:root.dark .context-menu .action i,
+html.dark .context-menu .action i {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+:root.dark .context-menu .action:hover i,
+html.dark .context-menu .action:hover i {
+  color: var(--blue, #42a5f5);
 }

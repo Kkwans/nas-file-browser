@@ -5,7 +5,7 @@
       <action
         class="search-button"
         icon="search"
-        label="t('buttons.search')"
+        label="搜索"
         @action="openSearch()"
       />
 
@@ -14,34 +14,34 @@
           <action
             v-if="headerButtons.share"
             icon="share"
-            label="t('buttons.share')"
+            label="分享"
             show="share"
           />
           <action
             v-if="headerButtons.rename"
             icon="mode_edit"
-            label="t('buttons.rename')"
+            label="重命名"
             show="rename"
           />
           <action
             v-if="headerButtons.copy"
             id="copy-button"
             icon="content_copy"
-            label="t('buttons.copyFile')"
+            label="复制文件"
             show="copy"
           />
           <action
             v-if="headerButtons.move"
             id="move-button"
             icon="forward"
-            label="t('buttons.moveFile')"
+            label="移动文件"
             show="move"
           />
           <action
             v-if="headerButtons.delete"
             id="delete-button"
             icon="delete"
-            label="t('buttons.delete')"
+            label="删除"
             show="delete"
           />
         </template>
@@ -49,14 +49,14 @@
         <action
           v-if="headerButtons.shell"
           icon="code"
-          label="t('buttons.shell')"
+          label="终端"
           @action="layoutStore.toggleShell"
         />
         <!-- View Mode Dropdown -->
         <div class="view-mode-dropdown" ref="viewDropdownRef">
           <action
             :icon="viewIcon"
-            label="t('buttons.switchView')"
+            label="切换视图"
             @action="toggleViewDropdown"
           />
           <div v-if="showViewDropdown" class="dropdown-menu">
@@ -68,7 +68,7 @@
               @click="selectViewMode(mode.value)"
             >
               <i class="material-icons">{{ mode.icon }}</i>
-              <span>{{ t(mode.label) }}</span>
+              <span>{{ mode.label }}</span>
               <i
                 v-if="currentViewMode === mode.value"
                 class="material-icons check"
@@ -81,7 +81,7 @@
         <div class="sort-dropdown" ref="sortDropdownRef">
           <action
             icon="sort"
-            label="t('buttons.sort')"
+            label="排序"
             @action="toggleSortDropdown"
           />
           <div v-if="showSortDropdown" class="dropdown-menu">
@@ -93,7 +93,7 @@
               @click="selectSort(opt.by)"
             >
               <i class="material-icons">{{ opt.icon }}</i>
-              <span>{{ t(opt.label) }}</span>
+              <span>{{ opt.label }}</span>
               <i
                 v-if="currentSortBy === opt.by"
                 class="material-icons sort-arrow"
@@ -105,7 +105,7 @@
             <button class="dropdown-item" @click="toggleSortDirection">
               <i class="material-icons">swap_vert</i>
               <span>{{
-                currentSortAsc ? t("files.descending") : t("files.ascending")
+                currentSortAsc ? '降序排列' : '升序排列'
               }}</span>
             </button>
           </div>
@@ -113,7 +113,7 @@
         <action
           v-if="headerButtons.download"
           icon="file_download"
-          label="t('buttons.download')"
+          label="下载"
           @action="download"
           :counter="fileStore.selectedCount"
         />
@@ -121,13 +121,13 @@
           v-if="headerButtons.upload"
           icon="file_upload"
           id="upload-button"
-          label="t('buttons.upload')"
+          label="上传"
           @action="uploadFunc"
         />
-        <action icon="info" label="t('buttons.info')" show="info" />
+        <action icon="info" label="详细信息" show="info" />
         <action
           icon="check_circle"
-          label="t('buttons.selectMultiple')"
+          label="多选"
           @action="toggleMultipleSelection"
         />
       </template>
@@ -141,41 +141,41 @@
       }"
     >
       <span v-if="fileStore.selectedCount > 0">
-        {{ t("prompts.filesSelected", { count: fileStore.selectedCount }) }}
+        已选择 
       </span>
       <action
         icon="select_all"
-        label="t('buttons.selectAll')"
+        label="全选"
         @action="selectAll"
       />
       <action
         v-if="headerButtons.share"
         icon="share"
-        label="t('buttons.share')"
+        label="分享"
         show="share"
       />
       <action
         v-if="headerButtons.rename"
         icon="mode_edit"
-        label="t('buttons.rename')"
+        label="重命名"
         show="rename"
       />
       <action
         v-if="headerButtons.copy"
         icon="content_copy"
-        label="t('buttons.copyFile')"
+        label="复制"
         show="copy"
       />
       <action
         v-if="headerButtons.move"
         icon="forward"
-        label="t('buttons.moveFile')"
+        label="移动"
         show="move"
       />
       <action
         v-if="headerButtons.delete"
         icon="delete"
-        label="t('buttons.delete')"
+        label="删除"
         show="delete"
       />
     </div>
@@ -191,7 +191,7 @@
       >
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
-          <span>{{ t("files.lonely") }}</span>
+          <span>'这里没有任何文件...'</span>
         </h2>
         <input
           style="display: none"
@@ -227,10 +227,10 @@
                 role="button"
                 tabindex="0"
                 @click="sort('name')"
-                title="t('files.sortByName')"
-                aria-label="t('files.sortByName')"
+                title="按名称排序"
+                aria-label='按名称排序'
               >
-                <span>{{ t("listing.name") }}</span>
+                <span>'名称'</span>
                 <i class="material-icons">{{ nameIcon }}</i>
               </p>
 
@@ -240,10 +240,10 @@
                 role="button"
                 tabindex="0"
                 @click="sort('size')"
-                title="t('files.sortBySize')"
-                aria-label="t('files.sortBySize')"
+                title="按大小排序"
+                aria-label='按大小排序'
               >
-                <span>{{ t("listing.size") }}</span>
+                <span>'大小'</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
               </p>
               <p
@@ -252,10 +252,10 @@
                 role="button"
                 tabindex="0"
                 @click="sort('modified')"
-                title="t('files.sortByLastModified')"
-                aria-label="t('files.sortByLastModified')"
+                title="按修改时间排序"
+                aria-label='按修改时间排序'
               >
-                <span>{{ t("files.lastModified") }}</span>
+                <span>'修改时间'</span>
                 <i class="material-icons">{{ modifiedIcon }}</i>
               </p>
             </div>
@@ -270,7 +270,7 @@
             >label</i
           >
           <span
-            >{{ t("listing.filteringByTag") }}
+            >'正在按标签筛选:'
             <strong>{{ tagsStore.activeFilterTag.name }}</strong></span
           >
           <button
@@ -282,15 +282,15 @@
         </div>
 
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
-          {{ t("files.folders") }}
+          '文件夹'
           <button
             v-if="hasSystemDirs"
             class="system-dirs-toggle"
             @click="toggleSystemDirs"
             title="
               showSystemDirs
-                ? t('files.hideSystemDirs')
-                : t('files.showSystemDirs')
+                ? '隐藏系统文件夹'
+                : '显示系统文件夹'
             "
           >
             <i class="material-icons">{{
@@ -320,7 +320,7 @@
         </div>
 
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numFiles ?? false">
-          {{ t("files.files") }}
+          '文件'
         </h2>
         <div
           v-if="fileStore.req?.numFiles ?? false"
@@ -349,44 +349,43 @@
           <action
             v-if="headerButtons.share"
             icon="share"
-            label="t('buttons.share')"
+            label="分享"
             show="share"
           />
           <action
             v-if="headerButtons.rename"
             icon="mode_edit"
-            label="t('buttons.rename')"
+            label="重命名"
             show="rename"
           />
           <action
             v-if="headerButtons.copy"
             id="copy-button"
             icon="content_copy"
-            label="t('buttons.copyFile')"
+            label="复制文件"
             show="copy"
           />
           <action
             v-if="headerButtons.move"
             id="move-button"
             icon="forward"
-            label="t('buttons.moveFile')"
+            label="移动文件"
             show="move"
           />
           <action
             v-if="headerButtons.delete"
             id="delete-button"
             icon="delete"
-            label="t('buttons.delete')"
+            label="删除"
             show="delete"
           />
           <action
             v-if="headerButtons.download"
             icon="file_download"
-            label="t('buttons.download')"
+            label="下载"
             @action="download"
-            :counter="fileStore.selectedCount"
           />
-          <action icon="info" label="t('buttons.info')" show="info" />
+          <action icon="info" label="详细信息" show="info" />
         </context-menu>
 
         <input
@@ -409,31 +408,29 @@
           <div class="selection-info">
             <i class="material-icons">check_circle</i>
             <span v-if="fileStore.selectedCount > 0">
-              {{
-                t("prompts.filesSelected", { count: fileStore.selectedCount })
-              }}
+              已选择 
             </span>
-            <span v-else>{{ t("files.multipleSelectionEnabled") }}</span>
+            <span v-else>'多选模式已开启'</span>
           </div>
           <div class="selection-actions">
             <button
               class="selection-btn"
               @click="selectAll"
-              title="t('buttons.selectAll')"
-              aria-label="t('buttons.selectAll')"
+              title="全选"
+              aria-label='全选'
             >
               <i class="material-icons">select_all</i>
-              <span>{{ t("buttons.selectAll") }}</span>
+              <span>全选</span>
             </button>
             <button
               v-if="fileStore.selectedCount > 0"
               class="selection-btn"
               @click="invertSelection"
-              title="t('buttons.invertSelection')"
-              aria-label="t('buttons.invertSelection')"
+              title="反选"
+              aria-label='反选'
             >
               <i class="material-icons">flip</i>
-              <span>{{ t("buttons.invertSelection") }}</span>
+              <span>反选</span>
             </button>
             <template v-if="fileStore.selectedCount > 0">
               <button
@@ -442,7 +439,7 @@
                 @click="layoutStore.showHover('copy')"
               >
                 <i class="material-icons">content_copy</i>
-                <span>{{ t("listing.copyFile") }}</span>
+                <span>'复制文件'</span>
               </button>
               <button
                 v-if="headerButtons.move"
@@ -450,7 +447,7 @@
                 @click="layoutStore.showHover('move')"
               >
                 <i class="material-icons">forward</i>
-                <span>{{ t("buttons.moveFile") }}</span>
+                <span>移动文件</span>
               </button>
               <button
                 v-if="headerButtons.download"
@@ -458,7 +455,7 @@
                 @click="download"
               >
                 <i class="material-icons">file_download</i>
-                <span>{{ t("listing.download") }}</span>
+                <span>'下载'</span>
               </button>
               <button
                 v-if="headerButtons.delete"
@@ -466,7 +463,7 @@
                 @click="layoutStore.showHover('delete')"
               >
                 <i class="material-icons">delete</i>
-                <span>{{ t("listing.delete") }}</span>
+                <span>'删除'</span>
               </button>
             </template>
             <button
@@ -477,8 +474,8 @@
                   fileStore.selected = [];
                 }
               "
-              title="t('buttons.close')"
-              aria-label="t('buttons.close')"
+              title="关闭"
+              aria-label='关闭'
             >
               <i class="material-icons">close</i>
             </button>
@@ -565,22 +562,22 @@ const viewModes = [
   {
     value: "mosaic" as ViewModeType,
     icon: "grid_view",
-    label: "buttons.gridView",
+    label: "网格视图",
   },
   {
     value: "list" as ViewModeType,
     icon: "view_list",
-    label: "buttons.listView",
+    label: "列表视图",
   },
   {
     value: "mosaic gallery" as ViewModeType,
     icon: "view_module",
-    label: "buttons.detailView",
+    label: "画廊视图",
   },
   {
     value: "compact" as ViewModeType,
     icon: "density_medium",
-    label: "buttons.compactView",
+    label: "紧凑视图",
   },
 ];
 
@@ -590,10 +587,10 @@ const sortDropdownRef = ref<HTMLElement | null>(null);
 const currentSortBy = ref<string>(fileStore.req?.sorting?.by || "name");
 const currentSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
 const sortOptions = [
-  { by: "name", icon: "sort_by_alpha", label: "files.sortByName" },
-  { by: "size", icon: "data_usage", label: "files.sortBySize" },
-  { by: "modified", icon: "schedule", label: "files.sortByLastModified" },
-  { by: "type", icon: "category", label: "files.sortByType" },
+  { by: "name", icon: "sort_by_alpha", label: "按名称排序" },
+  { by: "size", icon: "data_usage", label: "按大小排序" },
+  { by: "modified", icon: "schedule", label: "按修改时间排序" },
+  { by: "type", icon: "category", label: "按类型排序" },
 ];
 
 // @-prefix folder collapse

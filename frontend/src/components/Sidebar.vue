@@ -20,7 +20,7 @@
       <button
         class="action"
         @click="toRoot"
-        aria-label="我的文件"
+        aria-label='我的文件'
         title="'我的文件'"
       >
         <i class="material-icons">folder</i>
@@ -30,7 +30,7 @@
       <button
         class="action"
         @click="openSearch"
-        aria-label="搜索"
+        aria-label='搜索'
         title="'搜索'"
       >
         <i class="material-icons">search</i>
@@ -412,7 +412,7 @@
         <button
           @click="showHover('newDir')"
           class="action"
-          aria-label="新建文件夹"
+          aria-label='新建文件夹'
           title="'新建文件夹'"
         >
           <i class="material-icons">create_new_folder</i>
@@ -422,7 +422,7 @@
         <button
           @click="showHover('newFile')"
           class="action"
-          aria-label="新建文件"
+          aria-label='新建文件'
           title="'新建文件'"
         >
           <i class="material-icons">note_add</i>
@@ -434,7 +434,7 @@
         <button
           class="action"
           @click="toGlobalSettings"
-          aria-label="设置"
+          aria-label='设置'
           title="'设置'"
         >
           <i class="material-icons">settings_applications</i>
@@ -446,7 +446,7 @@
         @click="logout"
         class="action"
         id="logout"
-        aria-label="退出"
+        aria-label='退出'
         title="'登出'"
       >
         <i class="material-icons">exit_to_app</i>
@@ -543,8 +543,6 @@ import { files as api } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import prettyBytes from "pretty-bytes";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { t } from "@/utils/translations";
-
 const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };
 
 const $showError = inject<IToastError>("$showError")!;

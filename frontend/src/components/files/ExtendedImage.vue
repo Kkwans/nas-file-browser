@@ -15,7 +15,7 @@
     <!-- Loading spinner -->
     <div v-if="!imageLoaded" class="image-viewer-loading">
       <div class="spinner-ring"></div>
-      <div class="spinner-text">{{ t("files.loading") }}</div>
+      <div class="spinner-text">'加载中...'</div>
     </div>
 
     <!-- Image info (top-right) -->
@@ -38,7 +38,7 @@
       <button
         @click.stop="zoomIn"
         :disabled="scale >= maxScale"
-        :title="t('buttons.zoomIn') + ' (+)'"
+        :title="'放大 (+)'"
       >
         <i class="material-icons">zoom_in</i>
       </button>
@@ -46,26 +46,26 @@
       <button
         @click.stop="zoomOut"
         :disabled="scale <= minScale"
-        :title="t('buttons.zoomOut') + ' (-)'"
+        :title="'缩小 (-)'"
       >
         <i class="material-icons">zoom_out</i>
       </button>
       <div class="toolbar-divider"></div>
-      <button @click.stop="zoomFit" :title="t('buttons.fitToScreen')">
+      <button @click.stop="zoomFit" :title="'适应屏幕'">
         <i class="material-icons">fit_screen</i>
       </button>
-      <button @click.stop="zoomOriginal" :title="t('buttons.originalSize')">
+      <button @click.stop="zoomOriginal" :title="'原始大小'">
         <i class="material-icons">aspect_ratio</i>
       </button>
       <div class="toolbar-divider"></div>
-      <button @click.stop="rotateLeft" :title="t('buttons.rotateLeft')">
+      <button @click.stop="rotateLeft" :title="'左旋转'">
         <i class="material-icons">rotate_left</i>
       </button>
-      <button @click.stop="rotateRight" :title="t('buttons.rotateRight')">
+      <button @click.stop="rotateRight" :title="'右旋转'">
         <i class="material-icons">rotate_right</i>
       </button>
       <div class="toolbar-divider"></div>
-      <button @click.stop="zoomAuto" :title="t('buttons.toggleZoom')">
+      <button @click.stop="zoomAuto" :title="'切换缩放'">
         <i class="material-icons">search</i>
       </button>
     </div>
@@ -73,11 +73,11 @@
     <!-- Keyboard hints (bottom-right) -->
     <div class="image-viewer-hints" :class="{ visible: showUI && imageLoaded }">
       <div class="hint-item">
-        <kbd>+</kbd> / <kbd>-</kbd> {{ t("buttons.zoom") }}
+        <kbd>+</kbd> / <kbd>-</kbd> '缩放'
       </div>
-      <div class="hint-item"><kbd>0</kbd> {{ t("buttons.fitToScreen") }}</div>
-      <div class="hint-item"><kbd>1</kbd> {{ t("buttons.originalSize") }}</div>
-      <div class="hint-item"><kbd>R</kbd> {{ t("buttons.rotate") }}</div>
+      <div class="hint-item"><kbd>0</kbd> '适应屏幕'</div>
+      <div class="hint-item"><kbd>1</kbd> '原始大小'</div>
+      <div class="hint-item"><kbd>R</kbd> '旋转'</div>
       <div class="hint-item"><kbd>Esc</kbd> {{ "关闭" }}</div>
     </div>
 

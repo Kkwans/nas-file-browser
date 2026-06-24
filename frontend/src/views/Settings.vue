@@ -7,17 +7,17 @@
         <ul>
           <router-link to="/settings/profile"
             ><li :class="{ active: $route.path === '/settings/profile' }">
-              {{ t("settings.profileSettings") }}
+              '账户设置'
             </li></router-link
           >
           <router-link to="/settings/shares" v-if="user?.perm.share"
             ><li :class="{ active: $route.path === '/settings/shares' }">
-              {{ t("settings.shareManagement") }}
+              '分享管理'
             </li></router-link
           >
           <router-link to="/settings/global" v-if="user?.perm.admin"
             ><li :class="{ active: $route.path === '/settings/global' }">
-              {{ t("settings.globalSettings") }}
+              '全局设置'
             </li></router-link
           >
           <router-link to="/settings/users" v-if="user?.perm.admin"
@@ -27,7 +27,7 @@
                   $route.path === '/settings/users' || $route.name === 'User',
               }"
             >
-              {{ t("settings.userManagement") }}
+              '用户管理'
             </li></router-link
           >
         </ul>
@@ -41,7 +41,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ t("files.loading") }}</span>
+        <span>'加载中...'</span>
       </h2>
     </div>
 

@@ -5,9 +5,7 @@
         <i class="material-icons risk-confirm-icon" :class="'risk-' + riskLevel"
           >warning</i
         >
-        <span class="risk-confirm-title">{{
-          t("confirm.riskOperationConfirm")
-        }}</span>
+        <span class="risk-confirm-title">'风险操作确认'</span>
       </div>
       <div class="risk-confirm-body">
         <p class="risk-confirm-level">
@@ -17,19 +15,19 @@
           <span class="risk-path">{{ targetPath }}</span>
         </p>
         <p class="risk-confirm-message">
-          {{ t("confirm.warningProtectedDir") }}
+          '您正在对一个受保护的目录执行操作，请确认您了解可能的后果。'
         </p>
         <div class="risk-confirm-details">
           <p v-if="actionType === 'delete'">
-            {{ t("confirm.warningDelete") }}
+            '删除此目录可能导致系统组件无法正常运行，数据可能无法恢复。'
           </p>
           <p v-else-if="actionType === 'rename'">
-            {{ t("confirm.warningRename") }}
+            '重命名此目录可能导致依赖它的系统组件无法正常工作。'
           </p>
           <p v-else-if="actionType === 'move'">
-            {{ t("confirm.warningMove") }}
+            '移动此目录可能导致依赖它的系统组件无法正常工作。'
           </p>
-          <p v-else>{{ t("confirm.warningGeneral") }}</p>
+          <p v-else>'对此目录的操作可能影响系统稳定性。'</p>
         </div>
       </div>
     </div>
@@ -37,21 +35,21 @@
       <button
         @click="cancel"
         class="button button--flat button--grey"
-        :aria-label="t('buttons.cancel')"
-        :title="t('buttons.cancel')"
+        :aria-label="'取消'"
+        :title="'取消'"
         tabindex="2"
       >
-        {{ t("buttons.cancel") }}
+        '取消'
       </button>
       <button
         id="focus-prompt"
         @click="confirm"
         class="button button--flat button--orange"
-        :aria-label="t('confirm.confirmExecution')"
-        :title="t('confirm.confirmExecution')"
+        :aria-label="'确认执行'"
+        :title="'确认执行'"
         tabindex="1"
       >
-        {{ t("confirm.confirmExecution") }}
+        '确认执行'
       </button>
     </div>
   </div>
@@ -59,7 +57,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { t } from "@/utils/translations";
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
 const layoutStore = useLayoutStore();

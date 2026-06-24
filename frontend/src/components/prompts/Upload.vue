@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t("prompts.upload") }}</h2>
+      <h2>'上传'</h2>
     </div>
 
     <div class="card-content">
-      <p>{{ t("prompts.uploadMessage") }}</p>
+      <p>'选择上传方式'</p>
     </div>
 
     <div class="card-action full">
@@ -17,7 +17,7 @@
         tabindex="1"
       >
         <i class="material-icons">insert_drive_file</i>
-        <div class="title">{{ t("buttons.file") }}</div>
+        <div class="title">'文件'</div>
       </div>
       <div
         @click="uploadFolder"
@@ -26,7 +26,7 @@
         tabindex="2"
       >
         <i class="material-icons">folder</i>
-        <div class="title">{{ t("buttons.folder") }}</div>
+        <div class="title">'文件夹'</div>
       </div>
     </div>
   </div>

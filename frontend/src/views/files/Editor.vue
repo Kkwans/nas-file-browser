@@ -1,14 +1,14 @@
 <template>
   <div id="editor-container">
     <header-bar>
-      <action icon="close" :label="t('buttons.close')" @action="close()" />
+      <action icon="close" :label="'关闭'" @action="close()" />
       <title>{{ fileStore.req?.name ?? "" }}</title>
 
       <action
         v-if="authStore.user?.perm.modify"
         id="save-button"
         icon="save"
-        :label="t('buttons.save')"
+        :label="'保存'"
         @action="save()"
       />
 
@@ -22,7 +22,7 @@
           :icon="
             showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
           "
-          :label="t('buttons.toggleLineNumbers')"
+          :label="'显示行号'"
           @action="toggleLineNumbers()"
         />
       </template>
@@ -31,19 +31,19 @@
       <template v-if="isMarkdownFile">
         <action
           icon="edit"
-          :label="t('buttons.vditorIR')"
+          :label="'所见即所得'"
           @action="switchMode('ir')"
           :class="{ active: currentMode === 'ir' }"
         />
         <action
           icon="vertical_split"
-          :label="t('buttons.vditorSV')"
+          :label="'即时渲染'"
           @action="switchMode('sv')"
           :class="{ active: currentMode === 'sv' }"
         />
         <action
           icon="visibility"
-          :label="t('buttons.vditorPreview')"
+          :label="'预览模式'"
           @action="switchMode('preview')"
           :class="{ active: currentMode === 'preview' }"
         />
@@ -286,7 +286,7 @@ const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
       {
         name: "source-mode",
         tipPosition: "s",
-        tip: t("buttons.sourceMode"),
+        tip: '源码模式',
         icon: '<svg viewBox="0 0 1024 1024"><path d="M586.185 280.418l44.206-44.206L816 421.812l-185.609 185.61-44.206-44.207L727.588 421.812zM437.815 743.582l-44.206 44.206L208 602.188l185.609-185.61 44.206 44.207L296.412 602.188z"/></svg>',
         click: () => switchMode("sv"),
       },

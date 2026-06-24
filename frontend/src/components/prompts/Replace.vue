@@ -14,7 +14,7 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        aria-label="取消"
+        aria-label='取消'
         title="取消"
         tabindex="3"
       >
@@ -23,7 +23,7 @@
       <button
         class="button button--flat button--blue"
         @click="currentPrompt?.action"
-        aria-label="继续"
+        aria-label='继续'
         title="继续"
         tabindex="2"
       >
@@ -33,7 +33,7 @@
         id="focus-prompt"
         class="button button--flat button--red"
         @click="currentPrompt?.confirm"
-        aria-label="替换"
+        aria-label='替换'
         title="替换"
         tabindex="1"
       >

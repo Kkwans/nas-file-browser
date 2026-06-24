@@ -4,16 +4,16 @@
     <div class="column">
       <div class="card">
         <div class="card-title">
-          <h2>{{ t("settings.shareManagement") }}</h2>
+          <h2>{{ '分享管理' }}</h2>
         </div>
 
         <div class="card-content full" v-if="links.length > 0">
           <table>
             <tr>
-              <th>{{ t("settings.path") }}</th>
-              <th>{{ t("settings.shareDuration") }}</th>
+              <th>{{ '路径' }}</th>
+              <th>{{ '分享时长' }}</th>
               <th v-if="authStore.user?.perm.admin">
-                {{ t("settings.username") }}
+                {{ '用户名' }}
               </th>
               <th></th>
               <th></th>
@@ -27,15 +27,15 @@
                 <template v-if="link.expire !== 0">{{
                   humanTime(link.expire)
                 }}</template>
-                <template v-else>{{ t("permanent") }}</template>
+                <template v-else>{{ '永久' }}</template>
               </td>
               <td v-if="authStore.user?.perm.admin">{{ link.username }}</td>
               <td class="small">
                 <button
                   class="action"
                   @click="deleteLink($event, link)"
-                  :aria-label="t('buttons.delete')"
-                  :title="t('buttons.delete')"
+                  :aria-label="'删除'"
+                  :title="'删除'"
                 >
                   <i class="material-icons">delete</i>
                 </button>
@@ -43,8 +43,8 @@
               <td class="small">
                 <button
                   class="action copy-clipboard"
-                  :aria-label="t('buttons.copyToClipboard')"
-                  :title="t('buttons.copyToClipboard')"
+                  :aria-label="'复制到剪贴板'"
+                  :title="'复制到剪贴板'"
                   @click="copyToClipboard(buildLink(link))"
                 >
                   <i class="material-icons">content_paste</i>
@@ -55,7 +55,7 @@
         </div>
         <h2 class="message" v-else>
           <i class="material-icons">sentiment_dissatisfied</i>
-          <span>{{ t("files.lonely") }}</span>
+          <span>{{ '这里没有任何文件...' }}</span>
         </h2>
       </div>
     </div>
@@ -121,14 +121,14 @@ const copyToClipboard = (text: string) => {
   copy({ text }).then(
     () => {
       // clipboard successfully set
-      $showSuccess(t("success.linkCopied"));
+      $showSuccess('链接已复制到剪贴板');
     },
     () => {
       // clipboard write failed
       copy({ text }, { permission: true }).then(
         () => {
           // clipboard successfully set
-          $showSuccess(t("success.linkCopied"));
+          $showSuccess('链接已复制到剪贴板');
         },
         (e) => {
           // clipboard write failed
@@ -150,7 +150,7 @@ const deleteLink = async (event: Event, link: Share) => {
       try {
         api.remove(link.hash);
         links.value = links.value.filter((item) => item.hash !== link.hash);
-        $showSuccess(t("settings.shareDeleted"));
+        $showSuccess('分享已删除');
       } catch (err) {
         if (err instanceof Error) {
           $showError(err);

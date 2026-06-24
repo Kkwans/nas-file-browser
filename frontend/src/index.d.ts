@@ -2,7 +2,6 @@ declare module "*.vue";
 
 // Global t function provided by main.ts (replaces vue-i18n)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-declare function t(key: string, opts?: Record<string, string | number>): string;
 
 // Make this file a module (required for `declare global`)
 export {};

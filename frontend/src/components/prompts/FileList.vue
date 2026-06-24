@@ -35,8 +35,6 @@ import url from "@/utils/url";
 import { files } from "@/api";
 import { StatusError } from "@/api/utils.js";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { t } from "@/utils/translations";
-
 interface FileItem {
   name: string;
   url: string;

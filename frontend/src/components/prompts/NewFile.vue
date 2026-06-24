@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t("prompts.newFile") }}</h2>
+      <h2>'新建文件'</h2>
     </div>
 
     <div class="card-content">
-      <p>{{ t("prompts.newFileMessage") }}</p>
+      <p>'输入文件名'</p>
       <input
         id="focus-prompt"
         class="input input--block"
@@ -20,16 +20,16 @@
       <button
         class="button button--flat button--grey"
         @click="layoutStore.closeHovers"
-        :aria-label="t('buttons.cancel')"
-        :title="t('buttons.cancel')"
+        :aria-label="'取消'"
+        :title="'取消'"
       >
         {{ "取消" }}
       </button>
       <button
         class="button button--flat"
         @click="submit"
-        :aria-label="t('buttons.create')"
-        :title="t('buttons.create')"
+        :aria-label="'创建'"
+        :title="'创建'"
       >
         {{ "创建" }}
       </button>

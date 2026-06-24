@@ -6,22 +6,22 @@
       <action
         v-if="fileStore.selectedCount"
         icon="file_download"
-        :label="t('buttons.download')"
+        :label="'下载'"
         @action="download"
         :counter="fileStore.selectedCount"
       />
       <button
         v-if="isSingleFile()"
         class="action copy-clipboard"
-        :aria-label="t('buttons.copyDownloadLinkToClipboard')"
-        :data-title="t('buttons.copyDownloadLinkToClipboard')"
+        :aria-label="'复制下载链接'"
+        :data-title="'复制下载链接'"
         @click="copyToClipboard(linkSelected())"
       >
         <i class="material-icons">content_paste</i>
       </button>
       <action
         icon="check_circle"
-        :label="t('buttons.selectMultiple')"
+        :label="'多选'"
         @action="toggleMultipleSelection"
       />
     </header-bar>
@@ -35,17 +35,17 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ t("files.loading") }}</span>
+        <span>'加载中...'</span>
       </h2>
     </div>
     <div v-else-if="error">
       <div v-if="error.status === 401">
         <div class="card floating" id="password" style="z-index: 9999999">
           <div v-if="attemptedPasswordLogin" class="share__wrong__password">
-            {{ t("login.wrongCredentials") }}
+            '用户名或密码错误'
           </div>
           <div class="card-title">
-            <h2>{{ t("share.password") }}</h2>
+            <h2>'密码'</h2>
           </div>
 
           <div class="card-content">
@@ -53,7 +53,7 @@
               v-focus
               class="input input--block"
               type="password"
-              :placeholder="t('login.password')"
+              :placeholder="'密码'"
               v-model="password"
               @keyup.enter="fetchData"
             />
@@ -62,10 +62,10 @@
             <button
               class="button button--flat"
               @click="fetchData"
-              :aria-label="t('buttons.submit')"
-              :data-title="t('buttons.submit')"
+              :aria-label="'提交'"
+              :data-title="'提交'"
             >
-              {{ t("buttons.submit") }}
+              '提交'
             </button>
           </div>
         </div>
@@ -87,8 +87,8 @@
           <div class="share__box__header" style="height: 3em">
             {{
               req.isDir
-                ? t("download.downloadFolder")
-                : t("download.downloadFile")
+                ? '下载文件夹'
+                : '下载文件'
             }}
           </div>
           <div
@@ -98,13 +98,13 @@
             <i class="material-icons">{{ icon }}</i>
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>{{ t("share.name") }}：</strong> {{ req.name }}
+            <strong>'名称'：</strong> {{ req.name }}
           </div>
           <div v-if="!req.isDir" class="share__box__element" :title="modTime">
-            <strong>{{ t("share.lastModified") }}:</strong> {{ humanTime }}
+            <strong>'最后修改':</strong> {{ humanTime }}
           </div>
           <div class="share__box__element" style="height: 3em">
-            <strong>{{ t("share.size") }}:</strong> {{ humanSize }}
+            <strong>'大小':</strong> {{ humanSize }}
           </div>
           <div class="share__box__element share__box__center">
             <a
@@ -115,7 +115,7 @@
             >
               <div>
                 <i class="material-icons">file_download</i
-                >{{ t("buttons.download") }}
+                >'下载'
               </div>
             </a>
             <a
@@ -126,7 +126,7 @@
             >
               <div>
                 <i class="material-icons">open_in_new</i
-                >{{ t("buttons.openFile") }}
+                >'打开文件'
               </div>
             </a>
             <qrcode-vue
@@ -246,7 +246,7 @@
           class="share__box share__box__items"
         >
           <div class="share__box__header" v-if="req.isDir">
-            {{ t("files.files") }}
+            '文件'
           </div>
           <div id="listing" class="list file-icons">
             <item
@@ -276,13 +276,13 @@
               :class="{ active: fileStore.multiple }"
               id="multiple-selection"
             >
-              <p>{{ t("files.multipleSelectionEnabled") }}</p>
+              <p>'多选模式已开启'</p>
               <div
                 @click="() => (fileStore.multiple = false)"
                 tabindex="0"
                 role="button"
-                :data-title="t('buttons.clear')"
-                :aria-label="t('buttons.clear')"
+                :data-title="'清空'"
+                :aria-label="'清空'"
                 class="action"
               >
                 <i class="material-icons">clear</i>
@@ -296,7 +296,7 @@
         >
           <h2 class="message">
             <i class="material-icons">sentiment_dissatisfied</i>
-            <span>{{ t("files.lonely") }}</span>
+            <span>'这里没有任何文件...'</span>
           </h2>
         </div>
       </div>
@@ -507,14 +507,14 @@ const copyToClipboard = (text: string) => {
   copy({ text }).then(
     () => {
       // clipboard successfully set
-      $showSuccess(t("success.linkCopied"));
+      $showSuccess('链接已复制到剪贴板');
     },
     () => {
       // clipboard write failed
       copy({ text }, { permission: true }).then(
         () => {
           // clipboard successfully set
-          $showSuccess(t("success.linkCopied"));
+          $showSuccess('链接已复制到剪贴板');
         },
         (e) => {
           // clipboard write failed

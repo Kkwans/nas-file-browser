@@ -17,20 +17,20 @@ import { baseURL, name } from "@/utils/constants";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
 
-const titles = {
-  Login: "sidebar.login",
-  Share: "buttons.share",
-  Files: "files.files",
-  Search: "search.search",
-  Settings: "sidebar.settings",
-  ProfileSettings: "settings.profileSettings",
-  Shares: "settings.shareManagement",
-  GlobalSettings: "settings.globalSettings",
-  Users: "settings.users",
-  User: "settings.user",
-  Forbidden: "errors.forbidden",
-  NotFound: "errors.notFound",
-  InternalServerError: "errors.internal",
+const titles: Record<string, string> = {
+  Login: "登录",
+  Share: "分享",
+  Files: "文件管理",
+  Search: "搜索",
+  Settings: "设置",
+  ProfileSettings: "账户设置",
+  Shares: "分享管理",
+  GlobalSettings: "全局设置",
+  Users: "用户管理",
+  User: "用户",
+  Forbidden: "无权限",
+  NotFound: "页面未找到",
+  InternalServerError: "服务器错误",
 };
 
 const routes = [

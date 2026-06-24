@@ -1,8 +1,8 @@
 <template>
   <select v-on:change="change" :value="theme">
-    <option value="">{{ t("settings.themes.default") }}</option>
-    <option value="light">{{ t("settings.themes.light") }}</option>
-    <option value="dark">{{ t("settings.themes.dark") }}</option>
+    <option value="">'默认'</option>
+    <option value="light">'亮色'</option>
+    <option value="dark">'暗色'</option>
   </select>
 </template>
 

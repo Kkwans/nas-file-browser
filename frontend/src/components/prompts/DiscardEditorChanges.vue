@@ -1,36 +1,36 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>{{ t("discardEditorChanges.confirm") }}</p>
+      <p>'你确定要放弃所做的更改吗？'</p>
     </div>
     <div class="card-action">
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        aria-label="取消"
+        aria-label='取消'
         title="取消"
         tabindex="3"
       >
-        {{ t("buttons.cancel") }}
+        '取消'
       </button>
       <button
         class="button button--flat button--blue"
         @click="currentPrompt?.saveAction"
-        aria-label="保存更改"
+        aria-label='保存更改'
         title="保存更改"
         tabindex="1"
       >
-        {{ t("buttons.saveChanges") }}
+        '保存更改'
       </button>
       <button
         id="focus-prompt"
         @click="currentPrompt?.confirm"
         class="button button--flat button--red"
-        aria-label="放弃更改"
+        aria-label='放弃更改'
         title="放弃更改"
         tabindex="2"
       >
-        {{ t("buttons.discardEditorChanges") }}
+        '放弃更改'
       </button>
     </div>
   </div>
@@ -39,8 +39,6 @@
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
-import { t } from "@/utils/translations";
-
 const layoutStore = useLayoutStore();
 const { currentPrompt } = storeToRefs(layoutStore);
 const { closeHovers } = layoutStore;

@@ -1,7 +1,7 @@
 <template>
   <div>
     <p v-if="!isDefault && props.user !== null">
-      <label for="username">{{ t("settings.username") }}</label>
+      <label for="username">'用户名'</label>
       <input
         class="input input--block"
         type="text"
@@ -11,7 +11,7 @@
     </p>
 
     <p v-if="!isDefault">
-      <label for="password">{{ t("settings.password") }}</label>
+      <label for="password">'密码'</label>
       <input
         class="input input--block"
         type="password"
@@ -22,7 +22,7 @@
     </p>
 
     <p>
-      <label for="scope">{{ t("settings.scope") }}</label>
+      <label for="scope">'作用域'</label>
       <input
         :disabled="createUserDirData ?? false"
         :placeholder="scopePlaceholder"
@@ -34,7 +34,7 @@
     </p>
     <p class="small" v-if="displayHomeDirectoryCheckbox">
       <input type="checkbox" v-model="createUserDirData" />
-      {{ t("settings.createUserHomeDirectory") }}
+      '创建用户目录'
     </p>
 
     <p v-if="!isDefault && user.perm">
@@ -43,7 +43,7 @@
         :disabled="user.perm.admin"
         v-model="user.lockPassword"
       />
-      {{ t("settings.lockPassword") }}
+      '锁定密码'
     </p>
 
     <permissions v-if="user.perm" v-model:perm="user.perm" />
@@ -54,7 +54,7 @@
 
     <div v-if="!isDefault">
       <h3>{{ "规则" }}</h3>
-      <p class="small">{{ t("settings.rulesHelp") }}</p>
+      <p class="small">'规则帮助'</p>
       <rules v-if="user.rules" v-model:rules="user.rules" />
     </div>
   </div>
@@ -96,10 +96,10 @@ onMounted(() => {
 });
 
 const passwordPlaceholder = computed(() =>
-  props.isNew ? "" : t("settings.avoidChanges")
+  props.isNew ? "" : '留空则不修改'
 );
 const scopePlaceholder = computed(() =>
-  createUserDirData.value ? t("settings.userScopeGenerationPlaceholder") : ""
+  createUserDirData.value ? '用户作用域生成占位符' : ""
 );
 const displayHomeDirectoryCheckbox = computed(
   () => props.isNew && createUserDirData.value

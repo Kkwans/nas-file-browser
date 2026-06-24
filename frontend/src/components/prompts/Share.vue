@@ -26,7 +26,7 @@
             <td class="small">
               <button
                 class="action"
-                aria-label="复制到剪贴板"
+                aria-label='复制到剪贴板'
                 title="复制到剪贴板"
                 @click="copyToClipboard(buildLink(link))"
               >
@@ -36,7 +36,7 @@
             <td class="small">
               <button
                 class="action"
-                aria-label="复制下载链接到剪贴板"
+                aria-label='复制下载链接到剪贴板'
                 title="复制下载链接到剪贴板"
                 :disabled="!!link.password_hash"
                 @click="copyToClipboard(buildDownloadLink(link))"
@@ -48,7 +48,7 @@
               <button
                 class="action"
                 @click="deleteLink($event, link)"
-                aria-label="删除"
+                aria-label='删除'
                 title="删除"
               >
                 <i class="material-icons">delete</i>
@@ -62,7 +62,7 @@
         <button
           class="button button--flat button--grey"
           @click="closeHovers"
-          aria-label="关闭"
+          aria-label='关闭'
           title="关闭"
           tabindex="2"
         >
@@ -72,7 +72,7 @@
           id="focus-prompt"
           class="button button--flat button--blue"
           @click="switchListing"
-          aria-label="新建"
+          aria-label='新建'
           title="新建"
           tabindex="1"
         >
@@ -98,7 +98,7 @@
           <select
             class="right"
             v-model="unit"
-            aria-label="时间单位"
+            aria-label='时间单位'
             tabindex="2"
           >
             <option value="seconds">秒</option>
@@ -120,7 +120,7 @@
         <button
           class="button button--flat button--grey"
           @click="switchListing"
-          aria-label="取消"
+          aria-label='取消'
           title="取消"
           tabindex="5"
         >
@@ -130,7 +130,7 @@
           id="focus-prompt"
           class="button button--flat button--blue"
           @click="submit"
-          aria-label="分享"
+          aria-label='分享'
           title="分享"
           tabindex="4"
         >
@@ -206,10 +206,10 @@ onBeforeMount(async () => {
 
 const copyToClipboard = (text: string) => {
   copy({ text }).then(
-    () => $showSuccess(t("success.linkCopied")),
+    () => $showSuccess('链接已复制到剪贴板'),
     () => {
       copy({ text }, { permission: true }).then(
-        () => $showSuccess(t("success.linkCopied")),
+        () => $showSuccess('链接已复制到剪贴板'),
         (e: any) => $showError(e)
       );
     }

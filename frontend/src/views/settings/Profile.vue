@@ -3,17 +3,17 @@
     <div class="column">
       <form class="card" @submit="updateSettings">
         <div class="card-title">
-          <h2>{{ t("settings.profileSettings") }}</h2>
+          <h2>'账户设置'</h2>
         </div>
 
         <div class="card-content">
           <p>
             <input type="checkbox" name="hideDotfiles" v-model="hideDotfiles" />
-            {{ t("settings.hideDotfiles") }}
+            '隐藏点文件'
           </p>
           <p>
             <input type="checkbox" name="singleClick" v-model="singleClick" />
-            {{ t("settings.singleClick") }}
+            '单击打开'
           </p>
           <p>
             <input
@@ -21,13 +21,13 @@
               name="redirectAfterCopyMove"
               v-model="redirectAfterCopyMove"
             />
-            {{ t("settings.redirectAfterCopyMove") }}
+            '复制/移动后跳转'
           </p>
           <p>
             <input type="checkbox" name="dateFormat" v-model="dateFormat" />
-            {{ t("settings.setDateFormat") }}
+            '日期格式'
           </p>
-          <h3>{{ t("settings.aceEditorTheme") }}</h3>
+          <h3>'编辑器主题'</h3>
           <AceEditorTheme
             class="input input--block"
             v-model:aceEditorTheme="aceEditorTheme"
@@ -40,7 +40,7 @@
             class="button button--flat"
             type="submit"
             name="submitProfile"
-            :value="t('buttons.update')"
+            :value="'更新'"
           />
         </div>
       </form>
@@ -53,21 +53,21 @@
         @submit="updatePassword"
       >
         <div class="card-title">
-          <h2>{{ t("settings.changePassword") }}</h2>
+          <h2>'修改密码'</h2>
         </div>
 
         <div class="card-content">
           <input
             :class="passwordClass"
             type="password"
-            :placeholder="t('settings.newPassword')"
+            :placeholder="'新密码'"
             v-model="password"
             name="password"
           />
           <input
             :class="passwordClass"
             type="password"
-            :placeholder="t('settings.newPasswordConfirm')"
+            :placeholder="'确认新密码'"
             v-model="passwordConf"
             name="passwordConf"
           />
@@ -75,7 +75,7 @@
             v-if="isCurrentPasswordRequired"
             :class="passwordClass"
             type="password"
-            :placeholder="t('settings.currentPassword')"
+            :placeholder="'当前密码'"
             v-model="currentPassword"
             name="current_password"
             autocomplete="current-password"
@@ -87,7 +87,7 @@
             class="button button--flat"
             type="submit"
             name="submitPassword"
-            :value="t('buttons.update')"
+            :value="'更新'"
           />
         </div>
       </form>
@@ -178,7 +178,7 @@ const updatePassword = async (event: Event) => {
     };
     await api.update(data, ["password"], currentPassword.value);
     authStore.updateUser(data);
-    $showSuccess(t("settings.passwordUpdated"));
+    $showSuccess('密码已更新');
   } catch (e: any) {
     $showError(e);
   } finally {
@@ -209,7 +209,7 @@ const updateSettings = async (event: Event) => {
       "aceEditorTheme",
     ]);
     authStore.updateUser(data);
-    $showSuccess(t("settings.settingsUpdated"));
+    $showSuccess('设置已更新');
   } catch (err) {
     if (err instanceof Error) {
       $showError(err);

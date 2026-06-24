@@ -2,31 +2,31 @@
   <div class="card floating">
     <div class="card-content">
       <p v-if="!isListing || selectedCount === 1">
-        {{ t("confirm.deleteConfirm") }}
+        '你确定要删除这个文件/文件夹吗？'
       </p>
       <p v-else>
-        {{ t("confirm.deleteCountConfirm", { count: selectedCount }) }}
+        你确定要删除这 
       </p>
     </div>
     <div class="card-action">
       <button
         @click="closeHovers"
         class="button button--flat button--grey"
-        :aria-label="t('buttons.cancel')"
-        :title="t('buttons.cancel')"
+        :aria-label="'取消'"
+        :title="'取消'"
         tabindex="2"
       >
-        {{ t("buttons.cancel") }}
+        '取消'
       </button>
       <button
         id="focus-prompt"
         @click="submit"
         class="button button--flat button--red"
-        :aria-label="t('buttons.delete')"
-        :title="t('buttons.delete')"
+        :aria-label="'删除'"
+        :title="'删除'"
         tabindex="1"
       >
-        {{ t("buttons.delete") }}
+        '删除'
       </button>
     </div>
   </div>
@@ -41,8 +41,6 @@ import buttons from "@/utils/buttons";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useCategoriesStore } from "@/stores/categories";
-import { t } from "@/utils/translations";
-
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();
 

@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t("buttons.rename") }}</h2>
+      <h2>'重命名'</h2>
     </div>
 
     <div class="card-content">
@@ -22,20 +22,20 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        :aria-label="t('buttons.cancel')"
-        :title="t('buttons.cancel')"
+        :aria-label="'取消'"
+        :title="'取消'"
       >
-        {{ t("buttons.cancel") }}
+        '取消'
       </button>
       <button
         @click="submit"
         class="button button--flat"
         type="submit"
-        :aria-label="t('buttons.rename')"
-        :title="t('buttons.rename')"
+        :aria-label="'重命名'"
+        :title="'重命名'"
         :disabled="name === '' || name === oldName"
       >
-        {{ t("buttons.rename") }}
+        '重命名'
       </button>
     </div>
   </div>
@@ -51,8 +51,6 @@ import { useCategoriesStore } from "@/stores/categories";
 import url from "@/utils/url";
 import { files as api } from "@/api";
 import { removePrefix } from "@/api/utils";
-import { t } from "@/utils/translations";
-
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
 

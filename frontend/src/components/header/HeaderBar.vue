@@ -5,7 +5,7 @@
       v-if="showMenu"
       class="menu-button"
       icon="menu"
-      :label="t('buttons.toggleSidebar')"
+      :label="'切换侧边栏'"
       @action="layoutStore.showHover('sidebar')"
     />
 
@@ -22,7 +22,7 @@
       v-if="ifActionsSlot"
       id="more"
       icon="more_vert"
-      :label="t('buttons.more')"
+      :label="'更多'"
       @action="layoutStore.showHover('more')"
     />
 

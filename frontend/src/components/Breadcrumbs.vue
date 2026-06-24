@@ -3,8 +3,8 @@
     <component
       :is="element"
       :to="base || ''"
-      :aria-label="t('files.home')"
-      :title="t('files.home')"
+      :aria-label="'首页'"
+      :title="'首页'"
     >
       <i class="material-icons">home</i>
     </component>

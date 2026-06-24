@@ -23,8 +23,6 @@ import { useRoute } from "vue-router";
 import { useFileStore } from "@/stores/file";
 import url from "@/utils/url";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { t } from "@/utils/translations";
-
 const fileStore = useFileStore();
 const route = useRoute();
 

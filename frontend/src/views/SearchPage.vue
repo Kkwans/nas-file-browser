@@ -2,15 +2,15 @@
   <div id="search-page">
     <header-bar showMenu showLogo>
       <div class="search-page-input">
-        <button class="action" @click="goBack" :aria-label="t('buttons.close')">
+        <button class="action" @click="goBack" :aria-label="'关闭'">
           <i class="material-icons">arrow_back</i>
         </button>
         <input
           type="text"
           ref="inputRef"
           v-model.trim="prompt"
-          :placeholder="t('search.search')"
-          :aria-label="t('search.search')"
+          :placeholder="'搜索'"
+          :aria-label="'搜索'"
           @keyup.enter="submit"
           @keyup.escape="goBack"
           autofocus
@@ -23,12 +23,12 @@
     </header-bar>
 
     <div class="search-page-content">
-      <!-- {{ t('searchPage.searchTypes') }} -->
+      <!-- '类型快捷入口' -->
       <div
         v-if="prompt.length === 0 && results.length === 0"
         class="search-hints"
       >
-        <p>{{ t("searchPage.typeToSearch") }}</p>
+        <p>'输入关键词搜索'</p>
         <div class="search-types">
           <div
             tabindex="0"
@@ -39,12 +39,12 @@
             @click="initSearch('type:' + k)"
           >
             <i class="material-icons">{{ v.icon }}</i>
-            <span>{{ t("search." + v.label) }}</span>
+            <span>{{ "search." + v.label }}</span>
           </div>
         </div>
       </div>
 
-      <!-- {{ t('searchPage.searching') }} -->
+      <!-- '搜索中...' -->
       <div v-else-if="ongoing && results.length === 0" class="search-loading">
         <div class="spinner">
           <div class="bounce1"></div>
@@ -59,10 +59,10 @@
         class="search-empty"
       >
         <i class="material-icons">search_off</i>
-        <p>{{ t("searchPage.noResults") }}</p>
+        <p>'无搜索结果'</p>
       </div>
 
-      <!-- {{ t('searchPage.results') }} -->
+      <!-- '搜索结果' -->
       <div v-else class="search-results" ref="resultsRef">
         <router-link
           v-for="(item, index) in filteredResults"

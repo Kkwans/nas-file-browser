@@ -14,8 +14,6 @@
 import { type SelectHTMLAttributes } from "vue";
 import { themes } from "ace-builds/src-noconflict/ext-themelist";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { t } from "@/utils/translations";
-
 defineProps<{
   aceEditorTheme: string;
 }>();

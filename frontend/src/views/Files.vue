@@ -16,7 +16,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ t("files.loading") }}</span>
+        <span>'加载中...'</span>
       </h2>
     </div>
   </div>
@@ -167,7 +167,7 @@ const fetchData = async () => {
   try {
     const res = await api.fetch(url, fetchDataController.signal);
     fileStore.updateRequest(res);
-    document.title = `${res.name || t("sidebar.myFiles")} - ${t("files.files")} - ${name}`;
+    document.title = `${res.name || '我的文件'} - '文件' - ${name}`;
     layoutStore.loading = false;
 
     // Selects the post-reload target item or the previously visited child folder

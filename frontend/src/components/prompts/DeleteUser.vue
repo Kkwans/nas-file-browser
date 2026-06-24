@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>{{ t("prompts.deleteUser") }}</p>
+      <p>'确认删除此用户？'</p>
     </div>
 
     <div class="card-action">
@@ -9,8 +9,8 @@
         id="focus-prompt"
         class="button button--flat button--grey"
         @click="layoutStore.closeHovers"
-        :aria-label="t('buttons.cancel')"
-        :title="t('buttons.cancel')"
+        :aria-label="'取消'"
+        :title="'取消'"
         tabindex="1"
       >
         {{ "取消" }}

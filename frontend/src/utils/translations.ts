@@ -1,7 +1,7 @@
 /**
  * 集中管理所有翻译常量（替代 vue-i18n）
  * 使用 flat keys（点分隔），如 buttons.save, share.password
- * 组件中使用: {{ t('buttons.save') }} 或 t('buttons.save')
+ * 组件中使用: '保存' 或 '保存'
  */
 export const T = {
   // === buttons ===
@@ -438,14 +438,3 @@ export const T = {
   "searchPage.results": "搜索结果列表",
 } as const;
 
-export type TranslationKey = keyof typeof T;
-
-export function t(key: string, opts?: Record<string, string | number>): string {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`\\{\\s*${k}\\s*\\}`, "g"), String(v));
-    }
-  }
-  return result;
-}

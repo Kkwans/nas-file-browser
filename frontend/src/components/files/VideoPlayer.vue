@@ -10,8 +10,8 @@
       :default="index === 0"
     />
     <p class="vjs-no-js">
-      {{ t("videoPlayer.browserNotSupport") }}
-      <a :href="source">{{ t("buttons.download") }}</a>
+      '您的浏览器不支持嵌入式视频播放，请下载后观看。'
+      <a :href="source">'下载'</a>
     </p>
   </video>
 </template>
@@ -20,7 +20,6 @@
 import { ref, onBeforeUnmount, nextTick } from "vue";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
-import { t } from "@/utils/translations";
 import "videojs-mobile-ui";
 import "videojs-hotkeys";
 import "video.js/dist/video-js.min.css";

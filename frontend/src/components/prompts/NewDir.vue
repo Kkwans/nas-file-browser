@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ t("prompts.newDir") }}</h2>
+      <h2>'新建文件夹'</h2>
     </div>
 
     <div class="card-content">
-      <p>{{ t("prompts.newDirMessage") }}</p>
+      <p>'输入文件夹名'</p>
       <input
         id="focus-prompt"
         class="input input--block"
@@ -21,16 +21,16 @@
       <button
         class="button button--flat button--grey"
         @click="layoutStore.closeHovers"
-        aria-label="t('buttons.cancel')"
-        title="t('buttons.cancel')"
+        aria-label='取消'
+        title="取消"
         tabindex="3"
       >
         {{ "取消" }}
       </button>
       <button
         class="button button--flat"
-        aria-label="创建"
-        title="t('buttons.create')"
+        aria-label='创建'
+        title="创建"
         @click="submit"
         tabindex="2"
       >

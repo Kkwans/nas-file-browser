@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { replaceFavoriteByPath } from "@/utils/favoritePersistence";
 
 export interface FavoriteGroup {
   id: string;
@@ -39,16 +40,20 @@ export const useFavoritesStore = defineStore("favorites", () => {
     }
   }
 
-  async function apiCreate(fav: Favorite): Promise<boolean> {
+  async function apiCreate(fav: Favorite): Promise<Favorite | null> {
     try {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fav),
+        body: JSON.stringify({
+          path: fav.path,
+          name: fav.name,
+          groupId: fav.groupId || "",
+        }),
       });
-      return res.ok;
+      return res.ok ? await res.json() : null;
     } catch {
-      return false;
+      return null;
     }
   }
 
@@ -232,7 +237,11 @@ export const useFavoritesStore = defineStore("favorites", () => {
     };
     favorites.value.push(newFav);
     saveToLocalStorage();
-    await apiCreate(newFav);
+    const created = await apiCreate(newFav);
+    if (created) {
+      favorites.value = replaceFavoriteByPath(favorites.value, created);
+      saveToLocalStorage();
+    }
   }
 
   async function removeFavorite(id: string) {

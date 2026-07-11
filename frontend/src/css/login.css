@@ -20,8 +20,11 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(circle at 25px 25px, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-image: radial-gradient(
+    circle at 25px 25px,
+    rgba(0, 0, 0, 0.03) 1px,
+    transparent 1px
+  );
   background-size: 50px 50px;
   pointer-events: none;
 }
@@ -33,7 +36,11 @@
   width: 700px;
   height: 700px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(33, 150, 243, 0.07) 0%, transparent 65%);
+  background: radial-gradient(
+    circle,
+    rgba(33, 150, 243, 0.07) 0%,
+    transparent 65%
+  );
   top: -250px;
   right: -200px;
   pointer-events: none;
@@ -46,7 +53,11 @@
   width: 500px;
   height: 500px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(100, 200, 255, 0.05) 0%, transparent 60%);
+  background: radial-gradient(
+    circle,
+    rgba(100, 200, 255, 0.05) 0%,
+    transparent 60%
+  );
   bottom: -180px;
   left: -150px;
   pointer-events: none;
@@ -54,9 +65,16 @@
 }
 
 @keyframes float-blob {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%      { transform: translate(35px, -45px) scale(1.08); }
-  66%      { transform: translate(-25px, 25px) scale(0.95); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(35px, -45px) scale(1.08);
+  }
+  66% {
+    transform: translate(-25px, 25px) scale(0.95);
+  }
 }
 
 /* --- Card Container --- */
@@ -209,11 +227,23 @@
 }
 
 @keyframes shake-in {
-  0%   { transform: translateX(-8px); opacity: 0; }
-  25%  { transform: translateX(6px); }
-  50%  { transform: translateX(-4px); }
-  75%  { transform: translateX(2px); }
-  100% { transform: translateX(0); opacity: 1; }
+  0% {
+    transform: translateX(-8px);
+    opacity: 0;
+  }
+  25% {
+    transform: translateX(6px);
+  }
+  50% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* --- Toggle Link --- */
@@ -258,16 +288,27 @@
 }
 
 :root.dark #login::before {
-  background-image:
-    radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-image: radial-gradient(
+    circle at 25px 25px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 1px
+  );
 }
 
 :root.dark #login::after {
-  background: radial-gradient(circle, rgba(33, 150, 243, 0.05) 0%, transparent 60%);
+  background: radial-gradient(
+    circle,
+    rgba(33, 150, 243, 0.05) 0%,
+    transparent 60%
+  );
 }
 
 :root.dark .accent-blob {
-  background: radial-gradient(circle, rgba(100, 200, 255, 0.03) 0%, transparent 55%);
+  background: radial-gradient(
+    circle,
+    rgba(100, 200, 255, 0.03) 0%,
+    transparent 55%
+  );
 }
 
 :root.dark #login form {
@@ -355,5 +396,174 @@
 
   #login .input {
     font-size: 16px;
+  }
+}
+
+/* NAS file-browser login refresh: restrained operational console */
+#login {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px;
+  background:
+    linear-gradient(90deg, rgba(22, 119, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(22, 119, 255, 0.035) 1px, transparent 1px), #f4f7fb;
+  background-size: 32px 32px;
+}
+
+#login::before,
+#login::after,
+#login .accent-blob {
+  display: none;
+}
+
+#login form {
+  width: min(100%, 28rem);
+  padding: 2rem;
+  border: 1px solid rgba(32, 53, 78, 0.12);
+  border-radius: 1.125rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 56px rgba(25, 47, 76, 0.12);
+  animation: none;
+}
+
+#login img {
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: 1rem;
+  border-radius: 0.875rem;
+  box-shadow: none;
+}
+
+#login img:hover {
+  transform: none;
+}
+
+#login h1 {
+  margin-bottom: 1.75rem;
+  color: #1f2d3d;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+#login .input {
+  min-height: 2.875rem;
+  margin-bottom: 0.875rem;
+  padding: 0.6875rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.625rem;
+  background: #fff;
+  color: #1e293b;
+}
+
+#login .input:focus {
+  border-color: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.15);
+}
+
+#login .button {
+  min-height: 2.875rem;
+  margin-top: 0.375rem;
+  border-radius: 0.625rem;
+  background: #1677ff;
+  box-shadow: none;
+}
+
+#login .button:hover:not([disabled]) {
+  background: #0958d9;
+  box-shadow: none;
+  transform: none;
+}
+
+#login .wrong,
+#login .logout-message {
+  margin-bottom: 1rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  animation: none;
+}
+
+#login .wrong {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+#login .logout-message {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+#login form > p:not(.logout-message) {
+  width: fit-content;
+  margin: 1rem auto 0;
+  padding: 0.25rem 0;
+  color: #1677ff;
+  font-size: 0.875rem;
+}
+
+#login form > p:not(.logout-message):hover {
+  color: #0958d9;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.1875rem;
+}
+
+:root.dark #login {
+  background:
+    linear-gradient(90deg, rgba(96, 165, 250, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(96, 165, 250, 0.06) 1px, transparent 1px), #111827;
+  background-size: 32px 32px;
+}
+
+:root.dark #login form {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(24, 34, 48, 0.96);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.32);
+}
+
+:root.dark #login h1 {
+  color: #e2e8f0;
+}
+
+:root.dark #login .input {
+  border-color: #475569;
+  background: #172033;
+  color: #e2e8f0;
+}
+
+:root.dark #login .logout-message {
+  border-color: rgba(96, 165, 250, 0.35);
+  background: rgba(30, 64, 175, 0.2);
+  color: #bfdbfe;
+}
+
+:root.dark #login .wrong {
+  border-color: rgba(252, 165, 165, 0.35);
+  background: rgba(127, 29, 29, 0.2);
+  color: #fecaca;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #login *,
+  #login *::before,
+  #login *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #login {
+    padding: 1rem;
+  }
+
+  #login form {
+    padding: 1.5rem 1.25rem;
   }
 }

@@ -3,7 +3,7 @@
     <div class="accent-blob"></div>
     <form @submit="submit">
       <img :src="logoURL" alt="NAS 文件管理" />
-      <h1>{{ name }}</h1>
+      <h1>{{ loginTitle }}</h1>
       <p v-if="reason != null" class="logout-message">
         {{ logoutReasonText }}
       </p>
@@ -52,6 +52,7 @@
 <script setup lang="ts">
 import { StatusError } from "@/api/utils";
 import * as auth from "@/utils/auth";
+import { getLoginTitle } from "@/utils/login";
 import {
   name,
   logoURL,
@@ -77,6 +78,7 @@ const toggleMode = () => (createMode.value = !createMode.value);
 const $showError = inject<IToastError>("$showError")!;
 
 const reason = route.query["logout-reason"] ?? null;
+const loginTitle = computed(() => getLoginTitle(name));
 
 const logoutReasonText = computed(() => {
   switch (reason) {

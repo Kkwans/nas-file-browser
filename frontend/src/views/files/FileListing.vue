@@ -79,11 +79,7 @@
         </div>
         <!-- Sort Dropdown -->
         <div class="sort-dropdown" ref="sortDropdownRef">
-          <action
-            icon="sort"
-            label="排序"
-            @action="toggleSortDropdown"
-          />
+          <action icon="sort" label="排序" @action="toggleSortDropdown" />
           <div v-if="showSortDropdown" class="dropdown-menu">
             <button
               v-for="opt in sortOptions"
@@ -104,9 +100,7 @@
             <div class="dropdown-divider"></div>
             <button class="dropdown-item" @click="toggleSortDirection">
               <i class="material-icons">swap_vert</i>
-              <span>{{
-                currentSortAsc ? '降序排列' : '升序排列'
-              }}</span>
+              <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
             </button>
           </div>
         </div>
@@ -140,14 +134,8 @@
         'file-selection-margin-bottom': fileStore.multiple,
       }"
     >
-      <span v-if="fileStore.selectedCount > 0">
-        已选择 
-      </span>
-      <action
-        icon="select_all"
-        label="全选"
-        @action="selectAll"
-      />
+      <span v-if="fileStore.selectedCount > 0"> 已选择 </span>
+      <action icon="select_all" label="全选" @action="selectAll" />
       <action
         v-if="headerButtons.share"
         icon="share"
@@ -215,7 +203,7 @@
         ref="listing"
         class="file-icons"
         data-clear-on-click="true"
-        :class="currentViewMode"
+        :class="listingClass"
         @click="handleEmptyAreaClick"
       >
         <div>
@@ -228,7 +216,7 @@
                 tabindex="0"
                 @click="sort('name')"
                 title="按名称排序"
-                aria-label='按名称排序'
+                aria-label="按名称排序"
               >
                 <span>'名称'</span>
                 <i class="material-icons">{{ nameIcon }}</i>
@@ -241,7 +229,7 @@
                 tabindex="0"
                 @click="sort('size')"
                 title="按大小排序"
-                aria-label='按大小排序'
+                aria-label="按大小排序"
               >
                 <span>'大小'</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
@@ -253,7 +241,7 @@
                 tabindex="0"
                 @click="sort('modified')"
                 title="按修改时间排序"
-                aria-label='按修改时间排序'
+                aria-label="按修改时间排序"
               >
                 <span>'修改时间'</span>
                 <i class="material-icons">{{ modifiedIcon }}</i>
@@ -407,9 +395,7 @@
         <div :class="{ active: fileStore.multiple }" id="multiple-selection">
           <div class="selection-info">
             <i class="material-icons">check_circle</i>
-            <span v-if="fileStore.selectedCount > 0">
-              已选择 
-            </span>
+            <span v-if="fileStore.selectedCount > 0"> 已选择 </span>
             <span v-else>'多选模式已开启'</span>
           </div>
           <div class="selection-actions">
@@ -417,7 +403,7 @@
               class="selection-btn"
               @click="selectAll"
               title="全选"
-              aria-label='全选'
+              aria-label="全选"
             >
               <i class="material-icons">select_all</i>
               <span>全选</span>
@@ -427,7 +413,7 @@
               class="selection-btn"
               @click="invertSelection"
               title="反选"
-              aria-label='反选'
+              aria-label="反选"
             >
               <i class="material-icons">flip</i>
               <span>反选</span>
@@ -475,7 +461,7 @@
                 }
               "
               title="关闭"
-              aria-label='关闭'
+              aria-label="关闭"
             >
               <i class="material-icons">close</i>
             </button>
@@ -497,6 +483,7 @@ import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
+import { normalizeViewMode, selectForContextMenu } from "@/utils/fileListing";
 import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
 
@@ -524,16 +511,6 @@ import {
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
-import { T } from "@/utils/translations";
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -553,10 +530,9 @@ const layoutStore = useLayoutStore();
 // View mode dropdown
 const showViewDropdown = ref<boolean>(false);
 const viewDropdownRef = ref<HTMLElement | null>(null);
+const storedViewMode = localStorage.getItem("nas-file-browser-view-mode");
 const currentViewMode = ref<ViewModeType>(
-  (localStorage.getItem("nas-file-browser-view-mode") as ViewModeType) ||
-    authStore.user?.viewMode ||
-    "mosaic"
+  normalizeViewMode(storedViewMode ?? authStore.user?.viewMode)
 );
 const viewModes = [
   {
@@ -570,9 +546,9 @@ const viewModes = [
     label: "列表视图",
   },
   {
-    value: "mosaic gallery" as ViewModeType,
-    icon: "view_module",
-    label: "画廊视图",
+    value: "details" as ViewModeType,
+    icon: "table_rows",
+    label: "详细列表",
   },
   {
     value: "compact" as ViewModeType,
@@ -710,17 +686,20 @@ const modifiedIcon = computed(() => {
 });
 
 const skeletonViewMode = computed(() => {
-  // Map 'mosaic gallery' to 'gallery' for skeleton
   const mode = currentViewMode.value;
-  if (mode === "mosaic gallery") return "gallery";
+  if (mode === "details") return "list";
   return mode;
 });
+
+const listingClass = computed(() =>
+  currentViewMode.value === "details" ? "details list" : currentViewMode.value
+);
 
 const viewIcon = computed(() => {
   const icons: Record<string, string> = {
     list: "view_list",
     mosaic: "grid_view",
-    "mosaic gallery": "view_module",
+    details: "table_rows",
     compact: "density_medium",
   };
   return icons[currentViewMode.value] || "grid_view";
@@ -1531,6 +1510,19 @@ const revealPreviousItem = () => {
 
 const showContextMenu = (event: MouseEvent) => {
   event.preventDefault();
+
+  const target = event.target;
+  if (target instanceof HTMLElement) {
+    const item = target.closest<HTMLElement>(".item");
+    const targetIndex = Number(item?.dataset.index);
+    if (Number.isInteger(targetIndex)) {
+      fileStore.selected = selectForContextMenu(
+        fileStore.selected,
+        targetIndex
+      );
+    }
+  }
+
   isContextMenuVisible.value = true;
   contextMenuPos.value = {
     x: event.clientX + 8,

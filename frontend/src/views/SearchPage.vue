@@ -39,7 +39,7 @@
             @click="initSearch('type:' + k)"
           >
             <i class="material-icons">{{ v.icon }}</i>
-            <span>{{ "search." + v.label }}</span>
+            <span>{{ v.label }}</span>
           </div>
         </div>
       </div>
@@ -109,22 +109,11 @@ import {
 } from "vue";
 import { throttle } from "lodash-es";
 import { useRouter } from "vue-router";
-import { T } from "@/utils/translations";
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
-
 const boxes = {
-  image: { label: "images", icon: "insert_photo" },
-  audio: { label: "music", icon: "volume_up" },
-  video: { label: "video", icon: "movie" },
-  pdf: { label: "pdf", icon: "picture_as_pdf" },
+  image: { label: "图片", icon: "insert_photo" },
+  audio: { label: "音频", icon: "volume_up" },
+  video: { label: "视频", icon: "movie" },
+  pdf: { label: "PDF 文档", icon: "picture_as_pdf" },
 };
 const router = useRouter();
 const fileStore = useFileStore();

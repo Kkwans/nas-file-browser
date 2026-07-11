@@ -13,6 +13,8 @@ services:
     volumes:
       - /volume1:/volume1
       - /volume2:/volume2
+      - /home:/home
+      - /root:/root
       - ./config:/config
       - ./database:/database
     environment:

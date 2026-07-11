@@ -3,10 +3,22 @@
     <!-- Header with icon -->
     <div class="card-title info-header">
       <div class="info-title-row">
-        <i class="material-icons info-type-icon">{{ dir ? 'folder' : 'insert_drive_file' }}</i>
+        <i class="material-icons info-type-icon">{{
+          dir ? "folder" : "insert_drive_file"
+        }}</i>
         <div class="info-title-text">
-          <h2>{{ selected.length > 1 ? '已选择 ' + selected.length + ' 个项目' : name }}</h2>
-          <span class="info-subtitle" v-if="selected.length < 2 && showFullPath">{{ fullPath }}</span>
+          <h2>
+            {{
+              selected.length > 1
+                ? "已选择 " + selected.length + " 个项目"
+                : name
+            }}
+          </h2>
+          <span
+            class="info-subtitle"
+            v-if="selected.length < 2 && showFullPath"
+            >{{ fullPath }}</span
+          >
         </div>
       </div>
     </div>
@@ -21,7 +33,7 @@
       <!-- Basic info rows -->
       <div class="info-row" v-if="selected.length < 2">
         <span class="info-label">类型</span>
-        <span class="info-value">{{ dir ? '文件夹' : '文件' }}</span>
+        <span class="info-value">{{ dir ? "文件夹" : "文件" }}</span>
       </div>
 
       <div class="info-row" v-if="selected.length < 2">
@@ -38,7 +50,9 @@
 
       <div class="info-row" v-if="resolution">
         <span class="info-label">分辨率</span>
-        <span class="info-value">{{ resolution.width }} × {{ resolution.height }}</span>
+        <span class="info-value"
+          >{{ resolution.width }} × {{ resolution.height }}</span
+        >
       </div>
 
       <div class="info-row" v-if="selected.length < 2">
@@ -66,22 +80,40 @@
       <!-- Checksums (collapsible) -->
       <template v-if="!dir">
         <div class="info-collapse">
-          <button class="info-collapse-btn" @click="showChecksums = !showChecksums" type="button">
-            <i class="material-icons" :class="{ rotated: showChecksums }">expand_more</i>
+          <button
+            class="info-collapse-btn"
+            @click="showChecksums = !showChecksums"
+            type="button"
+          >
+            <i class="material-icons" :class="{ rotated: showChecksums }"
+              >expand_more</i
+            >
             <span>文件校验</span>
           </button>
           <div v-if="showChecksums" class="info-collapse-content">
             <div class="info-row info-checksum">
               <span class="info-label">MD5</span>
-              <span class="info-value"><a @click="checksum($event, 'md5')" tabindex="2">点击以显示</a></span>
+              <span class="info-value"
+                ><a @click="checksum($event, 'md5')" tabindex="2"
+                  >点击以显示</a
+                ></span
+              >
             </div>
             <div class="info-row info-checksum">
               <span class="info-label">SHA1</span>
-              <span class="info-value"><a @click="checksum($event, 'sha1')" tabindex="3">点击以显示</a></span>
+              <span class="info-value"
+                ><a @click="checksum($event, 'sha1')" tabindex="3"
+                  >点击以显示</a
+                ></span
+              >
             </div>
             <div class="info-row info-checksum">
               <span class="info-label">SHA256</span>
-              <span class="info-value"><a @click="checksum($event, 'sha256')" tabindex="4">点击以显示</a></span>
+              <span class="info-value"
+                ><a @click="checksum($event, 'sha256')" tabindex="4"
+                  >点击以显示</a
+                ></span
+              >
             </div>
           </div>
         </div>
@@ -94,7 +126,7 @@
         type="submit"
         @click="closeHovers"
         class="button--primary"
-        aria-label='确认'
+        aria-label="确认"
       >
         <i class="material-icons">check</i>
         <span>确认</span>
@@ -110,7 +142,7 @@ import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
-import dayjs from "dayjs";
+import dayjs from "@/utils/date";
 import { files as api } from "@/api";
 
 const $showError = inject<IToastError>("$showError")!;
@@ -267,7 +299,7 @@ const checksum = async (
   align-items: flex-start;
   padding: 0.45em 0;
   gap: 0.75em;
-  border-bottom: 1px solid var(--divider, rgba(0,0,0,0.04));
+  border-bottom: 1px solid var(--divider, rgba(0, 0, 0, 0.04));
 }
 
 .info-row:last-child {
@@ -292,7 +324,7 @@ const checksum = async (
 
 .path-value {
   font-size: 0.82em;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   background: var(--surfaceSecondary, #f5f5f8);
   padding: 0.25em 0.5em;
   border-radius: 0.35em;
@@ -308,7 +340,7 @@ const checksum = async (
 /* Divider */
 .info-divider {
   height: 1px;
-  background: var(--divider, rgba(0,0,0,0.06));
+  background: var(--divider, rgba(0, 0, 0, 0.06));
   margin: 0.5em 0;
 }
 
@@ -351,7 +383,7 @@ const checksum = async (
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
-  border-top: 1px solid var(--divider, rgba(0,0,0,0.04));
+  border-top: 1px solid var(--divider, rgba(0, 0, 0, 0.04));
 }
 
 .info-collapse-btn:hover {

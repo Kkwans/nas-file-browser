@@ -123,7 +123,7 @@
         <button
           class="button button--flat button--grey"
           @click="close"
-          aria-label='取消'
+          aria-label="取消"
           title="取消"
           tabindex="4"
         >
@@ -134,7 +134,7 @@
           id="focus-prompt"
           class="button button--flat"
           @click="(event) => currentPrompt?.confirm(event, conflict)"
-          aria-label='确定'
+          aria-label="确定"
           title="确定"
           tabindex="1"
         >
@@ -149,7 +149,7 @@
 import { computed, ref } from "vue";
 import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
-import dayjs from "dayjs";
+import dayjs from "@/utils/date";
 import type { ConflictingResource } from "@/types/file";
 // eslint-disable-line @typescript-eslint/no-unused-vars
 

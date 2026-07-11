@@ -4,16 +4,16 @@
     <div class="column">
       <div class="card">
         <div class="card-title">
-          <h2>{{ '分享管理' }}</h2>
+          <h2>{{ "分享管理" }}</h2>
         </div>
 
         <div class="card-content full" v-if="links.length > 0">
           <table>
             <tr>
-              <th>{{ '路径' }}</th>
-              <th>{{ '分享时长' }}</th>
+              <th>{{ "路径" }}</th>
+              <th>{{ "分享时长" }}</th>
               <th v-if="authStore.user?.perm.admin">
-                {{ '用户名' }}
+                {{ "用户名" }}
               </th>
               <th></th>
               <th></th>
@@ -27,7 +27,7 @@
                 <template v-if="link.expire !== 0">{{
                   humanTime(link.expire)
                 }}</template>
-                <template v-else>{{ '永久' }}</template>
+                <template v-else>{{ "永久" }}</template>
               </td>
               <td v-if="authStore.user?.perm.admin">{{ link.username }}</td>
               <td class="small">
@@ -55,7 +55,7 @@
         </div>
         <h2 class="message" v-else>
           <i class="material-icons">sentiment_dissatisfied</i>
-          <span>{{ '这里没有任何文件...' }}</span>
+          <span>{{ "这里没有任何文件..." }}</span>
         </h2>
       </div>
     </div>
@@ -67,7 +67,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { share as api, users } from "@/api";
 import type { Share } from "@/types/api";
-import dayjs from "dayjs";
+import dayjs from "@/utils/date";
 import Errors from "@/views/Errors.vue";
 import { inject, ref, onMounted } from "vue";
 import { StatusError } from "@/api/utils";
@@ -121,14 +121,14 @@ const copyToClipboard = (text: string) => {
   copy({ text }).then(
     () => {
       // clipboard successfully set
-      $showSuccess('链接已复制到剪贴板');
+      $showSuccess("链接已复制到剪贴板");
     },
     () => {
       // clipboard write failed
       copy({ text }, { permission: true }).then(
         () => {
           // clipboard successfully set
-          $showSuccess('链接已复制到剪贴板');
+          $showSuccess("链接已复制到剪贴板");
         },
         (e) => {
           // clipboard write failed
@@ -150,7 +150,7 @@ const deleteLink = async (event: Event, link: Share) => {
       try {
         api.remove(link.hash);
         links.value = links.value.filter((item) => item.hash !== link.hash);
-        $showSuccess('分享已删除');
+        $showSuccess("分享已删除");
       } catch (err) {
         if (err instanceof Error) {
           $showError(err);

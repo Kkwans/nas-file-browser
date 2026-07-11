@@ -85,11 +85,7 @@
           "
         >
           <div class="share__box__header" style="height: 3em">
-            {{
-              req.isDir
-                ? '下载文件夹'
-                : '下载文件'
-            }}
+            {{ req.isDir ? "下载文件夹" : "下载文件" }}
           </div>
           <div
             v-if="!req.isDir"
@@ -113,10 +109,7 @@
               class="button button--flat"
               style="height: 4em"
             >
-              <div>
-                <i class="material-icons">file_download</i
-                >'下载'
-              </div>
+              <div><i class="material-icons">file_download</i>'下载'</div>
             </a>
             <a
               target="_blank"
@@ -124,10 +117,7 @@
               class="button button--flat"
               v-if="!req.isDir"
             >
-              <div>
-                <i class="material-icons">open_in_new</i
-                >'打开文件'
-              </div>
+              <div><i class="material-icons">open_in_new</i>'打开文件'</div>
             </a>
             <qrcode-vue
               v-if="req.isDir"
@@ -245,9 +235,7 @@
           v-if="req.isDir && req.items.length > 0"
           class="share__box share__box__items"
         >
-          <div class="share__box__header" v-if="req.isDir">
-            '文件'
-          </div>
+          <div class="share__box__header" v-if="req.isDir">'文件'</div>
           <div id="listing" class="list file-icons">
             <item
               v-for="item in req.items.slice(0, showLimit)"
@@ -307,7 +295,7 @@
 <script setup lang="ts">
 import { pub as api } from "@/api";
 import { filesize } from "@/utils";
-import dayjs from "dayjs";
+import dayjs from "@/utils/date";
 import { Base64 } from "js-base64";
 import { createURL } from "@/api/utils";
 import HeaderBar from "@/components/header/HeaderBar.vue";
@@ -507,14 +495,14 @@ const copyToClipboard = (text: string) => {
   copy({ text }).then(
     () => {
       // clipboard successfully set
-      $showSuccess('链接已复制到剪贴板');
+      $showSuccess("链接已复制到剪贴板");
     },
     () => {
       // clipboard write failed
       copy({ text }, { permission: true }).then(
         () => {
           // clipboard successfully set
-          $showSuccess('链接已复制到剪贴板');
+          $showSuccess("链接已复制到剪贴板");
         },
         (e) => {
           // clipboard write failed

@@ -100,7 +100,7 @@ import {
   loadMarkdownResources,
   highlightAndAnnotateCodeBlocks,
 } from "@/utils/externalResources";
-import dayjs from "dayjs";
+import dayjs from "@/utils/date";
 import { T } from "@/utils/translations";
 const t = (key: string): string => (T as any)[key] ?? key;
 const router = useRouter();
@@ -233,10 +233,10 @@ const loadTextContent = async () => {
     const text = await resp.text();
     textContent.value =
       text.length > 51200
-        ? text.substring(0, 51200) + "\n\n... " + '文件过大'
+        ? text.substring(0, 51200) + "\n\n... " + "文件过大"
         : text;
   } catch {
-    textContent.value = '无法加载内容';
+    textContent.value = "无法加载内容";
   } finally {
     loading.value = false;
   }
@@ -248,11 +248,11 @@ const loadMarkdownContent = async () => {
     const text = await resp.text();
     const truncated =
       text.length > 51200
-        ? text.substring(0, 51200) + "\n\n... " + '文件过大'
+        ? text.substring(0, 51200) + "\n\n... " + "文件过大"
         : text;
     await renderMarkdown(truncated);
   } catch {
-    textContent.value = '无法加载内容';
+    textContent.value = "无法加载内容";
     nextTick(() => {
       if (markdownBody.value) {
         markdownBody.value.textContent = textContent.value;

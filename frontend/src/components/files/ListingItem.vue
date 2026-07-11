@@ -107,7 +107,7 @@ import { useTagsStore } from "@/stores/tags";
 
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
-import dayjs from "dayjs";
+import dayjs from "@/utils/date";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";

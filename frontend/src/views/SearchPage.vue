@@ -97,7 +97,7 @@ import { StatusError } from "@/api/utils";
 import { useFileStore } from "@/stores/file";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
-import dayjs from "dayjs";
+import dayjs from "@/utils/date";
 import {
   computed,
   inject,

@@ -13,10 +13,7 @@ import App from "@/App.vue";
 import CustomToast from "@/components/CustomToast.vue";
 import { T } from "@/utils/translations";
 
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import relativeTime from "dayjs/plugin/relativeTime";
-import duration from "dayjs/plugin/duration";
+import "@/utils/date";
 
 import "./css/styles.css";
 
@@ -25,11 +22,6 @@ document.body.classList.add("fonts-loading");
 document.fonts.ready.then(() => {
   document.body.classList.remove("fonts-loading");
 });
-
-// register dayjs plugins globally
-dayjs.extend(localizedFormat);
-dayjs.extend(relativeTime);
-dayjs.extend(duration);
 
 const pinia = createPinia(router);
 

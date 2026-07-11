@@ -10,7 +10,7 @@
       @mousedown="startResize"
       @touchstart="startResize"
       @dblclick="resetSidebarWidth"
-      title="'拖拽调节侧边栏宽度'"
+      title="拖拽调节侧边栏宽度"
     ></div>
     <template v-if="isLoggedIn">
       <button @click="toAccountSettings" class="action">
@@ -20,19 +20,14 @@
       <button
         class="action"
         @click="toRoot"
-        aria-label='我的文件'
-        title="'我的文件'"
+        aria-label="我的文件"
+        title="我的文件"
       >
         <i class="material-icons">folder</i>
         <span>我的文件</span>
       </button>
 
-      <button
-        class="action"
-        @click="openSearch"
-        aria-label='搜索'
-        title="'搜索'"
-      >
+      <button class="action" @click="openSearch" aria-label="搜索" title="搜索">
         <i class="material-icons">search</i>
         <span>搜索</span>
       </button>
@@ -44,7 +39,7 @@
           <span>收藏夹</span>
           <button
             class="section-action-btn"
-            title="'新建分组'"
+            title="新建分组"
             @click.stop.prevent="showCreateGroup = !showCreateGroup"
           >
             <i class="material-icons">create_new_folder</i>
@@ -52,7 +47,7 @@
           <button
             v-if="favoritesStore.sortedFavorites.length > 0"
             class="section-action-btn"
-            title="'清空收藏夹'"
+            title="清空收藏夹"
             @click.stop.prevent="clearAllFavorites"
           >
             <i class="material-icons">delete_sweep</i>
@@ -68,7 +63,7 @@
           <div v-if="showCreateGroup" class="create-group-input">
             <input
               v-model="newGroupName"
-              placeholder="'group name'"
+              placeholder="分组名称"
               @keyup.enter="createGroup"
               @keyup.escape="showCreateGroup = false"
               ref="groupInputRef"
@@ -104,7 +99,7 @@
               class="action favorite-item"
               draggable="true"
               @click="navigateVolume(fav.path)"
-              title="fav.path"
+              :title="fav.path"
               @dragstart="onFavDragStart($event, fav.id)"
               @dragover.prevent="onFavDragOverItem($event)"
               @dragleave="onFavDragLeaveItem"
@@ -125,7 +120,7 @@
               </div>
               <i
                 class="material-icons favorite-remove"
-                title="'取消收藏'"
+                title="取消收藏"
                 @click.stop.prevent="removeFavorite(fav.id)"
                 >close</i
               >
@@ -156,7 +151,7 @@
               }}</span>
               <button
                 class="section-action-btn"
-                title="'删除分组'"
+                title="删除分组"
                 @click.stop.prevent="deleteGroup(group.id)"
               >
                 <i class="material-icons">close</i>
@@ -174,7 +169,7 @@
                 class="action favorite-item category-path-item"
                 draggable="true"
                 @click="navigateVolume(fav.path)"
-                title="fav.path"
+                :title="fav.path"
                 @dragstart="onFavDragStart($event, fav.id)"
                 @dragover.prevent="onFavDragOverItem($event)"
                 @dragleave="onFavDragLeaveItem"
@@ -195,7 +190,7 @@
                 </div>
                 <i
                   class="material-icons favorite-remove"
-                  title="'取消收藏'"
+                  title="取消收藏"
                   @click.stop.prevent="removeFavorite(fav.id)"
                   >close</i
                 >
@@ -220,7 +215,7 @@
           <span>标签</span>
           <button
             class="section-action-btn"
-            title="'管理标签'"
+            title="管理标签"
             @click.stop.prevent="openTagManager"
           >
             <i class="material-icons">settings</i>
@@ -358,7 +353,7 @@
               <button
                 class="action category-group-header category-group-nav"
                 @click="navigateCategoryFirst(group)"
-                title="'查看内容'"
+                title="查看内容"
               >
                 <i class="material-icons" :style="{ color: group.color }">{{
                   group.icon
@@ -369,7 +364,7 @@
               <button
                 class="category-expand-btn"
                 @click="toggleCategory(group.id)"
-                title="expandedCategories[group.id] ? 'Collapse' : 'Expand'"
+                :title="expandedCategories[group.id] ? '收起分类' : '展开分类'"
               >
                 <i
                   class="material-icons category-arrow"
@@ -384,7 +379,7 @@
                 :key="p.path"
                 class="action category-path-item"
                 @click="navigateVolume(p.path)"
-                title="p.path"
+                :title="p.path"
               >
                 <i class="material-icons" :class="'risk-' + p.risk">{{
                   riskIcon(p.risk)
@@ -412,8 +407,8 @@
         <button
           @click="showHover('newDir')"
           class="action"
-          aria-label='新建文件夹'
-          title="'新建文件夹'"
+          aria-label="新建文件夹"
+          title="新建文件夹"
         >
           <i class="material-icons">create_new_folder</i>
           <span>新建文件夹</span>
@@ -422,8 +417,8 @@
         <button
           @click="showHover('newFile')"
           class="action"
-          aria-label='新建文件'
-          title="'新建文件'"
+          aria-label="新建文件"
+          title="新建文件"
         >
           <i class="material-icons">note_add</i>
           <span>新建文件</span>
@@ -434,8 +429,8 @@
         <button
           class="action"
           @click="toGlobalSettings"
-          aria-label='设置'
-          title="'设置'"
+          aria-label="设置"
+          title="设置"
         >
           <i class="material-icons">settings_applications</i>
           <span>设置</span>
@@ -446,8 +441,8 @@
         @click="logout"
         class="action"
         id="logout"
-        aria-label='退出'
-        title="'登出'"
+        aria-label="退出"
+        title="登出"
       >
         <i class="material-icons">exit_to_app</i>
         <span>登出</span>
@@ -458,8 +453,8 @@
         v-if="!hideLoginButton"
         class="action"
         to="/login"
-        aria-label="'登录'"
-        title="'登录'"
+        aria-label="登录"
+        title="登录"
       >
         <i class="material-icons">exit_to_app</i>
         <span>登录</span>
@@ -469,8 +464,8 @@
         v-if="signup"
         class="action"
         to="/login"
-        aria-label="'注册'"
-        title="'注册'"
+        aria-label="注册"
+        title="注册"
       >
         <i class="material-icons">person_add</i>
         <span>注册</span>

@@ -65,16 +65,17 @@
         <div class="info-divider"></div>
         <div class="info-row">
           <span class="info-label">文件数</span>
-          <span class="info-value">{{ req?.numFiles ?? 0 }}</span>
+          <span class="info-value">{{ directoryStats?.files ?? "统计中..." }}</span>
         </div>
         <div class="info-row">
           <span class="info-label">文件夹</span>
-          <span class="info-value">{{ req?.numDirs ?? 0 }}</span>
+          <span class="info-value">{{ directoryStats?.directories ?? "统计中..." }}</span>
         </div>
-        <div class="info-row" v-if="req">
+        <div class="info-row" v-if="directoryStats">
           <span class="info-label">总大小</span>
-          <span class="info-value info-size">{{ dirTotalSize }}</span>
+          <span class="info-value info-size">{{ filesize(directoryStats.size) }}</span>
         </div>
+        <p v-if="statsError" class="info-stats-error">{{ statsError }}</p>
       </template>
 
       <!-- Checksums (collapsible) -->
@@ -136,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
@@ -144,9 +145,12 @@ import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { files as api } from "@/api";
+import { summarizeDirectory } from "@/utils/directoryStats";
 
 const $showError = inject<IToastError>("$showError")!;
 const showChecksums = ref(false);
+const directoryStats = ref<ReturnType<typeof summarizeDirectory> | null>(null);
+const statsError = ref("");
 const route = useRoute();
 
 const fileStore = useFileStore();
@@ -166,13 +170,13 @@ const humanSize = computed(() => {
   return filesize(sum);
 });
 
-const dirTotalSize = computed(() => {
-  if (!req.value) return "";
-  let total = 0;
-  for (const item of req.value.items) {
-    total += item.size;
+onMounted(async () => {
+  if (!dir.value || selectedCount.value > 0) return;
+  try {
+    directoryStats.value = summarizeDirectory(await api.fetchAll(route.path));
+  } catch {
+    statsError.value = "目录统计失败，请稍后重试";
   }
-  return filesize(total);
 });
 
 const humanTime = computed(() => {

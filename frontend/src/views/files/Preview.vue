@@ -7,7 +7,7 @@
     @touchstart="toggleNavigation"
   >
     <header-bar v-if="isPdf || isEpub || isCsv || showNav">
-      <action icon="close" :label="'关闭'" @action="close()" />
+      <action icon="close" label="关闭" @action="close()" />
       <title>{{ name }}</title>
       <action
         :disabled="layoutStore.loading"
@@ -21,7 +21,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.rename"
           icon="mode_edit"
-          :label="'重命名'"
+          label="重命名"
           show="rename"
         />
         <action
@@ -35,7 +35,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.delete"
           icon="delete"
-          :label="'删除'"
+          label="删除"
           @action="deleteFile"
           id="delete-button"
         />
@@ -43,7 +43,7 @@
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.download"
           icon="file_download"
-          :label="'下载'"
+          label="下载"
           @action="download"
         />
         <action
@@ -59,7 +59,7 @@
         <action
           :disabled="layoutStore.loading"
           icon="info"
-          :label="'文件信息'"
+          label="文件信息"
           show="info"
         />
       </template>
@@ -160,8 +160,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasPrevious || !showNav }"
-      :aria-label="'上一个'"
-      :title="'上一个'"
+      aria-label="上一个"
+      title="上一个"
     >
       <i class="material-icons">chevron_left</i>
     </button>
@@ -170,8 +170,8 @@
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
       :class="{ hidden: !hasNext || !showNav }"
-      :aria-label="'下一个'"
-      :title="'下一个'"
+      aria-label="下一个"
+      title="下一个"
     >
       <i class="material-icons">chevron_right</i>
     </button>

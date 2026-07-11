@@ -310,17 +310,6 @@ import { useRoute } from "vue-router";
 import { StatusError } from "@/api/utils";
 import { copy } from "@/utils/clipboard";
 import type { DownloadFormat } from "@/types/file";
-import { T } from "@/utils/translations";
-
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
 
 const error = ref<StatusError | null>(null);
 const showLimit = ref<number>(100);

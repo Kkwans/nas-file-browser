@@ -61,7 +61,7 @@
       </div>
 
       <!-- Directory info -->
-      <template v-if="dir && selected.length === 0">
+      <template v-if="isDirectoryInfo">
         <div class="info-divider"></div>
         <div class="info-row">
           <span class="info-label">文件数</span>
@@ -171,9 +171,9 @@ const humanSize = computed(() => {
 });
 
 onMounted(async () => {
-  if (!dir.value || selectedCount.value > 0) return;
+  if (!isDirectoryInfo.value) return;
   try {
-    directoryStats.value = summarizeDirectory(await api.fetchAll(route.path));
+    directoryStats.value = summarizeDirectory(await api.fetchAll(directoryPath.value));
   } catch {
     statsError.value = "目录统计失败，请稍后重试";
   }
@@ -212,6 +212,13 @@ const dir = computed(() => {
       ? req.value!.isDir
       : req.value!.items[selected.value[0]].isDir)
   );
+});
+
+const isDirectoryInfo = computed(() => dir.value && selectedCount.value <= 1);
+
+const directoryPath = computed(() => {
+  if (selectedCount.value === 0) return route.path;
+  return req.value!.items[selected.value[0]].url;
 });
 
 const resolution = computed(() => {

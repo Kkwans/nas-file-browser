@@ -483,7 +483,11 @@ import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
-import { normalizeViewMode, selectForContextMenu } from "@/utils/fileListing";
+import {
+  normalizeViewMode,
+  selectForContextMenu,
+  sortItemsByType,
+} from "@/utils/fileListing";
 import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
 
@@ -649,6 +653,13 @@ const items = computed(() => {
       files.push(item);
     }
   });
+
+  if (currentSortBy.value === "type") {
+    return {
+      dirs: sortItemsByType(dirs, currentSortAsc.value),
+      files: sortItemsByType(files, currentSortAsc.value),
+    };
+  }
 
   return { dirs, files };
 });

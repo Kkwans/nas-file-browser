@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>'你确定要放弃所做的更改吗？'</p>
+      <p>你确定要放弃所做的更改吗？</p>
     </div>
     <div class="card-action">
       <button

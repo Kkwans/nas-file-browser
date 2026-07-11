@@ -11,7 +11,7 @@
     />
     <p class="vjs-no-js">
       '您的浏览器不支持嵌入式视频播放，请下载后观看。'
-      <a :href="source">'下载'</a>
+      <a :href="source">下载</a>
     </p>
   </video>
 </template>

@@ -3,7 +3,7 @@
     <div class="column">
       <form class="card" @submit="updateSettings">
         <div class="card-title">
-          <h2>'账户设置'</h2>
+          <h2>账户设置</h2>
         </div>
 
         <div class="card-content">
@@ -27,7 +27,7 @@
             <input type="checkbox" name="dateFormat" v-model="dateFormat" />
             '日期格式'
           </p>
-          <h3>'编辑器主题'</h3>
+          <h3>编辑器主题</h3>
           <AceEditorTheme
             class="input input--block"
             v-model:aceEditorTheme="aceEditorTheme"
@@ -53,7 +53,7 @@
         @submit="updatePassword"
       >
         <div class="card-title">
-          <h2>'修改密码'</h2>
+          <h2>修改密码</h2>
         </div>
 
         <div class="card-content">

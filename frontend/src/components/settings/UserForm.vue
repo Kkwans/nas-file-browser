@@ -1,7 +1,7 @@
 <template>
   <div>
     <p v-if="!isDefault && props.user !== null">
-      <label for="username">'用户名'</label>
+      <label for="username">用户名</label>
       <input
         class="input input--block"
         type="text"
@@ -11,7 +11,7 @@
     </p>
 
     <p v-if="!isDefault">
-      <label for="password">'密码'</label>
+      <label for="password">密码</label>
       <input
         class="input input--block"
         type="password"
@@ -22,7 +22,7 @@
     </p>
 
     <p>
-      <label for="scope">'作用域'</label>
+      <label for="scope">作用域</label>
       <input
         :disabled="createUserDirData ?? false"
         :placeholder="scopePlaceholder"
@@ -54,7 +54,7 @@
 
     <div v-if="!isDefault">
       <h3>{{ "规则" }}</h3>
-      <p class="small">'规则帮助'</p>
+      <p class="small">规则帮助</p>
       <rules v-if="user.rules" v-model:rules="user.rules" />
     </div>
   </div>

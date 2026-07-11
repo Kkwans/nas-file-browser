@@ -4,7 +4,7 @@
     <div class="column">
       <form class="card" @submit.prevent="save">
         <div class="card-title">
-          <h2>'全局设置'</h2>
+          <h2>全局设置</h2>
         </div>
 
         <div class="card-content">
@@ -24,7 +24,7 @@
           </p>
 
           <p>
-            <label class="small">'用户主目录路径'</label>
+            <label class="small">用户主目录路径</label>
             <input
               class="input input--block"
               type="text"
@@ -33,7 +33,7 @@
           </p>
 
           <p>
-            <label for="minimumPasswordLength">'最小密码长度'</label>
+            <label for="minimumPasswordLength">最小密码长度</label>
             <vue-number-input
               controls
               v-model.number="settings.minimumPasswordLength"
@@ -42,13 +42,13 @@
             />
           </p>
 
-          <h3>'规则'</h3>
-          <p class="small">'全局规则'</p>
+          <h3>规则</h3>
+          <p class="small">全局规则</p>
           <rules v-model:rules="settings.rules" />
 
           <div v-if="enableExec">
-            <h3>'在 Shell 中执行'</h3>
-            <p class="small">'允许在文件操作前后在 Shell 中运行命令'</p>
+            <h3>在 Shell 中执行</h3>
+            <p class="small">允许在文件操作前后在 Shell 中运行命令</p>
             <input
               class="input input--block"
               type="text"
@@ -57,7 +57,7 @@
             />
           </div>
 
-          <h3>'品牌定制'</h3>
+          <h3>品牌定制</h3>
 
           <p class="small">
             '如需自定义品牌，请参考'
@@ -65,7 +65,7 @@
               class="link"
               target="_blank"
               href="https://filebrowser.org/customization.html#custom-branding"
-              >'官方文档'</a
+              >官方文档</a
             >
             。
           </p>
@@ -89,7 +89,7 @@
           </p>
 
           <p>
-            <label for="theme">'主题'</label>
+            <label for="theme">主题</label>
             <themes
               class="input input--block"
               v-model:theme="settings.branding.theme"
@@ -98,7 +98,7 @@
           </p>
 
           <p>
-            <label for="branding-name">'实例名称'</label>
+            <label for="branding-name">实例名称</label>
             <input
               class="input input--block"
               type="text"
@@ -108,7 +108,7 @@
           </p>
 
           <p>
-            <label for="branding-files">'品牌资源目录路径'</label>
+            <label for="branding-files">品牌资源目录路径</label>
             <input
               class="input input--block"
               type="text"
@@ -117,13 +117,13 @@
             />
           </p>
 
-          <h3>'TUS 上传'</h3>
+          <h3>TUS 上传</h3>
 
-          <p class="small">'启用 TUS 协议以支持断点续传'</p>
+          <p class="small">启用 TUS 协议以支持断点续传</p>
 
           <div class="tusConditionalSettings">
             <p>
-              <label for="tus-chunkSize">'分块大小'</label>
+              <label for="tus-chunkSize">分块大小</label>
               <input
                 class="input input--block"
                 type="text"
@@ -133,7 +133,7 @@
             </p>
 
             <p>
-              <label for="tus-retryCount">'重试次数'</label>
+              <label for="tus-retryCount">重试次数</label>
               <vue-number-input
                 controls
                 v-model.number="settings.tus.retryCount"
@@ -157,11 +157,11 @@
     <div class="column">
       <form class="card" @submit.prevent="save">
         <div class="card-title">
-          <h2>'用户默认值'</h2>
+          <h2>用户默认值</h2>
         </div>
 
         <div class="card-content">
-          <p class="small">'新用户的默认设置'</p>
+          <p class="small">新用户的默认设置</p>
 
           <user-form
             :isNew="false"
@@ -183,7 +183,7 @@
     <div class="column">
       <form v-if="enableExec" class="card" @submit.prevent="save">
         <div class="card-title">
-          <h2>'命令运行器'</h2>
+          <h2>命令运行器</h2>
         </div>
 
         <div class="card-content">

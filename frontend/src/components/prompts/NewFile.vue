@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>'新建文件'</h2>
+      <h2>新建文件</h2>
     </div>
 
     <div class="card-content">
-      <p>'输入文件名'</p>
+      <p>输入文件名</p>
       <input
         id="focus-prompt"
         class="input input--block"

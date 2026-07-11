@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>'当前密码'</h2>
+      <h2>当前密码</h2>
     </div>
 
     <div class="card-content">
-      <p>'请输入密码以确认此操作。'</p>
+      <p>请输入密码以确认此操作。</p>
       <input
         id="focus-prompt"
         class="input input--block"

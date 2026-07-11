@@ -41,7 +41,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>'加载中...'</span>
+        <span>加载中...</span>
       </h2>
     </div>
 

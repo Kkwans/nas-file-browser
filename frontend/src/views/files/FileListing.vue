@@ -179,7 +179,7 @@
       >
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
-          <span>'这里没有任何文件...'</span>
+          <span>这里没有任何文件...</span>
         </h2>
         <input
           style="display: none"
@@ -218,7 +218,7 @@
                 title="按名称排序"
                 aria-label="按名称排序"
               >
-                <span>'名称'</span>
+                <span>名称</span>
                 <i class="material-icons">{{ nameIcon }}</i>
               </p>
 
@@ -231,7 +231,7 @@
                 title="按大小排序"
                 aria-label="按大小排序"
               >
-                <span>'大小'</span>
+                <span>大小</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
               </p>
               <p
@@ -243,7 +243,7 @@
                 title="按修改时间排序"
                 aria-label="按修改时间排序"
               >
-                <span>'修改时间'</span>
+                <span>修改时间</span>
                 <i class="material-icons">{{ modifiedIcon }}</i>
               </p>
             </div>
@@ -396,7 +396,7 @@
           <div class="selection-info">
             <i class="material-icons">check_circle</i>
             <span v-if="fileStore.selectedCount > 0"> 已选择 </span>
-            <span v-else>'多选模式已开启'</span>
+            <span v-else>多选模式已开启</span>
           </div>
           <div class="selection-actions">
             <button
@@ -425,7 +425,7 @@
                 @click="layoutStore.showHover('copy')"
               >
                 <i class="material-icons">content_copy</i>
-                <span>'复制文件'</span>
+                <span>复制文件</span>
               </button>
               <button
                 v-if="headerButtons.move"
@@ -441,7 +441,7 @@
                 @click="download"
               >
                 <i class="material-icons">file_download</i>
-                <span>'下载'</span>
+                <span>下载</span>
               </button>
               <button
                 v-if="headerButtons.delete"
@@ -449,7 +449,7 @@
                 @click="layoutStore.showHover('delete')"
               >
                 <i class="material-icons">delete</i>
-                <span>'删除'</span>
+                <span>删除</span>
               </button>
             </template>
             <button

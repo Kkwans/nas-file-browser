@@ -1,11 +1,11 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>'移动'</h2>
+      <h2>移动</h2>
     </div>
 
     <div class="card-content">
-      <p>'请选择目标目录：'</p>
+      <p>请选择目标目录：</p>
       <file-list
         ref="fileListRef"
         @update:selected="(val) => (dest = val)"
@@ -26,7 +26,7 @@
           :title="'新建文件夹'"
           style="justify-self: left"
         >
-          <span>'新建文件夹'</span>
+          <span>新建文件夹</span>
         </button>
       </template>
       <div>

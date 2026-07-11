@@ -5,7 +5,7 @@
         <i class="material-icons risk-confirm-icon" :class="'risk-' + riskLevel"
           >warning</i
         >
-        <span class="risk-confirm-title">'风险操作确认'</span>
+        <span class="risk-confirm-title">风险操作确认</span>
       </div>
       <div class="risk-confirm-body">
         <p class="risk-confirm-level">
@@ -27,7 +27,7 @@
           <p v-else-if="actionType === 'move'">
             '移动此目录可能导致依赖它的系统组件无法正常工作。'
           </p>
-          <p v-else>'对此目录的操作可能影响系统稳定性。'</p>
+          <p v-else>对此目录的操作可能影响系统稳定性。</p>
         </div>
       </div>
     </div>

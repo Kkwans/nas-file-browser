@@ -4,7 +4,7 @@
     <div class="column">
       <div class="card">
         <div class="card-title">
-          <h2>'用户管理'</h2>
+          <h2>用户管理</h2>
           <router-link to="/settings/users/new"
             ><button class="button">
               '新建'
@@ -15,9 +15,9 @@
         <div class="card-content full">
           <table>
             <tr>
-              <th>'用户名'</th>
-              <th>'管理员'</th>
-              <th>'作用域'</th>
+              <th>用户名</th>
+              <th>管理员</th>
+              <th>作用域</th>
               <th></th>
             </tr>
 

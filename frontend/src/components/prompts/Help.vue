@@ -1,7 +1,7 @@
 <template>
   <div class="card floating help">
     <div class="card-title">
-      <h2>'帮助'</h2>
+      <h2>帮助</h2>
     </div>
 
     <div class="card-content">

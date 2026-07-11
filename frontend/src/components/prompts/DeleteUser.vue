@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>'确认删除此用户？'</p>
+      <p>确认删除此用户？</p>
     </div>
 
     <div class="card-action">

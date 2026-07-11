@@ -53,7 +53,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>'加载中...'</span>
+        <span>加载中...</span>
       </div>
       <iframe
         ref="iframeRef"
@@ -65,7 +65,7 @@
       ></iframe>
       <div v-if="error" class="pdf-error">
         <i class="material-icons">error_outline</i>
-        <span>'加载失败'</span>
+        <span>加载失败</span>
         <button class="pdf-btn-text" @click="download">
           '下载文件'
         </button>

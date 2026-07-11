@@ -15,7 +15,7 @@
     <!-- Loading spinner -->
     <div v-if="!imageLoaded" class="image-viewer-loading">
       <div class="spinner-ring"></div>
-      <div class="spinner-text">'加载中...'</div>
+      <div class="spinner-text">加载中...</div>
     </div>
 
     <!-- Image info (top-right) -->

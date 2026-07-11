@@ -35,7 +35,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>'加载中...'</span>
+        <span>加载中...</span>
       </h2>
     </div>
     <div v-else-if="error">
@@ -45,7 +45,7 @@
             '用户名或密码错误'
           </div>
           <div class="card-title">
-            <h2>'密码'</h2>
+            <h2>密码</h2>
           </div>
 
           <div class="card-content">
@@ -109,7 +109,7 @@
               class="button button--flat"
               style="height: 4em"
             >
-              <div><i class="material-icons">file_download</i>'下载'</div>
+              <div><i class="material-icons">file_download</i>下载</div>
             </a>
             <a
               target="_blank"
@@ -117,7 +117,7 @@
               class="button button--flat"
               v-if="!req.isDir"
             >
-              <div><i class="material-icons">open_in_new</i>'打开文件'</div>
+              <div><i class="material-icons">open_in_new</i>打开文件</div>
             </a>
             <qrcode-vue
               v-if="req.isDir"
@@ -235,7 +235,7 @@
           v-if="req.isDir && req.items.length > 0"
           class="share__box share__box__items"
         >
-          <div class="share__box__header" v-if="req.isDir">'文件'</div>
+          <div class="share__box__header" v-if="req.isDir">文件</div>
           <div id="listing" class="list file-icons">
             <item
               v-for="item in req.items.slice(0, showLimit)"
@@ -264,7 +264,7 @@
               :class="{ active: fileStore.multiple }"
               id="multiple-selection"
             >
-              <p>'多选模式已开启'</p>
+              <p>多选模式已开启</p>
               <div
                 @click="() => (fileStore.multiple = false)"
                 tabindex="0"
@@ -284,7 +284,7 @@
         >
           <h2 class="message">
             <i class="material-icons">sentiment_dissatisfied</i>
-            <span>'这里没有任何文件...'</span>
+            <span>这里没有任何文件...</span>
           </h2>
         </div>
       </div>

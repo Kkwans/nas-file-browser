@@ -647,43 +647,61 @@ html.dark #listing #multiple-selection {
 
 /* Risk icons: compact in mosaic view, visible in all views */
 #listing.mosaic .risk-icon {
-  font-size: 12px;
-  margin-left: 2px;
+  margin-left: 0;
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
 }
 
 /* --- Risk Level Icons in File Listing --- */
 .risk-icon {
-  font-size: 16px;
-  margin-left: 4px;
-  vertical-align: middle;
+  display: inline-flex;
+  width: 1.15rem;
+  height: 1.15rem;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.35rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  line-height: 1;
+  vertical-align: text-bottom;
   position: relative;
-  top: -1px;
   cursor: help;
 }
 
 .risk-icon.risk-high {
   color: #da4453;
+  background: rgba(218, 68, 83, 0.12);
 }
 
 .risk-icon.risk-medium {
   color: #f5a623;
+  background: rgba(245, 166, 35, 0.15);
 }
 
 :root.dark .risk-icon.risk-high,
 html.dark .risk-icon.risk-high {
   color: #ff6b7a;
+  background: rgba(255, 107, 122, 0.16);
 }
 
 :root.dark .risk-icon.risk-medium,
 html.dark .risk-icon.risk-medium {
   color: #ffb84d;
+  background: rgba(255, 184, 77, 0.16);
 }
 
 /* --- Favorite Star in Listing --- */
 .favorite-star {
-  font-size: 0.85em !important;
-  margin-left: 0.3em !important;
-  vertical-align: middle;
+  display: inline-flex;
+  width: 1.6rem;
+  height: 1.6rem;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.25rem !important;
+  border-radius: 999px;
+  font-size: 0.95rem !important;
+  vertical-align: text-bottom;
   cursor: pointer;
   opacity: 0;
   transition:
@@ -692,9 +710,8 @@ html.dark .risk-icon.risk-medium {
     0.2s ease transform;
   color: var(--textSecondary) !important;
   position: relative;
-  top: -0.05em;
-  border-radius: 50%;
-  padding: 2px;
+  top: 0;
+  padding: 0;
 }
 
 /* In mosaic view, position star absolutely at top-right */
@@ -705,7 +722,7 @@ html.dark .risk-icon.risk-medium {
   margin-left: 0 !important;
   font-size: 0.8em !important;
   background: var(--surfacePrimary);
-  border-radius: 50%;
+  border-radius: 999px;
   width: 1.7em;
   height: 1.7em;
   display: flex;

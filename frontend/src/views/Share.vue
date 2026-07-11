@@ -214,9 +214,8 @@
               :src="raw"
               controls
             >
-              Sorry, your browser doesn't support embedded videos, but don't
-              worry, you can <a :href="raw">download it</a>
-              and watch it with your favorite video player!
+              您的浏览器不支持内嵌视频播放，请<a :href="raw">下载文件</a
+              >后使用本地播放器观看。
             </video>
             <i
               v-else-if="

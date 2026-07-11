@@ -1,8 +1,8 @@
 <template>
   <form class="rules small">
     <div v-for="(rule, index) in props.rules" :key="index">
-      <input type="checkbox" v-model="rule.regex" /><label>Regex</label>
-      <input type="checkbox" v-model="rule.allow" /><label>Allow</label>
+      <input type="checkbox" v-model="rule.regex" /><label>使用正则</label>
+      <input type="checkbox" v-model="rule.allow" /><label>允许</label>
 
       <input
         @keypress.enter.prevent

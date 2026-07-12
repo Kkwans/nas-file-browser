@@ -35,6 +35,9 @@
             title="自定义颜色"
             aria-label="自定义颜色"
           >
+            <span class="custom-color-center">
+              <i class="material-icons">palette</i>
+            </span>
             <input
               v-model="newTagColor"
               type="color"
@@ -107,6 +110,9 @@
               title="自定义颜色"
               aria-label="自定义颜色"
             >
+              <span class="custom-color-center">
+                <i class="material-icons">palette</i>
+              </span>
               <input
                 v-model="editColor"
                 type="color"
@@ -302,13 +308,40 @@ function close() {
   position: relative;
   overflow: hidden;
   background: conic-gradient(
-    #f44336 0 16.6%,
-    #ffc107 16.6% 33.2%,
-    #4caf50 33.2% 49.8%,
-    #03a9f4 49.8% 66.4%,
-    #3f51b5 66.4% 83%,
-    #e91e63 83% 100%
+    from 20deg,
+    #ff5f6d,
+    #ffc371,
+    #8bd450,
+    #39c6f4,
+    #5975e8,
+    #c56cf0,
+    #ff5f6d
   );
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
+
+.custom-color-center {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.color-dot.small .custom-color-center {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.custom-color-center .material-icons {
+  font-size: 0.85rem;
+}
+
+.color-dot.small .custom-color-center .material-icons {
+  font-size: 0.5rem;
 }
 
 .custom-color input {

@@ -8,12 +8,13 @@
 @import "./fonts.css";
 @import "./base.css";
 @import "./header.css";
+/* 移动端基础布局先加载，文件视图的最终布局覆盖放在其后。 */
+@import "./mobile.css";
 @import "./listing.css";
 @import "./listing-icons.css";
 @import "./upload-files.css";
 @import "./dashboard.css";
 @import "./login.css";
-@import "./mobile.css";
 @import "./epubReader.css";
 @import "./mdPreview.css";
 @import "./context-menu.css";

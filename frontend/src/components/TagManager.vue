@@ -564,7 +564,10 @@ function close() {
 }
 
 .color-picker {
+  display: grid;
+  grid-template-columns: repeat(9, 2.25rem);
   gap: 0.5rem;
+  justify-content: start;
 }
 
 .color-dot {
@@ -585,6 +588,15 @@ function close() {
   box-shadow:
     0 0 0 2px var(--surfacePrimary, #fff),
     0 0 0 4px #1677ff;
+}
+
+.color-picker.compact {
+  grid-template-columns: repeat(9, 1rem);
+  gap: 0.25rem;
+}
+
+.color-picker .color-dot {
+  justify-self: center;
 }
 
 .tag-create-btn {
@@ -647,6 +659,14 @@ function close() {
 
   .tag-create-row {
     display: grid;
+  }
+
+  .color-picker {
+    grid-template-columns: repeat(6, 2.25rem);
+  }
+
+  .color-picker.compact {
+    grid-template-columns: repeat(9, 1rem);
   }
 
   .tag-list {

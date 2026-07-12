@@ -34,7 +34,7 @@
     </p>
     <p class="small" v-if="displayHomeDirectoryCheckbox">
       <input type="checkbox" v-model="createUserDirData" />
-      '创建用户目录'
+      创建用户目录
     </p>
 
     <p v-if="!isDefault && user.perm">
@@ -43,7 +43,7 @@
         :disabled="user.perm.admin"
         v-model="user.lockPassword"
       />
-      '锁定密码'
+      锁定密码
     </p>
 
     <permissions v-if="user.perm" v-model:perm="user.perm" />

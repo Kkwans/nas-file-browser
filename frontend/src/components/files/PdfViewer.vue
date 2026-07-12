@@ -67,7 +67,7 @@
         <i class="material-icons">error_outline</i>
         <span>加载失败</span>
         <button class="pdf-btn-text" @click="download">
-          '下载文件'
+          下载文件
         </button>
       </div>
     </div>

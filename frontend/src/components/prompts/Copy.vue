@@ -36,7 +36,7 @@
           title="取消"
           tabindex="3"
         >
-          '取消'
+          取消
         </button>
         <button
           id="focus-prompt"
@@ -46,7 +46,7 @@
           title="复制"
           tabindex="2"
         >
-          '复制'
+          复制
         </button>
       </div>
     </div>

@@ -15,17 +15,17 @@
           <span class="risk-path">{{ targetPath }}</span>
         </p>
         <p class="risk-confirm-message">
-          '您正在对一个受保护的目录执行操作，请确认您了解可能的后果。'
+          您正在对一个受保护的目录执行操作，请确认您了解可能的后果。
         </p>
         <div class="risk-confirm-details">
           <p v-if="actionType === 'delete'">
-            '删除此目录可能导致系统组件无法正常运行，数据可能无法恢复。'
+            删除此目录可能导致系统组件无法正常运行，数据可能无法恢复。
           </p>
           <p v-else-if="actionType === 'rename'">
-            '重命名此目录可能导致依赖它的系统组件无法正常工作。'
+            重命名此目录可能导致依赖它的系统组件无法正常工作。
           </p>
           <p v-else-if="actionType === 'move'">
-            '移动此目录可能导致依赖它的系统组件无法正常工作。'
+            移动此目录可能导致依赖它的系统组件无法正常工作。
           </p>
           <p v-else>对此目录的操作可能影响系统稳定性。</p>
         </div>
@@ -39,7 +39,7 @@
         title="取消"
         tabindex="2"
       >
-        '取消'
+        取消
       </button>
       <button
         id="focus-prompt"
@@ -49,7 +49,7 @@
         title="确认执行"
         tabindex="1"
       >
-        '确认执行'
+        确认执行
       </button>
     </div>
   </div>

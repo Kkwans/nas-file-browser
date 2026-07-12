@@ -22,7 +22,7 @@
         aria-label='取消'
         title="取消"
       >
-        '取消'
+        取消
       </button>
       <button
         @click="submit"
@@ -31,7 +31,7 @@
         aria-label='确定'
         title="确定"
       >
-        '确认'
+        确认
       </button>
     </div>
   </div>

@@ -38,7 +38,7 @@
         title="确定"
         tabindex="1"
       >
-        '确定'
+        确定
       </button>
     </div>
   </div>

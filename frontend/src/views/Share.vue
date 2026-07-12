@@ -42,7 +42,7 @@
       <div v-if="error.status === 401">
         <div class="card floating" id="password" style="z-index: 9999999">
           <div v-if="attemptedPasswordLogin" class="share__wrong__password">
-            '用户名或密码错误'
+            用户名或密码错误
           </div>
           <div class="card-title">
             <h2>密码</h2>
@@ -65,7 +65,7 @@
               aria-label="提交"
               :data-title="'提交'"
             >
-              '提交'
+              提交
             </button>
           </div>
         </div>

@@ -37,7 +37,7 @@
           title="取消"
           tabindex="3"
         >
-          '取消'
+          取消
         </button>
         <button
           id="focus-prompt"
@@ -48,7 +48,7 @@
           title="移动"
           tabindex="2"
         >
-          '移动'
+          移动
         </button>
       </div>
     </div>

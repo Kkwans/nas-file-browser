@@ -2,7 +2,7 @@
   <div class="card floating">
     <div class="card-content">
       <p v-if="!isListing || selectedCount === 1">
-        '你确定要删除这个文件/文件夹吗？'
+        你确定要删除这个文件/文件夹吗？
       </p>
       <p v-else>
         你确定要删除这 
@@ -16,7 +16,7 @@
         title="取消"
         tabindex="2"
       >
-        '取消'
+        取消
       </button>
       <button
         id="focus-prompt"
@@ -26,7 +26,7 @@
         title="删除"
         tabindex="1"
       >
-        '删除'
+        删除
       </button>
     </div>
   </div>

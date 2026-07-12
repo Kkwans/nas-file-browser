@@ -10,17 +10,17 @@
         <div class="card-content">
           <p>
             <input type="checkbox" v-model="settings.signup" />
-            '允许注册'
+            允许注册
           </p>
 
           <p>
             <input type="checkbox" v-model="settings.createUserDir" />
-            '创建用户目录'
+            创建用户目录
           </p>
 
           <p>
             <input type="checkbox" v-model="settings.hideLoginButton" />
-            '隐藏登录按钮'
+            隐藏登录按钮
           </p>
 
           <p>
@@ -76,7 +76,7 @@
               v-model="settings.branding.disableExternal"
               id="branding-links"
             />
-            '禁用外部链接'
+            禁用外部链接
           </p>
 
           <p>
@@ -85,7 +85,7 @@
               v-model="settings.branding.disableUsedPercentage"
               id="branding-used-disk"
             />
-            '禁用磁盘用量百分比'
+            禁用磁盘用量百分比
           </p>
 
           <p>

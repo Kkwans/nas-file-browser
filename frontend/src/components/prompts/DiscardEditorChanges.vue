@@ -11,7 +11,7 @@
         title="取消"
         tabindex="3"
       >
-        '取消'
+        取消
       </button>
       <button
         class="button button--flat button--blue"
@@ -20,7 +20,7 @@
         title="保存更改"
         tabindex="1"
       >
-        '保存更改'
+        保存更改
       </button>
       <button
         id="focus-prompt"
@@ -30,7 +30,7 @@
         title="放弃更改"
         tabindex="2"
       >
-        '放弃更改'
+        放弃更改
       </button>
     </div>
   </div>

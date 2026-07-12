@@ -7,7 +7,7 @@
           <h2>用户管理</h2>
           <router-link to="/settings/users/new"
             ><button class="button">
-              '新建'
+              新建
             </button></router-link
           >
         </div>

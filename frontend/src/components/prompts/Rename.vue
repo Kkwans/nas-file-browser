@@ -25,7 +25,7 @@
         aria-label="取消"
         title="取消"
       >
-        '取消'
+        取消
       </button>
       <button
         @click="submit"
@@ -35,7 +35,7 @@
         title="重命名"
         :disabled="name === '' || name === oldName"
       >
-        '重命名'
+        重命名
       </button>
     </div>
   </div>

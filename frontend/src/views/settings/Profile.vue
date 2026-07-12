@@ -9,11 +9,11 @@
         <div class="card-content">
           <p>
             <input type="checkbox" name="hideDotfiles" v-model="hideDotfiles" />
-            '隐藏点文件'
+            隐藏点文件
           </p>
           <p>
             <input type="checkbox" name="singleClick" v-model="singleClick" />
-            '单击打开'
+            单击打开
           </p>
           <p>
             <input
@@ -21,11 +21,11 @@
               name="redirectAfterCopyMove"
               v-model="redirectAfterCopyMove"
             />
-            '复制/移动后跳转'
+            复制/移动后跳转
           </p>
           <p>
             <input type="checkbox" name="dateFormat" v-model="dateFormat" />
-            '日期格式'
+            日期格式
           </p>
           <h3>编辑器主题</h3>
           <AceEditorTheme

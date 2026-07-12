@@ -150,7 +150,11 @@
       @click.self="closeTagPicker"
     >
       <div class="tag-dialog" @click.stop>
-        <TagPicker :path="path || ''" @manage="openTagManager" />
+        <TagPicker
+          :path="path || ''"
+          @manage="openTagManager"
+          @close="closeTagPicker"
+        />
       </div>
     </div>
   </Teleport>

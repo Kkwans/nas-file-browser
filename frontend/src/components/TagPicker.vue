@@ -2,9 +2,24 @@
   <div class="tag-picker" @click.stop>
     <div class="tag-picker-header">
       <span>分配标签</span>
-      <button class="tag-picker-manage" @click="openManager" title="管理标签">
-        <i class="material-icons">settings</i>
-      </button>
+      <div class="tag-picker-actions">
+        <button
+          class="tag-picker-manage"
+          type="button"
+          @click="openManager"
+          title="管理标签"
+        >
+          <i class="material-icons">settings</i>
+        </button>
+        <button
+          class="tag-picker-close"
+          type="button"
+          @click="closePicker"
+          title="关闭"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      </div>
     </div>
     <div v-if="tagsStore.sortedTags.length === 0" class="tag-picker-empty">
       暂无标签，创建一个吧
@@ -15,6 +30,7 @@
         :key="tag.id"
         class="tag-picker-item"
         :class="{ active: isAssigned(tag.id) }"
+        type="button"
         @click="toggle(tag.id)"
       >
         <span class="tag-dot" :style="{ background: tag.color }"></span>
@@ -33,6 +49,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   manage: [];
+  close: [];
 }>();
 
 const tagsStore = useTagsStore();
@@ -49,6 +66,10 @@ function toggle(tagId: string) {
 
 function openManager() {
   emit("manage");
+}
+
+function closePicker() {
+  emit("close");
 }
 </script>
 
@@ -88,6 +109,32 @@ function openManager() {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.tag-picker-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tag-picker-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  color: var(--textSecondary, #888);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.tag-picker-close:hover {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 .tag-picker-manage:hover {

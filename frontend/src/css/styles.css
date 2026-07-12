@@ -197,6 +197,7 @@ main .spinner .bounce2 {
 }
 
 #previewer header > title {
+  color: #fff;
   white-space: nowrap;
   text-shadow: 1px 1px 1px #000000;
 }
@@ -430,9 +431,11 @@ html[dir="rtl"] .breadcrumbs .chevron {
 /* 自动补全弹窗现代化 */
 #editor-container #editor .ace_autocomplete {
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
-  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
   font-size: 13px;
 }
 
@@ -451,7 +454,9 @@ html[dir="rtl"] .breadcrumbs .chevron {
 }
 
 :root.dark #editor-container #editor .ace_autocomplete {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.3);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -462,7 +467,7 @@ html[dir="rtl"] .breadcrumbs .chevron {
 }
 
 #editor-container .bar .action.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 50%;
@@ -575,9 +580,15 @@ html[dir="rtl"] .card.floating .card-content .file-list {
 
 /* Loading skeleton animation */
 @keyframes skeleton-pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
 }
 
 .skeleton-loading {

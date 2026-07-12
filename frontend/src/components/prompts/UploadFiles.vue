@@ -16,12 +16,7 @@
             {{ totalMbytes }}
           </div>
         </div>
-        <button
-          class="action"
-          @click="abortAll"
-          aria-label="中止"
-          title="中止"
-        >
+        <button class="action" @click="abortAll" aria-label="中止" title="中止">
           <i class="material-icons">{{ "cancel" }}</i>
         </button>
         <button
@@ -46,7 +41,10 @@
           :aria-label="upload.name"
         >
           <div class="file-name">
-            <i class="material-icons"></i> {{ upload.name }}
+            <i class="material-icons" aria-hidden="true"></i>
+            <span class="file-name-text" :title="upload.name">{{
+              upload.name
+            }}</span>
           </div>
           <div class="file-progress">
             <div
@@ -68,18 +66,6 @@ import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import buttons from "@/utils/buttons";
 import { partial } from "filesize";
-import { T } from "@/utils/translations";
-
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
-
 const open = ref<boolean>(false);
 const speed = ref<number>(0);
 const eta = ref<number>(Infinity);

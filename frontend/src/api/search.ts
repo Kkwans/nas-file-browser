@@ -42,7 +42,8 @@ export default async function search(
         for (const line of lines) {
           if (line) {
             const item = JSON.parse(line) as SearchResult;
-          const searchUrl = `/files${encodedBase}` + url.encodePath(item.path);
+            const searchUrl =
+              `/files${encodedBase}` + url.encodePath(item.path);
             callback({ ...item, url: item.dir ? searchUrl + "/" : searchUrl });
           }
         }
@@ -55,7 +56,7 @@ export default async function search(
       for (const line of lines) {
         if (line) {
           const item = JSON.parse(line) as SearchResult;
-            const searchUrl = `/files${encodedBase}` + url.encodePath(item.path);
+          const searchUrl = `/files${encodedBase}` + url.encodePath(item.path);
           callback({ ...item, url: item.dir ? searchUrl + "/" : searchUrl });
         }
       }

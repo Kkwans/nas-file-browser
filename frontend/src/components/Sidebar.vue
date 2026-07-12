@@ -915,8 +915,7 @@ const filterByTag = (tagId: string) => {
 const clearTagFilter = () => {
   tagsStore.setFilter(null);
   if (typeof route.query.tag === "string") {
-    const base =
-      typeof route.query.base === "string" ? route.query.base : "/";
+    const base = typeof route.query.base === "string" ? route.query.base : "/";
     router.push({ path: "/files" + base });
   }
 };

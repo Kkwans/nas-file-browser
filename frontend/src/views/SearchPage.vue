@@ -44,7 +44,11 @@
                 <h1 id="tag-results-title">{{ activeTag?.name || "标签" }}</h1>
               </div>
             </div>
-            <button type="button" class="tag-results-back" @click="clearTagMode">
+            <button
+              type="button"
+              class="tag-results-back"
+              @click="clearTagMode"
+            >
               返回文件
             </button>
           </div>
@@ -88,87 +92,87 @@
       </template>
 
       <template v-else>
-      <div class="search-scope-bar" role="group" aria-label="搜索范围">
-        <span class="search-scope-label">搜索范围</span>
-        <button
-          type="button"
-          :class="{ active: searchScope === 'current' }"
-          @click="setSearchScope('current')"
-        >
-          当前目录
-        </button>
-        <button
-          type="button"
-          :class="{ active: searchScope === 'global' }"
-          @click="setSearchScope('global')"
-        >
-          全局
-        </button>
-        <span class="search-scope-path">{{ searchScopeText }}</span>
-      </div>
-
-      <!-- '类型快捷入口' -->
-      <div
-        v-if="prompt.length === 0 && results.length === 0"
-        class="search-hints"
-      >
-        <p>输入关键词搜索</p>
-        <div class="search-types">
-          <div
-            tabindex="0"
-            v-for="(v, k) in boxes"
-            :key="k"
-            class="search-type-item"
-            role="button"
-            @click="initSearch('type:' + k)"
+        <div class="search-scope-bar" role="group" aria-label="搜索范围">
+          <span class="search-scope-label">搜索范围</span>
+          <button
+            type="button"
+            :class="{ active: searchScope === 'current' }"
+            @click="setSearchScope('current')"
           >
-            <i class="material-icons">{{ v.icon }}</i>
-            <span>{{ v.label }}</span>
-          </div>
+            当前目录
+          </button>
+          <button
+            type="button"
+            :class="{ active: searchScope === 'global' }"
+            @click="setSearchScope('global')"
+          >
+            全局
+          </button>
+          <span class="search-scope-path">{{ searchScopeText }}</span>
         </div>
-      </div>
 
-      <!-- '搜索中...' -->
-      <div v-else-if="ongoing && results.length === 0" class="search-loading">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
-      </div>
-
-      <!-- 无结果 -->
-      <div
-        v-else-if="!ongoing && prompt.length > 0 && results.length === 0"
-        class="search-empty"
-      >
-        <i class="material-icons">search_off</i>
-        <p>无搜索结果</p>
-      </div>
-
-      <!-- '搜索结果' -->
-      <div v-else class="search-results" ref="resultsRef">
-        <router-link
-          v-for="(item, index) in filteredResults"
-          :key="index"
-          :to="item.url ?? '#'"
-          class="search-result-item"
+        <!-- '类型快捷入口' -->
+        <div
+          v-if="prompt.length === 0 && results.length === 0"
+          class="search-hints"
         >
-          <i class="material-icons">{{ fileIcon(item) }}</i>
-          <div class="search-result-info">
-            <span class="search-result-name">{{ item.name }}</span>
-            <span class="search-result-path">{{ item.path }}</span>
+          <p>输入关键词搜索</p>
+          <div class="search-types">
+            <div
+              tabindex="0"
+              v-for="(v, k) in boxes"
+              :key="k"
+              class="search-type-item"
+              role="button"
+              @click="initSearch('type:' + k)"
+            >
+              <i class="material-icons">{{ v.icon }}</i>
+              <span>{{ v.label }}</span>
+            </div>
           </div>
-          <div class="search-result-meta">
-            <span v-if="!item.dir" class="search-result-size">{{
-              formatSize(item.size)
-            }}</span>
-            <span v-if="item.modified" class="search-result-time">{{
-              formatTime(item.modified)
-            }}</span>
+        </div>
+
+        <!-- '搜索中...' -->
+        <div v-else-if="ongoing && results.length === 0" class="search-loading">
+          <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
           </div>
-        </router-link>
-      </div>
+        </div>
+
+        <!-- 无结果 -->
+        <div
+          v-else-if="!ongoing && prompt.length > 0 && results.length === 0"
+          class="search-empty"
+        >
+          <i class="material-icons">search_off</i>
+          <p>无搜索结果</p>
+        </div>
+
+        <!-- '搜索结果' -->
+        <div v-else class="search-results" ref="resultsRef">
+          <router-link
+            v-for="(item, index) in filteredResults"
+            :key="index"
+            :to="item.url ?? '#'"
+            class="search-result-item"
+          >
+            <i class="material-icons">{{ fileIcon(item) }}</i>
+            <div class="search-result-info">
+              <span class="search-result-name">{{ item.name }}</span>
+              <span class="search-result-path">{{ item.path }}</span>
+            </div>
+            <div class="search-result-meta">
+              <span v-if="!item.dir" class="search-result-size">{{
+                formatSize(item.size)
+              }}</span>
+              <span v-if="item.modified" class="search-result-time">{{
+                formatTime(item.modified)
+              }}</span>
+            </div>
+          </router-link>
+        </div>
       </template>
     </div>
   </div>
@@ -184,10 +188,7 @@ import { useTagsStore, type Tag } from "@/stores/tags";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import { normalizeSearchBase } from "@/utils/searchPath";
-import {
-  buildTaggedPathUrl,
-  getTaggedPathName,
-} from "@/utils/tagResults";
+import { buildTaggedPathUrl, getTaggedPathName } from "@/utils/tagResults";
 import dayjs from "@/utils/date";
 import {
   computed,

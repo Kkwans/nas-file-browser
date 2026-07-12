@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import { fetchURL } from "@/api/utils";
+import { fetchURL, StatusError } from "@/api/utils";
 import { replaceTagByName } from "@/utils/tagPersistence";
 import {
   resolvePersistenceState,
@@ -73,51 +73,71 @@ export const useTagsStore = defineStore("tags", () => {
   async function apiUpdate(
     id: string,
     updates: Partial<Tag>
-  ): Promise<boolean> {
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       await fetchURL(`${API_BASE}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        status: error instanceof StatusError ? error.status : undefined,
+      };
     }
   }
 
-  async function apiDelete(id: string): Promise<boolean> {
+  async function apiDelete(
+    id: string
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       await fetchURL(`${API_BASE}/${id}`, { method: "DELETE" });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        status: error instanceof StatusError ? error.status : undefined,
+      };
     }
   }
 
-  async function apiAddPath(tagId: string, path: string): Promise<boolean> {
+  async function apiAddPath(
+    tagId: string,
+    path: string
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       await fetchURL(`${API_BASE}/${tagId}/paths`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path }),
       });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        status: error instanceof StatusError ? error.status : undefined,
+      };
     }
   }
 
-  async function apiRemovePath(tagId: string, path: string): Promise<boolean> {
+  async function apiRemovePath(
+    tagId: string,
+    path: string
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       await fetchURL(`${API_BASE}/${tagId}/paths`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path }),
       });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        status: error instanceof StatusError ? error.status : undefined,
+      };
     }
   }
 
@@ -157,6 +177,22 @@ export const useTagsStore = defineStore("tags", () => {
     loaded.value = true;
   }
 
+  /**
+   * 旧版本曾把后端真实 ID 和浏览器临时 ID 混在一起，导致更新/删除
+   * 返回 404 后界面仍保留错误状态。变更失败时重新同步一次，以服务端
+   * 返回的用户记录为准，并让遗留的本地记录重新走创建流程。
+   */
+  async function refreshAfterMutation() {
+    const remote = await apiGet();
+    if (remote === null) return;
+    if (remote.length === 0 && tags.value.length > 0) {
+      await syncTags();
+      return;
+    }
+    tags.value = remote;
+    saveToLocalStorage();
+  }
+
   // Save to localStorage (kept for backward compat, prefer API)
   function saveTags() {
     saveToLocalStorage();
@@ -179,6 +215,7 @@ export const useTagsStore = defineStore("tags", () => {
       saveToLocalStorage();
       return savedTag;
     }
+    await refreshAfterMutation();
     return tag;
   }
 
@@ -192,7 +229,8 @@ export const useTagsStore = defineStore("tags", () => {
     if (updates.name !== undefined) tag.name = updates.name.trim();
     if (updates.color !== undefined) tag.color = updates.color;
     saveToLocalStorage();
-    await apiUpdate(id, updates);
+    const result = await apiUpdate(id, updates);
+    if (!result.ok && result.status === 404) await refreshAfterMutation();
   }
 
   // Delete a tag
@@ -200,7 +238,8 @@ export const useTagsStore = defineStore("tags", () => {
     tags.value = tags.value.filter((t) => t.id !== id);
     if (activeFilter.value === id) activeFilter.value = null;
     saveToLocalStorage();
-    await apiDelete(id);
+    const result = await apiDelete(id);
+    if (!result.ok && result.status === 404) await refreshAfterMutation();
   }
 
   // Add a path to a tag
@@ -211,7 +250,8 @@ export const useTagsStore = defineStore("tags", () => {
     if (!tag.paths.includes(cleaned)) {
       tag.paths.push(cleaned);
       saveToLocalStorage();
-      await apiAddPath(tagId, cleaned);
+      const result = await apiAddPath(tagId, cleaned);
+      if (!result.ok && result.status === 404) await refreshAfterMutation();
     }
   }
 
@@ -222,7 +262,8 @@ export const useTagsStore = defineStore("tags", () => {
     const cleaned = path.replace(/\/+$/, "");
     tag.paths = tag.paths.filter((p) => p !== cleaned);
     saveToLocalStorage();
-    await apiRemovePath(tagId, cleaned);
+    const result = await apiRemovePath(tagId, cleaned);
+    if (!result.ok && result.status === 404) await refreshAfterMutation();
   }
 
   // Toggle a path in a tag (add if not present, remove if present)
@@ -234,11 +275,13 @@ export const useTagsStore = defineStore("tags", () => {
     if (idx >= 0) {
       tag.paths.splice(idx, 1);
       saveToLocalStorage();
-      await apiRemovePath(tagId, cleaned);
+      const result = await apiRemovePath(tagId, cleaned);
+      if (!result.ok && result.status === 404) await refreshAfterMutation();
     } else {
       tag.paths.push(cleaned);
       saveToLocalStorage();
-      await apiAddPath(tagId, cleaned);
+      const result = await apiAddPath(tagId, cleaned);
+      if (!result.ok && result.status === 404) await refreshAfterMutation();
     }
   }
 

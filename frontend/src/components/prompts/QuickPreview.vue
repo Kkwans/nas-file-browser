@@ -101,8 +101,6 @@ import {
   highlightAndAnnotateCodeBlocks,
 } from "@/utils/externalResources";
 import dayjs from "@/utils/date";
-import { T } from "@/utils/translations";
-const t = (key: string): string => (T as any)[key] ?? key;
 const router = useRouter();
 
 const fileStore = useFileStore();

@@ -59,18 +59,7 @@ import { useRoute, useRouter } from "vue-router";
 import { StatusError } from "@/api/utils";
 import { authMethod } from "@/utils/constants";
 import { logout } from "@/utils/auth";
-import { T } from "@/utils/translations";
 import type { IUser } from "@/types/user";
-
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
 
 const error = ref<StatusError>();
 const originalUser = ref<IUser>();

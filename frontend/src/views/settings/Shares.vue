@@ -72,18 +72,6 @@ import Errors from "@/views/Errors.vue";
 import { inject, ref, onMounted } from "vue";
 import { StatusError } from "@/api/utils";
 import { copy } from "@/utils/clipboard";
-import { T } from "@/utils/translations";
-
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
-
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 

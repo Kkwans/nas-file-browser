@@ -7,18 +7,18 @@
           dir ? "folder" : "insert_drive_file"
         }}</i>
         <div class="info-title-text">
-          <h2>
-            {{
-              selected.length > 1
-                ? "已选择 " + selected.length + " 个项目"
-                : name
-            }}
+          <h2 v-if="selected.length > 1">
+            {{ "已选择 " + selected.length + " 个项目" }}
           </h2>
-          <span
-            class="info-subtitle"
-            v-if="selected.length < 2 && showFullPath"
-            >{{ fullPath }}</span
-          >
+          <input
+            v-else
+            v-model="editableName"
+            class="info-name-input"
+            type="text"
+            maxlength="255"
+            aria-label="文件名称"
+            @keyup.enter="renameFromInfo"
+          />
         </div>
       </div>
     </div>
@@ -38,14 +38,44 @@
 
       <div class="info-row" v-if="selected.length < 2">
         <span class="info-label">名称</span>
-        <span class="info-value">{{ name }}</span>
+        <div class="info-value info-name-value">
+          <button
+            class="info-rename-button"
+            type="button"
+            :disabled="
+              editableName.trim() === name || !editableName.trim() || renaming
+            "
+            @click="renameFromInfo"
+          >
+            <i class="material-icons">drive_file_rename_outline</i>
+            <span>{{ renaming ? "保存中…" : "保存名称" }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="info-row" v-if="!dir || selected.length > 1">
         <span class="info-label">大小</span>
         <span class="info-value info-size">
-          <span id="content_length"></span> {{ humanSize }}
+          {{ humanSize }}（{{ rawSize.toLocaleString("zh-CN") }} 字节）
         </span>
+      </div>
+
+      <div class="info-row" v-if="selected.length < 2">
+        <span class="info-label">路径</span>
+        <div class="info-value info-path-value">
+          <code>{{ displayPath }}</code>
+          <button
+            class="copy-path-button"
+            type="button"
+            :aria-label="pathCopied ? '已复制路径' : '复制路径'"
+            :title="pathCopied ? '已复制' : '复制路径'"
+            @click="copyFullPath"
+          >
+            <i class="material-icons">{{
+              pathCopied ? "check" : "content_copy"
+            }}</i>
+          </button>
+        </div>
       </div>
 
       <div class="info-row" v-if="resolution">
@@ -60,20 +90,31 @@
         <span class="info-value">{{ humanTime }}</span>
       </div>
 
+      <div class="info-row" v-if="selected.length < 2">
+        <span class="info-label">创建时间</span>
+        <span class="info-value">{{ creationTime }}</span>
+      </div>
+
       <!-- Directory info -->
       <template v-if="isDirectoryInfo">
         <div class="info-divider"></div>
         <div class="info-row">
           <span class="info-label">文件数</span>
-          <span class="info-value">{{ directoryStats?.files ?? "统计中..." }}</span>
+          <span class="info-value">{{
+            directoryStats?.files ?? "统计中..."
+          }}</span>
         </div>
         <div class="info-row">
           <span class="info-label">文件夹</span>
-          <span class="info-value">{{ directoryStats?.directories ?? "统计中..." }}</span>
+          <span class="info-value">{{
+            directoryStats?.directories ?? "统计中..."
+          }}</span>
         </div>
         <div class="info-row" v-if="directoryStats">
           <span class="info-label">总大小</span>
-          <span class="info-value info-size">{{ filesize(directoryStats.size) }}</span>
+          <span class="info-value info-size">{{
+            filesize(directoryStats.size)
+          }}</span>
         </div>
         <p v-if="statsError" class="info-stats-error">{{ statsError }}</p>
       </template>
@@ -137,14 +178,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed, inject, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { files as api } from "@/api";
+import { removePrefix } from "@/api/utils";
+import url from "@/utils/url";
 import { summarizeDirectory } from "@/utils/directoryStats";
 
 const $showError = inject<IToastError>("$showError")!;
@@ -152,44 +195,70 @@ const showChecksums = ref(false);
 const directoryStats = ref<ReturnType<typeof summarizeDirectory> | null>(null);
 const statsError = ref("");
 const route = useRoute();
+const router = useRouter();
 
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const { closeHovers } = layoutStore;
 
-const { req, selected, selectedCount, isListing } = storeToRefs(fileStore);
+const { req, selected, selectedCount, isListing, reload, preselect } =
+  storeToRefs(fileStore);
+
+const editableName = ref("");
+const renaming = ref(false);
+const pathCopied = ref(false);
+
+const rawSize = computed(() => {
+  if (isDirectoryInfo.value && directoryStats.value) {
+    return directoryStats.value.size;
+  }
+  if (selectedCount.value === 0 || !isListing.value) {
+    return req.value?.size ?? 0;
+  }
+  return selected.value.reduce(
+    (sum, idx) => sum + (req.value?.items[idx]?.size ?? 0),
+    0
+  );
+});
 
 const humanSize = computed(() => {
-  if (selectedCount.value === 0 || !isListing.value) {
-    return filesize(req.value!.size);
-  }
-  let sum = 0;
-  for (const idx of selected.value) {
-    sum += req.value!.items[idx].size;
-  }
-  return filesize(sum);
+  return filesize(rawSize.value);
 });
 
 onMounted(async () => {
   if (!isDirectoryInfo.value) return;
   try {
-    directoryStats.value = summarizeDirectory(await api.fetchAll(directoryPath.value));
+    directoryStats.value = summarizeDirectory(
+      await api.fetchAll(directoryPath.value)
+    );
   } catch {
     statsError.value = "目录统计失败，请稍后重试";
   }
 });
 
 const humanTime = computed(() => {
-  if (selectedCount.value === 0) {
-    return dayjs(req.value!.modified).fromNow();
-  }
-  return dayjs(req.value!.items[selected.value[0]].modified).fromNow();
+  const resource = selectedResource.value;
+  return resource?.modified
+    ? dayjs(resource.modified).format("YYYY年M月D日 HH:mm:ss")
+    : "后端未提供";
 });
 
 const name = computed(() => {
   return selectedCount.value === 0
     ? req.value!.name
     : req.value!.items[selected.value[0]].name;
+});
+
+const selectedResource = computed<any>(() => {
+  if (!req.value) return null;
+  if (selectedCount.value === 0 || !isListing.value) return req.value;
+  return req.value.items[selected.value[0]];
+});
+
+const creationTime = computed(() => {
+  const value =
+    selectedResource.value?.created ?? selectedResource.value?.createdAt;
+  return value ? dayjs(value).format("YYYY年M月D日 HH:mm:ss") : "后端未提供";
 });
 
 const fullPath = computed(() => {
@@ -201,8 +270,10 @@ const fullPath = computed(() => {
   return parentPath + item.name;
 });
 
-const showFullPath = computed(() => {
-  return selected.value.length < 2;
+const displayPath = computed(() => {
+  const path = fullPath.value;
+  if (path === "/files" || path === "/files/") return "/";
+  return path.startsWith("/files/") ? path.slice("/files".length) : path;
 });
 
 const dir = computed(() => {
@@ -220,6 +291,57 @@ const directoryPath = computed(() => {
   if (selectedCount.value === 0) return route.path;
   return req.value!.items[selected.value[0]].url;
 });
+
+watch(
+  name,
+  (value) => {
+    editableName.value = value;
+  },
+  { immediate: true }
+);
+
+const copyFullPath = async () => {
+  try {
+    await navigator.clipboard.writeText(displayPath.value);
+    pathCopied.value = true;
+    window.setTimeout(() => {
+      pathCopied.value = false;
+    }, 1600);
+  } catch {
+    $showError(new Error("复制路径失败，请检查浏览器权限"));
+  }
+};
+
+const renameFromInfo = async () => {
+  const nextName = editableName.value.trim();
+  if (
+    !nextName ||
+    nextName === name.value ||
+    !selectedResource.value ||
+    renaming.value
+  ) {
+    return;
+  }
+
+  const oldLink = selectedResource.value.url;
+  const newLink =
+    url.removeLastDir(oldLink) + "/" + encodeURIComponent(nextName);
+  renaming.value = true;
+  try {
+    await api.move([{ from: oldLink, to: newLink }]);
+    if (!isListing.value) {
+      await router.push({ path: newLink });
+    } else {
+      preselect.value = removePrefix(newLink);
+      reload.value = true;
+    }
+    closeHovers();
+  } catch (e: any) {
+    $showError(e);
+  } finally {
+    renaming.value = false;
+  }
+};
 
 const resolution = computed(() => {
   if (selectedCount.value === 1) {
@@ -499,5 +621,135 @@ html.dark .info-type-icon {
 
 :root.dark .info-collapse-btn {
   border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+/* 文件属性采用 Windows 风格的可编辑名称和独立路径行。 */
+.info-dialog {
+  width: min(40rem, calc(100vw - 2rem));
+  max-width: none;
+  overflow: hidden;
+}
+
+.info-title-text {
+  flex: 1;
+}
+
+.info-name-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.45rem 0.6rem;
+  color: var(--textPrimary, #1e293b);
+  background: var(--surfacePrimary, #fff);
+  border: 1px solid var(--divider, #cbd5e1);
+  border-radius: 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  outline: none;
+}
+
+.info-name-input:focus {
+  border-color: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.14);
+}
+
+.info-name-value {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+}
+
+.info-rename-button,
+.copy-path-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.65rem;
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.08);
+  border: 1px solid rgba(22, 119, 255, 0.18);
+  border-radius: 0.45rem;
+  cursor: pointer;
+}
+
+.info-rename-button:disabled {
+  color: var(--textSecondary, #94a3b8);
+  background: var(--surfaceSecondary, #f8fafc);
+  border-color: var(--divider, #e2e8f0);
+  cursor: not-allowed;
+}
+
+.info-rename-button .material-icons,
+.copy-path-button .material-icons {
+  font-size: 1.05rem;
+}
+
+.info-path-value {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.info-path-value code {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.55rem;
+  overflow-wrap: anywhere;
+  color: var(--textPrimary, #475569);
+  background: var(--surfaceSecondary, #f8fafc);
+  border: 1px solid var(--divider, #e2e8f0);
+  border-radius: 0.4rem;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.copy-path-button {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  padding: 0;
+}
+
+@media (max-width: 736px) {
+  .info-dialog {
+    width: calc(100vw - 1rem);
+  }
+
+  .info-content {
+    padding-inline: 0.9rem;
+  }
+
+  .info-row {
+    gap: 0.5rem;
+  }
+
+  .info-label {
+    width: 4.5rem;
+  }
+
+  .info-rename-button span {
+    display: none;
+  }
+}
+
+:root.dark .info-name-input,
+html.dark .info-name-input {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+:root.dark .info-path-value code,
+html.dark .info-path-value code {
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 </style>

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import { fetchURL } from "@/api/utils";
+import { fetchURL, StatusError } from "@/api/utils";
 import {
   replaceFavoriteByPath,
   resolvePersistenceState,
@@ -66,25 +66,33 @@ export const useFavoritesStore = defineStore("favorites", () => {
   async function apiUpdate(
     id: string,
     fav: Partial<Favorite>
-  ): Promise<boolean> {
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       await fetchURL(`${API_BASE}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fav),
       });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        status: error instanceof StatusError ? error.status : undefined,
+      };
     }
   }
 
-  async function apiDelete(id: string): Promise<boolean> {
+  async function apiDelete(
+    id: string
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       await fetchURL(`${API_BASE}/${id}`, { method: "DELETE" });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        status: error instanceof StatusError ? error.status : undefined,
+      };
     }
   }
 
@@ -130,29 +138,33 @@ export const useFavoritesStore = defineStore("favorites", () => {
   async function apiUpdateGroup(
     id: string,
     group: Partial<FavoriteGroup>
-  ): Promise<boolean> {
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       await fetchURL(`${GROUPS_API_BASE}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(group),
       });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        status: error instanceof StatusError ? error.status : undefined,
+      };
     }
   }
 
   async function apiDeleteGroup(
     id: string
-  ): Promise<{ ok: boolean; conflict?: boolean }> {
+  ): Promise<{ ok: boolean; conflict?: boolean; status?: number }> {
     try {
       const res = await fetchURL(`${GROUPS_API_BASE}/${id}`, {
         method: "DELETE",
       });
       return { ok: res.ok };
-    } catch {
-      return { ok: false };
+    } catch (error) {
+      const status = error instanceof StatusError ? error.status : undefined;
+      return { ok: false, conflict: status === 409, status };
     }
   }
 
@@ -234,6 +246,33 @@ export const useFavoritesStore = defineStore("favorites", () => {
     loaded.value = true;
   }
 
+  /**
+   * 兼容旧版本留下的临时 ID：变更接口返回 404 时重新读取当前用户的
+   * 服务端记录；若服务端暂时为空，则把本地缓存重新同步并取得真实 ID。
+   */
+  async function refreshAfterMutation() {
+    const [remoteGroups, remoteFavorites] = await Promise.all([
+      apiGetGroups(),
+      apiGet(),
+    ]);
+    if (remoteGroups === null || remoteFavorites === null) return;
+
+    if (remoteGroups.length === 0 && groups.value.length > 0) {
+      await syncGroups();
+    } else {
+      groups.value = remoteGroups;
+    }
+
+    if (remoteFavorites.length === 0 && favorites.value.length > 0) {
+      await syncFavorites();
+    } else {
+      favorites.value = remoteFavorites;
+    }
+
+    saveGroupsToLocalStorage();
+    saveToLocalStorage();
+  }
+
   function saveFavorites() {
     saveToLocalStorage();
   }
@@ -256,6 +295,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
     if (created) {
       favorites.value = replaceFavoriteByPath(favorites.value, created);
       saveToLocalStorage();
+    } else {
+      await refreshAfterMutation();
     }
   }
 
@@ -263,7 +304,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
     favorites.value = favorites.value.filter((f) => f.id !== id);
     favorites.value.forEach((f, i) => (f.order = i));
     saveToLocalStorage();
-    await apiDelete(id);
+    const result = await apiDelete(id);
+    if (!result.ok && result.status === 404) await refreshAfterMutation();
   }
 
   async function removeByPath(path: string) {
@@ -295,7 +337,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
     if (!fav) return;
     fav.groupId = groupId;
     saveToLocalStorage();
-    await apiUpdate(favId, { groupId });
+    const result = await apiUpdate(favId, { groupId });
+    if (!result.ok && result.status === 404) await refreshAfterMutation();
   }
 
   async function reorderFavorite(fromIndex: number, toIndex: number) {
@@ -382,7 +425,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
     if (updates.name !== undefined) group.name = updates.name;
     if (updates.color !== undefined) group.color = updates.color;
     saveGroupsToLocalStorage();
-    await apiUpdateGroup(id, updates);
+    const result = await apiUpdateGroup(id, updates);
+    if (!result.ok && result.status === 404) await refreshAfterMutation();
   }
 
   async function deleteGroup(
@@ -398,6 +442,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
       saveGroupsToLocalStorage();
       saveToLocalStorage();
     }
+    if (!result.ok && result.status === 404) await refreshAfterMutation();
     return result;
   }
 

@@ -10,7 +10,9 @@
   border: 1px solid var(--divider);
   border-radius: 0.875rem;
   box-shadow: 0 1rem 3rem rgba(15, 23, 42, 0.2);
-  transform: none;
+  transform: none !important;
+  animation: none !important;
+  z-index: 1001;
 }
 
 .upload-files .file {
@@ -76,13 +78,13 @@
 
 .upload-files .upload-title-main {
   display: block;
-  color: var(--text);
+  color: var(--textPrimary, #1e293b);
 }
 
 .upload-files .upload-count {
   display: block;
   margin-top: 0.15rem;
-  color: var(--secondary-text);
+  color: var(--textSecondary, #64748b);
   font-size: 0.78rem;
   font-weight: 500;
 }

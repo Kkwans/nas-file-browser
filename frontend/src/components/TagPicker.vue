@@ -54,12 +54,13 @@ function openManager() {
 
 <style scoped>
 .tag-picker {
+  box-sizing: border-box;
   background: var(--surfacePrimary, #fff);
   border: 1px solid var(--divider, rgba(0, 0, 0, 0.1));
-  border-radius: 0.5em;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  min-width: 12em;
-  max-height: 16em;
+  border-radius: 1rem;
+  box-shadow: 0 1.5rem 3rem rgba(15, 23, 42, 0.2);
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: min(32rem, calc(100dvh - 2rem));
   overflow-y: auto;
 }
 
@@ -67,9 +68,10 @@ function openManager() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5em 0.75em;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--divider, rgba(0, 0, 0, 0.06));
-  font-size: 0.75em;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--textSecondary, #666);
 }
@@ -79,9 +81,13 @@ function openManager() {
   border: none;
   cursor: pointer;
   color: var(--textSecondary, #888);
-  padding: 0.125em;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
   border-radius: 0.25em;
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tag-picker-manage:hover {
@@ -89,7 +95,7 @@ function openManager() {
 }
 
 .tag-picker-manage .material-icons {
-  font-size: 0.875em;
+  font-size: 1.25rem;
 }
 
 .tag-picker-empty {
@@ -100,34 +106,41 @@ function openManager() {
 }
 
 .tag-picker-list {
-  padding: 0.25em 0;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.625rem;
 }
 
 .tag-picker-item {
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.75rem;
   width: 100%;
-  padding: 0.375em 0.75em;
-  background: none;
-  border: none;
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
   cursor: pointer;
-  font-size: 0.8125em;
+  font-size: 0.9375rem;
   color: var(--textPrimary, #1a1a2e);
   text-align: left;
 }
 
 .tag-picker-item:hover {
   background: var(--hover, rgba(0, 0, 0, 0.04));
+  border-color: var(--divider, rgba(0, 0, 0, 0.08));
 }
 
 .tag-picker-item.active {
-  background: rgba(33, 150, 243, 0.06);
+  color: var(--blue, #1677ff);
+  background: rgba(22, 119, 255, 0.08);
+  border-color: rgba(22, 119, 255, 0.18);
 }
 
 .tag-dot {
-  width: 0.5em;
-  height: 0.5em;
+  width: 0.75rem;
+  height: 0.75rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -141,8 +154,14 @@ function openManager() {
 }
 
 .tag-check {
-  font-size: 0.875em;
-  color: var(--blue, #2196f3);
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  font-size: 1rem;
+  color: #fff;
+  background: var(--blue, #1677ff);
 }
 
 /* Dark mode */

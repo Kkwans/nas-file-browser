@@ -1663,6 +1663,12 @@
   font-size: 0.9rem;
 }
 
+#listing.mosaic > h2,
+#listing.compact-grid > h2 {
+  margin-left: 0.375rem;
+  padding-left: 0.375rem;
+}
+
 /* 紧凑网格只保留图标/预览和名称，完全隐藏详细列表表头。 */
 #listing.compact-grid .item {
   min-height: 9.75rem;

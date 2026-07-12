@@ -469,17 +469,51 @@
   align-items: center;
   width: 100%;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin: 0.75rem 0 0.625rem;
   padding: 0.625rem 0.75rem;
   color: var(--textPrimary, #1e293b);
-  background: var(--file-accent-soft);
-  border: 1px solid color-mix(in srgb, var(--file-accent) 22%, transparent);
-  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--file-accent) 7%, var(--file-surface));
+  border: 1px solid color-mix(in srgb, var(--file-accent) 18%, var(--file-border));
+  border-radius: 0.75rem;
   font-size: 0.8125rem;
 }
 
 .tag-filter-indicator span {
   flex: 1;
+  min-width: 0;
+}
+
+.tag-filter-indicator strong {
+  color: var(--file-accent);
+  font-weight: 700;
+}
+
+.tag-filter-scope {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  background: var(--file-surface);
+  border: 1px solid var(--file-border);
+  border-radius: 0.5rem;
+}
+
+.tag-filter-scope button {
+  min-height: 2rem;
+  padding: 0.25rem 0.625rem;
+  color: var(--file-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.tag-filter-scope button:hover,
+.tag-filter-scope button.active {
+  color: var(--file-accent);
+  background: var(--file-accent-soft);
+  font-weight: 700;
 }
 
 .tag-filter-clear-btn,
@@ -500,6 +534,26 @@
   color: var(--file-accent);
   background: var(--file-accent-soft);
   border-color: var(--file-accent);
+}
+
+@media (max-width: 736px) {
+  .tag-filter-indicator {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .tag-filter-indicator > span {
+    flex: 1 1 calc(100% - 3rem);
+  }
+
+  .tag-filter-scope {
+    order: 3;
+    width: 100%;
+  }
+
+  .tag-filter-scope button {
+    flex: 1;
+  }
 }
 
 /* 顶部视图/排序菜单。 */

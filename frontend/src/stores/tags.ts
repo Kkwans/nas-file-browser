@@ -16,6 +16,8 @@ export interface Tag {
   createdAt: number;
 }
 
+export type TagFilterMode = "current" | "global";
+
 const STORAGE_KEY = "nas-file-browser-tags";
 const API_BASE = "/api/tags";
 
@@ -45,6 +47,7 @@ export const useTagsStore = defineStore("tags", () => {
   const tags = ref<Tag[]>([]);
   const loaded = ref(false);
   const activeFilter = ref<string | null>(null); // tag id for filtering
+  const filterMode = ref<TagFilterMode>("current");
 
   // --- API helpers ---
 
@@ -302,6 +305,10 @@ export const useTagsStore = defineStore("tags", () => {
     activeFilter.value = activeFilter.value === tagId ? null : tagId;
   }
 
+  function setFilterMode(mode: TagFilterMode) {
+    filterMode.value = mode;
+  }
+
   // Get filtered paths (based on active filter)
   const filteredPaths = computed(() => {
     if (!activeFilter.value) return null; // null means no filter active
@@ -319,7 +326,22 @@ export const useTagsStore = defineStore("tags", () => {
   function matchesFilter(path: string): boolean {
     if (!filteredPaths.value) return true; // no filter = show all
     const cleaned = path.replace(/\/+$/, "");
-    return filteredPaths.value.has(cleaned);
+    if (filterMode.value === "current") {
+      return filteredPaths.value.has(cleaned);
+    }
+
+    // 全局模式保留标签筛选状态，浏览不同目录时显示标签项及其父目录，
+    // 让用户可以沿目录树进入真正被打标的文件/文件夹。
+    for (const taggedPath of filteredPaths.value) {
+      if (
+        taggedPath === cleaned ||
+        taggedPath.startsWith(`${cleaned}/`) ||
+        cleaned.startsWith(`${taggedPath}/`)
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Sync local data to API (e.g. after recovering from offline)
@@ -359,6 +381,7 @@ export const useTagsStore = defineStore("tags", () => {
     sortedTags,
     loaded,
     activeFilter,
+    filterMode,
     activeFilterTag,
     filteredPaths,
     loadTags,
@@ -372,6 +395,7 @@ export const useTagsStore = defineStore("tags", () => {
     getTagsForPath,
     hasTags,
     setFilter,
+    setFilterMode,
     matchesFilter,
     syncTags,
   };

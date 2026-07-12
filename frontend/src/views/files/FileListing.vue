@@ -262,6 +262,22 @@
               tagsStore.activeFilterTag.name
             }}</strong></span
           >
+          <div class="tag-filter-scope" role="group" aria-label="标签筛选范围">
+            <button
+              type="button"
+              :class="{ active: tagsStore.filterMode === 'current' }"
+              @click="tagsStore.setFilterMode('current')"
+            >
+              当前目录
+            </button>
+            <button
+              type="button"
+              :class="{ active: tagsStore.filterMode === 'global' }"
+              @click="tagsStore.setFilterMode('global')"
+            >
+              全局
+            </button>
+          </div>
           <button
             class="tag-filter-clear-btn"
             @click="tagsStore.setFilter(null)"

@@ -17,7 +17,7 @@
             type="text"
             maxlength="255"
             aria-label="文件名称"
-            @keyup.enter="renameFromInfo"
+            @keyup.enter="confirmInfo"
           />
         </div>
       </div>
@@ -34,23 +34,6 @@
       <div class="info-row" v-if="selected.length < 2">
         <span class="info-label">类型</span>
         <span class="info-value">{{ dir ? "文件夹" : "文件" }}</span>
-      </div>
-
-      <div class="info-row" v-if="selected.length < 2">
-        <span class="info-label">名称</span>
-        <div class="info-value info-name-value">
-          <button
-            class="info-rename-button"
-            type="button"
-            :disabled="
-              editableName.trim() === name || !editableName.trim() || renaming
-            "
-            @click="renameFromInfo"
-          >
-            <i class="material-icons">drive_file_rename_outline</i>
-            <span>{{ renaming ? "保存中…" : "保存名称" }}</span>
-          </button>
-        </div>
       </div>
 
       <div class="info-row" v-if="!dir || selected.length > 1">
@@ -169,12 +152,21 @@
       <button
         id="focus-prompt"
         type="submit"
-        @click="closeHovers"
+        @click="cancelInfo"
+        class="button--secondary"
+        aria-label="取消"
+      >
+        取消
+      </button>
+      <button
+        type="submit"
+        :disabled="renaming"
+        @click="confirmInfo"
         class="button--primary"
         aria-label="确认"
       >
-        <i class="material-icons">check</i>
-        <span>确认</span>
+        <i class="material-icons">{{ renaming ? "sync" : "check" }}</i>
+        <span>{{ renaming ? "保存中…" : "确认" }}</span>
       </button>
     </div>
   </div>
@@ -273,10 +265,27 @@ const fullPath = computed(() => {
   return parentPath + item.name;
 });
 
+const decodePath = (value: string) =>
+  value
+    .split("/")
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment);
+      } catch {
+        return segment;
+      }
+    })
+    .join("/");
+
 const displayPath = computed(() => {
   const path = fullPath.value;
-  if (path === "/files" || path === "/files/") return "/";
-  return path.startsWith("/files/") ? path.slice("/files".length) : path;
+  const withoutPrefix =
+    path === "/files" || path === "/files/"
+      ? "/"
+      : path.startsWith("/files/")
+        ? path.slice("/files".length)
+        : path;
+  return decodePath(withoutPrefix);
 });
 
 const dir = computed(() => {
@@ -346,6 +355,18 @@ const renameFromInfo = async () => {
   }
 };
 
+const confirmInfo = async () => {
+  if (editableName.value.trim() !== name.value) {
+    await renameFromInfo();
+    return;
+  }
+  closeHovers();
+};
+
+const cancelInfo = () => {
+  closeHovers();
+};
+
 const resolution = computed(() => {
   if (selectedCount.value === 1) {
     const selectedItem = req.value!.items[selected.value[0]] as any;
@@ -383,7 +404,7 @@ const checksum = async (
 
 <style scoped>
 .info-dialog {
-  max-width: 32em;
+  max-width: 48rem;
 }
 
 /* Header with icon */
@@ -628,13 +649,14 @@ html.dark .info-type-icon {
 
 /* 文件属性采用 Windows 风格的可编辑名称和独立路径行。 */
 .info-dialog {
-  width: min(40rem, calc(100vw - 2rem));
+  width: min(48rem, calc(100vw - 2rem));
   max-width: none;
   overflow: hidden;
 }
 
 .info-title-text {
   flex: 1;
+  min-width: 0;
 }
 
 .info-name-input {
@@ -649,6 +671,7 @@ html.dark .info-type-icon {
   border-radius: 0.45rem;
   font-size: 1.05rem;
   font-weight: 650;
+  text-overflow: ellipsis;
   outline: none;
 }
 
@@ -657,15 +680,6 @@ html.dark .info-type-icon {
   box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.14);
 }
 
-.info-name-value {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex: 1;
-  min-width: 0;
-}
-
-.info-rename-button,
 .copy-path-button {
   display: inline-flex;
   align-items: center;
@@ -680,14 +694,6 @@ html.dark .info-type-icon {
   cursor: pointer;
 }
 
-.info-rename-button:disabled {
-  color: var(--textSecondary, #94a3b8);
-  background: var(--surfaceSecondary, #f8fafc);
-  border-color: var(--divider, #e2e8f0);
-  cursor: not-allowed;
-}
-
-.info-rename-button .material-icons,
 .copy-path-button .material-icons {
   font-size: 1.05rem;
 }
@@ -714,10 +720,40 @@ html.dark .info-type-icon {
   line-height: 1.45;
 }
 
+.info-actions {
+  display: flex;
+  gap: 0.625rem;
+  padding: 0.875rem 1.25rem 1.125rem;
+}
+
+.info-actions .button--secondary,
+.info-actions .button--primary {
+  min-width: 5.5rem;
+  min-height: 2.75rem;
+  border-radius: 0.625rem;
+}
+
+.info-actions .button--secondary {
+  color: var(--textPrimary, #475569);
+  background: var(--surfaceSecondary, #f8fafc);
+  border: 1px solid var(--divider, #e2e8f0);
+}
+
+.info-actions .button--secondary:hover {
+  background: var(--hover, #f1f5f9);
+}
+
+.info-actions .button--primary:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .copy-path-button {
   flex: 0 0 auto;
-  width: 2.25rem;
+  width: 2.5rem;
+  min-height: 2.5rem;
   padding: 0;
+  border-radius: 0.75rem;
 }
 
 @media (max-width: 736px) {
@@ -735,10 +771,6 @@ html.dark .info-type-icon {
 
   .info-label {
     width: 4.5rem;
-  }
-
-  .info-rename-button span {
-    display: none;
   }
 }
 

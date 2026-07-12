@@ -84,8 +84,7 @@
         <span class="detail-path" :title="path">{{ path }}</span>
       </div>
 
-      <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
-      <p v-else class="size" :data-order="humanSize">{{ humanSize }}</p>
+      <p class="size" :data-order="humanSize">{{ humanSize }}</p>
 
       <p class="modified">
         <time :datetime="modified">{{ humanTime }}</time>

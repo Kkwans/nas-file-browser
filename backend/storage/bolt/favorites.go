@@ -56,10 +56,21 @@ func (f favoritesBackend) GetByID(userID uint, id string) (*favorites.Favorite, 
 	if errors.Is(err, storm.ErrNotFound) {
 		return nil, favorites.ErrNotExist
 	}
-	if err != nil || fav.UserID != userID {
+	if err != nil {
 		return nil, favorites.ErrNotExist
 	}
-	return &fav, nil
+	if fav.UserID == userID {
+		return &fav, nil
+	}
+	// 兼容按用户隔离改造前创建的旧记录，在首次变更时完成归属迁移。
+	if fav.UserID == 0 {
+		fav.UserID = userID
+		if err := f.db.Update(&fav); err != nil {
+			return nil, err
+		}
+		return &fav, nil
+	}
+	return nil, favorites.ErrNotExist
 }
 
 func (f favoritesBackend) GetByPath(userID uint, path string) (*favorites.Favorite, error) {
@@ -104,10 +115,20 @@ func (f favoritesBackend) GetGroupByID(userID uint, id string) (*favorites.Favor
 	if errors.Is(err, storm.ErrNotFound) {
 		return nil, favorites.ErrNotExist
 	}
-	if err != nil || group.UserID != userID {
+	if err != nil {
 		return nil, favorites.ErrNotExist
 	}
-	return &group, nil
+	if group.UserID == userID {
+		return &group, nil
+	}
+	if group.UserID == 0 {
+		group.UserID = userID
+		if err := f.db.Update(&group); err != nil {
+			return nil, err
+		}
+		return &group, nil
+	}
+	return nil, favorites.ErrNotExist
 }
 
 func (f favoritesBackend) SaveGroup(group *favorites.FavoriteGroup) error {

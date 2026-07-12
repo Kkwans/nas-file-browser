@@ -43,10 +43,21 @@ func (t tagsBackend) GetByID(userID uint, id string) (*tags.Tag, error) {
 	if errors.Is(err, storm.ErrNotFound) {
 		return nil, tags.ErrNotExist
 	}
-	if err != nil || tag.UserID != userID {
+	if err != nil {
 		return nil, tags.ErrNotExist
 	}
-	return &tag, nil
+	if tag.UserID == userID {
+		return &tag, nil
+	}
+	// 兼容按用户隔离改造前创建的旧记录，在首次变更时完成归属迁移。
+	if tag.UserID == 0 {
+		tag.UserID = userID
+		if err := t.db.Update(&tag); err != nil {
+			return nil, err
+		}
+		return &tag, nil
+	}
+	return nil, tags.ErrNotExist
 }
 
 func (t tagsBackend) Save(tag *tags.Tag) error {

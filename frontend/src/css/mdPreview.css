@@ -870,3 +870,65 @@ html.dark #vditor-mount .vditor-ir sup a,
 html.dark #vditor-mount .vditor-sv sup a {
   color: #60a5fa !important;
 }
+
+/*
+ * Vditor 会在编辑区域内部给节点重新指定颜色，单独设置容器颜色并不能
+ * 覆盖这些规则，最终会出现“深色背景 + 深色文字”。按 Vditor 的主题类
+ * 重新建立一组高优先级的可读性边界，且不依赖 html 是否恰好带有 dark 类。
+ */
+#vditor-mount .vditor--dark .vditor-content,
+#vditor-mount .vditor--dark .vditor-ir,
+#vditor-mount .vditor--dark .vditor-sv,
+#vditor-mount .vditor--dark .vditor-reset,
+html.dark #vditor-mount .vditor-content,
+html.dark #vditor-mount .vditor-ir,
+html.dark #vditor-mount .vditor-sv,
+html.dark #vditor-mount .vditor-reset {
+  color: #e5edf8 !important;
+  background: #162235 !important;
+}
+
+#vditor-mount .vditor--dark .vditor-ir .vditor-ir__node,
+#vditor-mount .vditor--dark .vditor-ir .vditor-ir__node *,
+#vditor-mount .vditor--dark .vditor-sv .vditor-sv__marker,
+#vditor-mount .vditor--dark .vditor-sv .vditor-sv__marker *,
+html.dark #vditor-mount .vditor-ir .vditor-ir__node,
+html.dark #vditor-mount .vditor-ir .vditor-ir__node *,
+html.dark #vditor-mount .vditor-sv .vditor-sv__marker,
+html.dark #vditor-mount .vditor-sv .vditor-sv__marker * {
+  color: #dbe7f5 !important;
+}
+
+#vditor-mount .vditor--dark .vditor-ir h1,
+#vditor-mount .vditor--dark .vditor-ir h2,
+#vditor-mount .vditor--dark .vditor-ir h3,
+#vditor-mount .vditor--dark .vditor-ir h4,
+#vditor-mount .vditor--dark .vditor-ir h5,
+#vditor-mount .vditor--dark .vditor-ir h6,
+#vditor-mount .vditor--dark .vditor-sv h1,
+#vditor-mount .vditor--dark .vditor-sv h2,
+#vditor-mount .vditor--dark .vditor-sv h3,
+#vditor-mount .vditor--dark .vditor-sv h4,
+#vditor-mount .vditor--dark .vditor-sv h5,
+#vditor-mount .vditor--dark .vditor-sv h6,
+html.dark #vditor-mount .vditor-ir h1,
+html.dark #vditor-mount .vditor-ir h2,
+html.dark #vditor-mount .vditor-ir h3,
+html.dark #vditor-mount .vditor-ir h4,
+html.dark #vditor-mount .vditor-ir h5,
+html.dark #vditor-mount .vditor-ir h6,
+html.dark #vditor-mount .vditor-sv h1,
+html.dark #vditor-mount .vditor-sv h2,
+html.dark #vditor-mount .vditor-sv h3,
+html.dark #vditor-mount .vditor-sv h4,
+html.dark #vditor-mount .vditor-sv h5,
+html.dark #vditor-mount .vditor-sv h6 {
+  color: #f8fafc !important;
+}
+
+#vditor-mount .vditor--dark .vditor-ir a,
+#vditor-mount .vditor--dark .vditor-sv a,
+html.dark #vditor-mount .vditor-ir a,
+html.dark #vditor-mount .vditor-sv a {
+  color: #7db5ff !important;
+}

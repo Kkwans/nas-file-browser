@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
 import { replaceTagByName } from "@/utils/tagPersistence";
+import {
+  resolvePersistenceState,
+  userStorageKey,
+} from "@/utils/favoritePersistence";
 
 export interface Tag {
   id: string;
@@ -35,6 +40,7 @@ export const TAG_COLORS = [
 ];
 
 export const useTagsStore = defineStore("tags", () => {
+  const authStore = useAuthStore();
   const tags = ref<Tag[]>([]);
   const loaded = ref(false);
   const activeFilter = ref<string | null>(null); // tag id for filtering
@@ -117,9 +123,13 @@ export const useTagsStore = defineStore("tags", () => {
 
   // --- localStorage helpers ---
 
+  function scopedStorageKey(): string {
+    return userStorageKey(STORAGE_KEY, authStore.user?.id ?? "anonymous");
+  }
+
   function saveToLocalStorage() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tags.value));
+      localStorage.setItem(scopedStorageKey(), JSON.stringify(tags.value));
     } catch {
       // localStorage full or unavailable
     }
@@ -127,7 +137,7 @@ export const useTagsStore = defineStore("tags", () => {
 
   function loadFromLocalStorage(): Tag[] {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(scopedStorageKey());
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -138,13 +148,12 @@ export const useTagsStore = defineStore("tags", () => {
 
   // Load tags: API first, fallback to localStorage
   async function loadTags() {
+    const cachedTags = loadFromLocalStorage();
     const apiData = await apiGet();
-    if (apiData) {
-      tags.value = apiData;
-      saveToLocalStorage(); // keep localStorage in sync
-    } else {
-      tags.value = loadFromLocalStorage();
-    }
+    const state = resolvePersistenceState(apiData ?? [], cachedTags);
+    tags.value = apiData === null ? cachedTags : state.data;
+    saveToLocalStorage();
+    if (state.shouldSync) await syncTags();
     loaded.value = true;
   }
 
@@ -274,13 +283,21 @@ export const useTagsStore = defineStore("tags", () => {
   async function syncTags() {
     const apiData = await apiGet();
     if (apiData) {
-      // API is source of truth; merge any local-only tags
-      const apiIds = new Set(apiData.map((t) => t.id));
-      const localOnly = tags.value.filter((t) => !apiIds.has(t.id));
-      for (const tag of localOnly) {
-        await apiCreate(tag);
+      for (const localTag of [...tags.value]) {
+        let remoteTag = apiData.find((tag) => tag.name === localTag.name);
+        if (!remoteTag) {
+          const created = await apiCreate(localTag);
+          if (created) remoteTag = created;
+        }
+        if (!remoteTag) continue;
+
+        for (const path of localTag.paths) {
+          if (!remoteTag.paths.includes(path)) {
+            await apiAddPath(remoteTag.id, path);
+          }
+        }
       }
-      // Re-fetch to get merged result
+
       const merged = await apiGet();
       if (merged) {
         tags.value = merged;

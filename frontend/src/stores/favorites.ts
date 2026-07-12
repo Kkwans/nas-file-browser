@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { replaceFavoriteByPath } from "@/utils/favoritePersistence";
+import { useAuthStore } from "@/stores/auth";
+import {
+  replaceFavoriteByPath,
+  resolvePersistenceState,
+  userStorageKey,
+} from "@/utils/favoritePersistence";
 
 export interface FavoriteGroup {
   id: string;
@@ -24,6 +29,7 @@ const API_BASE = "/api/favorites";
 const GROUPS_API_BASE = "/api/favorites/groups";
 
 export const useFavoritesStore = defineStore("favorites", () => {
+  const authStore = useAuthStore();
   const favorites = ref<Favorite[]>([]);
   const groups = ref<FavoriteGroup[]>([]);
   const loaded = ref(false);
@@ -166,21 +172,31 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   // --- localStorage helpers ---
 
+  function scopedStorageKey(prefix: string): string {
+    return userStorageKey(prefix, authStore.user?.id ?? "anonymous");
+  }
+
   function saveToLocalStorage() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites.value));
+      localStorage.setItem(
+        scopedStorageKey(STORAGE_KEY),
+        JSON.stringify(favorites.value)
+      );
     } catch {}
   }
 
   function saveGroupsToLocalStorage() {
     try {
-      localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups.value));
+      localStorage.setItem(
+        scopedStorageKey(GROUPS_STORAGE_KEY),
+        JSON.stringify(groups.value)
+      );
     } catch {}
   }
 
   function loadFromLocalStorage(): Favorite[] {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(scopedStorageKey(STORAGE_KEY));
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -189,7 +205,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   function loadGroupsFromLocalStorage(): FavoriteGroup[] {
     try {
-      const saved = localStorage.getItem(GROUPS_STORAGE_KEY);
+      const saved = localStorage.getItem(scopedStorageKey(GROUPS_STORAGE_KEY));
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -199,23 +215,23 @@ export const useFavoritesStore = defineStore("favorites", () => {
   // --- Public methods ---
 
   async function loadFavorites() {
-    // Load groups
+    const cachedGroups = loadGroupsFromLocalStorage();
     const apiGroups = await apiGetGroups();
-    if (apiGroups) {
-      groups.value = apiGroups;
-      saveGroupsToLocalStorage();
-    } else {
-      groups.value = loadGroupsFromLocalStorage();
-    }
+    const groupState = resolvePersistenceState(apiGroups ?? [], cachedGroups);
+    groups.value = apiGroups === null ? cachedGroups : groupState.data;
+    saveGroupsToLocalStorage();
 
-    // Load favorites
+    const cachedFavorites = loadFromLocalStorage();
     const apiData = await apiGet();
-    if (apiData) {
-      favorites.value = apiData;
-      saveToLocalStorage();
-    } else {
-      favorites.value = loadFromLocalStorage();
-    }
+    const favoriteState = resolvePersistenceState(
+      apiData ?? [],
+      cachedFavorites
+    );
+    favorites.value = apiData === null ? cachedFavorites : favoriteState.data;
+    saveToLocalStorage();
+
+    if (groupState.shouldSync) await syncGroups();
+    if (favoriteState.shouldSync) await syncFavorites();
     loaded.value = true;
   }
 
@@ -313,6 +329,30 @@ export const useFavoritesStore = defineStore("favorites", () => {
         saveToLocalStorage();
       }
     }
+  }
+
+  async function syncGroups() {
+    const remoteGroups = await apiGetGroups();
+    if (!remoteGroups) return;
+
+    for (const localGroup of [...groups.value]) {
+      if (remoteGroups.some((group) => group.name === localGroup.name)) continue;
+      const created = await apiCreateGroup({
+        name: localGroup.name,
+        color: localGroup.color,
+      });
+      if (!created) continue;
+
+      favorites.value.forEach((favorite) => {
+        if (favorite.groupId === localGroup.id)
+          favorite.groupId = created.id;
+      });
+    }
+
+    const mergedGroups = await apiGetGroups();
+    if (mergedGroups) groups.value = mergedGroups;
+    saveGroupsToLocalStorage();
+    saveToLocalStorage();
   }
 
   // --- Group methods ---

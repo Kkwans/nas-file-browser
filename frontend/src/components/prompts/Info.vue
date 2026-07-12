@@ -288,6 +288,25 @@ const displayPath = computed(() => {
   return decodePath(withoutPrefix);
 });
 
+const copyText = async (text: string) => {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  // HTTP 访问或部分移动浏览器不会暴露 Clipboard API，保留兼容回退。
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) throw new Error("copy failed");
+};
+
 const dir = computed(() => {
   return (
     selectedCount.value > 1 ||
@@ -314,7 +333,7 @@ watch(
 
 const copyFullPath = async () => {
   try {
-    await navigator.clipboard.writeText(displayPath.value);
+    await copyText(displayPath.value);
     pathCopied.value = true;
     window.setTimeout(() => {
       pathCopied.value = false;
@@ -414,6 +433,7 @@ const checksum = async (
 
 .info-title-row {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: 0.75em;
 }
@@ -664,6 +684,7 @@ html.dark .info-type-icon {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  min-height: 2.75rem;
   padding: 0.45rem 0.6rem;
   color: var(--textPrimary, #1e293b);
   background: var(--surfacePrimary, #fff);

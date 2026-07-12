@@ -892,13 +892,33 @@ const openTagManager = () => {
 };
 
 const filterByTag = (tagId: string) => {
+  if (tagsStore.activeFilter === tagId) {
+    clearTagFilter();
+    return;
+  }
   tagsStore.setFilterMode("global");
   tagsStore.setFilter(tagId);
+  const base = route.path.startsWith("/files")
+    ? route.path.slice("/files".length) || "/"
+    : "/";
+  router.push({
+    path: "/search",
+    query: {
+      tag: tagId,
+      base: base.endsWith("/") ? base : base + "/",
+      scope: "global",
+    },
+  });
   closeHovers();
 };
 
 const clearTagFilter = () => {
   tagsStore.setFilter(null);
+  if (typeof route.query.tag === "string") {
+    const base =
+      typeof route.query.base === "string" ? route.query.base : "/";
+    router.push({ path: "/files" + base });
+  }
 };
 
 const openSearch = () => {

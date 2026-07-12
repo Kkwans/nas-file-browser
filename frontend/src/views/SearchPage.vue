@@ -29,6 +29,65 @@
     </header-bar>
 
     <div class="search-page-content">
+      <template v-if="tagMode">
+        <section class="tag-results" aria-labelledby="tag-results-title">
+          <div class="tag-results-header">
+            <div class="tag-results-heading">
+              <i
+                class="material-icons"
+                :style="{ color: activeTag?.color || 'var(--blue)' }"
+                aria-hidden="true"
+                >label</i
+              >
+              <div>
+                <span class="tag-results-kicker">全局标签筛选</span>
+                <h1 id="tag-results-title">{{ activeTag?.name || "标签" }}</h1>
+              </div>
+            </div>
+            <button type="button" class="tag-results-back" @click="clearTagMode">
+              返回文件
+            </button>
+          </div>
+
+          <div v-if="tagLoading" class="search-loading">
+            <div class="spinner">
+              <div class="bounce1"></div>
+              <div class="bounce2"></div>
+              <div class="bounce3"></div>
+            </div>
+          </div>
+          <div v-else-if="tagResults.length === 0" class="search-empty">
+            <i class="material-icons">label_off</i>
+            <p>这个标签暂时没有可访问的文件或文件夹</p>
+          </div>
+          <div v-else class="tag-results-list">
+            <router-link
+              v-for="result in tagResults"
+              :key="result.path"
+              :to="result.url"
+              class="tag-result-item"
+            >
+              <i class="material-icons" aria-hidden="true">{{
+                getFileIcon(result.name, result.dir)
+              }}</i>
+              <div class="search-result-info">
+                <span class="search-result-name">{{ result.name }}</span>
+                <span class="search-result-path">{{ result.path }}</span>
+              </div>
+              <div class="search-result-meta">
+                <span v-if="!result.dir" class="search-result-size">
+                  {{ formatSize(result.size) }}
+                </span>
+                <span v-if="result.modified" class="search-result-time">
+                  {{ formatTime(result.modified) }}
+                </span>
+              </div>
+            </router-link>
+          </div>
+        </section>
+      </template>
+
+      <template v-else>
       <div class="search-scope-bar" role="group" aria-label="搜索范围">
         <span class="search-scope-label">搜索范围</span>
         <button
@@ -110,6 +169,7 @@
           </div>
         </router-link>
       </div>
+      </template>
     </div>
   </div>
 </template>
@@ -117,12 +177,17 @@
 <script setup lang="ts">
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import type { SearchResult } from "@/types/file";
-import { search } from "@/api";
+import { files as filesApi, search } from "@/api";
 import { StatusError } from "@/api/utils";
 import { useFileStore } from "@/stores/file";
+import { useTagsStore, type Tag } from "@/stores/tags";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 import { normalizeSearchBase } from "@/utils/searchPath";
+import {
+  buildTaggedPathUrl,
+  getTaggedPathName,
+} from "@/utils/tagResults";
 import dayjs from "@/utils/date";
 import {
   computed,
@@ -144,6 +209,7 @@ const boxes = {
 const router = useRouter();
 const route = useRoute();
 const fileStore = useFileStore();
+const tagsStore = useTagsStore();
 const $showError = inject<IToastError>("$showError")!;
 
 const prompt = ref<string>("");
@@ -152,6 +218,24 @@ const results = ref<SearchResult[]>([]);
 const resultsCount = ref<number>(100);
 const inputRef = ref<HTMLInputElement | null>(null);
 const resultsRef = ref<HTMLElement | null>(null);
+const tagLoading = ref(false);
+const tagResults = ref<
+  Array<{
+    path: string;
+    name: string;
+    dir: boolean;
+    size: number;
+    modified: string;
+    url: string;
+  }>
+>([]);
+const tagId = computed(() =>
+  typeof route.query.tag === "string" ? route.query.tag : ""
+);
+const tagMode = computed(() => tagId.value.length > 0);
+const activeTag = computed<Tag | null>(
+  () => tagsStore.tags.find((tag) => tag.id === tagId.value) ?? null
+);
 const searchScope = ref<"current" | "global">(
   route.query.scope === "global" ? "global" : "current"
 );
@@ -177,13 +261,78 @@ const searchScopeText = computed(() =>
   searchScope.value === "global" ? "全部可访问目录" : searchBase.value
 );
 
+const loadTagResults = async () => {
+  if (!tagMode.value) return;
+  if (!tagsStore.loaded) await tagsStore.loadTags();
+
+  const tag = activeTag.value;
+  if (!tag) {
+    tagResults.value = [];
+    return;
+  }
+
+  tagLoading.value = true;
+  try {
+    const results = await Promise.all(
+      tag.paths.map(async (path) => {
+        const normalizedPath = normalizeSearchBase(path).replace(/\/$/, "");
+        try {
+          const resource = await filesApi.fetch(
+            "/files" +
+              buildTaggedPathUrl(normalizedPath, false).slice("/files".length)
+          );
+          return {
+            path: resource.path,
+            name: resource.name || getTaggedPathName(normalizedPath),
+            dir: resource.isDir,
+            size: resource.size,
+            modified: resource.modified,
+            url: buildTaggedPathUrl(resource.path, resource.isDir),
+          };
+        } catch {
+          // 权限变化或文件已删除时仍保留一个可读的路径条目，
+          // 让用户知道标签记录存在，而不是静默丢失。
+          return {
+            path: normalizedPath,
+            name: getTaggedPathName(normalizedPath),
+            dir: false,
+            size: 0,
+            modified: "",
+            url: buildTaggedPathUrl(normalizedPath, false),
+          };
+        }
+      })
+    );
+    tagResults.value = results;
+  } finally {
+    tagLoading.value = false;
+  }
+};
+
+const clearTagMode = () => {
+  tagsStore.setFilter(null);
+  const base =
+    typeof route.query.base === "string"
+      ? normalizeSearchBase(route.query.base)
+      : "/";
+  router.replace({ path: "/files" + base });
+};
+
 onMounted(() => {
   const query = route.query.q;
   if (typeof query === "string") {
     prompt.value = query;
   }
+  if (tagMode.value) {
+    loadTagResults();
+    return;
+  }
   inputRef.value?.focus();
   if (prompt.value) nextTick(submit);
+});
+
+watch(tagId, () => {
+  if (tagMode.value) loadTagResults();
 });
 
 // 滚动加载更多：resultsRef 是条件渲染的，需要 watch 等元素挂载后再绑定
@@ -496,6 +645,100 @@ const fileIcon = (item: SearchResult): string => {
   white-space: nowrap;
 }
 
+.tag-results {
+  width: min(72rem, 100%);
+  margin: 0 auto;
+}
+
+.tag-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--surfacePrimary, #fff);
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.875rem;
+}
+
+.tag-results-heading {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.tag-results-heading > .material-icons {
+  flex: 0 0 auto;
+  font-size: 1.75rem;
+}
+
+.tag-results-kicker {
+  display: block;
+  color: var(--textSecondary, #64748b);
+  font-size: 0.75rem;
+}
+
+.tag-results-heading h1 {
+  margin: 0.15rem 0 0;
+  overflow: hidden;
+  color: var(--textPrimary, #1e293b);
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-results-back {
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+  padding: 0 0.875rem;
+  color: var(--textSecondary, #475569);
+  background: transparent;
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.tag-results-back:hover,
+.tag-results-back:focus-visible {
+  color: var(--blue, #1677ff);
+  border-color: var(--blue, #1677ff);
+}
+
+.tag-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: var(--surfacePrimary, #fff);
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.875rem;
+}
+
+.tag-result-item {
+  display: flex;
+  align-items: center;
+  min-height: 3.5rem;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--textPrimary, #1e293b);
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
+.tag-result-item:hover,
+.tag-result-item:focus-visible {
+  background: var(--hover, #f4f7fb);
+}
+
+.tag-result-item > .material-icons {
+  flex: 0 0 auto;
+  color: var(--blue, #1677ff);
+  font-size: 1.75rem;
+}
+
 @media (max-width: 736px) {
   .search-page-content {
     padding: 12px 16px;
@@ -535,6 +778,15 @@ const fileIcon = (item: SearchResult): string => {
 
   .search-type-item {
     padding: 12px 16px;
+  }
+
+  .tag-results-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tag-results-back {
+    width: 100%;
   }
 }
 </style>

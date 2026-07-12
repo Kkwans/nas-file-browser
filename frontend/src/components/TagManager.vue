@@ -25,8 +25,22 @@
             class="color-dot"
             :class="{ active: newTagColor === c }"
             :style="{ background: c }"
+            type="button"
+            :aria-label="`选择颜色 ${c}`"
             @click="newTagColor = c"
           />
+          <label
+            class="color-dot custom-color"
+            :class="{ active: !TAG_COLORS.includes(newTagColor) }"
+            title="自定义颜色"
+            aria-label="自定义颜色"
+          >
+            <input
+              v-model="newTagColor"
+              type="color"
+              aria-label="选择自定义颜色"
+            />
+          </label>
         </div>
         <button
           class="tag-create-btn"
@@ -83,8 +97,22 @@
               class="color-dot small"
               :class="{ active: editColor === c }"
               :style="{ background: c }"
+              type="button"
+              :aria-label="`选择颜色 ${c}`"
               @click="editColor = c"
             />
+            <label
+              class="color-dot small custom-color"
+              :class="{ active: !TAG_COLORS.includes(editColor) }"
+              title="自定义颜色"
+              aria-label="自定义颜色"
+            >
+              <input
+                v-model="editColor"
+                type="color"
+                aria-label="选择自定义颜色"
+              />
+            </label>
           </div>
           <button class="tag-action-btn save" @click="saveEdit(tag.id)">
             <i class="material-icons">check</i>
@@ -268,6 +296,30 @@ function close() {
 
 .color-dot.active {
   border-color: var(--textPrimary, #1a1a2e);
+}
+
+.custom-color {
+  position: relative;
+  overflow: hidden;
+  background: conic-gradient(
+    #f44336 0 16.6%,
+    #ffc107 16.6% 33.2%,
+    #4caf50 33.2% 49.8%,
+    #03a9f4 49.8% 66.4%,
+    #3f51b5 66.4% 83%,
+    #e91e63 83% 100%
+  );
+}
+
+.custom-color input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .tag-create-btn {

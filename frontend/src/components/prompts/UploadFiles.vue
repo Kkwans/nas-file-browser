@@ -6,13 +6,20 @@
   >
     <div class="card floating">
       <div class="card-title">
-        <h2>上传文件 ({{ uploadStore.pendingUploadCount }})</h2>
+        <h2 class="upload-title">
+          <span class="upload-title-main">上传文件</span>
+          <span class="upload-count"
+            >{{ uploadStore.pendingUploadCount }} 个</span
+          >
+        </h2>
         <div class="upload-info">
-          <div class="upload-speed">{{ speedText }}/s</div>
-          <div class="upload-eta">{{ formattedETA }} 剩余时间</div>
-          <div class="upload-percentage">{{ sentPercent }}% 已完成</div>
+          <div class="upload-speed"><span>速度</span>{{ speedText }}/秒</div>
+          <div class="upload-eta"><span>剩余</span>{{ formattedETA }}</div>
+          <div class="upload-percentage">
+            <span>进度</span>{{ sentPercent }}%
+          </div>
           <div class="upload-fraction">
-            {{ sentMbytes }} /
+            <span>已传</span> {{ sentMbytes }} /
             {{ totalMbytes }}
           </div>
         </div>
@@ -203,8 +210,28 @@ const abortAll = () => {
 
 <style scoped>
 .upload-info {
-  min-width: 19ch;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  justify-content: end;
+  gap: 0.18rem 0.85rem;
+  min-width: 15rem;
   width: auto;
-  text-align: left;
+  text-align: right;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.upload-info > div {
+  white-space: nowrap;
+}
+
+.upload-info span {
+  margin-right: 0.3rem;
+  color: var(--secondary-text);
+}
+
+.upload-speed {
+  font-weight: 700;
 }
 </style>

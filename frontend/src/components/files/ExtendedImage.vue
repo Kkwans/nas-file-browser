@@ -72,13 +72,11 @@
 
     <!-- Keyboard hints (bottom-right) -->
     <div class="image-viewer-hints" :class="{ visible: showUI && imageLoaded }">
-      <div class="hint-item">
-        <kbd>+</kbd> / <kbd>-</kbd> '缩放'
-      </div>
+      <div class="hint-item"><kbd>+</kbd> / <kbd>-</kbd> 缩放</div>
       <div class="hint-item"><kbd>0</kbd> 适应屏幕</div>
       <div class="hint-item"><kbd>1</kbd> 原始大小</div>
       <div class="hint-item"><kbd>R</kbd> 旋转</div>
-      <div class="hint-item"><kbd>Esc</kbd> {{ "关闭" }}</div>
+      <div class="hint-item"><kbd>Esc</kbd> 关闭</div>
     </div>
 
     <img

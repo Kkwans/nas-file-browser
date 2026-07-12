@@ -28,7 +28,7 @@
           :disabled="layoutStore.loading"
           v-if="isCsv && authStore.user?.perm.modify"
           icon="edit_note"
-          label="'编辑文本'"
+          label="编辑文本"
           @action="editAsText"
         />
         <action
@@ -53,7 +53,7 @@
             authStore.user?.perm.download
           "
           icon="open_in_new"
-          label="'直接打开'"
+          label="直接打开"
           @action="openDirect"
         />
         <action
@@ -130,14 +130,11 @@
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
-            '此文件无法预览'
+            此文件无法预览
           </div>
           <div>
             <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div>
-                <i class="material-icons">file_download</i
-                >'下载'
-              </div>
+              <div><i class="material-icons">file_download</i>下载</div>
             </a>
             <a
               target="_blank"
@@ -145,10 +142,7 @@
               class="button button--flat"
               v-if="!fileStore.req?.isDir"
             >
-              <div>
-                <i class="material-icons">open_in_new</i
-                >'打开文件'
-              </div>
+              <div><i class="material-icons">open_in_new</i>打开文件</div>
             </a>
           </div>
         </div>
@@ -428,7 +422,7 @@ const updatePreview = async () => {
     csvError.value = "";
 
     if (fileStore.req.size > CSV_MAX_SIZE) {
-      csvError.value = 'CSV 文件过大';
+      csvError.value = "CSV 文件过大";
     } else {
       if (fileStore.req.rawContent != null) {
         csvContent.value = fileStore.req.rawContent;

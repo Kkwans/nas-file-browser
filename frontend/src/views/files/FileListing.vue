@@ -1,8 +1,29 @@
 <template>
   <div>
     <header-bar showMenu showLogo>
-      <title />
+      <div v-if="!isMobile" class="listing-search">
+        <i class="material-icons" aria-hidden="true">search</i>
+        <input
+          v-model.trim="inlineSearch"
+          type="search"
+          aria-label="在当前目录搜索"
+          placeholder="在当前目录搜索文件"
+          @keyup.enter="submitInlineSearch"
+          @keyup.escape="clearInlineSearch"
+        />
+        <button
+          v-if="inlineSearch"
+          type="button"
+          class="listing-search-submit"
+          aria-label="开始搜索"
+          title="开始搜索"
+          @click="submitInlineSearch"
+        >
+          <i class="material-icons" aria-hidden="true">arrow_forward</i>
+        </button>
+      </div>
       <action
+        v-else
         class="search-button"
         icon="search"
         label="搜索"
@@ -172,7 +193,12 @@
       <LoadingSkeleton :count="12" :viewMode="skeletonViewMode" />
     </div>
     <template v-else>
-      <div v-if="items.dirs.length + items.files.length === 0">
+      <div
+        v-if="
+          items.dirs.length + items.files.length === 0 &&
+          !tagsStore.activeFilterTag
+        "
+      >
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
           <span>这里没有任何文件...</span>
@@ -206,40 +232,72 @@
         <div>
           <div class="item header">
             <div>
-              <p class="name">
+              <p
+                class="name"
+                role="button"
+                tabindex="0"
+                :aria-sort="headerSortState('name')"
+                @click="sortByHeader('name')"
+                @keyup.enter="sortByHeader('name')"
+              >
                 <span>名称</span>
                 <button
                   class="column-resize-handle"
                   type="button"
                   aria-label="调整名称列宽度"
                   @pointerdown="startColumnResize($event, 0)"
+                  @click.stop
                 ></button>
               </p>
-              <p class="type">
+              <p
+                class="type"
+                role="button"
+                tabindex="0"
+                :aria-sort="headerSortState('type')"
+                @click="sortByHeader('type')"
+                @keyup.enter="sortByHeader('type')"
+              >
                 <span>类型</span>
                 <button
                   class="column-resize-handle"
                   type="button"
                   aria-label="调整类型列宽度"
                   @pointerdown="startColumnResize($event, 1)"
+                  @click.stop
                 ></button>
               </p>
-              <p class="size">
+              <p
+                class="size"
+                role="button"
+                tabindex="0"
+                :aria-sort="headerSortState('size')"
+                @click="sortByHeader('size')"
+                @keyup.enter="sortByHeader('size')"
+              >
                 <span>大小</span>
                 <button
                   class="column-resize-handle"
                   type="button"
                   aria-label="调整大小列宽度"
                   @pointerdown="startColumnResize($event, 2)"
+                  @click.stop
                 ></button>
               </p>
-              <p class="modified">
+              <p
+                class="modified"
+                role="button"
+                tabindex="0"
+                :aria-sort="headerSortState('modified')"
+                @click="sortByHeader('modified')"
+                @keyup.enter="sortByHeader('modified')"
+              >
                 <span>修改时间</span>
                 <button
                   class="column-resize-handle"
                   type="button"
                   aria-label="调整修改时间列宽度"
                   @pointerdown="startColumnResize($event, 3)"
+                  @click.stop
                 ></button>
               </p>
               <p class="actions"><span>操作</span></p>
@@ -276,10 +334,19 @@
           </div>
           <button
             class="tag-filter-clear-btn"
+            type="button"
             @click="tagsStore.setFilter(null)"
           >
             <i class="material-icons">close</i>
           </button>
+        </div>
+
+        <div
+          v-if="items.dirs.length + items.files.length === 0"
+          class="message filtered-empty"
+        >
+          <i class="material-icons">filter_alt_off</i>
+          <span>当前目录没有匹配项，可切换为全局筛选或清除筛选</span>
         </div>
 
         <h2 data-clear-on-click="true" v-if="items.dirs.length > 0">
@@ -577,6 +644,7 @@ const showSortDropdown = ref<boolean>(false);
 const sortDropdownRef = ref<HTMLElement | null>(null);
 const currentSortBy = ref<string>(fileStore.req?.sorting?.by || "name");
 const currentSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
+const inlineSearch = ref("");
 const sortOptions = [
   { by: "name", icon: "sort_by_alpha", label: "按名称排序" },
   { by: "size", icon: "data_usage", label: "按大小排序" },
@@ -717,9 +785,11 @@ const items = computed(() => {
 
   fileStore.req?.items.forEach((item) => {
     // Build the full path for tag matching
-    const fullPath = parentPath
-      ? parentPath.replace(/\/$/, "") + "/" + item.name
-      : "/" + item.name;
+    const fullPath =
+      item.path ||
+      (parentPath
+        ? parentPath.replace(/\/$/, "") + "/" + item.name
+        : "/" + item.name);
 
     // Apply tag filter (files and directories)
     if (!tagsStore.matchesFilter(fullPath)) {
@@ -1326,8 +1396,33 @@ const resetOpacity = () => {
   });
 };
 
+const searchBasePath = computed(() => {
+  const base = fileStore.req?.path || removePrefix(route.path) || "/";
+  return base.endsWith("/") ? base : `${base}/`;
+});
+
+const submitInlineSearch = () => {
+  const query = inlineSearch.value.trim();
+  if (!query) return;
+  router.push({
+    path: "/search",
+    query: {
+      q: query,
+      base: searchBasePath.value,
+      scope: "current",
+    },
+  });
+};
+
+const clearInlineSearch = () => {
+  inlineSearch.value = "";
+};
+
 const openSearch = () => {
-  router.push("/search");
+  router.push({
+    path: "/search",
+    query: { base: searchBasePath.value, scope: "current" },
+  });
 };
 
 const toggleMultipleSelection = () => {
@@ -1441,6 +1536,19 @@ const selectSort = async (by: string) => {
   }
 
   fileStore.reload = true;
+};
+
+const sortByHeader = async (by: string) => {
+  if (currentSortBy.value === by) {
+    await toggleSortDirection();
+    return;
+  }
+  await selectSort(by);
+};
+
+const headerSortState = (by: string) => {
+  if (currentSortBy.value !== by) return "none";
+  return currentSortAsc.value ? "ascending" : "descending";
 };
 
 const toggleSortDirection = async () => {

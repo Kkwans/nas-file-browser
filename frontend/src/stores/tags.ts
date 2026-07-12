@@ -7,6 +7,7 @@ import {
   resolvePersistenceState,
   userStorageKey,
 } from "@/utils/favoritePersistence";
+import { isDescendantPath, normalizeTagPath } from "@/utils/tagPath";
 
 export interface Tag {
   id: string;
@@ -20,6 +21,13 @@ export type TagFilterMode = "current" | "global";
 
 const STORAGE_KEY = "nas-file-browser-tags";
 const API_BASE = "/api/tags";
+
+function normalizeTag(tag: Tag): Tag {
+  return {
+    ...tag,
+    paths: (tag.paths || []).map(normalizeTagPath),
+  };
+}
 
 // Predefined color palette for tags
 export const TAG_COLORS = [
@@ -47,14 +55,15 @@ export const useTagsStore = defineStore("tags", () => {
   const tags = ref<Tag[]>([]);
   const loaded = ref(false);
   const activeFilter = ref<string | null>(null); // tag id for filtering
-  const filterMode = ref<TagFilterMode>("current");
+  const filterMode = ref<TagFilterMode>("global");
 
   // --- API helpers ---
 
   async function apiGet(): Promise<Tag[] | null> {
     try {
       const res = await fetchURL(API_BASE, {});
-      return await res.json();
+      const data = (await res.json()) as Tag[];
+      return data.map(normalizeTag);
     } catch {
       return null;
     }
@@ -67,7 +76,7 @@ export const useTagsStore = defineStore("tags", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tag),
       });
-      return await res.json();
+      return normalizeTag(await res.json());
     } catch {
       return null;
     }
@@ -161,7 +170,8 @@ export const useTagsStore = defineStore("tags", () => {
   function loadFromLocalStorage(): Tag[] {
     try {
       const saved = localStorage.getItem(scopedStorageKey());
-      return saved ? JSON.parse(saved) : [];
+      const data = saved ? (JSON.parse(saved) as Tag[]) : [];
+      return data.map(normalizeTag);
     } catch {
       return [];
     }
@@ -249,8 +259,10 @@ export const useTagsStore = defineStore("tags", () => {
   async function addPathToTag(tagId: string, path: string) {
     const tag = tags.value.find((t) => t.id === tagId);
     if (!tag) return;
-    const cleaned = path.replace(/\/+$/, "");
-    if (!tag.paths.includes(cleaned)) {
+    const cleaned = normalizeTagPath(path);
+    if (
+      !tag.paths.some((savedPath) => normalizeTagPath(savedPath) === cleaned)
+    ) {
       tag.paths.push(cleaned);
       saveToLocalStorage();
       const result = await apiAddPath(tagId, cleaned);
@@ -262,8 +274,10 @@ export const useTagsStore = defineStore("tags", () => {
   async function removePathFromTag(tagId: string, path: string) {
     const tag = tags.value.find((t) => t.id === tagId);
     if (!tag) return;
-    const cleaned = path.replace(/\/+$/, "");
-    tag.paths = tag.paths.filter((p) => p !== cleaned);
+    const cleaned = normalizeTagPath(path);
+    tag.paths = tag.paths.filter(
+      (savedPath) => normalizeTagPath(savedPath) !== cleaned
+    );
     saveToLocalStorage();
     const result = await apiRemovePath(tagId, cleaned);
     if (!result.ok && result.status === 404) await refreshAfterMutation();
@@ -273,8 +287,10 @@ export const useTagsStore = defineStore("tags", () => {
   async function togglePathInTag(tagId: string, path: string) {
     const tag = tags.value.find((t) => t.id === tagId);
     if (!tag) return;
-    const cleaned = path.replace(/\/+$/, "");
-    const idx = tag.paths.indexOf(cleaned);
+    const cleaned = normalizeTagPath(path);
+    const idx = tag.paths.findIndex(
+      (savedPath) => normalizeTagPath(savedPath) === cleaned
+    );
     if (idx >= 0) {
       tag.paths.splice(idx, 1);
       saveToLocalStorage();
@@ -290,14 +306,18 @@ export const useTagsStore = defineStore("tags", () => {
 
   // Get all tags for a specific path
   function getTagsForPath(path: string): Tag[] {
-    const cleaned = path.replace(/\/+$/, "");
-    return tags.value.filter((t) => t.paths.includes(cleaned));
+    const cleaned = normalizeTagPath(path);
+    return tags.value.filter((tag) =>
+      tag.paths.some((savedPath) => normalizeTagPath(savedPath) === cleaned)
+    );
   }
 
   // Check if a path has any tags
   function hasTags(path: string): boolean {
-    const cleaned = path.replace(/\/+$/, "");
-    return tags.value.some((t) => t.paths.includes(cleaned));
+    const cleaned = normalizeTagPath(path);
+    return tags.value.some((tag) =>
+      tag.paths.some((savedPath) => normalizeTagPath(savedPath) === cleaned)
+    );
   }
 
   // Set active filter tag (null = no filter)
@@ -313,7 +333,7 @@ export const useTagsStore = defineStore("tags", () => {
   const filteredPaths = computed(() => {
     if (!activeFilter.value) return null; // null means no filter active
     const tag = tags.value.find((t) => t.id === activeFilter.value);
-    return tag ? new Set(tag.paths) : null;
+    return tag ? new Set(tag.paths.map(normalizeTagPath)) : null;
   });
 
   // Active filter tag object
@@ -325,7 +345,7 @@ export const useTagsStore = defineStore("tags", () => {
   // Check if a path matches the current filter
   function matchesFilter(path: string): boolean {
     if (!filteredPaths.value) return true; // no filter = show all
-    const cleaned = path.replace(/\/+$/, "");
+    const cleaned = normalizeTagPath(path);
     if (filterMode.value === "current") {
       return filteredPaths.value.has(cleaned);
     }
@@ -335,8 +355,8 @@ export const useTagsStore = defineStore("tags", () => {
     for (const taggedPath of filteredPaths.value) {
       if (
         taggedPath === cleaned ||
-        taggedPath.startsWith(`${cleaned}/`) ||
-        cleaned.startsWith(`${taggedPath}/`)
+        isDescendantPath(taggedPath, cleaned) ||
+        isDescendantPath(cleaned, taggedPath)
       ) {
         return true;
       }
@@ -357,8 +377,13 @@ export const useTagsStore = defineStore("tags", () => {
         if (!remoteTag) continue;
 
         for (const path of localTag.paths) {
-          if (!remoteTag.paths.includes(path)) {
-            await apiAddPath(remoteTag.id, path);
+          const normalizedPath = normalizeTagPath(path);
+          if (
+            !remoteTag.paths.some(
+              (savedPath) => normalizeTagPath(savedPath) === normalizedPath
+            )
+          ) {
+            await apiAddPath(remoteTag.id, normalizedPath);
           }
         }
       }

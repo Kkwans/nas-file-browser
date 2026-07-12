@@ -2,7 +2,13 @@
   <div id="search-page">
     <header-bar showMenu showLogo>
       <div class="search-page-input">
-        <button class="action" @click="goBack" aria-label="关闭">
+        <button
+          class="action"
+          type="button"
+          @click="goBack"
+          aria-label="返回"
+          title="返回"
+        >
           <i class="material-icons">arrow_back</i>
         </button>
         <input
@@ -23,6 +29,25 @@
     </header-bar>
 
     <div class="search-page-content">
+      <div class="search-scope-bar" role="group" aria-label="搜索范围">
+        <span class="search-scope-label">搜索范围</span>
+        <button
+          type="button"
+          :class="{ active: searchScope === 'current' }"
+          @click="setSearchScope('current')"
+        >
+          当前目录
+        </button>
+        <button
+          type="button"
+          :class="{ active: searchScope === 'global' }"
+          @click="setSearchScope('global')"
+        >
+          全局
+        </button>
+        <span class="search-scope-path">{{ searchScopeText }}</span>
+      </div>
+
       <!-- '类型快捷入口' -->
       <div
         v-if="prompt.length === 0 && results.length === 0"
@@ -108,7 +133,7 @@ import {
   watch,
 } from "vue";
 import { throttle } from "lodash-es";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 const boxes = {
   image: { label: "图片", icon: "insert_photo" },
   audio: { label: "音频", icon: "volume_up" },
@@ -116,6 +141,7 @@ const boxes = {
   pdf: { label: "PDF 文档", icon: "picture_as_pdf" },
 };
 const router = useRouter();
+const route = useRoute();
 const fileStore = useFileStore();
 const $showError = inject<IToastError>("$showError")!;
 
@@ -125,14 +151,44 @@ const results = ref<SearchResult[]>([]);
 const resultsCount = ref<number>(100);
 const inputRef = ref<HTMLInputElement | null>(null);
 const resultsRef = ref<HTMLElement | null>(null);
+const searchScope = ref<"current" | "global">(
+  route.query.scope === "global" ? "global" : "current"
+);
+const normalizeSearchBase = (rawBase: string) => {
+  const base = rawBase.startsWith("/files")
+    ? rawBase.slice("/files".length) || "/"
+    : rawBase;
+  return base.endsWith("/") ? base : `${base}/`;
+};
+const currentBasePath = ref(
+  normalizeSearchBase(
+    typeof route.query.base === "string"
+      ? route.query.base
+      : fileStore.req?.path || "/"
+  )
+);
 let searchAbortController = new AbortController();
 
 const filteredResults = computed(() =>
   results.value.slice(0, resultsCount.value)
 );
 
+const searchBase = computed(() => {
+  if (searchScope.value === "global") return "/";
+  return currentBasePath.value;
+});
+
+const searchScopeText = computed(() =>
+  searchScope.value === "global" ? "全部可访问目录" : searchBase.value
+);
+
 onMounted(() => {
+  const query = route.query.q;
+  if (typeof query === "string") {
+    prompt.value = query;
+  }
   inputRef.value?.focus();
+  if (prompt.value) nextTick(submit);
 });
 
 // 滚动加载更多：resultsRef 是条件渲染的，需要 watch 等元素挂载后再绑定
@@ -166,12 +222,33 @@ const initSearch = (text: string) => {
   nextTick(() => inputRef.value?.focus());
 };
 
+const setSearchScope = async (scope: "current" | "global") => {
+  if (searchScope.value === scope) return;
+  searchScope.value = scope;
+  await router.replace({
+    path: "/search",
+    query: {
+      ...(prompt.value ? { q: prompt.value } : {}),
+      ...(scope === "current" ? { base: currentBasePath.value } : {}),
+      scope,
+    },
+  });
+  if (prompt.value) await submit();
+};
+
 const submit = async () => {
   if (prompt.value === "") return;
 
-  // 确定搜索路径
-  let path = fileStore.req?.path || "/";
-  if (!path.endsWith("/")) path += "/";
+  await router.replace({
+    path: "/search",
+    query: {
+      q: prompt.value,
+      scope: searchScope.value,
+      ...(searchScope.value === "current"
+        ? { base: currentBasePath.value }
+        : {}),
+    },
+  });
 
   ongoing.value = true;
   searchAbortController.abort();
@@ -180,9 +257,14 @@ const submit = async () => {
   resultsCount.value = 100;
 
   try {
-    await search(path, prompt.value, searchAbortController.signal, (item) => {
-      results.value.push(item);
-    });
+    await search(
+      searchBase.value,
+      prompt.value,
+      searchAbortController.signal,
+      (item) => {
+        results.value.push(item);
+      }
+    );
   } catch (error: any) {
     if (error instanceof StatusError && error.is_canceled) return;
     $showError(error);
@@ -241,6 +323,54 @@ const fileIcon = (item: SearchResult): string => {
   flex: 1;
   overflow-y: auto;
   padding: 16px 24px;
+}
+
+.search-scope-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.625rem 0.75rem;
+  color: var(--textSecondary, #64748b);
+  background: var(--surfaceSecondary, #f8fafc);
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.75rem;
+}
+
+.search-scope-label {
+  margin-right: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.search-scope-bar button {
+  min-height: 2.5rem;
+  padding: 0.375rem 0.875rem;
+  color: var(--textSecondary, #475569);
+  background: var(--surfacePrimary, #fff);
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+.search-scope-bar button:hover,
+.search-scope-bar button.active {
+  color: var(--blue, #1677ff);
+  background: rgba(22, 119, 255, 0.1);
+  border-color: rgba(22, 119, 255, 0.24);
+}
+
+.search-scope-path {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--textSecondary, #64748b);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .search-hints {
@@ -378,6 +508,24 @@ const fileIcon = (item: SearchResult): string => {
 
   .search-result-item {
     padding: 8px 12px;
+  }
+
+  .search-scope-bar {
+    align-items: stretch;
+    gap: 0.375rem;
+  }
+
+  .search-scope-label {
+    flex: 0 0 100%;
+  }
+
+  .search-scope-bar button {
+    flex: 1;
+  }
+
+  .search-scope-path {
+    flex: 0 0 100%;
+    margin-left: 0;
   }
 
   .search-result-meta {

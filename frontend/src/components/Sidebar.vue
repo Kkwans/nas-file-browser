@@ -13,24 +13,33 @@
       title="拖拽调节侧边栏宽度"
     ></div>
     <template v-if="isLoggedIn">
-      <button @click="toAccountSettings" class="action">
-        <i class="material-icons">person</i>
-        <span>{{ user?.username }}</span>
-      </button>
-      <button
-        class="action"
-        @click="toRoot"
-        aria-label="我的文件"
-        title="我的文件"
-      >
-        <i class="material-icons">folder</i>
-        <span>我的文件</span>
-      </button>
+      <div class="sidebar-primary-nav">
+        <button type="button" @click="toAccountSettings" class="action">
+          <i class="material-icons">person</i>
+          <span>{{ user?.username }}</span>
+        </button>
+        <button
+          type="button"
+          class="action"
+          @click="toRoot"
+          aria-label="我的文件"
+          title="我的文件"
+        >
+          <i class="material-icons">folder</i>
+          <span>我的文件</span>
+        </button>
 
-      <button class="action" @click="openSearch" aria-label="搜索" title="搜索">
-        <i class="material-icons">search</i>
-        <span>搜索</span>
-      </button>
+        <button
+          type="button"
+          class="action"
+          @click="openSearch"
+          aria-label="搜索"
+          title="搜索"
+        >
+          <i class="material-icons">search</i>
+          <span>搜索</span>
+        </button>
+      </div>
 
       <!-- Favorites Section -->
       <div class="favorites-section">
@@ -152,9 +161,13 @@
             :key="group.id"
             class="favorite-group"
           >
-            <button
+            <div
               class="favorite-group-header"
+              role="button"
+              tabindex="0"
               @click="toggleGroupCollapse(group.id)"
+              @keydown.enter.prevent="toggleGroupCollapse(group.id)"
+              @keydown.space.prevent="toggleGroupCollapse(group.id)"
               @dragover.prevent="onFavDragOverGroup($event, group.id)"
               @drop="onFavDropOnGroup($event, group.id)"
               @dragleave="onFavDragLeaveGroup"
@@ -171,6 +184,7 @@
               }}</span>
               <button
                 class="section-action-btn"
+                type="button"
                 title="删除分组"
                 @click.stop.prevent="deleteGroup(group.id)"
               >
@@ -181,7 +195,7 @@
                 :class="{ expanded: !collapsedGroups[group.id] }"
                 >expand_more</i
               >
-            </button>
+            </div>
             <template v-if="!collapsedGroups[group.id]">
               <button
                 v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
@@ -878,6 +892,7 @@ const openTagManager = () => {
 };
 
 const filterByTag = (tagId: string) => {
+  tagsStore.setFilterMode("global");
   tagsStore.setFilter(tagId);
   closeHovers();
 };
@@ -887,7 +902,13 @@ const clearTagFilter = () => {
 };
 
 const openSearch = () => {
-  router.push("/search");
+  const base = route.path.startsWith("/files")
+    ? route.path.slice("/files".length) || "/"
+    : "/";
+  router.push({
+    path: "/search",
+    query: { base: base.endsWith("/") ? base : `${base}/`, scope: "current" },
+  });
   closeHovers();
 };
 

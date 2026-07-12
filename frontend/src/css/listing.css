@@ -1333,6 +1333,81 @@ html.dark .sort-dropdown .dropdown-menu {
 #listing .item:nth-child(1) {
   animation-delay: 0.02s;
 }
+
+/* 文件操作入口保持稳定可见，避免悬停和选中状态改变布局或误导用户。 */
+#listing .item .risk-icon,
+#listing .item .favorite-star,
+#listing .item .favorite-group-btn,
+#listing .item .tag-btn {
+  opacity: 0.78;
+  transform: none;
+}
+
+#listing .item .favorite-star,
+#listing .item .favorite-group-btn,
+#listing .item .tag-btn {
+  display: inline-flex;
+  width: 1.55rem;
+  height: 1.55rem;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.2rem !important;
+  border-radius: 0.42rem;
+  vertical-align: middle;
+}
+
+#listing .item .favorite-star:hover,
+#listing .item .favorite-star.is-fav:hover,
+#listing .item .favorite-group-btn:hover,
+#listing .item .tag-btn:hover {
+  opacity: 1 !important;
+  transform: none;
+  background: var(--hover);
+}
+
+#listing .item[aria-selected="true"] .risk-icon,
+#listing .item[aria-selected="true"] .favorite-star,
+#listing .item[aria-selected="true"] .favorite-group-btn,
+#listing .item[aria-selected="true"] .tag-btn {
+  opacity: 1 !important;
+  color: var(--iconSecondary) !important;
+}
+
+#listing .item[aria-selected="true"] .favorite-star.is-fav {
+  color: #ffe08a !important;
+}
+
+#listing .item[aria-selected="true"] .tag-btn.has-tags {
+  color: #ffffff !important;
+}
+
+#listing.mosaic .item .favorite-star {
+  opacity: 0.88;
+}
+
+#listing.mosaic .item .tag-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 2.5rem;
+  display: inline-flex;
+  opacity: 0.82;
+  background: var(--surfacePrimary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+#listing.mosaic .item .tag-btn.has-tags {
+  color: var(--blue);
+  opacity: 1;
+}
+
+#listing.mosaic .item .favorite-group-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 4.5rem;
+  opacity: 0.82;
+  background: var(--surfacePrimary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
 #listing .item:nth-child(2) {
   animation-delay: 0.04s;
 }

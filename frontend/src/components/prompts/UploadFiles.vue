@@ -234,4 +234,17 @@ const abortAll = () => {
 .upload-speed {
   font-weight: 700;
 }
+
+@media (max-width: 450px) {
+  .upload-info {
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.15rem 0.5rem;
+    font-size: 0.68rem;
+  }
+
+  .upload-info > div {
+    text-align: right;
+  }
+}
 </style>

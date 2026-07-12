@@ -998,6 +998,10 @@
   font-weight: 600;
 }
 
+#listing.details .detail-path {
+  display: none;
+}
+
 #listing.details .item > div:last-of-type {
   gap: 1rem;
 }

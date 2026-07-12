@@ -246,6 +246,7 @@
                   @pointerdown="startColumnResize($event, 3)"
                 ></button>
               </p>
+              <p class="actions"><span>操作</span></p>
             </div>
           </div>
         </div>
@@ -590,7 +591,7 @@ const listing = ref<HTMLElement | null>(null);
 
 const DETAILS_COLUMNS_KEY = "nas-file-browser-details-columns";
 const defaultDetailsColumns =
-  "minmax(14rem, 1.5fr) minmax(10rem, 1fr) minmax(7rem, 0.65fr) minmax(10rem, 0.8fr)";
+  "minmax(14rem, 1.5fr) minmax(10rem, 1fr) minmax(7rem, 0.65fr) minmax(10rem, 0.8fr) minmax(12rem, 0.9fr)";
 const detailColumnWidths = ref<string[]>([]);
 let columnResizeMove: ((event: PointerEvent) => void) | null = null;
 let columnResizeEnd: (() => void) | null = null;
@@ -608,10 +609,13 @@ const loadDetailColumns = () => {
     );
     if (
       Array.isArray(saved) &&
-      saved.length === 4 &&
+      (saved.length === 4 || saved.length === 5) &&
       saved.every((value) => typeof value === "number" && value > 0)
     ) {
       detailColumnWidths.value = saved.map((value) => `${value}px`);
+      if (detailColumnWidths.value.length === 4) {
+        detailColumnWidths.value.push("190px");
+      }
     }
   } catch {
     // 忽略损坏的列宽缓存，继续使用自适应默认值。
@@ -640,10 +644,10 @@ const startColumnResize = (event: PointerEvent, index: number) => {
   const headerCell = (event.currentTarget as HTMLElement).parentElement;
   const initialWidth = headerCell?.getBoundingClientRect().width ?? 160;
   const initialX = event.clientX;
-  const minWidths = [180, 140, 100, 150];
+  const minWidths = [180, 140, 100, 150, 170];
 
   if (!detailColumnWidths.value.length) {
-    detailColumnWidths.value = [initialWidth, 180, 120, 170].map(
+    detailColumnWidths.value = [initialWidth, 180, 120, 170, 190].map(
       (value) => `${value}px`
     );
   }

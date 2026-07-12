@@ -756,7 +756,7 @@
 #listing.details .item:not(.header) > div:last-of-type {
   display: grid;
   width: 100%;
-  grid-template-columns: var(--details-columns, minmax(14rem, 1.5fr) minmax(10rem, 1fr) minmax(7rem, 0.65fr) minmax(10rem, 0.8fr));
+  grid-template-columns: var(--details-columns, minmax(14rem, 1.5fr) minmax(10rem, 1fr) minmax(7rem, 0.65fr) minmax(10rem, 0.8fr) minmax(12rem, 0.9fr));
   align-items: center;
   column-gap: 1rem;
 }
@@ -830,6 +830,50 @@
 #listing.details .item:not(.header) .size,
 #listing.details .item:not(.header) .modified {
   font-size: 0.8125rem;
+}
+
+#listing.details .item.header .actions,
+#listing.details .item:not(.header) .detail-actions {
+  min-width: 0;
+  width: auto;
+  flex: none;
+}
+
+#listing.details .item.header .actions {
+  text-align: center;
+}
+
+#listing.details .detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+}
+
+#listing.details .detail-action-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--file-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+#listing.details .detail-action-button:hover,
+#listing.details .detail-action-button:focus-visible {
+  color: var(--file-accent);
+  background: var(--file-accent-soft);
+  border-color: color-mix(in srgb, var(--file-accent) 22%, transparent);
+}
+
+#listing.details .detail-action-button.danger:hover {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 #listing.details .item[aria-selected="true"] .file-type-icon,
@@ -1089,11 +1133,11 @@
 
   #listing.details .item.header {
     display: flex !important;
-    min-width: 42rem;
+    min-width: 52rem;
   }
 
   #listing.details > div[data-clear-on-click="true"] {
-    min-width: 42rem;
+    min-width: 52rem;
   }
 
   #listing.details .size,

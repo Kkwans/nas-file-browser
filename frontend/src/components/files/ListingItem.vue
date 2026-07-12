@@ -89,6 +89,58 @@
       <p class="modified">
         <time :datetime="modified">{{ humanTime }}</time>
       </p>
+
+      <div v-if="viewMode === 'details'" class="detail-actions" @click.stop>
+        <button
+          class="detail-action-button"
+          type="button"
+          title="详细信息"
+          aria-label="详细信息"
+          @click="showItemAction('info')"
+        >
+          <i class="material-icons">info</i>
+        </button>
+        <button
+          v-if="authStore.user?.perm.rename"
+          class="detail-action-button"
+          type="button"
+          title="重命名"
+          aria-label="重命名"
+          @click="showItemAction('rename')"
+        >
+          <i class="material-icons">drive_file_rename_outline</i>
+        </button>
+        <button
+          v-if="authStore.user?.perm.rename"
+          class="detail-action-button"
+          type="button"
+          title="移动"
+          aria-label="移动"
+          @click="showItemAction('move')"
+        >
+          <i class="material-icons">drive_file_move</i>
+        </button>
+        <button
+          v-if="authStore.user?.perm.download"
+          class="detail-action-button"
+          type="button"
+          title="下载"
+          aria-label="下载"
+          @click="downloadItem"
+        >
+          <i class="material-icons">file_download</i>
+        </button>
+        <button
+          v-if="authStore.user?.perm.delete"
+          class="detail-action-button danger"
+          type="button"
+          title="删除"
+          aria-label="删除"
+          @click="showItemAction('delete')"
+        >
+          <i class="material-icons">delete</i>
+        </button>
+      </div>
     </div>
   </div>
   <Teleport to="body">
@@ -211,6 +263,25 @@ const isFavorited = computed(() => {
 const toggleFav = () => {
   if (!props.path) return;
   favoritesStore.toggleFavorite(props.path, props.name);
+};
+
+const selectForAction = () => {
+  fileStore.multiple = false;
+  fileStore.selected = [props.index];
+};
+
+const showItemAction = (prompt: string) => {
+  selectForAction();
+  layoutStore.showHover(prompt);
+};
+
+const downloadItem = () => {
+  selectForAction();
+  if (!props.isDir) {
+    api.download(null, props.url);
+    return;
+  }
+  layoutStore.showHover("download");
 };
 
 const showTagPicker = ref(false);

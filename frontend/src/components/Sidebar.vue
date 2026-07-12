@@ -539,15 +539,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  inject,
-  onMounted,
-  onUnmounted,
-  reactive,
-  ref,
-  watch,
-} from "vue";
+import { computed, inject, onUnmounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
@@ -953,13 +945,31 @@ watch(
 );
 
 // Lifecycle
-onMounted(() => {
-  Promise.all([favoritesStore.loadFavorites(), tagsStore.loadTags()]);
-  if (user.value?.perm?.admin) {
-    volumesStore.fetchVolumes();
-    categoriesStore.fetchCategories();
-  }
-});
+let loadedUserId: number | null = null;
+
+watch(
+  () => user.value?.id,
+  async (userId) => {
+    if (!userId) {
+      loadedUserId = null;
+      favoritesStore.favorites = [];
+      favoritesStore.groups = [];
+      tagsStore.tags = [];
+      tagsStore.activeFilter = null;
+      return;
+    }
+    if (loadedUserId === userId) return;
+
+    loadedUserId = userId;
+    await Promise.all([favoritesStore.loadFavorites(), tagsStore.loadTags()]);
+    if (user.value?.id !== userId) return;
+    if (user.value?.perm?.admin) {
+      volumesStore.fetchVolumes();
+      categoriesStore.fetchCategories();
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   if (usageDebounceTimer) clearTimeout(usageDebounceTimer);

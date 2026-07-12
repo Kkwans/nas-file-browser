@@ -34,30 +34,50 @@
 
       <!-- Favorites Section -->
       <div class="favorites-section">
-        <button class="favorites-header" @click="toggleSection('favorites')">
-          <i class="material-icons">star</i>
-          <span>收藏夹</span>
+        <div class="favorites-header">
           <button
-            class="section-action-btn"
-            title="新建分组"
-            @click.stop.prevent="showCreateGroup = !showCreateGroup"
+            class="section-toggle"
+            type="button"
+            :aria-expanded="!collapsedSections.favorites"
+            @click="toggleSection('favorites')"
           >
-            <i class="material-icons">create_new_folder</i>
+            <i class="material-icons">star</i>
+            <span>收藏夹</span>
           </button>
-          <button
-            v-if="favoritesStore.sortedFavorites.length > 0"
-            class="section-action-btn"
-            title="清空收藏夹"
-            @click.stop.prevent="clearAllFavorites"
-          >
-            <i class="material-icons">delete_sweep</i>
-          </button>
-          <i
-            class="material-icons section-arrow"
-            :class="{ expanded: !collapsedSections.favorites }"
-            >expand_more</i
-          >
-        </button>
+          <div class="section-tools">
+            <button
+              class="section-action-btn"
+              type="button"
+              title="新建分组"
+              @click.stop.prevent="showCreateGroup = !showCreateGroup"
+            >
+              <i class="material-icons">create_new_folder</i>
+            </button>
+            <button
+              v-if="favoritesStore.sortedFavorites.length > 0"
+              class="section-action-btn"
+              type="button"
+              title="清空收藏夹"
+              @click.stop.prevent="clearAllFavorites"
+            >
+              <i class="material-icons">delete_sweep</i>
+            </button>
+            <button
+              class="section-action-btn section-collapse-btn"
+              type="button"
+              :aria-label="
+                collapsedSections.favorites ? '展开收藏夹' : '收起收藏夹'
+              "
+              @click="toggleSection('favorites')"
+            >
+              <i
+                class="material-icons section-arrow"
+                :class="{ expanded: !collapsedSections.favorites }"
+                >expand_more</i
+              >
+            </button>
+          </div>
+        </div>
         <template v-if="!collapsedSections.favorites">
           <!-- Create group input -->
           <div v-if="showCreateGroup" class="create-group-input">
@@ -210,22 +230,39 @@
 
       <!-- Tags Filter Section -->
       <div class="tags-section">
-        <button class="tags-header" @click="toggleSection('tags')">
-          <i class="material-icons">label</i>
-          <span>标签</span>
+        <div class="tags-header">
           <button
-            class="section-action-btn"
-            title="管理标签"
-            @click.stop.prevent="openTagManager"
+            class="section-toggle"
+            type="button"
+            :aria-expanded="!collapsedSections.tags"
+            @click="toggleSection('tags')"
           >
-            <i class="material-icons">settings</i>
+            <i class="material-icons">label</i>
+            <span>标签</span>
           </button>
-          <i
-            class="material-icons section-arrow"
-            :class="{ expanded: !collapsedSections.tags }"
-            >expand_more</i
-          >
-        </button>
+          <div class="section-tools">
+            <button
+              class="section-action-btn"
+              type="button"
+              title="管理标签"
+              @click.stop.prevent="openTagManager"
+            >
+              <i class="material-icons">settings</i>
+            </button>
+            <button
+              class="section-action-btn section-collapse-btn"
+              type="button"
+              :aria-label="collapsedSections.tags ? '展开标签' : '收起标签'"
+              @click="toggleSection('tags')"
+            >
+              <i
+                class="material-icons section-arrow"
+                :class="{ expanded: !collapsedSections.tags }"
+                >expand_more</i
+              >
+            </button>
+          </div>
+        </div>
         <template v-if="!collapsedSections.tags">
           <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
             <i class="material-icons">turned_in_not</i>

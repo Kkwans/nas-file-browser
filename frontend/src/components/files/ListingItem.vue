@@ -115,10 +115,11 @@ import { useTagsStore } from "@/stores/tags";
 
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
+import { summarizeDirectory } from "@/utils/directoryStats";
 import dayjs from "@/utils/date";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
-import { computed, inject, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
 import type { Resource, ConflictingResource, MoveCopyItem } from "@/types/file";
@@ -130,6 +131,8 @@ const longPressTriggered = ref<boolean>(false);
 const longPressDelay = ref<number>(500);
 const startPosition = ref<{ x: number; y: number } | null>(null);
 const moveThreshold = ref<number>(10);
+const directorySize = ref<number | null>(null);
+const directorySizeLoading = ref(false);
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
@@ -234,9 +237,31 @@ const openTagManager = () => {
 
 const humanSize = computed(() => {
   if (props.type == "invalid_link") return "无效链接";
+  if (props.isDir) {
+    if (directorySizeLoading.value || directorySize.value === null) {
+      return "计算中…";
+    }
+    return filesize(directorySize.value);
+  }
   if (props.size > 0) return filesize(props.size);
-  return props.isDir ? "未统计" : filesize(props.size);
+  return filesize(props.size);
 });
+
+const loadDirectorySize = async () => {
+  if (!props.isDir || !props.url) return;
+  directorySizeLoading.value = true;
+  try {
+    const entries = await api.fetchAll(props.url);
+    directorySize.value = summarizeDirectory(entries).size;
+  } catch {
+    directorySize.value = 0;
+  } finally {
+    directorySizeLoading.value = false;
+  }
+};
+
+onMounted(loadDirectorySize);
+watch(() => [props.isDir, props.url], loadDirectorySize);
 
 const humanTime = computed(() => {
   if (!props.readOnly && authStore.user?.dateFormat) {

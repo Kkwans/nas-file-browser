@@ -1,9 +1,9 @@
 import { partial } from "filesize";
 
 /**
- * Formats filesize as KiB/MiB/...
+ * 使用 Windows 风格的 B/KB/MB/GB/TB 单位格式化大小。
  */
-export const filesize = partial({ base: 2 });
+export const filesize = partial({ base: 2, standard: "jedec" });
 
 export const vClickOutside = {
   created(el: HTMLElement, binding: { value: (event: Event) => void }) {

@@ -250,7 +250,6 @@
           </div>
         </div>
 
-        <!-- Tag filter indicator -->
         <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
           <i
             class="material-icons"
@@ -258,8 +257,9 @@
             >label</i
           >
           <span
-            >'正在按标签筛选:'
-            <strong>{{ tagsStore.activeFilterTag.name }}</strong></span
+            >正在按标签筛选：<strong>{{
+              tagsStore.activeFilterTag.name
+            }}</strong></span
           >
           <button
             class="tag-filter-clear-btn"
@@ -270,21 +270,17 @@
         </div>
 
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
-          '文件夹'
+          文件夹
           <button
             v-if="hasSystemDirs"
             class="system-dirs-toggle"
             @click="toggleSystemDirs"
-            title="
-              showSystemDirs
-                ? '隐藏系统文件夹'
-                : '显示系统文件夹'
-            "
+            :title="showSystemDirs ? '隐藏系统文件夹' : '显示系统文件夹'"
           >
             <i class="material-icons">{{
               showSystemDirs ? "expand_less" : "expand_more"
             }}</i>
-            <span>@({{ systemDirs.length }})</span>
+            <span>{{ systemDirs.length }} 项</span>
           </button>
         </h2>
         <div
@@ -308,7 +304,7 @@
         </div>
 
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numFiles ?? false">
-          '文件'
+          文件
         </h2>
         <div
           v-if="fileStore.req?.numFiles ?? false"

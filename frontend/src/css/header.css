@@ -188,6 +188,41 @@ header .action.active i {
   margin-right: 0.5em;
 }
 
+/* Desktop workspace toolbar: keep FileBrowser's primary actions visible. */
+@media (min-width: 737px) {
+  #dropdown {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 0.125em;
+    min-width: 0;
+    margin-left: auto;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  #dropdown > div {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  #dropdown .action {
+    width: auto;
+    padding: 0;
+  }
+
+  #dropdown .action i {
+    margin-right: 0;
+  }
+}
+
 /* === SEARCH BAR === */
 
 #search {

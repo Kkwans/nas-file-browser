@@ -5,7 +5,7 @@
       v-if="showMenu"
       class="menu-button"
       icon="menu"
-      :label="'切换侧边栏'"
+      label="切换侧边栏"
       @action="layoutStore.showHover('sidebar')"
     />
 
@@ -22,7 +22,7 @@
       v-if="ifActionsSlot"
       id="more"
       icon="more_vert"
-      :label="'更多'"
+      label="更多"
       @action="layoutStore.showHover('more')"
     />
 
@@ -41,9 +41,6 @@ import { logoURL, name } from "@/utils/constants";
 
 import Action from "@/components/header/Action.vue";
 import { computed, useSlots } from "vue";
-import { T } from "@/utils/translations";
-const t = (key: string): string => (T as Record<string, string>)[key] || key;
-
 defineProps<{
   showLogo?: boolean;
   showMenu?: boolean;

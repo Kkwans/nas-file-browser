@@ -540,7 +540,7 @@ const viewModes = [
   {
     value: "mosaic" as ViewModeType,
     icon: "grid_view",
-    label: "网格视图",
+    label: "详细网格",
   },
   {
     value: "compact-grid" as ViewModeType,

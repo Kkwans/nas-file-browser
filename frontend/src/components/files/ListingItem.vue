@@ -233,7 +233,9 @@ const openTagManager = () => {
 };
 
 const humanSize = computed(() => {
-  return props.type == "invalid_link" ? "invalid link" : filesize(props.size);
+  if (props.type == "invalid_link") return "无效链接";
+  if (props.size > 0) return filesize(props.size);
+  return props.isDir ? "未统计" : filesize(props.size);
 });
 
 const humanTime = computed(() => {

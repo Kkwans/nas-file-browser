@@ -1,1452 +1,659 @@
-/* ============================================================
- *  LISTING -- File Listing Page Styles
- *  Modern file listing with refined cards, smooth transitions,
- *  better typography, and polished interactions
- * ============================================================ */
-
-html[dir="rtl"] #listing {
-  margin-right: 16em;
+/* 文件工作区：以稳定、紧凑、可扫描为优先，不以悬停动效改变操作位置。 */
+#listing {
+  --file-accent: #1677ff;
+  --file-accent-soft: rgba(22, 119, 255, 0.1);
+  --file-border: var(--borderPrimary, #e5e7eb);
+  --file-muted: var(--textSecondary, #64748b);
+  --file-surface: var(--surfacePrimary, #ffffff);
+  --file-hover: var(--hover, #f4f7fb);
+  color: var(--textPrimary, #1e293b);
 }
 
-/* --- Section headers (Folders / Files) --- */
 #listing h2 {
-  margin: 1.5em 0 0.5em 1em;
-  font-size: 0.78em;
-  color: var(--textPrimary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.625rem;
+  color: var(--file-muted);
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.5;
 }
 
-/* --- Container for items --- */
 #listing > div {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
 }
 
-/* --- Truncation --- */
-#listing .item div:last-of-type * {
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-/* --- Base item --- */
 #listing .item {
-  background: var(--surfacePrimary);
-  border-color: var(--divider);
+  box-sizing: border-box;
   position: relative;
   display: flex;
-  flex-wrap: nowrap;
-  color: var(--textPrimary);
-  transition:
-    0.18s ease background,
-    0.18s ease box-shadow,
-    0.18s ease transform,
-    0.12s ease opacity;
-  align-items: center;
+  min-width: 0;
+  color: var(--textPrimary, #1e293b);
+  background: var(--file-surface);
+  border: 1px solid var(--file-border);
   cursor: pointer;
   user-select: none;
+  transition: background-color 160ms ease, border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-#listing .item div:last-of-type {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+#listing .item:focus-visible,
+#listing .item-icon-button:focus-visible,
+#listing .dropdown-item:focus-visible,
+#listing .selection-btn:focus-visible,
+.system-dirs-toggle:focus-visible {
+  outline: 2px solid var(--file-accent);
+  outline-offset: 2px;
 }
 
-#listing .item p {
-  margin: 0;
+#listing .item:hover {
+  background: var(--file-hover);
+  border-color: color-mix(in srgb, var(--file-accent) 42%, var(--file-border));
 }
 
-#listing .item .size,
-#listing .item .modified {
-  font-size: 0.85em;
-  color: var(--textPrimary);
-  opacity: 0.6;
-}
-
-#listing .item .name {
-  font-weight: 600;
-  font-size: 0.92em;
-  letter-spacing: -0.01em;
-}
-
-#listing .item i {
-  font-size: 4em;
-  margin-right: 0.1em;
-  vertical-align: bottom;
-}
-
-#listing .item img {
-  width: 4em;
-  height: 4em;
-  object-fit: cover;
-  margin-right: 0.1em;
-  vertical-align: bottom;
-}
-
-/* --- Empty / Loading message --- */
-.message {
-  text-align: center;
-  font-size: 1.5em;
-  margin: 2em auto;
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 95%;
-  color: var(--textPrimary);
-  font-weight: 500;
-  opacity: 0.6;
-  min-height: 12em;
-  gap: 0.5em;
-}
-
-.message i {
-  font-size: 3em;
-  margin-bottom: 0.3em;
-  display: block;
-  opacity: 0.4;
-  animation: messageFloat 3s ease-in-out infinite;
-}
-
-@keyframes messageFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-/* ============================================================
- *  MOSAIC (Grid) VIEW
- * ============================================================ */
-
-#listing.mosaic {
-  padding-top: 1em;
-  margin: 0 -0.5em;
-}
-
-#listing.mosaic .item {
-  width: calc(25% - 1em);
-  margin: 0.5em;
-  padding: 1.4em 0.8em 1em;
-  border-radius: 0.75em;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.03),
-    0 1px 2px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--divider);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  text-align: center;
-  position: relative;
-  background: linear-gradient(
-    135deg,
-    var(--surfacePrimary) 0%,
-    var(--surfaceSecondary) 100%
-  );
-}
-
-#listing.mosaic .item:hover {
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgba(33, 150, 243, 0.08);
-  transform: translateY(-3px);
-  border-color: rgba(33, 150, 243, 0.3);
-  background: linear-gradient(
-    135deg,
-    var(--surfacePrimary) 0%,
-    rgba(33, 150, 243, 0.03) 100%
-  );
-}
-
-#listing.mosaic .item:active {
-  transform: translateY(-1px);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.06),
-    0 1px 3px rgba(0, 0, 0, 0.08);
-  transition-duration: 0.08s;
-}
-
-#listing.mosaic .header {
-  display: none;
-}
-
-/* Icon container - centered, larger */
-#listing.mosaic .item div:first-of-type {
-  width: 4em;
-  height: 4em;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  margin-bottom: 0.6em;
-  border-radius: 0.5em;
-  transition: transform 0.2s ease;
-}
-
-#listing.mosaic .item:hover div:first-of-type {
-  transform: scale(1.05);
-}
-
-#listing.mosaic .item div:first-of-type i {
-  font-size: 3.2em;
-  line-height: 1;
-  margin-right: 0;
-}
-
-#listing.mosaic .item div:first-of-type img {
-  width: 4em;
-  height: 4em;
-  margin-right: 0;
-  border-radius: 0.5em;
-  object-fit: cover;
-}
-
-/* Text container - centered below icon */
-#listing.mosaic .item div:last-of-type {
-  width: 100%;
-  min-width: 0;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Name - centered, allow 2 lines */
-#listing.mosaic .item .name {
-  width: 100%;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.35;
-  max-height: 2.7em;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  font-size: 0.82em;
-  padding: 0 0.25em;
-}
-
-/* Meta info (size, modified) - compact */
-#listing.mosaic .item .size {
-  display: none;
-}
-
-#listing.mosaic .item .modified {
-  font-size: 0.7em;
-  margin-top: 0.35em;
-  opacity: 0.45;
-}
-
-/* --- Gallery sub-mode (detail view) --- */
-#listing.mosaic.gallery .item {
-  overflow: hidden;
-  padding: 0;
-  width: calc(33% - 1em);
-}
-
-#listing.mosaic.gallery .item div:first-of-type {
-  width: 100%;
-  height: 14em;
-  margin-bottom: 0;
-  border-radius: 0.75em 0.75em 0 0;
-}
-
-#listing.mosaic.gallery .item div:last-of-type {
-  position: absolute;
-  bottom: 0;
-  padding: 1em 1.2em;
-  width: 100%;
-  text-align: center;
-  background: linear-gradient(#0000, rgba(0, 0, 0, 0.6));
-  border-radius: 0 0 0.75em 0.75em;
-}
-
-#listing.mosaic.gallery .item[data-type="image"] div:last-of-type {
-  color: white;
-}
-
-#listing.mosaic.gallery .item i {
-  width: 100%;
-  margin-right: 0;
-  font-size: 5em;
-  line-height: 1;
-}
-
-#listing.mosaic.gallery .item img {
-  width: 100%;
-  height: 100%;
-  border-radius: 0.75em 0.75em 0 0;
-}
-
-#listing.gallery .size,
-#listing.gallery .modified {
-  display: none;
-}
-
-/* ============================================================
- *  LIST VIEW
- * ============================================================ */
-
-#listing.list {
-  flex-direction: column;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-}
-
-#listing.list .item {
-  width: 100%;
-  margin: 0;
-  border: 1px solid var(--borderPrimary);
-  padding: 0.7em 1.2em;
-  border-top: 0;
-  border-radius: 0;
-  transition:
-    background 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-#listing.list .item:first-of-type {
-  border-radius: 0.5em 0.5em 0 0;
-}
-
-#listing.list .item:last-of-type {
-  border-radius: 0 0 0.5em 0.5em;
-}
-
-#listing.list .item:only-of-type {
-  border-radius: 0.5em;
-}
-
-#listing.list .item:hover {
-  background: var(--hover);
-  box-shadow: inset 3px 0 0 0 var(--blue);
-}
-
-#listing.list h2 {
-  display: none;
-}
-
-/* --- Selected state --- */
 #listing .item[aria-selected="true"] {
-  background: linear-gradient(
-    135deg,
-    var(--blue) 0%,
-    var(--dark-blue) 100%
-  ) !important;
-  color: var(--iconSecondary) !important;
-  border-color: var(--blue) !important;
-  box-shadow:
-    0 2px 8px rgba(33, 150, 243, 0.25),
-    0 0 0 1px rgba(33, 150, 243, 0.15);
+  background: var(--file-accent-soft) !important;
+  border-color: var(--file-accent) !important;
+  box-shadow: inset 3px 0 0 var(--file-accent);
+  color: var(--textPrimary, #1e293b) !important;
 }
 
-#listing .item[aria-selected="true"] .size,
-#listing .item[aria-selected="true"] .modified {
-  color: var(--iconSecondary) !important;
-  opacity: 0.85;
+#listing .item > div:first-of-type {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
 }
 
-/* --- List icon column --- */
-#listing.list .item div:first-of-type {
-  width: 3em;
+#listing .item > div:first-of-type > i,
+#listing .item > div:first-of-type > img {
+  display: block;
+  object-fit: cover;
 }
 
-#listing.list .item div:first-of-type i {
-  font-size: 2em;
-}
-
-#listing.list .item div:first-of-type img {
-  width: 2em;
-  height: 2em;
-  border-radius: 0.3em;
-}
-
-/* --- List content column --- */
-#listing.list .item div:last-of-type {
-  width: calc(100% - 3em);
-  display: flex;
-  align-items: center;
-}
-
-#listing.list .item .name {
-  width: 50%;
-}
-
-#listing.list .item .size {
-  width: 25%;
-}
-
-#listing.list .item .modified {
-  width: 25%;
-}
-
-/* ============================================================
- *  LIST HEADER (Sort row)
- * ============================================================ */
-
-#listing .item.header {
-  display: none !important;
-  background-color: var(--iconTertiary);
-}
-
-#listing.list .header i {
-  font-size: 1.4em;
-  vertical-align: middle;
-  margin-left: 0.2em;
-  opacity: 0;
-  transition: 0.15s ease opacity;
-}
-
-#listing.list .item.header {
-  display: flex !important;
-  background: linear-gradient(
-    180deg,
-    var(--surfaceSecondary) 0%,
-    var(--surfacePrimary) 100%
-  );
-  z-index: 999;
-  padding: 0.6em 1.2em;
-  border: 0;
-  border-bottom: 2px solid var(--borderPrimary);
-  border-radius: 0.5em 0.5em 0 0;
-}
-
-#listing.list .item.header > div {
-  width: 100%;
-}
-
-#listing.list .item.header .name {
-  margin-right: 3em;
-}
-
-#listing.list .header a {
-  color: inherit;
-}
-
-#listing.list .name {
-  font-weight: normal;
-  word-wrap: break-word;
-  word-break: break-all;
-  white-space: pre-wrap;
-}
-
-#listing.list .header span {
-  vertical-align: middle;
-  font-size: 0.82em;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-  opacity: 0.5;
-}
-
-#listing.list .header p:hover i,
-#listing.list .header .active i {
-  opacity: 1;
-}
-
-#listing.list .header p:hover span,
-#listing.list .header .active span {
-  opacity: 1;
-}
-
-#listing.list .item.header .active {
-  font-weight: bold;
-}
-
-#listing.list .header p {
-  transition: 0.15s ease opacity;
-  border-radius: 0.35em;
-  padding: 0.2em 0.4em;
-  margin: -0.2em -0.4em;
-}
-
-#listing.list .header p:hover {
-  background: var(--hover);
-}
-
-/* ============================================================
- *  MULTIPLE SELECTION BAR
- * ============================================================ */
-
-#listing #multiple-selection {
-  position: fixed;
-  bottom: -5em;
-  left: 0;
-  z-index: 99999;
-  width: 100%;
-  background: var(--surfacePrimary);
-  border-top: 1px solid var(--borderPrimary);
-  box-shadow:
-    0 -4px 24px rgba(0, 0, 0, 0.1),
-    0 -1px 8px rgba(0, 0, 0, 0.05);
-  height: auto;
-  min-height: 3.5em;
-  padding: 0.6em 1.2em;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75em;
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1) bottom;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-#listing #multiple-selection.active {
-  bottom: 0;
-}
-
-/* --- Left: selection info --- */
-#listing #multiple-selection .selection-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  flex-shrink: 0;
+#listing .item > div:last-of-type {
   min-width: 0;
 }
 
-#listing #multiple-selection .selection-info i {
-  color: var(--blue);
-  font-size: 1.3em;
+#listing .name {
+  min-width: 0;
 }
 
-#listing #multiple-selection .selection-info span {
-  color: var(--textPrimary);
-  font-weight: 600;
-  font-size: 0.88em;
-  white-space: nowrap;
-}
-
-/* --- Right: action buttons --- */
-#listing #multiple-selection .selection-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-#listing #multiple-selection .selection-actions::-webkit-scrollbar {
-  display: none;
-}
-
-#listing #multiple-selection .selection-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35em;
-  padding: 0.45em 0.8em;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 0.5em;
-  background: var(--surfacePrimary);
-  color: var(--textPrimary);
-  font-size: 0.82em;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    0.15s ease background,
-    0.15s ease border-color,
-    0.15s ease box-shadow,
-    0.1s ease transform;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-#listing #multiple-selection .selection-btn i {
-  font-size: 1.15em;
-  color: var(--textSecondary);
-  transition: 0.15s ease color;
-}
-
-#listing #multiple-selection .selection-btn:hover {
-  background: var(--hover);
-  border-color: var(--blue);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-
-#listing #multiple-selection .selection-btn:hover i {
-  color: var(--blue);
-}
-
-#listing #multiple-selection .selection-btn:active {
-  transform: scale(0.96);
-}
-
-/* Action buttons (copy/move/download) with blue tint */
-#listing #multiple-selection .selection-btn.action-btn {
-  background: rgba(59, 130, 246, 0.05);
-  border-color: rgba(59, 130, 246, 0.15);
-}
-
-#listing #multiple-selection .selection-btn.action-btn:hover {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: var(--blue);
-}
-
-/* Danger button (delete) */
-#listing #multiple-selection .selection-btn.danger {
-  color: var(--red);
-  border-color: rgba(239, 68, 68, 0.15);
-  background: rgba(239, 68, 68, 0.05);
-}
-
-#listing #multiple-selection .selection-btn.danger i {
-  color: var(--red);
-}
-
-#listing #multiple-selection .selection-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: var(--red);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.12);
-}
-
-/* Close button */
-#listing #multiple-selection .selection-btn.close-btn {
-  border: none;
-  background: transparent;
-  padding: 0.4em;
-  border-radius: 50%;
-  margin-left: 0.25em;
-}
-
-#listing #multiple-selection .selection-btn.close-btn i {
-  font-size: 1.3em;
-  opacity: 0.5;
-  transition: 0.15s ease opacity;
-}
-
-#listing #multiple-selection .selection-btn.close-btn:hover {
-  background: var(--hover);
-}
-
-#listing #multiple-selection .selection-btn.close-btn:hover i {
-  opacity: 1;
-  color: var(--textPrimary);
-}
-
-/* --- Dark mode enhancements --- */
-:root.dark #listing #multiple-selection,
-html.dark #listing #multiple-selection {
-  background: rgba(28, 37, 43, 0.95);
-  box-shadow:
-    0 -4px 24px rgba(0, 0, 0, 0.25),
-    0 -1px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* Risk icons: compact in mosaic view, visible in all views */
-#listing.mosaic .risk-icon {
-  margin-left: 0;
-  position: absolute;
-  top: 0.65rem;
-  left: 0.65rem;
-}
-
-/* --- Risk Level Icons in File Listing --- */
-.risk-icon {
-  display: inline-flex;
-  width: 1.15rem;
-  height: 1.15rem;
-  align-items: center;
-  justify-content: center;
-  margin-left: 0.35rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  line-height: 1;
-  vertical-align: text-bottom;
-  position: relative;
-  cursor: help;
-}
-
-.risk-icon.risk-high {
-  color: #da4453;
-  background: rgba(218, 68, 83, 0.12);
-}
-
-.risk-icon.risk-medium {
-  color: #f5a623;
-  background: rgba(245, 166, 35, 0.15);
-}
-
-:root.dark .risk-icon.risk-high,
-html.dark .risk-icon.risk-high {
-  color: #ff6b7a;
-  background: rgba(255, 107, 122, 0.16);
-}
-
-:root.dark .risk-icon.risk-medium,
-html.dark .risk-icon.risk-medium {
-  color: #ffb84d;
-  background: rgba(255, 184, 77, 0.16);
-}
-
-/* --- Favorite Star in Listing --- */
-.favorite-star {
-  display: inline-flex;
-  width: 1.6rem;
-  height: 1.6rem;
-  align-items: center;
-  justify-content: center;
-  margin-left: 0.25rem !important;
-  border-radius: 999px;
-  font-size: 0.95rem !important;
-  vertical-align: text-bottom;
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    0.2s ease opacity,
-    0.2s ease color,
-    0.2s ease transform;
-  color: var(--textSecondary) !important;
-  position: relative;
-  top: 0;
-  padding: 0;
-}
-
-/* In mosaic view, position star absolutely at top-right */
-#listing.mosaic .favorite-star {
-  position: absolute;
-  top: 0.4em;
-  right: 0.4em;
-  margin-left: 0 !important;
-  font-size: 0.8em !important;
-  background: var(--surfacePrimary);
-  border-radius: 999px;
-  width: 1.7em;
-  height: 1.7em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-}
-
-#listing .item:hover .favorite-star,
-.favorite-star.is-fav {
-  opacity: 0.6;
-}
-
-#listing .item:hover .favorite-star.is-fav {
-  opacity: 1;
-}
-
-.favorite-star:hover {
-  opacity: 1 !important;
-  color: #f5a623 !important;
-  transform: scale(1.2);
-  background: rgba(245, 166, 35, 0.08);
-}
-
-.favorite-star.is-fav {
-  color: #f5a623 !important;
-  opacity: 0.9;
-}
-
-.favorite-star.is-fav:hover {
-  opacity: 1 !important;
-  transform: scale(1.2);
-  background: rgba(245, 166, 35, 0.12);
-}
-
-/* Selected state */
-#listing .item[aria-selected="true"] .favorite-star {
-  opacity: 0.5 !important;
-  color: var(--iconSecondary) !important;
-}
-
-#listing .item[aria-selected="true"] .favorite-star.is-fav {
-  color: #ffd700 !important;
-  opacity: 0.9 !important;
-}
-
-/* Mosaic: show star on hover with smooth reveal */
-#listing.mosaic .item:hover .favorite-star {
-  opacity: 0.7;
-}
-#listing.mosaic .item:hover .favorite-star.is-fav {
-  opacity: 1;
-}
-
-/* In mosaic view, hide tag button and dots for clean cards */
-#listing.mosaic .tag-btn {
-  display: none;
-}
-
-#listing.mosaic .tag-dot {
-  display: none;
-}
-
-/* ---- Tag Button ---- */
-.tag-btn {
-  font-size: 0.85em;
-  opacity: 0;
-  cursor: pointer;
-  color: var(--textSecondary, #999);
-  vertical-align: middle;
-  transition:
-    opacity 0.15s,
-    color 0.15s;
-  margin-left: 0.15em;
-}
-
-#listing .item:hover .tag-btn,
-.tag-btn.has-tags {
-  opacity: 0.5;
-}
-
-.tag-btn.has-tags {
-  opacity: 0.7;
-  color: var(--blue, #2196f3);
-}
-
-#listing .item:hover .tag-btn.has-tags {
-  opacity: 1;
-}
-
-.tag-btn:hover {
-  opacity: 1 !important;
-  color: var(--blue, #2196f3);
-}
-
-/* Selected state */
-#listing .item[aria-selected="true"] .tag-btn {
-  opacity: 0.6 !important;
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-#listing .item[aria-selected="true"] .tag-btn.has-tags {
-  color: #fff !important;
-  opacity: 0.9 !important;
-}
-
-/* ---- Tag Dots (compact) ---- */
-.tag-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-left: 0.25em;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-  transition: transform 0.15s ease;
-  cursor: default;
-}
-
-.tag-dot:hover {
-  transform: scale(1.4);
-}
-
-/* Legacy tag-chip (keep for TagPicker) */
-.tag-chip {
-  display: inline-block;
-  font-size: 0.625em;
-  padding: 0.05em 0.4em;
-  border-radius: 0.625em;
-  border: 1px solid;
-  margin-left: 0.3em;
-  vertical-align: middle;
-  line-height: 1.5;
-  white-space: nowrap;
-  max-width: 5em;
+#listing .item-name {
+  min-width: 0;
   overflow: hidden;
+  font-weight: 600;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* ---- Tag Picker Popup ---- */
-.tag-picker-popup {
-  position: absolute;
-  top: 100%;
-  left: 2em;
-  z-index: 100;
-  margin-top: 0.25em;
-  /* Prevent overflow on right edge */
-  max-width: calc(100vw - 4em);
+#listing .size,
+#listing .modified {
+  margin: 0;
+  color: var(--file-muted);
+  font-size: 0.8125rem;
+  line-height: 1.35;
 }
 
-@media (max-width: 736px) {
-  .tag-picker-popup {
-    position: fixed;
-    top: auto;
-    bottom: 1em;
-    left: 1em;
-    right: 1em;
-    max-width: none;
-    width: auto;
-  }
+#listing .risk-icon,
+#listing .item-icon-button {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 0.4375rem;
 }
 
-/* ---- Favorite Group Picker Popup ---- */
+#listing .risk-icon {
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.9375rem;
+  line-height: 1;
+}
+
+#listing .risk-high {
+  color: #c2410c;
+  background: #fff1ed;
+}
+
+#listing .risk-medium {
+  color: #a16207;
+  background: #fef9c3;
+}
+
+#listing .item-quick-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+#listing .item-icon-button {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: var(--file-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+#listing .item-icon-button .material-icons {
+  font-size: 1.125rem;
+}
+
+#listing .item-icon-button:hover {
+  color: var(--file-accent);
+  background: var(--file-accent-soft);
+  border-color: color-mix(in srgb, var(--file-accent) 22%, transparent);
+}
+
+#listing .favorite-star.is-fav {
+  color: #d97706;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+#listing .tag-btn.has-tags {
+  color: var(--file-accent);
+  background: var(--file-accent-soft);
+}
+
+#listing .tag-chip {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  max-width: 7.5rem;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.375rem;
+  overflow: hidden;
+  color: var(--file-muted);
+  background: color-mix(in srgb, var(--tag-color) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tag-color) 28%, transparent);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#listing .tag-chip-dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  flex: 0 0 auto;
+  background: var(--tag-color);
+  border-radius: 50%;
+}
+
+.tag-picker-popup,
 .fav-group-picker-popup {
   position: absolute;
-  top: 100%;
-  left: 4em;
-  z-index: 100;
-  margin-top: 0.25em;
-  max-width: calc(100vw - 6em);
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  max-width: calc(100vw - 2rem);
 }
 
-@media (max-width: 736px) {
-  .fav-group-picker-popup {
-    position: fixed;
-    top: auto;
-    bottom: 1em;
-    left: 1em;
-    right: 1em;
-    max-width: none;
-    width: auto;
-  }
-}
-
-.favorite-group-btn {
-  font-size: 0.85em;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s;
-  color: var(--textSecondary, #999);
-  margin-left: 0.15em;
-  vertical-align: middle;
-}
-
-#listing .item:hover .favorite-group-btn,
-.favorite-group-btn:hover {
-  opacity: 1;
-}
-
-.favorite-group-btn:hover {
-  color: var(--blue, #2196f3);
-}
-
-.is-fav ~ .favorite-group-btn {
-  opacity: 0.5;
-}
-
-#listing .item:hover .is-fav ~ .favorite-group-btn {
-  opacity: 1;
-}
-
-/* File workspace refresh: clear density tiers without decorative gradients. */
+/* 网格：信息层级固定，快捷操作固定在右上角。 */
 #listing.mosaic {
-  margin: 0;
-  padding-top: 0.75rem;
+  margin: 0 -0.375rem;
+  padding-top: 0.375rem;
 }
 
 #listing.mosaic .item {
+  display: flex;
+  flex-direction: column;
   width: calc(20% - 0.75rem);
-  min-height: 9.5rem;
+  min-height: 10.25rem;
   margin: 0.375rem;
-  padding: 1.125rem 0.875rem 0.875rem;
-  border: 1px solid var(--borderPrimary);
+  padding: 1rem;
   border-radius: 0.75rem;
-  background: var(--surfacePrimary);
-  box-shadow: none;
 }
 
-#listing.mosaic .item:hover {
-  border-color: rgba(22, 119, 255, 0.42);
-  background: var(--surfacePrimary);
-  box-shadow: 0 0.75rem 1.75rem rgba(25, 47, 76, 0.1);
-  transform: translateY(-2px);
+#listing.mosaic .item > div:first-of-type {
+  width: 4.25rem;
+  height: 4.25rem;
+  margin: 0.5rem auto 0.75rem;
 }
 
-#listing.list:not(.details) .item.header,
-#listing.list:not(.details) .size,
-#listing.list:not(.details) .modified {
-  display: none !important;
+#listing.mosaic .item > div:first-of-type > i {
+  font-size: 3.25rem;
 }
 
-#listing.list:not(.details) .item {
-  min-height: 3.5rem;
-  padding: 0.625rem 1rem;
+#listing.mosaic .item > div:first-of-type > img {
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 0.625rem;
 }
 
-#listing.list:not(.details) .item div:last-of-type,
-#listing.list:not(.details) .item .name {
+#listing.mosaic .item > div:last-of-type {
   width: 100%;
+}
+
+#listing.mosaic .name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  text-align: center;
+}
+
+#listing.mosaic .item-name {
+  width: 100%;
+  line-height: 1.4;
+}
+
+#listing.mosaic .size {
+  display: none;
+}
+
+#listing.mosaic .modified {
+  margin-top: 0.375rem;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+#listing.mosaic .item-quick-actions {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  gap: 0.1875rem;
+}
+
+#listing.mosaic .item-icon-button {
+  width: 1.75rem;
+  height: 1.75rem;
+  background: color-mix(in srgb, var(--file-surface) 92%, transparent);
+  border-color: var(--file-border);
+}
+
+#listing.mosaic .risk-icon {
+  position: absolute;
+  top: 0.625rem;
+  left: 0.625rem;
+}
+
+#listing.mosaic .tag-chip {
+  max-width: calc(50% - 0.1875rem);
+}
+
+/* 列表：单行工作台，元数据可扫读，所有操作位于同一稳定栏。 */
+#listing.list,
+#listing.details,
+#listing.compact {
+  width: 100%;
+  margin: 0;
+}
+
+#listing.list .item,
+#listing.details .item,
+#listing.compact .item {
+  width: 100%;
+  align-items: center;
+  border-bottom-width: 0;
+}
+
+#listing.list .item:first-of-type,
+#listing.details .item:first-of-type,
+#listing.compact .item:first-of-type {
+  border-radius: 0.625rem 0.625rem 0 0;
+}
+
+#listing.list .item:last-of-type,
+#listing.details .item:last-of-type,
+#listing.compact .item:last-of-type {
+  border-bottom-width: 1px;
+  border-radius: 0 0 0.625rem 0.625rem;
+}
+
+#listing.list .item > div:first-of-type,
+#listing.details .item > div:first-of-type {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+#listing.list .item > div:first-of-type > i,
+#listing.details .item > div:first-of-type > i {
+  font-size: 2rem;
+}
+
+#listing.list .item > div:first-of-type > img,
+#listing.details .item > div:first-of-type > img {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+}
+
+#listing.list .item > div:last-of-type,
+#listing.details .item > div:last-of-type {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem 0.75rem 0;
+}
+
+#listing.list .name,
+#listing.details .name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  gap: 0.375rem;
+}
+
+#listing.list .size,
+#listing.list .modified {
+  display: none;
+}
+
+#listing.details .name {
+  flex: 1 1 46%;
+}
+
+#listing.details .size,
+#listing.details .modified {
+  flex: 0 0 18%;
+}
+
+#listing.compact .item {
+  min-height: 2.75rem;
+}
+
+#listing.compact .item > div:first-of-type {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+#listing.compact .item > div:first-of-type > i {
+  font-size: 1.5rem;
+}
+
+#listing.compact .item > div:first-of-type > img {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
+}
+
+#listing.compact .item > div:last-of-type {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+#listing.compact .name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+#listing.compact .size,
+#listing.compact .modified {
+  flex: 0 0 16%;
+  font-size: 0.75rem;
+}
+
+#listing.compact .item-icon-button,
+#listing.compact .risk-icon {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+#listing.compact .tag-chip {
+  display: none;
+}
+
+/* 详细视图表头。 */
+#listing .item.header {
+  display: none;
 }
 
 #listing.details .item.header {
   position: sticky;
   top: 0;
   z-index: 2;
-}
-
-#listing .item[aria-selected="true"] {
-  border-color: #1677ff !important;
-  background: rgba(22, 119, 255, 0.1) !important;
-  color: var(--textSecondary) !important;
-  box-shadow: inset 3px 0 0 #1677ff;
-}
-
-#listing .item[aria-selected="true"] .size,
-#listing .item[aria-selected="true"] .modified {
-  color: var(--textPrimary) !important;
-}
-
-@media (max-width: 1180px) {
-  #listing.mosaic .item {
-    width: calc(25% - 0.75rem);
-  }
-}
-
-@media (max-width: 860px) {
-  #listing.mosaic .item {
-    width: calc(33.333% - 0.75rem);
-  }
-}
-
-@media (max-width: 560px) {
-  #listing.mosaic .item {
-    width: calc(50% - 0.75rem);
-    min-height: 8.75rem;
-  }
-}
-
-#listing .item {
-  position: relative;
-}
-
-/* ---- Tag Filter Indicator ---- */
-.tag-filter-indicator {
   display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.5em 1em;
-  margin: 0 0 0.5em;
-  background: rgba(33, 150, 243, 0.05);
-  border: 1px solid rgba(33, 150, 243, 0.12);
-  border-radius: 0.5em;
-  font-size: 0.8125em;
-  color: var(--textPrimary, #1a1a2e);
+  min-height: 2.5rem;
+  padding: 0 1rem 0 3.5rem;
+  color: var(--file-muted);
+  background: var(--surfaceSecondary, #f8fafc);
+  border-bottom-width: 1px;
+  border-radius: 0.625rem 0.625rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
-.tag-filter-indicator i:first-child {
-  font-size: 1.1em;
+#listing.details .item.header > div {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 1rem;
+}
+
+#listing.details .header p {
+  margin: 0;
+  cursor: pointer;
+}
+
+#listing.details .header .name {
+  flex: 1 1 46%;
+}
+
+#listing.details .header .size,
+#listing.details .header .modified {
+  flex: 0 0 18%;
+}
+
+#listing.details .header i {
+  margin-left: 0.25rem;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+/* 筛选和系统目录开关。 */
+.tag-filter-indicator {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  color: var(--textPrimary, #1e293b);
+  background: var(--file-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--file-accent) 22%, transparent);
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
 }
 
 .tag-filter-indicator span {
   flex: 1;
 }
 
-.tag-filter-clear-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--textSecondary, #888);
-  padding: 0.15em;
-  border-radius: 50%;
-  display: flex;
-}
-
-.tag-filter-clear-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--textPrimary, #1a1a2e);
-}
-
-.tag-filter-clear-btn .material-icons {
-  font-size: 1em;
-}
-
-/* --- Dark Mode: Tag Filter & Picker --- */
-:root.dark .tag-filter-indicator,
-html.dark .tag-filter-indicator {
-  background: rgba(33, 150, 243, 0.08);
-  border-color: rgba(33, 150, 243, 0.2);
-}
-
-:root.dark .tag-filter-clear-btn:hover,
-html.dark .tag-filter-clear-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:root.dark .tag-chip,
-html.dark .tag-chip {
-  filter: brightness(1.15);
-}
-
-/* ============================================================
- *  COMPACT LIST VIEW
- * ============================================================ */
-
-#listing.compact {
-  flex-direction: column;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-}
-
-#listing.compact .item {
-  width: 100%;
-  margin: 0;
-  border: 1px solid var(--borderPrimary);
-  border-top: 0;
-  border-radius: 0;
-  padding: 0.35em 1.2em;
-  min-height: auto;
-}
-
-#listing.compact .item:first-of-type {
-  border-radius: 0.5em 0.5em 0 0;
-}
-
-#listing.compact .item:last-of-type {
-  border-radius: 0 0 0.5em 0.5em;
-}
-
-#listing.compact .item:only-of-type {
-  border-radius: 0.5em;
-}
-
-#listing.compact .item:hover {
-  background: var(--hover);
-  box-shadow: inset 2px 0 0 0 var(--blue);
-}
-
-#listing.compact h2 {
-  display: none;
-}
-
-#listing.compact .item div:first-of-type {
-  width: 2em;
-}
-
-#listing.compact .item div:first-of-type i {
-  font-size: 1.4em;
-}
-
-#listing.compact .item div:first-of-type img {
-  width: 1.4em;
-  height: 1.4em;
-  border-radius: 0.2em;
-}
-
-#listing.compact .item div:last-of-type {
-  width: calc(100% - 2em);
-  display: flex;
+.tag-filter-clear-btn,
+.system-dirs-toggle {
+  display: inline-flex;
   align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  color: var(--file-muted);
+  background: transparent;
+  border: 1px solid var(--file-border);
+  border-radius: 0.375rem;
+  cursor: pointer;
 }
 
-#listing.compact .item .name {
-  width: 55%;
-  font-size: 0.85em;
-  font-weight: 500;
+.tag-filter-clear-btn:hover,
+.system-dirs-toggle:hover {
+  color: var(--file-accent);
+  background: var(--file-accent-soft);
+  border-color: var(--file-accent);
 }
 
-#listing.compact .item .size {
-  width: 20%;
-  font-size: 0.78em;
-}
-
-#listing.compact .item .modified {
-  width: 25%;
-  font-size: 0.78em;
-}
-
-#listing.compact .header {
-  display: none !important;
-}
-
-/* Show header in compact view too */
-#listing.compact .item.header {
-  display: flex !important;
-  background: linear-gradient(
-    180deg,
-    var(--surfaceSecondary) 0%,
-    var(--surfacePrimary) 100%
-  );
-  z-index: 999;
-  padding: 0.4em 1.2em;
-  border: 0;
-  border-bottom: 2px solid var(--borderPrimary);
-  border-radius: 0.5em 0.5em 0 0;
-  font-size: 0.85em;
-}
-
-#listing.compact .item.header > div {
-  width: 100%;
-}
-
-/* ============================================================
- *  VIEW MODE & SORT DROPDOWNS
- * ============================================================ */
-
+/* 顶部视图/排序菜单。 */
 .view-mode-dropdown,
 .sort-dropdown {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
 }
 
 .view-mode-dropdown .dropdown-menu,
 .sort-dropdown .dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.375rem);
   right: 0;
-  z-index: 1000;
-  min-width: 200px;
-  background: var(--surfacePrimary);
-  border: 1px solid var(--borderPrimary);
-  border-radius: 0.65em;
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.1),
-    0 2px 10px rgba(0, 0, 0, 0.06);
-  padding: 0.4em 0;
-  margin-top: 0.35em;
-  animation: dropdownFadeIn 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  z-index: 50;
+  min-width: 12rem;
+  padding: 0.375rem;
+  background: var(--file-surface);
+  border: 1px solid var(--file-border);
+  border-radius: 0.625rem;
+  box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, 0.16);
 }
 
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.65em;
   width: 100%;
-  padding: 0.6em 1.1em;
-  border: none;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  color: var(--textPrimary, #1e293b);
   background: transparent;
-  color: var(--textPrimary);
-  font-size: 0.85em;
+  border: 0;
+  border-radius: 0.375rem;
   cursor: pointer;
-  transition: background 0.12s ease;
   text-align: left;
-  white-space: nowrap;
 }
 
-.dropdown-item:hover {
-  background: var(--hover);
-}
-
+.dropdown-item:hover,
 .dropdown-item.active {
-  color: var(--blue);
-  font-weight: 600;
+  color: var(--file-accent);
+  background: var(--file-accent-soft);
 }
 
-.dropdown-item i {
-  font-size: 1.15em;
-  color: var(--textSecondary);
-}
-
-.dropdown-item.active i {
-  color: var(--blue);
-}
-
-.dropdown-item .check {
-  margin-left: auto;
-  font-size: 1em;
-  color: var(--blue);
-}
-
+.dropdown-item .check,
 .dropdown-item .sort-arrow {
   margin-left: auto;
-  font-size: 1em;
-  color: var(--blue);
 }
 
 .dropdown-divider {
   height: 1px;
-  background: var(--divider);
-  margin: 0.3em 0;
+  margin: 0.375rem;
+  background: var(--file-border);
 }
 
-/* Dark mode dropdowns */
-:root.dark .view-mode-dropdown .dropdown-menu,
-:root.dark .sort-dropdown .dropdown-menu,
-html.dark .view-mode-dropdown .dropdown-menu,
-html.dark .sort-dropdown .dropdown-menu {
-  background: var(--surfacePrimary);
-  border-color: var(--divider);
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.3),
-    0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* @-prefix system folders toggle */
-.system-dirs-toggle {
-  display: inline-flex;
+/* 多选操作条。 */
+#listing #multiple-selection {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  z-index: 80;
+  display: flex;
   align-items: center;
-  gap: 0.2em;
-  background: none;
-  border: 1px solid var(--divider);
-  border-radius: 0.35em;
-  padding: 0.15em 0.5em;
-  margin-left: 0.5em;
-  font-size: 0.72em;
-  color: var(--textSecondary);
-  cursor: pointer;
-  vertical-align: middle;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-.system-dirs-toggle:hover {
-  background: var(--surfaceSecondary);
-  color: var(--textPrimary);
-}
-.system-dirs-toggle .material-icons {
-  font-size: 1em;
-}
-.system-dirs-toggle span {
-  font-size: 0.9em;
+  gap: 0.75rem;
+  width: min(calc(100% - 2rem), 60rem);
+  padding: 0.625rem 0.75rem;
+  pointer-events: none;
+  visibility: hidden;
+  background: var(--file-surface);
+  border: 1px solid var(--file-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, 0.18);
+  opacity: 0;
+  transform: translate(-50%, 0.75rem);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
 }
 
-/* ============================================================
- *  ENTRANCE ANIMATION
- *  Subtle fade-in for listing items on page load
- * ============================================================ */
-
-@keyframes itemFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-#listing .item:not(.header) {
-  animation: itemFadeIn 0.25s ease both;
-}
-
-/* Stagger animation for first 20 items */
-#listing .item:nth-child(1) {
-  animation-delay: 0.02s;
-}
-
-/* 文件操作入口保持稳定可见，避免悬停和选中状态改变布局或误导用户。 */
-#listing .item .risk-icon,
-#listing .item .favorite-star,
-#listing .item .favorite-group-btn,
-#listing .item .tag-btn {
-  opacity: 0.78;
-  transform: none;
-}
-
-#listing .item .favorite-star,
-#listing .item .favorite-group-btn,
-#listing .item .tag-btn {
-  display: inline-flex;
-  width: 1.55rem;
-  height: 1.55rem;
-  align-items: center;
-  justify-content: center;
-  margin-left: 0.2rem !important;
-  border-radius: 0.42rem;
-  vertical-align: middle;
-}
-
-#listing .item .favorite-star:hover,
-#listing .item .favorite-star.is-fav:hover,
-#listing .item .favorite-group-btn:hover,
-#listing .item .tag-btn:hover {
-  opacity: 1 !important;
-  transform: none;
-  background: var(--hover);
-}
-
-#listing .item[aria-selected="true"] .risk-icon,
-#listing .item[aria-selected="true"] .favorite-star,
-#listing .item[aria-selected="true"] .favorite-group-btn,
-#listing .item[aria-selected="true"] .tag-btn {
-  opacity: 1 !important;
-  color: var(--iconSecondary) !important;
-}
-
-#listing .item[aria-selected="true"] .favorite-star.is-fav {
-  color: #ffe08a !important;
-}
-
-#listing .item[aria-selected="true"] .tag-btn.has-tags {
-  color: #ffffff !important;
-}
-
-#listing.mosaic .item .favorite-star {
-  opacity: 0.88;
-}
-
-#listing.mosaic .item .tag-btn {
-  position: absolute;
-  top: 0.4rem;
-  right: 2.5rem;
-  display: inline-flex;
-  opacity: 0.82;
-  background: var(--surfacePrimary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-#listing.mosaic .item .tag-btn.has-tags {
-  color: var(--blue);
+#listing #multiple-selection.active {
+  pointer-events: auto;
+  visibility: visible;
   opacity: 1;
+  transform: translate(-50%, 0);
 }
 
-#listing.mosaic .item .favorite-group-btn {
-  position: absolute;
-  top: 0.4rem;
-  right: 4.5rem;
-  opacity: 0.82;
-  background: var(--surfacePrimary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-#listing .item:nth-child(2) {
-  animation-delay: 0.04s;
-}
-#listing .item:nth-child(3) {
-  animation-delay: 0.06s;
-}
-#listing .item:nth-child(4) {
-  animation-delay: 0.08s;
-}
-#listing .item:nth-child(5) {
-  animation-delay: 0.1s;
-}
-#listing .item:nth-child(6) {
-  animation-delay: 0.12s;
-}
-#listing .item:nth-child(7) {
-  animation-delay: 0.14s;
-}
-#listing .item:nth-child(8) {
-  animation-delay: 0.16s;
-}
-#listing .item:nth-child(9) {
-  animation-delay: 0.18s;
-}
-#listing .item:nth-child(10) {
-  animation-delay: 0.2s;
-}
-#listing .item:nth-child(11) {
-  animation-delay: 0.22s;
-}
-#listing .item:nth-child(12) {
-  animation-delay: 0.24s;
-}
-#listing .item:nth-child(n + 13) {
-  animation-delay: 0.26s;
+#listing .selection-info,
+#listing .selection-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-/* Disable animation for non-mosaic views to avoid jank */
-#listing.list .item:not(.header),
-#listing.compact .item:not(.header) {
-  animation: none;
+#listing .selection-info {
+  flex: 0 0 auto;
+  color: var(--file-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+#listing .selection-actions {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+#listing .selection-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0.375rem 0.625rem;
+  color: var(--textPrimary, #1e293b);
+  background: var(--file-surface);
+  border: 1px solid var(--file-border);
+  border-radius: 0.4375rem;
+  cursor: pointer;
+}
+
+#listing .selection-btn:hover,
+#listing .selection-btn.action-btn {
+  color: var(--file-accent);
+  background: var(--file-accent-soft);
+  border-color: color-mix(in srgb, var(--file-accent) 35%, var(--file-border));
+}
+
+#listing .selection-btn.danger {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.message {
+  display: grid;
+  min-height: 14rem;
+  place-content: center;
+  gap: 0.75rem;
+  color: var(--file-muted);
+  text-align: center;
+}
+
+@media (max-width: 1180px) {
+  #listing.mosaic .item { width: calc(25% - 0.75rem); }
+}
+
+@media (max-width: 860px) {
+  #listing.mosaic .item { width: calc(33.333% - 0.75rem); }
+  #listing.details .size { display: none; }
+  #listing.details .name, #listing.details .header .name { flex-basis: 62%; }
+  #listing.details .modified, #listing.details .header .modified { flex-basis: 30%; }
+}
+
+@media (max-width: 620px) {
+  #listing.mosaic .item { width: calc(50% - 0.75rem); min-height: 9.5rem; }
+  #listing.compact .size, #listing.compact .modified, #listing.details .modified { display: none; }
+  #listing.details .header { display: none !important; }
+  #listing.list .tag-chip, #listing.details .tag-chip { display: none; }
+  #listing #multiple-selection { align-items: flex-start; flex-direction: column; }
+  .tag-picker-popup, .fav-group-picker-popup { position: fixed; right: 1rem; left: 1rem; top: auto; bottom: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #listing *, .view-mode-dropdown *, .sort-dropdown * { transition: none !important; }
 }

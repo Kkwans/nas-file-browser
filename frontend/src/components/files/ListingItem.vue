@@ -35,56 +35,72 @@
 
     <div>
       <div class="name">
-        {{ name }}
+        <span class="item-name">{{ name }}</span>
         <i
           v-if="isDir && riskLevel !== 'low'"
           class="material-icons risk-icon"
           :class="'risk-' + riskLevel"
           :title="riskTitle"
+          aria-hidden="true"
           >{{ riskLevel === "high" ? "warning" : "info" }}</i
         >
-        <i
-          class="material-icons favorite-star"
-          :class="{ 'is-fav': isFavorited }"
-          :title="isFavorited ? '取消收藏' : '添加收藏'"
-          @click.stop.prevent="toggleFav"
-          >{{ isFavorited ? "star" : "star_border" }}</i
-        >
-        <i
-          v-if="isFavorited"
-          class="material-icons favorite-group-btn"
-          title="收藏到分组"
-          @click.stop.prevent="toggleFavGroupPicker"
-          >folder_special</i
-        >
-        <div
-          v-if="showFavGroupPicker"
-          class="fav-group-picker-popup"
-          @click.stop
-        >
-          <FavoriteGroupPicker
-            :path="path || ''"
-            :name="name"
-            @close="closeFavGroupPicker"
-          />
+        <div class="item-quick-actions" @click.stop>
+          <button
+            class="item-icon-button favorite-star"
+            :class="{ 'is-fav': isFavorited }"
+            type="button"
+            :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
+            :title="isFavorited ? '取消收藏' : '添加收藏'"
+            @click.prevent="toggleFav"
+          >
+            <i class="material-icons" aria-hidden="true">{{
+              isFavorited ? "star" : "star_border"
+            }}</i>
+          </button>
+          <button
+            v-if="isFavorited"
+            class="item-icon-button favorite-group-btn"
+            type="button"
+            title="收藏分组"
+            aria-label="收藏分组"
+            @click.prevent="toggleFavGroupPicker"
+          >
+            <i class="material-icons" aria-hidden="true">folder_special</i>
+          </button>
+          <button
+            class="item-icon-button tag-btn"
+            :class="{ 'has-tags': pathTags.length > 0 }"
+            type="button"
+            title="分配标签"
+            aria-label="分配标签"
+            @click.prevent="toggleTagPicker"
+          >
+            <i class="material-icons" aria-hidden="true">label</i>
+          </button>
+          <div
+            v-if="showFavGroupPicker"
+            class="fav-group-picker-popup"
+            @click.stop
+          >
+            <FavoriteGroupPicker
+              :path="path || ''"
+              :name="name"
+              @close="closeFavGroupPicker"
+            />
+          </div>
+          <div v-if="showTagPicker" class="tag-picker-popup" @click.stop>
+            <TagPicker :path="path || ''" @manage="openTagManager" />
+          </div>
         </div>
-        <i
-          class="material-icons tag-btn"
-          :class="{ 'has-tags': pathTags.length > 0 }"
-          title="分配标签"
-          @click.stop.prevent="toggleTagPicker"
-          >label</i
-        >
         <span
           v-for="tag in pathTags"
           :key="tag.id"
-          class="tag-dot"
-          :style="{ background: tag.color }"
+          class="tag-chip"
+          :style="{ '--tag-color': tag.color }"
           :title="tag.name"
-        ></span>
-        <div v-if="showTagPicker" class="tag-picker-popup" @click.stop>
-          <TagPicker :path="path || ''" @manage="openTagManager" />
-        </div>
+        >
+          <span class="tag-chip-dot"></span>{{ tag.name }}
+        </span>
       </div>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>

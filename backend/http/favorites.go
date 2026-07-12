@@ -7,8 +7,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/Kkwans/nas-file-browser/backend/favorites"
 	fberrors "github.com/Kkwans/nas-file-browser/backend/errors"
+	"github.com/Kkwans/nas-file-browser/backend/favorites"
 )
 
 type favoriteRequest struct {
@@ -38,7 +38,12 @@ type reorderRequest struct {
 }
 
 var favoritesGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	favs, err := d.store.Favorites.GetAll()
+	if d.user.Perm.Admin {
+		if err := d.store.Favorites.ClaimLegacy(d.user.ID); err != nil {
+			return http.StatusInternalServerError, err
+		}
+	}
+	favs, err := d.store.Favorites.GetAll(d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -60,12 +65,12 @@ var favoritesPostHandler = withUser(func(w http.ResponseWriter, r *http.Request,
 	}
 
 	// Get current count for ordering
-	all, err := d.store.Favorites.GetAll()
+	all, err := d.store.Favorites.GetAll(d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	fav, err := d.store.Favorites.AddToGroup(req.Path, req.Name, req.GroupID, len(all))
+	fav, err := d.store.Favorites.AddToGroup(d.user.ID, req.Path, req.Name, req.GroupID, len(all))
 	if err != nil {
 		if errors.Is(err, favorites.ErrExist) {
 			return http.StatusConflict, fberrors.ErrExist
@@ -89,7 +94,7 @@ var favoritePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		return http.StatusBadRequest, err
 	}
 
-	fav, err := d.store.Favorites.UpdateFieldsEx(id, req.Name, req.Order, req.GroupID)
+	fav, err := d.store.Favorites.UpdateFieldsEx(d.user.ID, id, req.Name, req.Order, req.GroupID)
 	if err != nil {
 		if errors.Is(err, favorites.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
@@ -104,7 +109,7 @@ var favoriteDeleteHandler = withUser(func(w http.ResponseWriter, r *http.Request
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	err := d.store.Favorites.Delete(id)
+	err := d.store.Favorites.Delete(d.user.ID, id)
 	if err != nil {
 		if errors.Is(err, favorites.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
@@ -125,7 +130,7 @@ var favoritesReorderHandler = withUser(func(w http.ResponseWriter, r *http.Reque
 		return http.StatusBadRequest, err
 	}
 
-	if err := d.store.Favorites.Reorder(req.IDs); err != nil {
+	if err := d.store.Favorites.Reorder(d.user.ID, req.IDs); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
@@ -135,7 +140,7 @@ var favoritesReorderHandler = withUser(func(w http.ResponseWriter, r *http.Reque
 // --- Group handlers ---
 
 var favoriteGroupsGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	groups, err := d.store.Favorites.GetAllGroups()
+	groups, err := d.store.Favorites.GetAllGroups(d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -156,12 +161,12 @@ var favoriteGroupsPostHandler = withUser(func(w http.ResponseWriter, r *http.Req
 		return http.StatusBadRequest, fberrors.ErrInvalidRequestParams
 	}
 
-	all, err := d.store.Favorites.GetAllGroups()
+	all, err := d.store.Favorites.GetAllGroups(d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	group, err := d.store.Favorites.AddGroup(req.Name, req.Color, len(all))
+	group, err := d.store.Favorites.AddGroup(d.user.ID, req.Name, req.Color, len(all))
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -182,7 +187,7 @@ var favoriteGroupPutHandler = withUser(func(w http.ResponseWriter, r *http.Reque
 		return http.StatusBadRequest, err
 	}
 
-	group, err := d.store.Favorites.UpdateGroupFields(id, req.Name, req.Color)
+	group, err := d.store.Favorites.UpdateGroupFields(d.user.ID, id, req.Name, req.Color)
 	if err != nil {
 		if errors.Is(err, favorites.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
@@ -197,7 +202,7 @@ var favoriteGroupDeleteHandler = withUser(func(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	err := d.store.Favorites.DeleteGroup(id)
+	err := d.store.Favorites.DeleteGroup(d.user.ID, id)
 	if err != nil {
 		if errors.Is(err, favorites.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
@@ -221,7 +226,7 @@ var favoriteGroupsReorderHandler = withUser(func(w http.ResponseWriter, r *http.
 		return http.StatusBadRequest, err
 	}
 
-	if err := d.store.Favorites.ReorderGroups(req.IDs); err != nil {
+	if err := d.store.Favorites.ReorderGroups(d.user.ID, req.IDs); err != nil {
 		return http.StatusInternalServerError, err
 	}
 

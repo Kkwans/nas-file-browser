@@ -8,23 +8,25 @@ import (
 )
 
 var (
-	ErrExist       = errors.New("favorite already exists")
-	ErrNotExist    = errors.New("favorite not found")
-	ErrGroupExist  = errors.New("group already exists")
-	ErrGroupInUse  = errors.New("group still contains favorites")
+	ErrExist      = errors.New("favorite already exists")
+	ErrNotExist   = errors.New("favorite not found")
+	ErrGroupExist = errors.New("group already exists")
+	ErrGroupInUse = errors.New("group still contains favorites")
 )
 
 // FavoriteGroup represents a virtual directory for organizing favorites.
 type FavoriteGroup struct {
-	ID      string `json:"id" storm:"id"`
-	Name    string `json:"name"`
-	Order   int    `json:"order"`
-	Color   string `json:"color,omitempty"`
+	ID     string `json:"id" storm:"id"`
+	UserID uint   `json:"-" storm:"index"`
+	Name   string `json:"name"`
+	Order  int    `json:"order"`
+	Color  string `json:"color,omitempty"`
 }
 
 // Favorite represents a bookmarked file/folder path.
 type Favorite struct {
 	ID      string `json:"id" storm:"id"`
+	UserID  uint   `json:"-" storm:"index"`
 	Path    string `json:"path" storm:"index"`
 	Name    string `json:"name"`
 	GroupID string `json:"groupId,omitempty"`
@@ -34,18 +36,19 @@ type Favorite struct {
 
 // GroupStorageBackend is the interface for favorite group storage.
 type GroupStorageBackend interface {
-	GetAllGroups() ([]*FavoriteGroup, error)
-	GetGroupByID(id string) (*FavoriteGroup, error)
+	GetAllGroups(userID uint) ([]*FavoriteGroup, error)
+	GetGroupByID(userID uint, id string) (*FavoriteGroup, error)
 	SaveGroup(group *FavoriteGroup) error
 	UpdateGroup(group *FavoriteGroup) error
 	DeleteGroup(id string) error
+	ClaimLegacy(userID uint) error
 }
 
 // StorageBackend is the interface to implement for a favorites storage.
 type StorageBackend interface {
-	GetAll() ([]*Favorite, error)
-	GetByID(id string) (*Favorite, error)
-	GetByPath(path string) (*Favorite, error)
+	GetAll(userID uint) ([]*Favorite, error)
+	GetByID(userID uint, id string) (*Favorite, error)
+	GetByPath(userID uint, path string) (*Favorite, error)
 	Save(fav *Favorite) error
 	Update(fav *Favorite) error
 	Delete(id string) error
@@ -64,23 +67,29 @@ func NewStorage(back StorageBackend) *Storage {
 }
 
 // GetAll returns all favorites.
-func (s *Storage) GetAll() ([]*Favorite, error) {
-	return s.back.GetAll()
+func (s *Storage) GetAll(userID uint) ([]*Favorite, error) {
+	return s.back.GetAll(userID)
+}
+
+// ClaimLegacy assigns records created before per-user ownership to the first
+// administrator that opens the corresponding workspace.
+func (s *Storage) ClaimLegacy(userID uint) error {
+	return s.back.ClaimLegacy(userID)
 }
 
 // GetByID returns a favorite by ID.
-func (s *Storage) GetByID(id string) (*Favorite, error) {
-	return s.back.GetByID(id)
+func (s *Storage) GetByID(userID uint, id string) (*Favorite, error) {
+	return s.back.GetByID(userID, id)
 }
 
 // Add creates a new favorite. Returns error if path already exists.
-func (s *Storage) Add(path, name string, currentCount int) (*Favorite, error) {
-	return s.AddToGroup(path, name, "", currentCount)
+func (s *Storage) Add(userID uint, path, name string, currentCount int) (*Favorite, error) {
+	return s.AddToGroup(userID, path, name, "", currentCount)
 }
 
 // AddToGroup creates a new favorite in a specific group.
-func (s *Storage) AddToGroup(path, name, groupID string, currentCount int) (*Favorite, error) {
-	_, err := s.back.GetByPath(path)
+func (s *Storage) AddToGroup(userID uint, path, name, groupID string, currentCount int) (*Favorite, error) {
+	_, err := s.back.GetByPath(userID, path)
 	if err == nil {
 		return nil, ErrExist
 	}
@@ -90,6 +99,7 @@ func (s *Storage) AddToGroup(path, name, groupID string, currentCount int) (*Fav
 
 	fav := &Favorite{
 		ID:      GenerateID(),
+		UserID:  userID,
 		Path:    path,
 		Name:    name,
 		GroupID: groupID,
@@ -104,13 +114,13 @@ func (s *Storage) AddToGroup(path, name, groupID string, currentCount int) (*Fav
 }
 
 // UpdateFields updates name, order, and/or groupID of a favorite.
-func (s *Storage) UpdateFields(id string, name *string, order *int) (*Favorite, error) {
-	return s.UpdateFieldsEx(id, name, order, nil)
+func (s *Storage) UpdateFields(userID uint, id string, name *string, order *int) (*Favorite, error) {
+	return s.UpdateFieldsEx(userID, id, name, order, nil)
 }
 
 // UpdateFieldsEx updates name, order, and/or groupID of a favorite.
-func (s *Storage) UpdateFieldsEx(id string, name *string, order *int, groupID *string) (*Favorite, error) {
-	fav, err := s.back.GetByID(id)
+func (s *Storage) UpdateFieldsEx(userID uint, id string, name *string, order *int, groupID *string) (*Favorite, error) {
+	fav, err := s.back.GetByID(userID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -132,19 +142,26 @@ func (s *Storage) UpdateFieldsEx(id string, name *string, order *int, groupID *s
 }
 
 // Delete removes a favorite by ID.
-func (s *Storage) Delete(id string) error {
+func (s *Storage) Delete(userID uint, id string) error {
+	if _, err := s.back.GetByID(userID, id); err != nil {
+		return err
+	}
 	return s.back.Delete(id)
 }
 
 // DeleteByPath removes a favorite by path.
-func (s *Storage) DeleteByPath(path string) error {
-	return s.back.DeleteByPath(path)
+func (s *Storage) DeleteByPath(userID uint, path string) error {
+	fav, err := s.back.GetByPath(userID, path)
+	if err != nil {
+		return err
+	}
+	return s.back.Delete(fav.ID)
 }
 
 // Reorder replaces the entire order of favorites.
-func (s *Storage) Reorder(ids []string) error {
+func (s *Storage) Reorder(userID uint, ids []string) error {
 	for i, id := range ids {
-		fav, err := s.back.GetByID(id)
+		fav, err := s.back.GetByID(userID, id)
 		if err != nil {
 			return err
 		}
@@ -159,17 +176,18 @@ func (s *Storage) Reorder(ids []string) error {
 // --- Group methods ---
 
 // GetAllGroups returns all favorite groups.
-func (s *Storage) GetAllGroups() ([]*FavoriteGroup, error) {
-	return s.back.GetAllGroups()
+func (s *Storage) GetAllGroups(userID uint) ([]*FavoriteGroup, error) {
+	return s.back.GetAllGroups(userID)
 }
 
 // AddGroup creates a new favorite group.
-func (s *Storage) AddGroup(name, color string, currentCount int) (*FavoriteGroup, error) {
+func (s *Storage) AddGroup(userID uint, name, color string, currentCount int) (*FavoriteGroup, error) {
 	group := &FavoriteGroup{
-		ID:    GenerateID(),
-		Name:  name,
-		Color: color,
-		Order: currentCount,
+		ID:     GenerateID(),
+		UserID: userID,
+		Name:   name,
+		Color:  color,
+		Order:  currentCount,
 	}
 	if err := s.back.SaveGroup(group); err != nil {
 		return nil, err
@@ -178,8 +196,8 @@ func (s *Storage) AddGroup(name, color string, currentCount int) (*FavoriteGroup
 }
 
 // UpdateGroupFields updates name/color of a group.
-func (s *Storage) UpdateGroupFields(id string, name *string, color *string) (*FavoriteGroup, error) {
-	group, err := s.back.GetGroupByID(id)
+func (s *Storage) UpdateGroupFields(userID uint, id string, name *string, color *string) (*FavoriteGroup, error) {
+	group, err := s.back.GetGroupByID(userID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -196,9 +214,9 @@ func (s *Storage) UpdateGroupFields(id string, name *string, color *string) (*Fa
 }
 
 // DeleteGroup removes a favorite group. Returns error if group still has favorites.
-func (s *Storage) DeleteGroup(id string) error {
+func (s *Storage) DeleteGroup(userID uint, id string) error {
 	// Check if any favorites belong to this group
-	allFavs, err := s.back.GetAll()
+	allFavs, err := s.back.GetAll(userID)
 	if err != nil {
 		return err
 	}
@@ -207,13 +225,16 @@ func (s *Storage) DeleteGroup(id string) error {
 			return ErrGroupInUse
 		}
 	}
+	if _, err := s.back.GetGroupByID(userID, id); err != nil {
+		return err
+	}
 	return s.back.DeleteGroup(id)
 }
 
 // ReorderGroups replaces the entire order of groups.
-func (s *Storage) ReorderGroups(ids []string) error {
+func (s *Storage) ReorderGroups(userID uint, ids []string) error {
 	for i, id := range ids {
-		group, err := s.back.GetGroupByID(id)
+		group, err := s.back.GetGroupByID(userID, id)
 		if err != nil {
 			return err
 		}

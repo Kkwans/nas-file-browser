@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { replaceTagByName } from "@/utils/tagPersistence";
 
 export interface Tag {
   id: string;
@@ -50,16 +51,16 @@ export const useTagsStore = defineStore("tags", () => {
     }
   }
 
-  async function apiCreate(tag: Tag): Promise<boolean> {
+  async function apiCreate(tag: Tag): Promise<Tag | null> {
     try {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tag),
       });
-      return res.ok;
+      return res.ok ? await res.json() : null;
     } catch {
-      return false;
+      return null;
     }
   }
 
@@ -163,7 +164,12 @@ export const useTagsStore = defineStore("tags", () => {
     };
     tags.value.push(tag);
     saveToLocalStorage();
-    await apiCreate(tag);
+    const savedTag = await apiCreate(tag);
+    if (savedTag) {
+      tags.value = replaceTagByName(tags.value, savedTag);
+      saveToLocalStorage();
+      return savedTag;
+    }
     return tag;
   }
 

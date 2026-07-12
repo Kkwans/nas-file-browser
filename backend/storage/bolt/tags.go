@@ -12,22 +12,41 @@ type tagsBackend struct {
 	db *storm.DB
 }
 
-func (t tagsBackend) GetAll() ([]*tags.Tag, error) {
+func (t tagsBackend) ClaimLegacy(userID uint) error {
 	var all []*tags.Tag
-	err := t.db.All(&all)
+	if err := t.db.All(&all); err != nil && !errors.Is(err, storm.ErrNotFound) {
+		return err
+	}
+	for _, tag := range all {
+		if tag.UserID == 0 {
+			tag.UserID = userID
+			if err := t.db.Update(tag); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (t tagsBackend) GetAll(userID uint) ([]*tags.Tag, error) {
+	var all []*tags.Tag
+	err := t.db.Find("UserID", userID, &all)
 	if errors.Is(err, storm.ErrNotFound) {
 		return []*tags.Tag{}, nil
 	}
 	return all, err
 }
 
-func (t tagsBackend) GetByID(id string) (*tags.Tag, error) {
+func (t tagsBackend) GetByID(userID uint, id string) (*tags.Tag, error) {
 	var tag tags.Tag
 	err := t.db.One("ID", id, &tag)
 	if errors.Is(err, storm.ErrNotFound) {
 		return nil, tags.ErrNotExist
 	}
-	return &tag, err
+	if err != nil || tag.UserID != userID {
+		return nil, tags.ErrNotExist
+	}
+	return &tag, nil
 }
 
 func (t tagsBackend) Save(tag *tags.Tag) error {

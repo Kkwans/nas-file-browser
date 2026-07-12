@@ -14,6 +14,7 @@ var (
 // Tag represents a label that can be attached to file/folder paths.
 type Tag struct {
 	ID        string   `json:"id" storm:"id"`
+	UserID    uint     `json:"-" storm:"index"`
 	Name      string   `json:"name" storm:"index"`
 	Color     string   `json:"color"`
 	Paths     []string `json:"paths"`
@@ -22,11 +23,12 @@ type Tag struct {
 
 // StorageBackend is the interface to implement for a tags storage.
 type StorageBackend interface {
-	GetAll() ([]*Tag, error)
-	GetByID(id string) (*Tag, error)
+	GetAll(userID uint) ([]*Tag, error)
+	GetByID(userID uint, id string) (*Tag, error)
 	Save(tag *Tag) error
 	Update(tag *Tag) error
 	Delete(id string) error
+	ClaimLegacy(userID uint) error
 }
 
 // Storage is the high-level storage for tags.
@@ -40,19 +42,26 @@ func NewStorage(back StorageBackend) *Storage {
 }
 
 // GetAll returns all tags.
-func (s *Storage) GetAll() ([]*Tag, error) {
-	return s.back.GetAll()
+func (s *Storage) GetAll(userID uint) ([]*Tag, error) {
+	return s.back.GetAll(userID)
+}
+
+// ClaimLegacy assigns records created before per-user ownership to the first
+// administrator that opens the corresponding workspace.
+func (s *Storage) ClaimLegacy(userID uint) error {
+	return s.back.ClaimLegacy(userID)
 }
 
 // GetByID returns a tag by ID.
-func (s *Storage) GetByID(id string) (*Tag, error) {
-	return s.back.GetByID(id)
+func (s *Storage) GetByID(userID uint, id string) (*Tag, error) {
+	return s.back.GetByID(userID, id)
 }
 
 // Create creates a new tag.
-func (s *Storage) Create(name, color string) (*Tag, error) {
+func (s *Storage) Create(userID uint, name, color string) (*Tag, error) {
 	tag := &Tag{
 		ID:        generateID(),
+		UserID:    userID,
 		Name:      name,
 		Color:     color,
 		Paths:     []string{},
@@ -65,8 +74,8 @@ func (s *Storage) Create(name, color string) (*Tag, error) {
 }
 
 // UpdateFields updates name and/or color of a tag.
-func (s *Storage) UpdateFields(id string, name *string, color *string) (*Tag, error) {
-	tag, err := s.back.GetByID(id)
+func (s *Storage) UpdateFields(userID uint, id string, name *string, color *string) (*Tag, error) {
+	tag, err := s.back.GetByID(userID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -85,13 +94,17 @@ func (s *Storage) UpdateFields(id string, name *string, color *string) (*Tag, er
 }
 
 // Delete removes a tag by ID.
-func (s *Storage) Delete(id string) error {
+
+func (s *Storage) Delete(userID uint, id string) error {
+	if _, err := s.back.GetByID(userID, id); err != nil {
+		return err
+	}
 	return s.back.Delete(id)
 }
 
 // AddPath adds a path to a tag (no-op if already present).
-func (s *Storage) AddPath(id, path string) (*Tag, error) {
-	tag, err := s.back.GetByID(id)
+func (s *Storage) AddPath(userID uint, id, path string) (*Tag, error) {
+	tag, err := s.back.GetByID(userID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +123,8 @@ func (s *Storage) AddPath(id, path string) (*Tag, error) {
 }
 
 // RemovePath removes a path from a tag.
-func (s *Storage) RemovePath(id, path string) (*Tag, error) {
-	tag, err := s.back.GetByID(id)
+func (s *Storage) RemovePath(userID uint, id, path string) (*Tag, error) {
+	tag, err := s.back.GetByID(userID, id)
 	if err != nil {
 		return nil, err
 	}

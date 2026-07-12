@@ -12,31 +12,67 @@ type favoritesBackend struct {
 	db *storm.DB
 }
 
-func (f favoritesBackend) GetAll() ([]*favorites.Favorite, error) {
+func (f favoritesBackend) ClaimLegacy(userID uint) error {
+	var allFavorites []*favorites.Favorite
+	if err := f.db.All(&allFavorites); err != nil && !errors.Is(err, storm.ErrNotFound) {
+		return err
+	}
+	for _, favorite := range allFavorites {
+		if favorite.UserID == 0 {
+			favorite.UserID = userID
+			if err := f.db.Update(favorite); err != nil {
+				return err
+			}
+		}
+	}
+
+	var allGroups []*favorites.FavoriteGroup
+	if err := f.db.All(&allGroups); err != nil && !errors.Is(err, storm.ErrNotFound) {
+		return err
+	}
+	for _, group := range allGroups {
+		if group.UserID == 0 {
+			group.UserID = userID
+			if err := f.db.Update(group); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (f favoritesBackend) GetAll(userID uint) ([]*favorites.Favorite, error) {
 	var all []*favorites.Favorite
-	err := f.db.All(&all)
+	err := f.db.Find("UserID", userID, &all)
 	if errors.Is(err, storm.ErrNotFound) {
 		return []*favorites.Favorite{}, nil
 	}
 	return all, err
 }
 
-func (f favoritesBackend) GetByID(id string) (*favorites.Favorite, error) {
+func (f favoritesBackend) GetByID(userID uint, id string) (*favorites.Favorite, error) {
 	var fav favorites.Favorite
 	err := f.db.One("ID", id, &fav)
 	if errors.Is(err, storm.ErrNotFound) {
 		return nil, favorites.ErrNotExist
 	}
-	return &fav, err
-}
-
-func (f favoritesBackend) GetByPath(path string) (*favorites.Favorite, error) {
-	var fav favorites.Favorite
-	err := f.db.One("Path", path, &fav)
-	if errors.Is(err, storm.ErrNotFound) {
+	if err != nil || fav.UserID != userID {
 		return nil, favorites.ErrNotExist
 	}
-	return &fav, err
+	return &fav, nil
+}
+
+func (f favoritesBackend) GetByPath(userID uint, path string) (*favorites.Favorite, error) {
+	all, err := f.GetAll(userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, fav := range all {
+		if fav.Path == path {
+			return fav, nil
+		}
+	}
+	return nil, favorites.ErrNotExist
 }
 
 func (f favoritesBackend) Save(fav *favorites.Favorite) error {
@@ -51,32 +87,27 @@ func (f favoritesBackend) Delete(id string) error {
 	return f.db.DeleteStruct(&favorites.Favorite{ID: id})
 }
 
-func (f favoritesBackend) DeleteByPath(path string) error {
-	fav, err := f.GetByPath(path)
-	if err != nil {
-		return err
-	}
-	return f.db.DeleteStruct(fav)
-}
-
 // --- Group methods ---
 
-func (f favoritesBackend) GetAllGroups() ([]*favorites.FavoriteGroup, error) {
+func (f favoritesBackend) GetAllGroups(userID uint) ([]*favorites.FavoriteGroup, error) {
 	var all []*favorites.FavoriteGroup
-	err := f.db.All(&all)
+	err := f.db.Find("UserID", userID, &all)
 	if errors.Is(err, storm.ErrNotFound) {
 		return []*favorites.FavoriteGroup{}, nil
 	}
 	return all, err
 }
 
-func (f favoritesBackend) GetGroupByID(id string) (*favorites.FavoriteGroup, error) {
+func (f favoritesBackend) GetGroupByID(userID uint, id string) (*favorites.FavoriteGroup, error) {
 	var group favorites.FavoriteGroup
 	err := f.db.One("ID", id, &group)
 	if errors.Is(err, storm.ErrNotFound) {
 		return nil, favorites.ErrNotExist
 	}
-	return &group, err
+	if err != nil || group.UserID != userID {
+		return nil, favorites.ErrNotExist
+	}
+	return &group, nil
 }
 
 func (f favoritesBackend) SaveGroup(group *favorites.FavoriteGroup) error {

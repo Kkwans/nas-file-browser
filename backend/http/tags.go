@@ -7,8 +7,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/Kkwans/nas-file-browser/backend/tags"
 	fberrors "github.com/Kkwans/nas-file-browser/backend/errors"
+	"github.com/Kkwans/nas-file-browser/backend/tags"
 )
 
 type tagCreateRequest struct {
@@ -26,7 +26,12 @@ type tagPathRequest struct {
 }
 
 var tagsGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	t, err := d.store.Tags.GetAll()
+	if d.user.Perm.Admin {
+		if err := d.store.Tags.ClaimLegacy(d.user.ID); err != nil {
+			return http.StatusInternalServerError, err
+		}
+	}
+	t, err := d.store.Tags.GetAll(d.user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -51,7 +56,7 @@ var tagsPostHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 		req.Color = "#2196F3" // default blue
 	}
 
-	tag, err := d.store.Tags.Create(req.Name, req.Color)
+	tag, err := d.store.Tags.Create(d.user.ID, req.Name, req.Color)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -72,7 +77,7 @@ var tagPutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 		return http.StatusBadRequest, err
 	}
 
-	tag, err := d.store.Tags.UpdateFields(id, req.Name, req.Color)
+	tag, err := d.store.Tags.UpdateFields(d.user.ID, id, req.Name, req.Color)
 	if err != nil {
 		if errors.Is(err, tags.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
@@ -87,7 +92,7 @@ var tagDeleteHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	err := d.store.Tags.Delete(id)
+	err := d.store.Tags.Delete(d.user.ID, id)
 	if err != nil {
 		if errors.Is(err, tags.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
@@ -115,7 +120,7 @@ var tagAddPathHandler = withUser(func(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusBadRequest, fberrors.ErrInvalidRequestParams
 	}
 
-	tag, err := d.store.Tags.AddPath(id, req.Path)
+	tag, err := d.store.Tags.AddPath(d.user.ID, id, req.Path)
 	if err != nil {
 		if errors.Is(err, tags.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
@@ -143,7 +148,7 @@ var tagRemovePathHandler = withUser(func(w http.ResponseWriter, r *http.Request,
 		return http.StatusBadRequest, fberrors.ErrInvalidRequestParams
 	}
 
-	tag, err := d.store.Tags.RemovePath(id, req.Path)
+	tag, err := d.store.Tags.RemovePath(d.user.ID, id, req.Path)
 	if err != nil {
 		if errors.Is(err, tags.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist

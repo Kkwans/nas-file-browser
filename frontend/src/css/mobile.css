@@ -75,7 +75,7 @@
     padding: 0.6em 1em;
   }
 
-  #listing.compact .item {
+  #listing.compact-list .item {
     min-height: 2.5em;
     padding: 0.4em 1em;
   }
@@ -456,7 +456,7 @@
     min-height: 44px;
   }
 
-  #listing.compact .item {
+  #listing.compact-list .item {
     min-height: 36px;
   }
 
@@ -691,14 +691,14 @@ html.dark .skeleton {
 
   #listing.list .item > div:last-of-type,
   #listing.details .item > div:last-of-type,
-  #listing.compact .item > div:last-of-type {
+  #listing.compact-list .item > div:last-of-type {
     gap: 0.5rem;
     padding-right: 0.25rem;
   }
 
   #listing.list .name,
   #listing.details .name,
-  #listing.compact .name {
+  #listing.compact-list .name {
     width: auto;
     flex: 1;
   }

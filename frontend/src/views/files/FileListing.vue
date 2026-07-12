@@ -297,6 +297,7 @@
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
+            v-bind:extension="item.extension"
             v-bind:size="item.size"
             v-bind:path="item.path"
           >
@@ -320,6 +321,7 @@
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
+            v-bind:extension="item.extension"
             v-bind:size="item.size"
             v-bind:path="item.path"
           >
@@ -541,9 +543,9 @@ const viewModes = [
     label: "网格视图",
   },
   {
-    value: "list" as ViewModeType,
-    icon: "view_list",
-    label: "列表视图",
+    value: "compact-grid" as ViewModeType,
+    icon: "grid_on",
+    label: "紧凑网格",
   },
   {
     value: "details" as ViewModeType,
@@ -551,9 +553,9 @@ const viewModes = [
     label: "详细列表",
   },
   {
-    value: "compact" as ViewModeType,
-    icon: "density_medium",
-    label: "紧凑视图",
+    value: "compact-list" as ViewModeType,
+    icon: "view_headline",
+    label: "紧凑列表",
   },
 ];
 
@@ -694,20 +696,19 @@ const modifiedIcon = computed(() => {
 
 const skeletonViewMode = computed(() => {
   const mode = currentViewMode.value;
-  if (mode === "details") return "list";
+  if (mode === "details" || mode === "compact-list") return "list";
+  if (mode === "compact-grid") return "mosaic";
   return mode;
 });
 
-const listingClass = computed(() =>
-  currentViewMode.value === "details" ? "details list" : currentViewMode.value
-);
+const listingClass = computed(() => currentViewMode.value);
 
 const viewIcon = computed(() => {
   const icons: Record<string, string> = {
-    list: "view_list",
     mosaic: "grid_view",
+    "compact-grid": "grid_on",
     details: "table_rows",
-    compact: "density_medium",
+    "compact-list": "view_headline",
   };
   return icons[currentViewMode.value] || "grid_view";
 });

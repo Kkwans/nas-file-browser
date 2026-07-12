@@ -1,8 +1,8 @@
 export const FILE_VIEW_MODES = [
   "mosaic",
-  "list",
+  "compact-grid",
   "details",
-  "compact",
+  "compact-list",
 ] as const;
 
 export type FileViewMode = (typeof FILE_VIEW_MODES)[number];
@@ -17,6 +17,9 @@ export function normalizeViewMode(value: unknown): FileViewMode {
   if (value === "mosaic gallery") {
     return "details";
   }
+
+  if (value === "list") return "details";
+  if (value === "compact") return "compact-list";
 
   return FILE_VIEW_MODES.includes(value as FileViewMode)
     ? (value as FileViewMode)

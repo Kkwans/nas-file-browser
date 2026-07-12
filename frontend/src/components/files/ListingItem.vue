@@ -79,6 +79,11 @@
         </span>
       </div>
 
+      <div class="detail-meta">
+        <span class="detail-type">{{ fileTypeLabel }}</span>
+        <span class="detail-path" :title="path">{{ path }}</span>
+      </div>
+
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
       <p v-else class="size" :data-order="humanSize">{{ humanSize }}</p>
 
@@ -134,6 +139,7 @@ const props = defineProps<{
   isDir: boolean;
   url: string;
   type: string;
+  extension?: string;
   size: number;
   modified: string;
   index: number;
@@ -235,6 +241,27 @@ const humanTime = computed(() => {
     return dayjs(props.modified).format("L LT");
   }
   return dayjs(props.modified).fromNow();
+});
+
+const fileTypeLabel = computed(() => {
+  if (props.isDir) return "文件夹";
+  const extension = props.extension?.replace(/^\./, "").toUpperCase();
+  if (!extension) return "文件";
+  const labels: Record<string, string> = {
+    md: "Markdown 文件",
+    db: "数据库文件",
+    json: "JSON 文件",
+    js: "JavaScript 文件",
+    ts: "TypeScript 文件",
+    vue: "Vue 组件文件",
+    sh: "Shell 脚本",
+    mp4: "视频文件",
+    mp3: "音频文件",
+    jpg: "JPEG 图片",
+    jpeg: "JPEG 图片",
+    png: "PNG 图片",
+  };
+  return labels[extension.toLowerCase()] || `${extension} 文件`;
 });
 
 const dragStart = () => {

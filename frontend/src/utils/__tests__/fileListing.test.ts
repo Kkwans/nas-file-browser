@@ -8,9 +8,9 @@ import {
 describe("file listing preferences", () => {
   it("supports the four required file views", () => {
     expect(normalizeViewMode("mosaic")).toBe("mosaic");
-    expect(normalizeViewMode("list")).toBe("list");
+    expect(normalizeViewMode("compact-grid")).toBe("compact-grid");
     expect(normalizeViewMode("details")).toBe("details");
-    expect(normalizeViewMode("compact")).toBe("compact");
+    expect(normalizeViewMode("compact-list")).toBe("compact-list");
   });
 
   it("migrates the legacy gallery preference to details", () => {
@@ -20,6 +20,15 @@ describe("file listing preferences", () => {
   it("falls back to the grid view for invalid stored data", () => {
     expect(normalizeViewMode("unknown")).toBe("mosaic");
     expect(normalizeViewMode(null)).toBe("mosaic");
+  });
+
+  it("uses four explicit views and migrates removed legacy modes", () => {
+    expect(normalizeViewMode("mosaic")).toBe("mosaic");
+    expect(normalizeViewMode("compact-grid")).toBe("compact-grid");
+    expect(normalizeViewMode("details")).toBe("details");
+    expect(normalizeViewMode("compact-list")).toBe("compact-list");
+    expect(normalizeViewMode("list")).toBe("details");
+    expect(normalizeViewMode("compact")).toBe("compact-list");
   });
 
   it("selects the right-clicked item without discarding an existing target selection", () => {

@@ -19,7 +19,11 @@ export interface IUser {
   aceEditorTheme: string;
 }
 
-export type ViewModeType = "list" | "mosaic" | "details" | "compact";
+export type ViewModeType =
+  | "mosaic"
+  | "compact-grid"
+  | "details"
+  | "compact-list";
 
 export interface Permissions {
   admin: boolean;

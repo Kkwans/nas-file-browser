@@ -1,5 +1,6 @@
-import { fetchURL, removePrefix, StatusError } from "./utils";
+import { fetchURL, StatusError } from "./utils";
 import url from "../utils/url";
+import { normalizeSearchBase } from "../utils/searchPath";
 import type { SearchResult } from "@/types/file";
 
 export default async function search(
@@ -8,14 +9,15 @@ export default async function search(
   signal: AbortSignal,
   callback: (item: SearchResult) => void
 ) {
-  base = removePrefix(base);
+  base = normalizeSearchBase(base);
   query = encodeURIComponent(query);
 
-  if (!base.endsWith("/")) {
-    base += "/";
-  }
+  // 路径逐段编码，避免中文目录或空格被浏览器按 URL 规则错误解析。
+  const encodedBase = url.encodePath(base);
 
-  const res = await fetchURL(`/api/search${base}?query=${query}`, { signal });
+  const res = await fetchURL(`/api/search${encodedBase}?query=${query}`, {
+    signal,
+  });
   if (!res.body) {
     throw new StatusError("000 No connection", 0);
   }
@@ -40,7 +42,7 @@ export default async function search(
         for (const line of lines) {
           if (line) {
             const item = JSON.parse(line) as SearchResult;
-            const searchUrl = `/files${base}` + url.encodePath(item.path);
+          const searchUrl = `/files${encodedBase}` + url.encodePath(item.path);
             callback({ ...item, url: item.dir ? searchUrl + "/" : searchUrl });
           }
         }
@@ -53,7 +55,7 @@ export default async function search(
       for (const line of lines) {
         if (line) {
           const item = JSON.parse(line) as SearchResult;
-          const searchUrl = `/files${base}` + url.encodePath(item.path);
+            const searchUrl = `/files${encodedBase}` + url.encodePath(item.path);
           callback({ ...item, url: item.dir ? searchUrl + "/" : searchUrl });
         }
       }

@@ -122,6 +122,7 @@ import { StatusError } from "@/api/utils";
 import { useFileStore } from "@/stores/file";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
+import { normalizeSearchBase } from "@/utils/searchPath";
 import dayjs from "@/utils/date";
 import {
   computed,
@@ -154,12 +155,6 @@ const resultsRef = ref<HTMLElement | null>(null);
 const searchScope = ref<"current" | "global">(
   route.query.scope === "global" ? "global" : "current"
 );
-const normalizeSearchBase = (rawBase: string) => {
-  const base = rawBase.startsWith("/files")
-    ? rawBase.slice("/files".length) || "/"
-    : rawBase;
-  return base.endsWith("/") ? base : `${base}/`;
-};
 const currentBasePath = ref(
   normalizeSearchBase(
     typeof route.query.base === "string"

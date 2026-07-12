@@ -66,18 +66,6 @@ import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
 import { computed, onMounted, ref, watch } from "vue";
-import { T } from "@/utils/translations";
-
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
-
 const createUserDirData = ref<boolean | null>(null);
 const originalUserScope = ref<string | null>(null);
 
@@ -95,11 +83,9 @@ onMounted(() => {
   }
 });
 
-const passwordPlaceholder = computed(() =>
-  props.isNew ? "" : '留空则不修改'
-);
+const passwordPlaceholder = computed(() => (props.isNew ? "" : "留空则不修改"));
 const scopePlaceholder = computed(() =>
-  createUserDirData.value ? '用户作用域生成占位符' : ""
+  createUserDirData.value ? "用户作用域生成占位符" : ""
 );
 const displayHomeDirectoryCheckbox = computed(
   () => props.isNew && createUserDirData.value

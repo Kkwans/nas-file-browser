@@ -102,18 +102,6 @@ import { users as api } from "@/api";
 import AceEditorTheme from "@/components/settings/AceEditorTheme.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { authMethod, noAuth } from "@/utils/constants";
-import { T } from "@/utils/translations";
-
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
-
 const layoutStore = useLayoutStore();
 const authStore = useAuthStore();
 
@@ -178,7 +166,7 @@ const updatePassword = async (event: Event) => {
     };
     await api.update(data, ["password"], currentPassword.value);
     authStore.updateUser(data);
-    $showSuccess('密码已更新');
+    $showSuccess("密码已更新");
   } catch (e: any) {
     $showError(e);
   } finally {
@@ -209,7 +197,7 @@ const updateSettings = async (event: Event) => {
       "aceEditorTheme",
     ]);
     authStore.updateUser(data);
-    $showSuccess('设置已更新');
+    $showSuccess("设置已更新");
   } catch (err) {
     if (err instanceof Error) {
       $showError(err);

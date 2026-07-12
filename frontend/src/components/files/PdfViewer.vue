@@ -3,11 +3,7 @@
     <!-- PDF Toolbar -->
     <div class="pdf-toolbar">
       <div class="pdf-toolbar-left">
-        <button
-          class="pdf-btn"
-          title="下载"
-          @click="download"
-        >
+        <button class="pdf-btn" title="下载" @click="download">
           <i class="material-icons">file_download</i>
         </button>
         <button class="pdf-btn" title="打印" @click="print">
@@ -66,9 +62,7 @@
       <div v-if="error" class="pdf-error">
         <i class="material-icons">error_outline</i>
         <span>加载失败</span>
-        <button class="pdf-btn-text" @click="download">
-          下载文件
-        </button>
+        <button class="pdf-btn-text" @click="download">下载文件</button>
       </div>
     </div>
   </div>
@@ -76,18 +70,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import { T } from "@/utils/translations";
-
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
-
 interface Props {
   src: string;
   name?: string;

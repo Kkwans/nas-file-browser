@@ -145,11 +145,7 @@
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="'更新'"
-          />
+          <input class="button button--flat" type="submit" :value="'更新'" />
         </div>
       </form>
     </div>
@@ -171,11 +167,7 @@
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="'更新'"
-          />
+          <input class="button button--flat" type="submit" :value="'更新'" />
         </div>
       </form>
     </div>
@@ -218,11 +210,7 @@
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="'更新'"
-          />
+          <input class="button button--flat" type="submit" :value="'更新'" />
         </div>
       </form>
     </div>
@@ -245,17 +233,6 @@ import { enableExec } from "@/utils/constants";
 import { getTheme, setTheme } from "@/utils/theme";
 import Errors from "@/views/Errors.vue";
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import { T } from "@/utils/translations";
-const t = (key: string, opts?: Record<string, any>): string => {
-  let result = (T as any)[key] ?? key;
-  if (opts) {
-    for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`{\\s*${k}\\s*}`, "g"), String(v));
-    }
-  }
-  return result;
-};
-
 const error = ref<StatusError | null>(null);
 const originalSettings = ref<ISettings | null>(null);
 const settings = ref<ISettings | null>(null);
@@ -345,7 +322,7 @@ const save = async () => {
 
   try {
     await api.update(newSettings);
-    $showSuccess('设置已更新');
+    $showSuccess("设置已更新");
   } catch (e: any) {
     $showError(e);
   }

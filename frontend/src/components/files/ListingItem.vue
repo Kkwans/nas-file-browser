@@ -30,7 +30,7 @@
         v-lazy="thumbnailUrl"
         :alt="name"
       />
-      <i v-else class="material-icons"></i>
+      <i v-else class="material-icons file-type-icon" aria-hidden="true"></i>
     </div>
 
     <div>
@@ -58,16 +58,6 @@
             }}</i>
           </button>
           <button
-            v-if="isFavorited"
-            class="item-icon-button favorite-group-btn"
-            type="button"
-            title="收藏分组"
-            aria-label="收藏分组"
-            @click.prevent="toggleFavGroupPicker"
-          >
-            <i class="material-icons" aria-hidden="true">folder_special</i>
-          </button>
-          <button
             class="item-icon-button tag-btn"
             :class="{ 'has-tags': pathTags.length > 0 }"
             type="button"
@@ -77,17 +67,6 @@
           >
             <i class="material-icons" aria-hidden="true">label</i>
           </button>
-          <div
-            v-if="showFavGroupPicker"
-            class="fav-group-picker-popup"
-            @click.stop
-          >
-            <FavoriteGroupPicker
-              :path="path || ''"
-              :name="name"
-              @close="closeFavGroupPicker"
-            />
-          </div>
           <div v-if="showTagPicker" class="tag-picker-popup" @click.stop>
             <TagPicker :path="path || ''" @manage="openTagManager" />
           </div>
@@ -129,7 +108,6 @@ import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
-import FavoriteGroupPicker from "@/components/FavoriteGroupPicker.vue";
 import type { Resource, ConflictingResource, MoveCopyItem } from "@/types/file";
 
 const touches = ref<number>(0);
@@ -213,21 +191,9 @@ const isFavorited = computed(() => {
   return favoritesStore.isFavorite(props.path);
 });
 
-const showFavGroupPicker = ref(false);
-
 const toggleFav = () => {
   if (!props.path) return;
   favoritesStore.toggleFavorite(props.path, props.name);
-};
-
-const toggleFavGroupPicker = (e: Event) => {
-  e.stopPropagation();
-  e.preventDefault();
-  showFavGroupPicker.value = !showFavGroupPicker.value;
-};
-
-const closeFavGroupPicker = () => {
-  showFavGroupPicker.value = false;
 };
 
 const showTagPicker = ref(false);
@@ -371,7 +337,6 @@ const drop = async (event: Event) => {
 const itemClick = (event: Event | KeyboardEvent) => {
   // Close pickers on any item click
   showTagPicker.value = false;
-  showFavGroupPicker.value = false;
 
   // If long press was triggered, prevent normal click behavior
   if (longPressTriggered.value) {

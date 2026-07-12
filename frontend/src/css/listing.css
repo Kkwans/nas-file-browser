@@ -740,6 +740,11 @@
   }
 }
 
+/* 排序统一由顶部工具栏负责，详细列表不再重复渲染可点击表头。 */
+#listing.details .item.header {
+  display: none !important;
+}
+
 /* 四类视图的最终信息契约。 */
 #listing.mosaic > div,
 #listing.compact-grid > div {

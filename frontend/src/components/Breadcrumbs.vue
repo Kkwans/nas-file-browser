@@ -1,11 +1,6 @@
 <template>
   <div class="breadcrumbs">
-    <component
-      :is="element"
-      :to="base || ''"
-      aria-label="首页"
-      title="首页"
-    >
+    <component :is="element" :to="base || ''" aria-label="首页" title="首页">
       <i class="material-icons">home</i>
     </component>
 
@@ -29,6 +24,15 @@ const props = defineProps<{
   noLink?: boolean;
 }>();
 
+const decodeSegment = (segment: string) => {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    // 文件名可能包含不完整的旧编码，显示原文比让面包屑渲染失败更安全。
+    return segment;
+  }
+};
+
 const items = computed(() => {
   const relativePath = route.path.replace(props.base, "");
   const parts = relativePath.split("/");
@@ -46,12 +50,12 @@ const items = computed(() => {
   for (let i = 0; i < parts.length; i++) {
     if (i === 0) {
       breadcrumbs.push({
-        name: decodeURIComponent(parts[i]),
+        name: decodeSegment(parts[i]),
         url: props.base + "/" + parts[i] + "/",
       });
     } else {
       breadcrumbs.push({
-        name: decodeURIComponent(parts[i]),
+        name: decodeSegment(parts[i]),
         url: breadcrumbs[i - 1].url + parts[i] + "/",
       });
     }

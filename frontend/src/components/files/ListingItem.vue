@@ -67,9 +67,6 @@
           >
             <i class="material-icons" aria-hidden="true">label</i>
           </button>
-          <div v-if="showTagPicker" class="tag-picker-popup" @click.stop>
-            <TagPicker :path="path || ''" @manage="openTagManager" />
-          </div>
         </div>
         <span
           v-for="tag in pathTags"
@@ -90,6 +87,17 @@
       </p>
     </div>
   </div>
+  <Teleport to="body">
+    <div
+      v-if="showTagPicker"
+      class="tag-dialog-backdrop"
+      @click.self="closeTagPicker"
+    >
+      <div class="tag-dialog" @click.stop>
+        <TagPicker :path="path || ''" @manage="openTagManager" />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -207,6 +215,10 @@ const toggleTagPicker = (e: Event) => {
   e.stopPropagation();
   e.preventDefault();
   showTagPicker.value = !showTagPicker.value;
+};
+
+const closeTagPicker = () => {
+  showTagPicker.value = false;
 };
 
 const openTagManager = () => {

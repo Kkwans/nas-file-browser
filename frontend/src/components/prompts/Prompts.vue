@@ -1,7 +1,7 @@
 <template>
   <base-modal v-if="modal != null" :prompt="currentPromptName" @closed="close">
     <keep-alive>
-      <component :is="modal" />
+      <component :is="modal" @close="close" />
     </keep-alive>
   </base-modal>
 </template>

@@ -442,3 +442,163 @@ function close() {
   background: rgba(244, 67, 54, 0.1);
 }
 </style>
+
+<style scoped>
+/* 标签管理器采用清晰的工具面板层级，所有动作都保持固定命中区域。 */
+.tag-manager {
+  box-sizing: border-box;
+  width: min(36rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: min(42rem, calc(100dvh - 2rem));
+  padding: 1.5rem;
+  overflow-y: auto;
+  color: var(--textPrimary, #1e293b);
+  background: var(--surfacePrimary, #fff);
+  border: 1px solid var(--divider, #e2e8f0);
+  border-radius: 1rem;
+  box-shadow: 0 1.5rem 4rem rgba(15, 23, 42, 0.2);
+}
+
+.tag-manager-header {
+  margin-bottom: 1.25rem;
+}
+
+.tag-manager-header h3 {
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.close-btn,
+.tag-action-btn,
+.color-dot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+.close-btn {
+  color: var(--textSecondary, #64748b);
+  border: 1px solid var(--divider, #e2e8f0);
+  border-radius: 0.5rem;
+}
+
+.close-btn:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.tag-create {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: var(--surfaceSecondary, #f8fafc);
+  border: 1px solid var(--divider, #e2e8f0);
+  border-radius: 0.75rem;
+}
+
+.tag-create-row {
+  gap: 0.75rem;
+}
+
+.tag-input {
+  min-height: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--surfacePrimary, #fff);
+  border-color: var(--divider, #cbd5e1);
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.color-picker {
+  gap: 0.5rem;
+}
+
+.color-dot {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  transition: box-shadow 140ms ease;
+}
+
+.color-dot:hover {
+  transform: none;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.18);
+}
+
+.color-dot.active {
+  border-color: var(--textPrimary, #1e293b);
+  box-shadow:
+    0 0 0 2px var(--surfacePrimary, #fff),
+    0 0 0 4px #1677ff;
+}
+
+.tag-create-btn {
+  min-height: 2.75rem;
+  justify-content: center;
+  padding: 0.625rem 1rem;
+  background: #1677ff;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.tag-list {
+  gap: 0.5rem;
+}
+
+.tag-item {
+  min-height: 3.25rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+}
+
+.tag-item:hover {
+  background: var(--surfaceSecondary, #f8fafc);
+  border-color: var(--divider, #e2e8f0);
+}
+
+.tag-action-btn {
+  opacity: 1;
+  color: var(--textSecondary, #64748b);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+
+.tag-action-btn:hover {
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.08);
+}
+
+.tag-action-btn.delete:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.tag-count {
+  min-width: 2rem;
+  padding: 0.25rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 736px) {
+  .tag-manager {
+    width: 100%;
+    max-height: 80dvh;
+    padding: 1rem;
+    border: 0;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .tag-create-row {
+    display: grid;
+  }
+
+  .tag-list {
+    max-height: 40dvh;
+  }
+}
+</style>

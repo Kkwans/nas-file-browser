@@ -740,9 +740,128 @@
   }
 }
 
-/* 排序统一由顶部工具栏负责，详细列表不再重复渲染可点击表头。 */
+/* Windows 风格表格：详细列表保留表头，但排序只由顶部菜单控制。 */
 #listing.details .item.header {
-  display: none !important;
+  display: flex !important;
+  min-height: 2.75rem;
+  padding-left: 3.5rem;
+  color: var(--file-muted);
+  background: var(--surfaceSecondary, #f8fafc);
+  border-bottom-width: 1px;
+  border-radius: 0.625rem 0.625rem 0 0;
+  cursor: default;
+}
+
+#listing.details .item.header > div,
+#listing.details .item:not(.header) > div:last-of-type {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(14rem, 1.5fr) minmax(10rem, 1fr) minmax(
+      7rem,
+      0.65fr
+    ) minmax(10rem, 0.8fr);
+  align-items: center;
+  column-gap: 1rem;
+}
+
+#listing.details .item.header p {
+  margin: 0;
+  color: var(--file-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: default;
+}
+
+#listing.details .item.header .name,
+#listing.details .item.header .type,
+#listing.details .item.header .size,
+#listing.details .item.header .modified {
+  display: block;
+  flex: none;
+  width: auto;
+}
+
+#listing.details .item:not(.header) .name,
+#listing.details .item:not(.header) .detail-meta,
+#listing.details .item:not(.header) .size,
+#listing.details .item:not(.header) .modified {
+  min-width: 0;
+  width: auto;
+  flex: none;
+}
+
+#listing.details .item:not(.header) .name {
+  display: flex;
+}
+
+#listing.details .item:not(.header) .size,
+#listing.details .item:not(.header) .modified {
+  font-size: 0.8125rem;
+}
+
+#listing.details .item[aria-selected="true"] .file-type-icon,
+#listing.details .item[aria-selected="true"] .material-icons {
+  color: var(--file-accent, #1677ff) !important;
+}
+
+#listing .item[aria-selected="true"] .file-type-icon {
+  color: var(--file-accent, #1677ff) !important;
+}
+
+/* 桌面紧凑列表为双列，移动端自动退回单列。 */
+@media (min-width: 737px) {
+  #listing.compact-list > div[data-clear-on-click="true"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 0.75rem;
+    align-items: start;
+  }
+
+  #listing.compact-list > div[data-clear-on-click="true"] .item {
+    width: 100%;
+    border-bottom-width: 1px;
+    border-radius: 0.5rem;
+  }
+}
+
+/* 网格使用真正的列网格，避免 flex 宽度计算造成右侧空白。 */
+#listing.mosaic > div[data-clear-on-click="true"],
+#listing.compact-grid > div[data-clear-on-click="true"] {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+#listing.mosaic > div[data-clear-on-click="true"] .item,
+#listing.compact-grid > div[data-clear-on-click="true"] .item {
+  width: auto;
+  margin: 0;
+}
+
+#listing.compact-grid > div[data-clear-on-click="true"] {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 1180px) {
+  #listing.mosaic > div[data-clear-on-click="true"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  #listing.compact-grid > div[data-clear-on-click="true"] {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 736px) {
+  #listing.mosaic > div[data-clear-on-click="true"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+
+  #listing.compact-grid > div[data-clear-on-click="true"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.375rem;
+  }
 }
 
 /* 四类视图的最终信息契约。 */

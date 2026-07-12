@@ -209,43 +209,10 @@
         <div>
           <div class="item header">
             <div>
-              <p
-                :class="{ active: nameSorted }"
-                class="name"
-                role="button"
-                tabindex="0"
-                @click="sort('name')"
-                title="按名称排序"
-                aria-label="按名称排序"
-              >
-                <span>名称</span>
-                <i class="material-icons">{{ nameIcon }}</i>
-              </p>
-
-              <p
-                :class="{ active: sizeSorted }"
-                class="size"
-                role="button"
-                tabindex="0"
-                @click="sort('size')"
-                title="按大小排序"
-                aria-label="按大小排序"
-              >
-                <span>大小</span>
-                <i class="material-icons">{{ sizeIcon }}</i>
-              </p>
-              <p
-                :class="{ active: modifiedSorted }"
-                class="modified"
-                role="button"
-                tabindex="0"
-                @click="sort('modified')"
-                title="按修改时间排序"
-                aria-label="按修改时间排序"
-              >
-                <span>修改时间</span>
-                <i class="material-icons">{{ modifiedIcon }}</i>
-              </p>
+              <p class="name"><span>名称</span></p>
+              <p class="type"><span>类型</span></p>
+              <p class="size"><span>大小</span></p>
+              <p class="modified"><span>修改时间</span></p>
             </div>
           </div>
         </div>
@@ -298,6 +265,7 @@
             v-bind:modified="item.modified"
             v-bind:type="item.type"
             v-bind:extension="item.extension"
+            v-bind:view-mode="currentViewMode"
             v-bind:size="item.size"
             v-bind:path="item.path"
           >
@@ -322,6 +290,7 @@
             v-bind:modified="item.modified"
             v-bind:type="item.type"
             v-bind:extension="item.extension"
+            v-bind:view-mode="currentViewMode"
             v-bind:size="item.size"
             v-bind:path="item.path"
           >
@@ -586,22 +555,6 @@ onBeforeRouteUpdate(() => {
 
 const listing = ref<HTMLElement | null>(null);
 
-const nameSorted = computed(() =>
-  fileStore.req ? fileStore.req.sorting.by === "name" : false
-);
-
-const sizeSorted = computed(() =>
-  fileStore.req ? fileStore.req.sorting.by === "size" : false
-);
-
-const modifiedSorted = computed(() =>
-  fileStore.req ? fileStore.req.sorting.by === "modified" : false
-);
-
-const ascOrdered = computed(() =>
-  fileStore.req ? fileStore.req.sorting.asc : false
-);
-
 const normalDirs = computed(() =>
   items.value.dirs
     .filter((d) => !d.name.startsWith("@"))
@@ -668,30 +621,6 @@ const files = computed((): ResourceItem[] => {
   if (_showLimit < 0) _showLimit = 0;
 
   return items.value.files.slice(0, _showLimit);
-});
-
-const nameIcon = computed(() => {
-  if (nameSorted.value && !ascOrdered.value) {
-    return "arrow_upward";
-  }
-
-  return "arrow_downward";
-});
-
-const sizeIcon = computed(() => {
-  if (sizeSorted.value && ascOrdered.value) {
-    return "arrow_downward";
-  }
-
-  return "arrow_upward";
-});
-
-const modifiedIcon = computed(() => {
-  if (modifiedSorted.value && ascOrdered.value) {
-    return "arrow_downward";
-  }
-
-  return "arrow_upward";
 });
 
 const skeletonViewMode = computed(() => {
@@ -1263,39 +1192,6 @@ const resetOpacity = () => {
   Array.from(items).forEach((file: Element) => {
     (file as HTMLElement).style.opacity = "1";
   });
-};
-
-const sort = async (by: string) => {
-  let asc = false;
-
-  if (by === "name") {
-    if (nameIcon.value === "arrow_upward") {
-      asc = true;
-    }
-  } else if (by === "size") {
-    if (sizeIcon.value === "arrow_upward") {
-      asc = true;
-    }
-  } else if (by === "modified") {
-    if (modifiedIcon.value === "arrow_upward") {
-      asc = true;
-    }
-  }
-
-  currentSortBy.value = by;
-  currentSortAsc.value = asc;
-
-  try {
-    if (authStore.user?.id) {
-      await users.update({ id: authStore.user?.id, sorting: { by, asc } }, [
-        "sorting",
-      ]);
-    }
-  } catch (e: any) {
-    $showError(e);
-  }
-
-  fileStore.reload = true;
 };
 
 const openSearch = () => {

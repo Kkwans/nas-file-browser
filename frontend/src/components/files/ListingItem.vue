@@ -143,6 +143,7 @@ const props = defineProps<{
   url: string;
   type: string;
   extension?: string;
+  viewMode?: string;
   size: number;
   modified: string;
   index: number;
@@ -264,6 +265,9 @@ onMounted(loadDirectorySize);
 watch(() => [props.isDir, props.url], loadDirectorySize);
 
 const humanTime = computed(() => {
+  if (props.viewMode === "details" || props.viewMode === "compact-list") {
+    return dayjs(props.modified).format("YYYY/M/D HH:mm");
+  }
   if (!props.readOnly && authStore.user?.dateFormat) {
     return dayjs(props.modified).format("L LT");
   }

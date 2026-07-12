@@ -172,11 +172,7 @@
       <LoadingSkeleton :count="12" :viewMode="skeletonViewMode" />
     </div>
     <template v-else>
-      <div
-        v-if="
-          (fileStore.req?.numDirs ?? 0) + (fileStore.req?.numFiles ?? 0) == 0
-        "
-      >
+      <div v-if="items.dirs.length + items.files.length === 0">
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
           <span>这里没有任何文件...</span>
@@ -286,7 +282,7 @@
           </button>
         </div>
 
-        <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
+        <h2 data-clear-on-click="true" v-if="items.dirs.length > 0">
           文件夹
           <button
             v-if="hasSystemDirs"
@@ -301,7 +297,7 @@
           </button>
         </h2>
         <div
-          v-if="fileStore.req?.numDirs ?? false"
+          v-if="items.dirs.length > 0"
           data-clear-on-click="true"
           @contextmenu="showContextMenu"
         >
@@ -322,11 +318,9 @@
           </item>
         </div>
 
-        <h2 data-clear-on-click="true" v-if="fileStore.req?.numFiles ?? false">
-          文件
-        </h2>
+        <h2 data-clear-on-click="true" v-if="files.length > 0">文件</h2>
         <div
-          v-if="fileStore.req?.numFiles ?? false"
+          v-if="files.length > 0"
           data-clear-on-click="true"
           @contextmenu="showContextMenu"
         >

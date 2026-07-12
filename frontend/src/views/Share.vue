@@ -6,14 +6,14 @@
       <action
         v-if="fileStore.selectedCount"
         icon="file_download"
-        :label="'下载'"
+        label="下载"
         @action="download"
         :counter="fileStore.selectedCount"
       />
       <button
         v-if="isSingleFile()"
         class="action copy-clipboard"
-        :aria-label="'复制下载链接'"
+        aria-label="复制下载链接"
         :data-title="'复制下载链接'"
         @click="copyToClipboard(linkSelected())"
       >
@@ -21,7 +21,7 @@
       </button>
       <action
         icon="check_circle"
-        :label="'多选'"
+        label="多选"
         @action="toggleMultipleSelection"
       />
     </header-bar>
@@ -53,7 +53,7 @@
               v-focus
               class="input input--block"
               type="password"
-              :placeholder="'密码'"
+              placeholder="密码"
               v-model="password"
               @keyup.enter="fetchData"
             />
@@ -62,7 +62,7 @@
             <button
               class="button button--flat"
               @click="fetchData"
-              :aria-label="'提交'"
+              aria-label="提交"
               :data-title="'提交'"
             >
               '提交'
@@ -269,7 +269,7 @@
                 tabindex="0"
                 role="button"
                 :data-title="'清空'"
-                :aria-label="'清空'"
+                aria-label="清空"
                 class="action"
               >
                 <i class="material-icons">clear</i>

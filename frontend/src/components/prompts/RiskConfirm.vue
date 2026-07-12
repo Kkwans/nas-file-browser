@@ -35,8 +35,8 @@
       <button
         @click="cancel"
         class="button button--flat button--grey"
-        :aria-label="'取消'"
-        :title="'取消'"
+        aria-label="取消"
+        title="取消"
         tabindex="2"
       >
         '取消'
@@ -45,8 +45,8 @@
         id="focus-prompt"
         @click="confirm"
         class="button button--flat button--orange"
-        :aria-label="'确认执行'"
-        :title="'确认执行'"
+        aria-label="确认执行"
+        title="确认执行"
         tabindex="1"
       >
         '确认执行'

@@ -34,8 +34,8 @@
         type="submit"
         @click="closeHovers"
         class="button button--flat"
-        :aria-label="'确定'"
-        :title="'确定'"
+        aria-label="确定"
+        title="确定"
         tabindex="1"
       >
         '确定'

@@ -38,7 +38,7 @@
       <button
         @click.stop="zoomIn"
         :disabled="scale >= maxScale"
-        :title="'放大 (+)'"
+        title="放大 (+)"
       >
         <i class="material-icons">zoom_in</i>
       </button>
@@ -46,26 +46,26 @@
       <button
         @click.stop="zoomOut"
         :disabled="scale <= minScale"
-        :title="'缩小 (-)'"
+        title="缩小 (-)"
       >
         <i class="material-icons">zoom_out</i>
       </button>
       <div class="toolbar-divider"></div>
-      <button @click.stop="zoomFit" :title="'适应屏幕'">
+      <button @click.stop="zoomFit" title="适应屏幕">
         <i class="material-icons">fit_screen</i>
       </button>
-      <button @click.stop="zoomOriginal" :title="'原始大小'">
+      <button @click.stop="zoomOriginal" title="原始大小">
         <i class="material-icons">aspect_ratio</i>
       </button>
       <div class="toolbar-divider"></div>
-      <button @click.stop="rotateLeft" :title="'左旋转'">
+      <button @click.stop="rotateLeft" title="左旋转">
         <i class="material-icons">rotate_left</i>
       </button>
-      <button @click.stop="rotateRight" :title="'右旋转'">
+      <button @click.stop="rotateRight" title="右旋转">
         <i class="material-icons">rotate_right</i>
       </button>
       <div class="toolbar-divider"></div>
-      <button @click.stop="zoomAuto" :title="'切换缩放'">
+      <button @click.stop="zoomAuto" title="切换缩放">
         <i class="material-icons">search</i>
       </button>
     </div>
@@ -75,9 +75,9 @@
       <div class="hint-item">
         <kbd>+</kbd> / <kbd>-</kbd> '缩放'
       </div>
-      <div class="hint-item"><kbd>0</kbd> '适应屏幕'</div>
-      <div class="hint-item"><kbd>1</kbd> '原始大小'</div>
-      <div class="hint-item"><kbd>R</kbd> '旋转'</div>
+      <div class="hint-item"><kbd>0</kbd> 适应屏幕</div>
+      <div class="hint-item"><kbd>1</kbd> 原始大小</div>
+      <div class="hint-item"><kbd>R</kbd> 旋转</div>
       <div class="hint-item"><kbd>Esc</kbd> {{ "关闭" }}</div>
     </div>
 

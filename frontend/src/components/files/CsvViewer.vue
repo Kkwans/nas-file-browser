@@ -25,7 +25,7 @@
           <template v-slot:list>
             <input
               v-model="encodingSearch"
-              :placeholder="'搜索...'"
+              placeholder="搜索..."
               class="input input--block"
               name="encoding"
             />

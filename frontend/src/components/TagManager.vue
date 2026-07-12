@@ -2,7 +2,7 @@
   <div class="tag-manager">
     <div class="tag-manager-header">
       <h3>管理标签</h3>
-      <button class="close-btn" @click="close" :title="'关闭'">
+      <button class="close-btn" @click="close" title="关闭">
         <i class="material-icons">close</i>
       </button>
     </div>
@@ -14,7 +14,7 @@
           v-model="newTagName"
           type="text"
           class="tag-input"
-          :placeholder="'标签名称...'"
+          placeholder="标签名称..."
           maxlength="20"
           @keyup.enter="createTag"
         />
@@ -52,14 +52,14 @@
           <span class="tag-count">{{ tag.paths.length }}</span>
           <button
             class="tag-action-btn"
-            :title="'编辑标签'"
+            title="编辑标签"
             @click="startEdit(tag)"
           >
             <i class="material-icons">edit</i>
           </button>
           <button
             class="tag-action-btn delete"
-            :title="'删除标签'"
+            title="删除标签"
             @click="confirmDelete(tag)"
           >
             <i class="material-icons">delete</i>

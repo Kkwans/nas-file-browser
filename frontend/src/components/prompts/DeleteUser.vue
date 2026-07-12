@@ -9,8 +9,8 @@
         id="focus-prompt"
         class="button button--flat button--grey"
         @click="layoutStore.closeHovers"
-        :aria-label="'取消'"
-        :title="'取消'"
+        aria-label="取消"
+        title="取消"
         tabindex="1"
       >
         {{ "取消" }}

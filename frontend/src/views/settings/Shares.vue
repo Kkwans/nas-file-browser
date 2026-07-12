@@ -34,8 +34,8 @@
                 <button
                   class="action"
                   @click="deleteLink($event, link)"
-                  :aria-label="'删除'"
-                  :title="'删除'"
+                  aria-label="删除"
+                  title="删除"
                 >
                   <i class="material-icons">delete</i>
                 </button>
@@ -43,8 +43,8 @@
               <td class="small">
                 <button
                   class="action copy-clipboard"
-                  :aria-label="'复制到剪贴板'"
-                  :title="'复制到剪贴板'"
+                  aria-label="复制到剪贴板"
+                  title="复制到剪贴板"
                   @click="copyToClipboard(buildLink(link))"
                 >
                   <i class="material-icons">content_paste</i>

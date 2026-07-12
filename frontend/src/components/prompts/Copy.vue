@@ -21,8 +21,8 @@
         <button
           class="button button--flat"
           @click="fileListRef?.createDir()"
-          :aria-label="'新建文件夹'"
-          :title="'新建文件夹'"
+          aria-label="新建文件夹"
+          title="新建文件夹"
           style="justify-self: left"
         >
           <span>新建文件夹</span>
@@ -32,8 +32,8 @@
         <button
           class="button button--flat button--grey"
           @click="closeHovers"
-          :aria-label="'取消'"
-          :title="'取消'"
+          aria-label="取消"
+          title="取消"
           tabindex="3"
         >
           '取消'
@@ -42,8 +42,8 @@
           id="focus-prompt"
           class="button button--flat"
           @click="copy"
-          :aria-label="'复制'"
-          :title="'复制'"
+          aria-label="复制"
+          title="复制"
           tabindex="2"
         >
           '复制'

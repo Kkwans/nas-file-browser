@@ -19,7 +19,7 @@
         ref="input"
         :autofocus="active"
         v-model.trim="prompt"
-        :aria-label="'搜索'"
+        aria-label="搜索"
         placeholder="搜索"
       />
       <i

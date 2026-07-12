@@ -2,15 +2,15 @@
   <div id="search-page">
     <header-bar showMenu showLogo>
       <div class="search-page-input">
-        <button class="action" @click="goBack" :aria-label="'关闭'">
+        <button class="action" @click="goBack" aria-label="关闭">
           <i class="material-icons">arrow_back</i>
         </button>
         <input
           type="text"
           ref="inputRef"
           v-model.trim="prompt"
-          :placeholder="'搜索'"
-          :aria-label="'搜索'"
+          placeholder="搜索"
+          aria-label="搜索"
           @keyup.enter="submit"
           @keyup.escape="goBack"
           autofocus

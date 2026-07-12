@@ -1,14 +1,14 @@
 <template>
   <div id="editor-container">
     <header-bar>
-      <action icon="close" :label="'关闭'" @action="close()" />
+      <action icon="close" label="关闭" @action="close()" />
       <title>{{ fileStore.req?.name ?? "" }}</title>
 
       <action
         v-if="authStore.user?.perm.modify"
         id="save-button"
         icon="save"
-        :label="'保存'"
+        label="保存"
         @action="save()"
       />
 
@@ -22,7 +22,7 @@
           :icon="
             showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
           "
-          :label="'显示行号'"
+          label="显示行号"
           @action="toggleLineNumbers()"
         />
       </template>
@@ -31,19 +31,19 @@
       <template v-if="isMarkdownFile">
         <action
           icon="edit"
-          :label="'所见即所得'"
+          label="所见即所得"
           @action="switchMode('ir')"
           :class="{ active: currentMode === 'ir' }"
         />
         <action
           icon="vertical_split"
-          :label="'即时渲染'"
+          label="即时渲染"
           @action="switchMode('sv')"
           :class="{ active: currentMode === 'sv' }"
         />
         <action
           icon="visibility"
-          :label="'预览模式'"
+          label="预览模式"
           @action="switchMode('preview')"
           :class="{ active: currentMode === 'preview' }"
         />

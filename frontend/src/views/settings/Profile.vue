@@ -60,14 +60,14 @@
           <input
             :class="passwordClass"
             type="password"
-            :placeholder="'新密码'"
+            placeholder="新密码"
             v-model="password"
             name="password"
           />
           <input
             :class="passwordClass"
             type="password"
-            :placeholder="'确认新密码'"
+            placeholder="确认新密码"
             v-model="passwordConf"
             name="passwordConf"
           />
@@ -75,7 +75,7 @@
             v-if="isCurrentPasswordRequired"
             :class="passwordClass"
             type="password"
-            :placeholder="'当前密码'"
+            placeholder="当前密码"
             v-model="currentPassword"
             name="current_password"
             autocomplete="current-password"

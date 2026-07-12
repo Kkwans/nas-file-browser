@@ -20,16 +20,16 @@
       <button
         class="button button--flat button--grey"
         @click="layoutStore.closeHovers"
-        :aria-label="'取消'"
-        :title="'取消'"
+        aria-label="取消"
+        title="取消"
       >
         {{ "取消" }}
       </button>
       <button
         class="button button--flat"
         @click="submit"
-        :aria-label="'创建'"
-        :title="'创建'"
+        aria-label="创建"
+        title="创建"
       >
         {{ "创建" }}
       </button>

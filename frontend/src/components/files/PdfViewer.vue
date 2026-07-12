@@ -5,29 +5,29 @@
       <div class="pdf-toolbar-left">
         <button
           class="pdf-btn"
-          :title="'下载'"
+          title="下载"
           @click="download"
         >
           <i class="material-icons">file_download</i>
         </button>
-        <button class="pdf-btn" :title="'打印'" @click="print">
+        <button class="pdf-btn" title="打印" @click="print">
           <i class="material-icons">print</i>
         </button>
       </div>
 
       <div class="pdf-toolbar-center">
-        <button class="pdf-btn" :title="'缩小'" @click="zoomOut">
+        <button class="pdf-btn" title="缩小" @click="zoomOut">
           <i class="material-icons">remove</i>
         </button>
         <span class="pdf-zoom-label">{{ zoomPercent }}%</span>
-        <button class="pdf-btn" :title="'放大'" @click="zoomIn">
+        <button class="pdf-btn" title="放大" @click="zoomIn">
           <i class="material-icons">add</i>
         </button>
         <span class="pdf-divider"></span>
-        <button class="pdf-btn" :title="'适应页面'" @click="zoomFit">
+        <button class="pdf-btn" title="适应页面" @click="zoomFit">
           <i class="material-icons">fit_screen</i>
         </button>
-        <button class="pdf-btn" :title="'适应宽度'" @click="zoomWidth">
+        <button class="pdf-btn" title="适应宽度" @click="zoomWidth">
           <i class="material-icons">swap_horiz</i>
         </button>
       </div>

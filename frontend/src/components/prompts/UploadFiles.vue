@@ -19,16 +19,16 @@
         <button
           class="action"
           @click="abortAll"
-          :aria-label="'中止'"
-          :title="'中止'"
+          aria-label="中止"
+          title="中止"
         >
           <i class="material-icons">{{ "cancel" }}</i>
         </button>
         <button
           class="action"
           @click="toggle"
-          :aria-label="'切换列表'"
-          :title="'切换列表'"
+          aria-label="切换列表"
+          title="切换列表"
         >
           <i class="material-icons">{{
             open ? "keyboard_arrow_down" : "keyboard_arrow_up"

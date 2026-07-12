@@ -23,16 +23,16 @@
             @click.prevent="deletePrompt"
             type="button"
             class="button button--flat button--red"
-            :aria-label="'删除'"
-            :title="'删除'"
+            aria-label="删除"
+            title="删除"
           >
             删除
           </button>
           <router-link to="/settings/users">
             <button
               class="button button--flat button--grey"
-              :aria-label="'取消'"
-              :title="'取消'"
+              aria-label="取消"
+              title="取消"
             >
               取消
             </button>

@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { fetchURL } from "@/api/utils";
 import { replaceTagByName } from "@/utils/tagPersistence";
 import {
   resolvePersistenceState,
@@ -49,8 +50,7 @@ export const useTagsStore = defineStore("tags", () => {
 
   async function apiGet(): Promise<Tag[] | null> {
     try {
-      const res = await fetch(API_BASE);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetchURL(API_BASE, {});
       return await res.json();
     } catch {
       return null;
@@ -59,12 +59,12 @@ export const useTagsStore = defineStore("tags", () => {
 
   async function apiCreate(tag: Tag): Promise<Tag | null> {
     try {
-      const res = await fetch(API_BASE, {
+      const res = await fetchURL(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tag),
       });
-      return res.ok ? await res.json() : null;
+      return await res.json();
     } catch {
       return null;
     }
@@ -75,12 +75,12 @@ export const useTagsStore = defineStore("tags", () => {
     updates: Partial<Tag>
   ): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/${id}`, {
+      await fetchURL(`${API_BASE}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
-      return res.ok;
+      return true;
     } catch {
       return false;
     }
@@ -88,8 +88,8 @@ export const useTagsStore = defineStore("tags", () => {
 
   async function apiDelete(id: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
-      return res.ok;
+      await fetchURL(`${API_BASE}/${id}`, { method: "DELETE" });
+      return true;
     } catch {
       return false;
     }
@@ -97,12 +97,12 @@ export const useTagsStore = defineStore("tags", () => {
 
   async function apiAddPath(tagId: string, path: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/${tagId}/paths`, {
+      await fetchURL(`${API_BASE}/${tagId}/paths`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path }),
       });
-      return res.ok;
+      return true;
     } catch {
       return false;
     }
@@ -110,12 +110,12 @@ export const useTagsStore = defineStore("tags", () => {
 
   async function apiRemovePath(tagId: string, path: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/${tagId}/paths`, {
+      await fetchURL(`${API_BASE}/${tagId}/paths`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path }),
       });
-      return res.ok;
+      return true;
     } catch {
       return false;
     }

@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { fetchURL } from "@/api/utils";
 import {
   replaceFavoriteByPath,
   resolvePersistenceState,
@@ -38,8 +39,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function apiGet(): Promise<Favorite[] | null> {
     try {
-      const res = await fetch(API_BASE);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetchURL(API_BASE, {});
       return await res.json();
     } catch {
       return null;
@@ -48,7 +48,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function apiCreate(fav: Favorite): Promise<Favorite | null> {
     try {
-      const res = await fetch(API_BASE, {
+      const res = await fetchURL(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,7 +57,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
           groupId: fav.groupId || "",
         }),
       });
-      return res.ok ? await res.json() : null;
+      return await res.json();
     } catch {
       return null;
     }
@@ -68,12 +68,12 @@ export const useFavoritesStore = defineStore("favorites", () => {
     fav: Partial<Favorite>
   ): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/${id}`, {
+      await fetchURL(`${API_BASE}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fav),
       });
-      return res.ok;
+      return true;
     } catch {
       return false;
     }
@@ -81,8 +81,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function apiDelete(id: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
-      return res.ok;
+      await fetchURL(`${API_BASE}/${id}`, { method: "DELETE" });
+      return true;
     } catch {
       return false;
     }
@@ -90,12 +90,12 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function apiReorder(orderedIds: string[]): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/reorder`, {
+      await fetchURL(`${API_BASE}/reorder`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: orderedIds }),
       });
-      return res.ok;
+      return true;
     } catch {
       return false;
     }
@@ -105,8 +105,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function apiGetGroups(): Promise<FavoriteGroup[] | null> {
     try {
-      const res = await fetch(GROUPS_API_BASE);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetchURL(GROUPS_API_BASE, {});
       return await res.json();
     } catch {
       return null;
@@ -117,12 +116,11 @@ export const useFavoritesStore = defineStore("favorites", () => {
     group: Partial<FavoriteGroup>
   ): Promise<FavoriteGroup | null> {
     try {
-      const res = await fetch(GROUPS_API_BASE, {
+      const res = await fetchURL(GROUPS_API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(group),
       });
-      if (!res.ok) return null;
       return await res.json();
     } catch {
       return null;
@@ -134,12 +132,12 @@ export const useFavoritesStore = defineStore("favorites", () => {
     group: Partial<FavoriteGroup>
   ): Promise<boolean> {
     try {
-      const res = await fetch(`${GROUPS_API_BASE}/${id}`, {
+      await fetchURL(`${GROUPS_API_BASE}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(group),
       });
-      return res.ok;
+      return true;
     } catch {
       return false;
     }
@@ -149,8 +147,9 @@ export const useFavoritesStore = defineStore("favorites", () => {
     id: string
   ): Promise<{ ok: boolean; conflict?: boolean }> {
     try {
-      const res = await fetch(`${GROUPS_API_BASE}/${id}`, { method: "DELETE" });
-      if (res.status === 409) return { ok: false, conflict: true };
+      const res = await fetchURL(`${GROUPS_API_BASE}/${id}`, {
+        method: "DELETE",
+      });
       return { ok: res.ok };
     } catch {
       return { ok: false };
@@ -159,12 +158,12 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function apiReorderGroups(orderedIds: string[]): Promise<boolean> {
     try {
-      const res = await fetch(`${GROUPS_API_BASE}/reorder`, {
+      await fetchURL(`${GROUPS_API_BASE}/reorder`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: orderedIds }),
       });
-      return res.ok;
+      return true;
     } catch {
       return false;
     }
@@ -336,7 +335,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
     if (!remoteGroups) return;
 
     for (const localGroup of [...groups.value]) {
-      if (remoteGroups.some((group) => group.name === localGroup.name)) continue;
+      if (remoteGroups.some((group) => group.name === localGroup.name))
+        continue;
       const created = await apiCreateGroup({
         name: localGroup.name,
         color: localGroup.color,
@@ -344,8 +344,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
       if (!created) continue;
 
       favorites.value.forEach((favorite) => {
-        if (favorite.groupId === localGroup.id)
-          favorite.groupId = created.id;
+        if (favorite.groupId === localGroup.id) favorite.groupId = created.id;
       });
     }
 

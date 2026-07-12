@@ -112,9 +112,12 @@
         </div>
         <div class="info-row" v-if="directoryStats">
           <span class="info-label">总大小</span>
-          <span class="info-value info-size">{{
-            filesize(directoryStats.size)
-          }}</span>
+          <span class="info-value info-size">
+            {{ filesize(directoryStats.size) }}（{{
+              directoryStats.size.toLocaleString("zh-CN")
+            }}
+            字节）
+          </span>
         </div>
         <p v-if="statsError" class="info-stats-error">{{ statsError }}</p>
       </template>

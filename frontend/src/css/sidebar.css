@@ -201,6 +201,141 @@ nav.sidebar .action:hover i {
   background: rgba(22, 119, 255, 0.22);
 }
 
+/* 最终视觉收口：侧栏使用同一套间距和状态层，不让悬停改变尺寸。 */
+nav.sidebar {
+  box-sizing: border-box;
+  padding-inline: 0.5rem;
+  background: var(--surfacePrimary, #fff);
+  border-right: 1px solid var(--borderPrimary, #e2e8f0);
+  box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, 0.06);
+  scrollbar-width: thin;
+  scrollbar-color: var(--borderSecondary, #cbd5e1) transparent;
+}
+
+nav.sidebar .sidebar-primary-nav {
+  gap: 0.375rem;
+  padding: 0.25rem 0 0.875rem;
+}
+
+nav.sidebar .sidebar-primary-nav .action {
+  min-height: 3rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+}
+
+nav.sidebar .sidebar-primary-nav .action:first-child {
+  color: var(--textPrimary, #1e293b);
+  background: var(--surfaceSecondary, #f8fafc);
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+}
+
+nav.sidebar .sidebar-primary-nav .action:first-child i {
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 0.625rem;
+}
+
+nav.sidebar .favorites-section,
+nav.sidebar .tags-section,
+nav.sidebar .volumes-section,
+nav.sidebar .categories-section {
+  padding-block: 0.75rem !important;
+  border-top: 1px solid var(--borderPrimary, #e2e8f0);
+}
+
+nav.sidebar .favorites-header,
+nav.sidebar .tags-header {
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+}
+
+nav.sidebar .section-toggle,
+nav.sidebar .volumes-header,
+nav.sidebar .categories-header {
+  min-height: 2.75rem;
+  padding-inline: 0.375rem;
+  border-radius: 0.625rem;
+}
+
+nav.sidebar .section-toggle:hover,
+nav.sidebar .volumes-header:hover,
+nav.sidebar .categories-header:hover {
+  background: var(--surfaceSecondary, #f8fafc);
+}
+
+nav.sidebar .section-tools {
+  gap: 0.25rem;
+}
+
+nav.sidebar .section-action-btn,
+nav.sidebar .section-collapse-btn {
+  width: 2.375rem;
+  min-width: 2.375rem;
+  height: 2.375rem;
+  min-height: 2.375rem;
+  border-radius: 0.625rem;
+}
+
+nav.sidebar .favorite-item,
+nav.sidebar .tag-filter-item {
+  width: calc(100% - 0.5rem);
+  min-height: 3rem;
+  margin: 0.125rem 0.25rem;
+  padding-inline: 0.75rem !important;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+}
+
+nav.sidebar .favorite-item:hover,
+nav.sidebar .favorite-item:focus-visible,
+nav.sidebar .tag-filter-item:hover,
+nav.sidebar .tag-filter-item:focus-visible {
+  background: var(--surfaceSecondary, #f8fafc);
+  border-color: var(--borderPrimary, #e2e8f0);
+}
+
+nav.sidebar .tag-filter-item.active {
+  color: var(--blue, #1677ff);
+  background: rgba(22, 119, 255, 0.1);
+  border-color: rgba(22, 119, 255, 0.2);
+}
+
+nav.sidebar .tag-filter-count,
+nav.sidebar .category-count {
+  min-width: 2.25rem;
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+}
+
+nav.sidebar .favorite-remove {
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+}
+
+nav.sidebar .sidebar-resize-handle {
+  right: -0.25rem;
+  z-index: 100;
+  width: 0.75rem;
+  cursor: col-resize;
+  background: transparent;
+}
+
+nav.sidebar .sidebar-resize-handle:hover,
+nav.sidebar .sidebar-resize-handle:active {
+  background: color-mix(
+    in srgb,
+    var(--blue, #1677ff) 18%,
+    transparent
+  );
+}
+
+nav.sidebar::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
 /* 最终侧栏系统：清晰分区、稳定命中区域、窄滚动条。 */
 nav.sidebar {
   padding: 0.5rem 0.375rem 0;

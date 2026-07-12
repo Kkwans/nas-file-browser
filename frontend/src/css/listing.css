@@ -1710,3 +1710,144 @@
     font-size: 3.75rem;
   }
 }
+
+/*
+ * 详细列表最终契约：固定列模型，不提供拖拽列宽。
+ * 拖拽会改变整张表的比例并在触摸端造成误触；表头点击仍然负责排序。
+ */
+#listing.details .column-resize-handle {
+  display: none !important;
+}
+
+#listing.details .item.header > div,
+#listing.details .item:not(.header) > div:last-of-type {
+  box-sizing: border-box;
+  grid-template-columns:
+    minmax(16rem, 2fr)
+    minmax(8rem, 1fr)
+    minmax(6rem, 0.75fr)
+    minmax(10rem, 1fr)
+    minmax(11rem, 1.1fr);
+  column-gap: 0;
+}
+
+#listing.details .item.header {
+  min-height: 3rem;
+  padding-left: 4.75rem;
+  background: var(--surfaceSecondary, #f8fafc);
+  border: 0;
+  border-bottom: 1px solid var(--file-border, #dbe3ee);
+  border-radius: 0.5rem 0.5rem 0 0;
+  box-shadow: none;
+}
+
+#listing.details .item.header p {
+  min-height: 2.5rem;
+  box-sizing: border-box;
+  padding: 0 0.875rem;
+  border: 0;
+  border-left: 1px solid var(--file-border, #dbe3ee);
+  color: var(--file-muted, #64748b);
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  justify-content: center;
+  text-align: center;
+  transition: color 140ms ease, background-color 140ms ease;
+}
+
+#listing.details .item.header p.name {
+  border-left: 0;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+#listing.details .item.header p.actions {
+  border-left: 1px solid var(--file-border, #dbe3ee);
+}
+
+#listing.details .item.header p:hover,
+#listing.details .item.header p:focus-visible {
+  color: var(--file-accent, #1677ff);
+  background: color-mix(in srgb, var(--file-accent, #1677ff) 6%, transparent);
+}
+
+#listing.details .item:not(.header) > div:last-of-type {
+  min-width: 0;
+}
+
+#listing.details .item:not(.header) .name,
+#listing.details .item:not(.header) .detail-meta,
+#listing.details .item:not(.header) .size,
+#listing.details .item:not(.header) .modified,
+#listing.details .item:not(.header) .detail-actions {
+  min-height: 3.75rem;
+  box-sizing: border-box;
+  padding-inline: 0.875rem;
+}
+
+#listing.details .item:not(.header) .detail-meta,
+#listing.details .item:not(.header) .size,
+#listing.details .item:not(.header) .modified,
+#listing.details .item:not(.header) .detail-actions {
+  justify-content: center;
+  text-align: center;
+}
+
+#listing.details .item:not(.header) .detail-meta,
+#listing.details .item:not(.header) .size,
+#listing.details .item:not(.header) .modified,
+#listing.details .item:not(.header) .detail-actions {
+  border-left: 1px solid color-mix(in srgb, var(--file-border, #dbe3ee) 78%, transparent);
+}
+
+#listing.details .item:not(.header) .detail-meta {
+  align-items: center;
+}
+
+#listing.details .item:not(.header) .detail-actions {
+  gap: 0.375rem;
+}
+
+#listing.details .detail-action-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  color: var(--file-muted, #64748b);
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0.5rem;
+  transition: color 140ms ease, opacity 140ms ease;
+}
+
+#listing.details .detail-action-button:hover,
+#listing.details .detail-action-button:focus-visible {
+  color: var(--file-accent, #1677ff);
+  background: transparent !important;
+  border: 0 !important;
+  opacity: 1;
+}
+
+#listing.details .detail-action-button.danger:hover,
+#listing.details .detail-action-button.danger:focus-visible {
+  color: #dc2626;
+  background: transparent !important;
+}
+
+#listing.details .item:not(.header) .size {
+  color: var(--file-muted, #64748b);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 620px) {
+  #listing.details .item.header {
+    padding-left: 4.25rem;
+  }
+}
+
+/* 文件夹大小不在卡片视图中计算；详细列表用破折号保持列对齐。 */
+#listing.mosaic .item[data-dir="true"] .size,
+#listing.compact-grid .item[data-dir="true"] .size,
+#listing.compact-list .item[data-dir="true"] .size {
+  display: none !important;
+}

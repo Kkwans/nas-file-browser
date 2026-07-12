@@ -226,7 +226,6 @@
         class="file-icons"
         data-clear-on-click="true"
         :class="listingClass"
-        :style="listingStyleVars"
         @click="handleEmptyAreaClick"
       >
         <div>
@@ -241,13 +240,6 @@
                 @keyup.enter="sortByHeader('name')"
               >
                 <span>名称</span>
-                <button
-                  class="column-resize-handle"
-                  type="button"
-                  aria-label="调整名称列宽度"
-                  @pointerdown="startColumnResize($event, 0)"
-                  @click.stop
-                ></button>
               </p>
               <p
                 class="type"
@@ -258,13 +250,6 @@
                 @keyup.enter="sortByHeader('type')"
               >
                 <span>类型</span>
-                <button
-                  class="column-resize-handle"
-                  type="button"
-                  aria-label="调整类型列宽度"
-                  @pointerdown="startColumnResize($event, 1)"
-                  @click.stop
-                ></button>
               </p>
               <p
                 class="size"
@@ -275,13 +260,6 @@
                 @keyup.enter="sortByHeader('size')"
               >
                 <span>大小</span>
-                <button
-                  class="column-resize-handle"
-                  type="button"
-                  aria-label="调整大小列宽度"
-                  @pointerdown="startColumnResize($event, 2)"
-                  @click.stop
-                ></button>
               </p>
               <p
                 class="modified"
@@ -292,13 +270,6 @@
                 @keyup.enter="sortByHeader('modified')"
               >
                 <span>修改时间</span>
-                <button
-                  class="column-resize-handle"
-                  type="button"
-                  aria-label="调整修改时间列宽度"
-                  @pointerdown="startColumnResize($event, 3)"
-                  @click.stop
-                ></button>
               </p>
               <p class="actions"><span>操作</span></p>
             </div>
@@ -593,6 +564,7 @@ import {
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
+import { normalizeSearchBase } from "@/utils/searchPath";
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -666,90 +638,6 @@ onBeforeRouteUpdate(() => {
 });
 
 const listing = ref<HTMLElement | null>(null);
-
-const DETAILS_COLUMNS_KEY = "nas-file-browser-details-columns";
-const defaultDetailsColumns =
-  "minmax(14rem, 1.5fr) minmax(10rem, 1fr) minmax(7rem, 0.65fr) minmax(10rem, 0.8fr) minmax(12rem, 0.9fr)";
-const detailColumnWidths = ref<string[]>([]);
-let columnResizeMove: ((event: PointerEvent) => void) | null = null;
-let columnResizeEnd: (() => void) | null = null;
-
-const listingStyleVars = computed<Record<string, string>>(() => ({
-  "--details-columns": detailColumnWidths.value.length
-    ? detailColumnWidths.value.join(" ")
-    : defaultDetailsColumns,
-}));
-
-const loadDetailColumns = () => {
-  try {
-    const saved = JSON.parse(
-      localStorage.getItem(DETAILS_COLUMNS_KEY) || "null"
-    );
-    if (
-      Array.isArray(saved) &&
-      (saved.length === 4 || saved.length === 5) &&
-      saved.every((value) => typeof value === "number" && value > 0)
-    ) {
-      detailColumnWidths.value = saved.map((value) => `${value}px`);
-      if (detailColumnWidths.value.length === 4) {
-        detailColumnWidths.value.push("190px");
-      }
-    }
-  } catch {
-    // 忽略损坏的列宽缓存，继续使用自适应默认值。
-  }
-};
-
-const stopColumnResize = () => {
-  if (columnResizeMove) {
-    document.removeEventListener("pointermove", columnResizeMove);
-    columnResizeMove = null;
-  }
-  if (columnResizeEnd) {
-    document.removeEventListener("pointerup", columnResizeEnd);
-    columnResizeEnd = null;
-  }
-  document.body.style.cursor = "";
-  document.body.style.userSelect = "";
-};
-
-const startColumnResize = (event: PointerEvent, index: number) => {
-  if (currentViewMode.value !== "details") return;
-  event.preventDefault();
-  event.stopPropagation();
-  stopColumnResize();
-
-  const headerCell = (event.currentTarget as HTMLElement).parentElement;
-  const initialWidth = headerCell?.getBoundingClientRect().width ?? 160;
-  const initialX = event.clientX;
-  const minWidths = [180, 140, 100, 150, 170];
-
-  if (!detailColumnWidths.value.length) {
-    detailColumnWidths.value = [initialWidth, 180, 120, 170, 190].map(
-      (value) => `${value}px`
-    );
-  }
-
-  columnResizeMove = (moveEvent: PointerEvent) => {
-    const nextWidth = Math.max(
-      minWidths[index],
-      initialWidth + moveEvent.clientX - initialX
-    );
-    detailColumnWidths.value[index] = `${Math.round(nextWidth)}px`;
-  };
-  columnResizeEnd = () => {
-    localStorage.setItem(
-      DETAILS_COLUMNS_KEY,
-      JSON.stringify(detailColumnWidths.value.map((value) => parseFloat(value)))
-    );
-    stopColumnResize();
-  };
-
-  document.addEventListener("pointermove", columnResizeMove);
-  document.addEventListener("pointerup", columnResizeEnd);
-  document.body.style.cursor = "col-resize";
-  document.body.style.userSelect = "none";
-};
 
 const normalDirs = computed(() =>
   items.value.dirs
@@ -884,8 +772,6 @@ watch(req, () => {
 });
 
 onMounted(() => {
-  loadDetailColumns();
-
   // Check the columns size for the first time.
   columnsResize();
 
@@ -912,8 +798,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  stopColumnResize();
-
   // Remove event listeners before destroying this page.
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("scroll", scrollEvent);
@@ -1397,8 +1281,7 @@ const resetOpacity = () => {
 };
 
 const searchBasePath = computed(() => {
-  const base = fileStore.req?.path || removePrefix(route.path) || "/";
-  return base.endsWith("/") ? base : `${base}/`;
+  return normalizeSearchBase(fileStore.req?.path || route.path || "/");
 });
 
 const submitInlineSearch = () => {

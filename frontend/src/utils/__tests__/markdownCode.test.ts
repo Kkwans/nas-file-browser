@@ -53,5 +53,11 @@ describe("Markdown 代码块契约", () => {
       "```javascript\n\n```\n"
     );
     expect(createMarkdownCodeFence("unknown-language")).toBe("```\n\n```\n");
+    expect(createMarkdownCodeFence("Dockerfile")).toBe(
+      "```dockerfile\n\n```\n"
+    );
+    expect(
+      resolveMarkdownCodeLanguage("language-tsx", "const App = () => null;")
+    ).toBe("typescript");
   });
 });

@@ -152,11 +152,11 @@ export function highlightAndAnnotateCodeBlocks(
     const codeEl = element as HTMLElement;
     const pre = codeEl.parentElement;
     const textContent = codeEl.textContent || "";
-    const rawText =
-      codeEl.dataset.rawSource &&
-      codeEl.dataset.rawSource === textContent
-        ? codeEl.dataset.rawSource
-        : textContent;
+    // Vditor may briefly clear a code node while switching IR/SV/preview.
+    // Keep the last raw source in data-* so a transient empty DOM does not
+    // erase the block on the next decoration pass. If fresh text exists it
+    // always wins, which keeps edits and re-renders authoritative.
+    const rawText = textContent || codeEl.dataset.rawSource || "";
     codeEl.dataset.rawSource = rawText;
     const lang = resolveMarkdownCodeLanguage(codeEl.className, rawText);
     if (lang) {

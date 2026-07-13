@@ -179,13 +179,20 @@ const codeLanguageOptions = [
   { value: "java", label: "Java" },
   { value: "javascript", label: "JavaScript" },
   { value: "typescript", label: "TypeScript" },
+  { value: "jsx", label: "JSX" },
   { value: "html", label: "HTML" },
   { value: "css", label: "CSS" },
+  { value: "scss", label: "SCSS" },
+  { value: "less", label: "Less" },
   { value: "bash", label: "Shell" },
+  { value: "powershell", label: "PowerShell" },
   { value: "python", label: "Python" },
   { value: "json", label: "JSON" },
   { value: "yaml", label: "YAML" },
+  { value: "toml", label: "TOML" },
+  { value: "dockerfile", label: "Dockerfile" },
   { value: "sql", label: "SQL" },
+  { value: "graphql", label: "GraphQL" },
   { value: "go", label: "Go" },
   { value: "rust", label: "Rust" },
   { value: "csharp", label: "C#" },
@@ -414,7 +421,7 @@ const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
       {
         name: "source-mode",
         tipPosition: "s",
-        tip: '源码模式',
+        tip: "源码模式",
         icon: '<svg viewBox="0 0 1024 1024"><path d="M586.185 280.418l44.206-44.206L816 421.812l-185.609 185.61-44.206-44.207L727.588 421.812zM437.815 743.582l-44.206 44.206L208 602.188l185.609-185.61 44.206 44.207L296.412 602.188z"/></svg>',
         click: () => switchMode("sv"),
       },
@@ -684,8 +691,14 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
   if (currentMode.value === mode) return;
 
   // 保存当前内容
-  const currentContent = vditorInstance.getValue();
-  const content = userEdited ? markdownBuffer : currentContent;
+  let content: string;
+  try {
+    // getValue() is authoritative, including an intentionally empty document.
+    // The buffer is only a fallback if Vditor has already detached its DOM.
+    content = vditorInstance.getValue();
+  } catch {
+    content = markdownBuffer;
+  }
   markdownBuffer = content;
   currentMode.value = mode;
   // 模式切换不算用户编辑
@@ -762,6 +775,7 @@ const save = async (throwError?: boolean) => {
     let content = "";
     if (isMarkdownFile && vditorInstance) {
       content = vditorInstance.getValue();
+      markdownBuffer = content;
     } else if (aceEditor) {
       content = aceEditor.getValue();
     }

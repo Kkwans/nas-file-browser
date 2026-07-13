@@ -283,6 +283,3 @@
 .file-icons [data-dir="true"] .file-type-icon::before {
   content: "folder";
 }
-.file-icons [aria-selected="true"] .file-type-icon {
-  color: var(--iconSecondary);
-}

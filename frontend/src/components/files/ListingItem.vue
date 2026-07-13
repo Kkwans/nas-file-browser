@@ -68,6 +68,16 @@
             <i class="material-icons" aria-hidden="true">label</i>
           </button>
         </div>
+        <button
+          v-if="viewMode === 'details'"
+          class="mobile-item-more"
+          type="button"
+          aria-label="更多操作"
+          title="更多操作"
+          @click.stop="openMobileActionSheet"
+        >
+          <i class="material-icons" aria-hidden="true">more_vert</i>
+        </button>
         <span
           v-for="tag in pathTags"
           :key="tag.id"
@@ -157,6 +167,66 @@
           @manage="openTagManager"
           @close="closeTagPicker"
         />
+      </div>
+    </div>
+  </Teleport>
+  <Teleport to="body">
+    <div
+      v-if="showMobileActionSheet"
+      class="mobile-item-action-backdrop"
+      @click.self="closeMobileActionSheet"
+    >
+      <div class="mobile-item-action-sheet" role="menu" @click.stop>
+        <div class="mobile-item-action-title">{{ name }}</div>
+        <button type="button" role="menuitem" @click="runMobileAction('info')">
+          <i class="material-icons" aria-hidden="true">info</i>
+          <span>详细信息</span>
+        </button>
+        <button
+          v-if="authStore.user?.perm.rename"
+          type="button"
+          role="menuitem"
+          @click="runMobileAction('rename')"
+        >
+          <i class="material-icons" aria-hidden="true">drive_file_rename_outline</i>
+          <span>重命名</span>
+        </button>
+        <button
+          v-if="authStore.user?.perm.rename"
+          type="button"
+          role="menuitem"
+          @click="runMobileAction('move')"
+        >
+          <i class="material-icons" aria-hidden="true">drive_file_move</i>
+          <span>移动</span>
+        </button>
+        <button
+          v-if="authStore.user?.perm.download"
+          type="button"
+          role="menuitem"
+          @click="runMobileAction('download')"
+        >
+          <i class="material-icons" aria-hidden="true">file_download</i>
+          <span>下载</span>
+        </button>
+        <button
+          v-if="authStore.user?.perm.delete"
+          class="danger"
+          type="button"
+          role="menuitem"
+          @click="runMobileAction('delete')"
+        >
+          <i class="material-icons" aria-hidden="true">delete</i>
+          <span>删除</span>
+        </button>
+        <button
+          class="cancel"
+          type="button"
+          role="menuitem"
+          @click="closeMobileActionSheet"
+        >
+          <span>取消</span>
+        </button>
       </div>
     </div>
   </Teleport>
@@ -288,6 +358,7 @@ const downloadItem = () => {
 };
 
 const showTagPicker = ref(false);
+const showMobileActionSheet = ref(false);
 
 const pathTags = computed(() => {
   if (!props.path) return [];
@@ -307,6 +378,23 @@ const closeTagPicker = () => {
 const openTagManager = () => {
   showTagPicker.value = false;
   layoutStore.showHover({ prompt: "tag-manager" });
+};
+
+const openMobileActionSheet = () => {
+  showMobileActionSheet.value = true;
+};
+
+const closeMobileActionSheet = () => {
+  showMobileActionSheet.value = false;
+};
+
+const runMobileAction = (action: string) => {
+  closeMobileActionSheet();
+  if (action === "download") {
+    downloadItem();
+    return;
+  }
+  showItemAction(action);
 };
 
 const humanSize = computed(() => {

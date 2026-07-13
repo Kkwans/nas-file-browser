@@ -22,13 +22,18 @@
           <i class="material-icons" aria-hidden="true">arrow_forward</i>
         </button>
       </div>
-      <action
-        v-else
-        class="search-button"
-        icon="search"
-        label="搜索"
-        @action="openSearch()"
-      />
+      <div v-else class="listing-mobile-title" :title="mobileDirectoryTitle">
+        {{ mobileDirectoryTitle }}
+      </div>
+
+      <template #mobile-actions>
+        <action
+          class="search-button"
+          icon="search"
+          label="搜索"
+          @action="openSearch()"
+        />
+      </template>
 
       <template #actions>
         <template v-if="!isMobile">
@@ -149,7 +154,7 @@
     </header-bar>
 
     <div
-      v-if="isMobile"
+      v-if="shouldRenderMobileSelectionBar"
       id="file-selection"
       :class="{
         'file-selection-margin-bottom': fileStore.multiple,
@@ -531,12 +536,12 @@ import { useTagsStore } from "@/stores/tags";
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
 import * as upload from "@/utils/upload";
-import css from "@/utils/css";
 import {
   normalizeViewMode,
   selectForContextMenu,
   sortItemsByType,
 } from "@/utils/fileListing";
+import { shouldRenderMobileSelection } from "@/utils/layoutContract";
 import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
 
@@ -748,6 +753,21 @@ const isMobile = computed(() => {
   return width.value <= 736;
 });
 
+const mobileDirectoryTitle = computed(() => {
+  const name = fileStore.req?.name?.trim();
+  if (name) return name;
+  const segments = route.path.split("/").filter(Boolean);
+  return segments.at(-1) || "我的文件";
+});
+
+const shouldRenderMobileSelectionBar = computed(() =>
+  shouldRenderMobileSelection(
+    isMobile.value,
+    fileStore.multiple,
+    fileStore.selectedCount
+  )
+);
+
 watch(req, () => {
   // Reset the show value
   showLimit.value = 50;
@@ -772,9 +792,6 @@ watch(req, () => {
 });
 
 onMounted(() => {
-  // Check the columns size for the first time.
-  columnsResize();
-
   // How much every listing item affects the window height
   setItemWeight();
 
@@ -1126,34 +1143,6 @@ const paste = async (event: Event) => {
   action(false, false);
 };
 
-const columnsResize = () => {
-  // Update the columns size based on the window width.
-  const items_ = css([
-    "#listing.mosaic:not(.gallery) .item",
-    ".mosaic:not(.gallery)#listing .item",
-  ]);
-  if (items_ === null) return;
-
-  const mainWidth = document.querySelector("main")?.offsetWidth ?? 0;
-
-  // Responsive column count based on screen width
-  let colWidth = 240;
-  if (mainWidth <= 450) {
-    colWidth = 100;
-  } else if (mainWidth <= 736) {
-    colWidth = 120;
-  } else if (mainWidth <= 900) {
-    colWidth = 200;
-  }
-
-  let columns = Math.floor(mainWidth / colWidth);
-  if (columns < 2) columns = 2;
-  if (columns > 6) columns = 6;
-
-  const gap = mainWidth <= 736 ? 0.6 : 1;
-  items_.style.width = `calc(${100 / columns}% - ${gap}em)`;
-};
-
 const scrollEvent = throttle(() => {
   const totalItems =
     (fileStore.req?.numDirs ?? 0) + (fileStore.req?.numFiles ?? 0);
@@ -1332,7 +1321,6 @@ const invertSelection = () => {
 };
 
 const windowsResize = throttle(() => {
-  columnsResize();
   width.value = window.innerWidth;
 
   // Listing element is not displayed

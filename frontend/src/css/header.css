@@ -29,6 +29,36 @@ header > * {
   flex: 0 0 auto;
 }
 
+header > .header-leading,
+header > .header-center,
+header > .header-trailing {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+header > .header-leading {
+  flex: 0 0 auto;
+  gap: 0.375em;
+}
+
+header > .header-center {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+}
+
+header > .header-trailing {
+  flex: 0 0 auto;
+  gap: 0.25em;
+  margin-left: auto;
+}
+
+.header-mobile-actions {
+  display: none;
+  align-items: center;
+}
+
 /* Logo */
 header img {
   height: 2.25em;
@@ -71,7 +101,7 @@ header a:hover {
   text-decoration: none;
 }
 
-header > div:first-child > .action {
+header > .header-leading > .action {
   margin-right: 0.25em;
 }
 
@@ -190,7 +220,7 @@ header .action.active i {
 
 /* Desktop workspace toolbar: keep FileBrowser's primary actions visible. */
 @media (min-width: 737px) {
-  #dropdown {
+  header > .header-trailing #dropdown {
     position: static;
     display: flex;
     align-items: center;
@@ -208,17 +238,17 @@ header .action.active i {
     transform: none;
   }
 
-  #dropdown > div {
+  header > .header-trailing #dropdown > div {
     display: inline-flex;
     align-items: center;
   }
 
-  #dropdown .action {
+  header > .header-trailing #dropdown .action {
     width: auto;
     padding: 0;
   }
 
-  #dropdown .action i {
+  header > .header-trailing #dropdown .action i {
     margin-right: 0;
   }
 }
@@ -582,6 +612,18 @@ html.dark header .breadcrumbs a:hover {
     display: inherit;
   }
 
+  header > .header-trailing {
+    gap: 0.375em;
+  }
+
+  header > .header-trailing .header-mobile-actions {
+    display: flex;
+  }
+
+  header > .header-center {
+    justify-content: center;
+  }
+
   header .menu-button i {
     font-size: 1.375em;
   }
@@ -615,7 +657,7 @@ html.dark header .breadcrumbs a:hover {
     transition: opacity 0.2s ease;
   }
 
-  #dropdown {
+  header > .header-trailing #dropdown {
     position: fixed;
     top: 0.5em;
     right: 0.5em;

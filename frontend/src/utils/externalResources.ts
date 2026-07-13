@@ -148,9 +148,16 @@ export function highlightAndAnnotateCodeBlocks(
   const codeBlocks = container.querySelectorAll("pre > code");
   const hljs = window.hljs;
 
-  codeBlocks.forEach((codeEl) => {
+  codeBlocks.forEach((element) => {
+    const codeEl = element as HTMLElement;
     const pre = codeEl.parentElement;
-    const rawText = codeEl.textContent || "";
+    const textContent = codeEl.textContent || "";
+    const rawText =
+      codeEl.dataset.rawSource &&
+      codeEl.dataset.rawSource === textContent
+        ? codeEl.dataset.rawSource
+        : textContent;
+    codeEl.dataset.rawSource = rawText;
     const lang = resolveMarkdownCodeLanguage(codeEl.className, rawText);
     if (lang) {
       codeEl.setAttribute("data-lang", lang);
@@ -158,6 +165,7 @@ export function highlightAndAnnotateCodeBlocks(
       codeEl.removeAttribute("data-lang");
     }
 
+    codeEl.classList.remove("hljs");
     if (hljs && lang && hljs.getLanguage(lang)) {
       try {
         const result = hljs.highlight(rawText, {

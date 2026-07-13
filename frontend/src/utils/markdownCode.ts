@@ -121,7 +121,9 @@ export function wrapMarkdownCodeLines(
   return {
     html: lines
       .map((line) => `<span class="code-line">${line}</span>`)
-      .join("\n"),
+      // 每个代码行由 CSS 独立占据一行；不要再插入文本换行，否则
+      // white-space: pre 会把它渲染成额外的空白行。
+      .join(""),
     hasLineNumbers: true,
   };
 }

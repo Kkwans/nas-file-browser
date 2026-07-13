@@ -158,6 +158,16 @@ header .action:focus-visible {
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12);
 }
 
+header .action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+header .action:disabled:hover,
+header .action:disabled:active {
+  background: transparent;
+}
+
 /* Active state for mode-switch buttons (Vditor) */
 header .action.active {
   background-color: rgba(33, 150, 243, 0.1);

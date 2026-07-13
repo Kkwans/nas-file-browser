@@ -148,8 +148,8 @@
 :where(.md_preview, .vditor-reset.vditor-preview--content,
   #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) table {
   display: block;
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
   margin: 1em 0 1.4em;
   overflow-x: auto;
@@ -157,6 +157,7 @@
   border: 1px solid var(--markdown-border, #d0d7de);
   border-radius: 8px;
   border-collapse: separate;
+  table-layout: auto;
 }
 
 :where(.md_preview, .vditor-reset.vditor-preview--content,

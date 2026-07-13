@@ -36,6 +36,7 @@ describe("Markdown 代码块契约", () => {
     const withLineNumbers = wrapMarkdownCodeLines("a\nb\nc", true);
     expect(withLineNumbers.hasLineNumbers).toBe(true);
     expect(withLineNumbers.html.match(/class=\"code-line\"/g)).toHaveLength(3);
+    expect(withLineNumbers.html).not.toContain("</span>\n<span");
   });
 
   it("按用户 ID 隔离行号偏好，访客使用固定命名空间", () => {

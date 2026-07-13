@@ -103,6 +103,7 @@
   min-height: 1.65em;
   padding-left: 3.25rem;
   counter-increment: markdown-line;
+  white-space: pre;
 }
 
 :where(.md_preview, .vditor-reset.vditor-preview--content,
@@ -169,4 +170,36 @@
     margin-left: -0.25rem;
     font-size: 0.82rem;
   }
+}
+
+/* Vditor 的默认代码主题会覆盖应用的浅色主题；编辑器和预览必须保持一致。 */
+#vditor-mount .vditor-ir pre,
+#vditor-mount .vditor-sv pre,
+#vditor-mount .vditor-preview pre,
+#vditor-mount .vditor-reset pre,
+.vditor-reset.vditor-preview--content pre {
+  background: var(--markdown-code-surface, #f6f8fa) !important;
+  color: var(--markdown-code-text, #24292f) !important;
+}
+
+#vditor-mount .vditor-ir code:not(pre code),
+#vditor-mount .vditor-sv code:not(pre code),
+#vditor-mount .vditor-preview code:not(pre code),
+.vditor-reset.vditor-preview--content code:not(pre code) {
+  display: inline !important;
+  padding: 0.12em 0.38em !important;
+  border: 1px solid var(--markdown-border, #d0d7de) !important;
+  border-radius: 5px !important;
+  background: var(--markdown-inline-surface, #f6f8fa) !important;
+  color: #8250df !important;
+  white-space: normal !important;
+}
+
+:root.dark #vditor-mount .vditor-ir pre,
+:root.dark #vditor-mount .vditor-sv pre,
+:root.dark #vditor-mount .vditor-preview pre,
+:root.dark #vditor-mount .vditor-reset pre,
+:root.dark .vditor-reset.vditor-preview--content pre {
+  background: #161b22 !important;
+  color: #e6edf3 !important;
 }

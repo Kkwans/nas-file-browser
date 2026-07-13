@@ -16,7 +16,9 @@
 @import "./dashboard.css";
 @import "./login.css";
 @import "./epubReader.css";
-@import "./mdPreview.css";
+@import "./markdown-content.css";
+@import "./markdown-code.css";
+@import "./vditor-overrides.css";
 @import "./context-menu.css";
 @import "./sidebar.css";
 @import "./settings.css";

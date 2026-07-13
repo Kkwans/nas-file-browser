@@ -47,6 +47,14 @@
           @action="switchMode('preview')"
           :class="{ active: currentMode === 'preview' }"
         />
+        <action
+          :icon="
+            showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
+          "
+          :label="showLineNumbers ? '关闭行号' : '显示行号'"
+          @action="toggleLineNumbers()"
+          :class="{ active: showLineNumbers }"
+        />
       </template>
     </header-bar>
 
@@ -80,7 +88,9 @@ import {
   loadHighlight,
   isDarkTheme,
   highlightAndAnnotateCodeBlocks,
+  observeMarkdownThemeChanges,
 } from "@/utils/externalResources";
+import { getMarkdownLineNumberStorageKey } from "@/utils/markdownCode";
 import ace, { Ace, version as ace_version } from "ace-builds";
 import "ace-builds/src-noconflict/ext-language_tools";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -106,7 +116,7 @@ const isMarkdownFile =
   fileStore.req?.name.endsWith(".md") ||
   fileStore.req?.name.endsWith(".markdown");
 const aceEditorReady = ref(false);
-const showLineNumbers = ref(true);
+const showLineNumbers = ref(false);
 const langCaption = ref("");
 
 const currentMode = ref<"ir" | "sv" | "preview">("ir");
@@ -116,8 +126,31 @@ let aceEditor: Ace.Editor | null = null;
 let mdInitialized = false; // Vditor 是否已完成初始化
 let userEdited = false; // 用户是否实际修改过内容
 let initialContent = ""; // 文件初始内容，用于 close 时的内容比对兜底
+let stopThemeObserver: (() => void) | null = null;
+
+const markdownLineNumberKey = () =>
+  getMarkdownLineNumberStorageKey(authStore.user?.id);
+
+const restoreLineNumberPreference = () => {
+  if (!isMarkdownFile) return;
+  showLineNumbers.value =
+    localStorage.getItem(markdownLineNumberKey()) === "true";
+};
+
+const persistLineNumberPreference = () => {
+  if (!isMarkdownFile) return;
+  localStorage.setItem(markdownLineNumberKey(), String(showLineNumbers.value));
+};
+
+restoreLineNumberPreference();
+
+watch(
+  () => authStore.user?.id,
+  () => restoreLineNumberPreference()
+);
 
 onMounted(() => {
+  stopThemeObserver = observeMarkdownThemeChanges();
   window.addEventListener("keydown", keyEvent);
   window.addEventListener("beforeunload", handlePageChange);
 
@@ -152,6 +185,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("beforeunload", handlePageChange);
+  stopThemeObserver?.();
+  stopThemeObserver = null;
   const mountEl = document.getElementById("vditor-mount");
   if (mountEl) {
     mountEl.removeEventListener("click", handleOutlineCapture, true);
@@ -314,6 +349,7 @@ const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
       userEdited = false;
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
+      refreshMarkdownCodeBlocks();
     },
     input: () => {
       // 用户实际编辑内容时标记为 dirty
@@ -416,8 +452,10 @@ const initVditorPreview = async (content: string) => {
   previewElement.innerHTML = html;
   mountEl.appendChild(previewElement);
 
-  // 为代码块添加语法高亮 + 行号 + 语言标签
-  highlightAndAnnotateCodeBlocks(previewElement);
+  // 为代码块添加语法高亮、语言标签和可选行号
+  highlightAndAnnotateCodeBlocks(previewElement, {
+    showLineNumbers: showLineNumbers.value,
+  });
 
   // 保存一个伪实例，getValue 时返回原始内容
   vditorInstance = {
@@ -491,10 +529,21 @@ const initAceEditor = (content: string) => {
 };
 
 const toggleLineNumbers = () => {
-  if (!aceEditor) return;
   showLineNumbers.value = !showLineNumbers.value;
-  aceEditor.setOptions({
-    showGutter: showLineNumbers.value,
+  persistLineNumberPreference();
+  if (aceEditor) {
+    aceEditor.setOptions({
+      showGutter: showLineNumbers.value,
+      showLineNumbers: showLineNumbers.value,
+    });
+  }
+  refreshMarkdownCodeBlocks();
+};
+
+const refreshMarkdownCodeBlocks = () => {
+  const mountEl = document.getElementById("vditor-mount");
+  if (!mountEl || !isMarkdownFile) return;
+  highlightAndAnnotateCodeBlocks(mountEl, {
     showLineNumbers: showLineNumbers.value,
   });
 };

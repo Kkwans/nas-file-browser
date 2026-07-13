@@ -1,0 +1,172 @@
+/* Markdown 代码块：默认浅色，深色主题只由 html.dark 激活。 */
+
+:where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) code:not(pre code) {
+  padding: 0.12em 0.38em;
+  border: 1px solid var(--markdown-border, #d0d7de);
+  border-radius: 5px;
+  color: #8250df;
+  background: #f6f8fa;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+  font-size: 0.88em;
+}
+
+:where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre {
+  position: relative;
+  margin: 1.1em 0 1.4em;
+  padding: 2.55rem 1rem 1rem;
+  overflow: auto;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  background: #f6f8fa;
+  color: #24292f;
+  box-shadow: 0 1px 2px rgb(27 31 36 / 8%);
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+  font-size: 0.88em;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+:where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code {
+  display: block;
+  min-width: max-content;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.markdown-code-toolbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.05rem;
+  padding: 0 0.55rem 0 0.8rem;
+  border-bottom: 1px solid #d0d7de;
+  background: #eef1f4;
+  color: #57606a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+}
+
+.markdown-code-language {
+  color: #57606a;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.markdown-code-copy {
+  display: inline-grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  color: #57606a;
+  background: transparent;
+  cursor: pointer;
+}
+
+.markdown-code-copy:hover,
+.markdown-code-copy:focus-visible {
+  background: rgb(9 105 218 / 12%);
+  color: #0969da;
+  outline: none;
+}
+
+.markdown-code-copy[data-copied="true"] {
+  color: #1a7f37;
+}
+
+.markdown-code-copy i {
+  font-size: 1rem;
+}
+
+:where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers {
+  counter-reset: markdown-line;
+}
+
+:where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line {
+  position: relative;
+  display: block;
+  min-height: 1.65em;
+  padding-left: 3.25rem;
+  counter-increment: markdown-line;
+}
+
+:where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line::before {
+  position: absolute;
+  left: 0;
+  width: 2.6rem;
+  color: #8c959f;
+  content: counter(markdown-line);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+}
+
+:where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line:hover {
+  background: rgb(9 105 218 / 7%);
+}
+
+:root.dark :where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) code:not(pre code) {
+  border-color: #30363d;
+  color: #d2a8ff;
+  background: #161b22;
+}
+
+:root.dark :where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre {
+  border-color: #30363d;
+  background: #161b22;
+  color: #e6edf3;
+  box-shadow: none;
+}
+
+:root.dark .markdown-code-toolbar {
+  border-bottom-color: #30363d;
+  background: #21262d;
+  color: #8b949e;
+}
+
+:root.dark .markdown-code-language {
+  color: #8b949e;
+}
+
+:root.dark .markdown-code-copy {
+  color: #8b949e;
+}
+
+:root.dark .markdown-code-copy:hover,
+:root.dark .markdown-code-copy:focus-visible {
+  background: rgb(88 166 255 / 14%);
+  color: #58a6ff;
+}
+
+:root.dark :where(.md_preview, .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line::before {
+  color: #6e7681;
+}
+
+@media (max-width: 899px) {
+  :where(.md_preview, .vditor-reset.vditor-preview--content,
+    #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre {
+    margin-right: -0.25rem;
+    margin-left: -0.25rem;
+    font-size: 0.82rem;
+  }
+}

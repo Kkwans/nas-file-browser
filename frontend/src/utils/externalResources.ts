@@ -1,11 +1,12 @@
-/**
- * Shared external resource loader for Vditor (Markdown) and highlight.js.
- * Ensures resources are loaded only once, even when used by multiple components.
- */
+/** Shared external resource loader for Vditor (Markdown) and highlight.js. */
+
+import {
+  resolveMarkdownCodeLanguage,
+  wrapMarkdownCodeLines,
+} from "@/utils/markdownCode";
 
 let vditorCSSLoaded = false;
 let vditorJSLoaded = false;
-let hljsCSSLoaded = false;
 let hljsJSLoaded = false;
 
 /**
@@ -54,7 +55,7 @@ export async function loadVditor(): Promise<void> {
  * Check if current theme is dark.
  */
 export function isDarkTheme(): boolean {
-  return document.documentElement.className === "dark";
+  return document.documentElement.classList.contains("dark");
 }
 
 /**
@@ -62,21 +63,17 @@ export function isDarkTheme(): boolean {
  * Automatically selects dark/light theme based on current app theme.
  */
 export async function loadHighlightCSS(): Promise<void> {
-  if (hljsCSSLoaded) return;
-
   const isDark = isDarkTheme();
   const themeCSS = isDark ? "github-dark" : "github";
+  const expectedHref = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
 
-  // Update existing theme if already loaded
   const existing = document.getElementById(
     "hljs-theme"
   ) as HTMLLinkElement | null;
   if (existing) {
-    const expectedHref = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
-    if (existing.href !== expectedHref) {
+    if (!existing.href.endsWith(`/${themeCSS}.min.css`)) {
       existing.href = expectedHref;
     }
-    hljsCSSLoaded = true;
     return;
   }
 
@@ -85,7 +82,6 @@ export async function loadHighlightCSS(): Promise<void> {
   link.href = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
   link.id = "hljs-theme";
   document.head.appendChild(link);
-  hljsCSSLoaded = true;
 }
 
 /**
@@ -123,30 +119,47 @@ export async function loadMarkdownResources(): Promise<void> {
   await Promise.all([loadVditor(), loadHighlight()]);
 }
 
+export type HighlightCodeOptions = {
+  showLineNumbers?: boolean;
+};
+
 /**
- * Apply syntax highlighting + line numbers + language labels to code blocks
- * inside a container element.
+ * Keep the CDN theme in sync when the application theme changes.
+ * The observer is deliberately scoped to one caller and must be disposed.
  */
-export function highlightAndAnnotateCodeBlocks(container: HTMLElement): void {
+export function observeMarkdownThemeChanges(
+  onChange?: (isDark: boolean) => void
+): () => void {
+  const html = document.documentElement;
+  const observer = new MutationObserver(() => {
+    void loadHighlightCSS();
+    onChange?.(isDarkTheme());
+  });
+  observer.observe(html, { attributes: true, attributeFilter: ["class"] });
+  return () => observer.disconnect();
+}
+
+/** Apply controlled syntax highlighting and optional line numbers. */
+export function highlightAndAnnotateCodeBlocks(
+  container: HTMLElement,
+  options: HighlightCodeOptions = {}
+): void {
+  const showLineNumbers = options.showLineNumbers ?? false;
   const codeBlocks = container.querySelectorAll("pre > code");
   const hljs = window.hljs;
 
   codeBlocks.forEach((codeEl) => {
-    // 1. Extract language from class
-    let lang = "";
-    const langMatch = codeEl.className.match(/language-(\w+)/);
-    if (langMatch) {
-      lang = langMatch[1];
-    }
-    // Set data-lang for CSS ::before language label
-    if (lang && !codeEl.getAttribute("data-lang")) {
+    const pre = codeEl.parentElement;
+    const rawText = codeEl.textContent || "";
+    const lang = resolveMarkdownCodeLanguage(codeEl.className, rawText);
+    if (lang) {
       codeEl.setAttribute("data-lang", lang);
+    } else {
+      codeEl.removeAttribute("data-lang");
     }
 
-    // 2. Apply syntax highlighting (before adding line numbers)
-    if (hljs && lang) {
+    if (hljs && lang && hljs.getLanguage(lang)) {
       try {
-        const rawText = codeEl.textContent || "";
         const result = hljs.highlight(rawText, {
           language: lang,
           ignoreIllegals: true,
@@ -158,17 +171,48 @@ export function highlightAndAnnotateCodeBlocks(container: HTMLElement): void {
       }
     }
 
-    // 3. Wrap each line for line numbers
-    const html = codeEl.innerHTML;
-    const lines = html.split("\n");
-    // Remove trailing empty line
-    if (lines.length > 1 && lines[lines.length - 1].trim() === "") {
-      lines.pop();
+    const rendered = wrapMarkdownCodeLines(codeEl.innerHTML, showLineNumbers);
+    codeEl.innerHTML = rendered.html;
+    codeEl.classList.toggle("has-line-numbers", rendered.hasLineNumbers);
+
+    if (pre) {
+      let toolbar = pre.querySelector<HTMLElement>(
+        ":scope > .markdown-code-toolbar"
+      );
+      if (!toolbar) {
+        toolbar = document.createElement("div");
+        toolbar.className = "markdown-code-toolbar";
+        pre.prepend(toolbar);
+      }
+      toolbar.replaceChildren();
+
+      if (lang) {
+        const language = document.createElement("span");
+        language.className = "markdown-code-language";
+        language.textContent = lang;
+        toolbar.append(language);
+      }
+
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "markdown-code-copy";
+      copy.setAttribute("aria-label", "复制代码");
+      copy.innerHTML =
+        '<i class="material-icons" aria-hidden="true">content_copy</i>';
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(rawText);
+          copy.dataset.copied = "true";
+          copy.setAttribute("aria-label", "已复制");
+          window.setTimeout(() => {
+            copy.dataset.copied = "false";
+            copy.setAttribute("aria-label", "复制代码");
+          }, 1400);
+        } catch {
+          copy.setAttribute("aria-label", "复制失败");
+        }
+      });
+      toolbar.append(copy);
     }
-    const wrappedHtml = lines
-      .map((line) => `<span class="code-line">${line}</span>`)
-      .join("\n");
-    codeEl.innerHTML = wrappedHtml;
-    codeEl.classList.add("has-line-numbers");
   });
 }

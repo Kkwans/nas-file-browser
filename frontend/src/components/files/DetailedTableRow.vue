@@ -18,7 +18,11 @@
     <td class="details-name-cell">
       <div class="details-identity">
         <img
-          v-if="!readOnly && type === 'image' && isThumbsEnabled"
+          v-if="
+            !readOnly &&
+            (type === 'image' || type === 'video') &&
+            isThumbsEnabled
+          "
           v-lazy="thumbnailUrl"
           :alt="name"
         />

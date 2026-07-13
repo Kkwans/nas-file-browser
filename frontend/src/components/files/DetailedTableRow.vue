@@ -10,7 +10,7 @@
     :aria-label="name"
     :aria-selected="isSelected"
     @click="itemClick"
-    @dblclick="open"
+    @dblclick.stop.prevent="open"
     @keydown.enter.prevent="itemClick"
     @keydown.space.prevent="itemClick"
     @contextmenu="contextMenu"

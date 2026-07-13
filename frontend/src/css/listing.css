@@ -699,17 +699,6 @@
   border-radius: 50%;
 }
 
-#listing.details .details-group-row th {
-  height: 34px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--listing-border);
-  color: var(--listing-muted);
-  background: var(--listing-surface);
-  font-size: 12px;
-  font-weight: 650;
-  text-align: left;
-}
-
 /* Compact list: two independent columns on desktop. */
 #listing.compact-list > div[data-clear-on-click="true"] {
   display: grid;
@@ -1182,6 +1171,100 @@
 }
 
 @container (max-width: 899px) {
+  /* On phones the semantic table becomes a card list. Keeping the desktop
+     min-width here makes the name column disappear into horizontal overflow. */
+  #listing.details .details-table-shell {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  #listing.details .details-table,
+  #listing.details .details-table tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #listing.details .details-table colgroup,
+  #listing.details .details-table thead {
+    display: none;
+  }
+
+  #listing.details .details-table tbody {
+    display: grid;
+    gap: 8px;
+  }
+
+  #listing.details .details-table-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    width: 100%;
+    height: auto;
+    min-height: 136px;
+    padding: 12px;
+    border: 1px solid var(--listing-border);
+    border-radius: 12px;
+    background: var(--listing-surface);
+  }
+
+  #listing.details .details-table-row > td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  #listing.details .details-name-cell {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding: 0;
+  }
+
+  #listing.details .details-type-cell {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    overflow: hidden;
+    padding-top: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #listing.details .details-size-cell {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    padding-top: 8px;
+  }
+
+  #listing.details .details-modified-cell {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    padding-top: 8px;
+  }
+
+  #listing.details .details-actions-cell {
+    display: flex;
+    grid-column: 2;
+    grid-row: 3;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+    padding-top: 4px;
+  }
+
+  #listing.details .details-actions-cell .detail-action-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  #listing.details .details-actions-cell .material-icons {
+    font-size: 18px;
+  }
+
   #listing.details > div[data-clear-on-click="true"] {
     display: grid;
     gap: 8px;
@@ -1319,6 +1402,61 @@
     width: 64px;
     height: 64px;
     font-size: 64px;
+  }
+
+  /* Keep the user-selected icon size effective on phones; the generic
+     mobile rule above is only the medium-icon fallback. */
+  #listing.compact-grid.compact-grid-size-small > div[data-clear-on-click="true"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #listing.compact-grid.compact-grid-size-small .item {
+    min-height: 108px;
+  }
+
+  #listing.compact-grid.compact-grid-size-small .item > div:first-child {
+    flex-basis: 54px;
+  }
+
+  #listing.compact-grid.compact-grid-size-small .item > div:first-child > img,
+  #listing.compact-grid.compact-grid-size-small .item > div:first-child > .file-type-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+  }
+
+  #listing.compact-grid.compact-grid-size-large .item {
+    min-height: 184px;
+  }
+
+  #listing.compact-grid.compact-grid-size-large .item > div:first-child {
+    flex-basis: 112px;
+  }
+
+  #listing.compact-grid.compact-grid-size-large .item > div:first-child > img,
+  #listing.compact-grid.compact-grid-size-large .item > div:first-child > .file-type-icon {
+    width: 104px;
+    height: 104px;
+    font-size: 104px;
+  }
+
+  #listing.compact-grid.compact-grid-size-xlarge > div[data-clear-on-click="true"] {
+    grid-template-columns: 1fr;
+  }
+
+  #listing.compact-grid.compact-grid-size-xlarge .item {
+    min-height: 244px;
+  }
+
+  #listing.compact-grid.compact-grid-size-xlarge .item > div:first-child {
+    flex-basis: 166px;
+  }
+
+  #listing.compact-grid.compact-grid-size-xlarge .item > div:first-child > img,
+  #listing.compact-grid.compact-grid-size-xlarge .item > div:first-child > .file-type-icon {
+    width: 156px;
+    height: 156px;
+    font-size: 156px;
   }
 
   #listing.compact-list > div[data-clear-on-click="true"] {

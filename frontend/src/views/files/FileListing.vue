@@ -254,7 +254,10 @@
         :class="listingClass"
         @click="handleEmptyAreaClick"
       >
-        <template v-if="!isDesktopDetails">
+        <!-- Detailed list always uses the semantic table. Its mobile CSS
+             converts the same rows into cards, so interaction and ordering do
+             not diverge between desktop and phone layouts. -->
+        <template v-if="currentViewMode !== 'details'">
           <div>
             <div class="listing-table-header">
               <div>
@@ -539,17 +542,11 @@
                 </tr>
               </thead>
               <tbody @contextmenu="showContextMenu">
-                <tr v-if="dirs.length > 0" class="details-group-row">
-                  <th colspan="5" scope="rowgroup">文件夹</th>
-                </tr>
                 <DetailedTableRow
                   v-for="item in dirs"
                   :key="base64(item.name)"
                   v-bind="item"
                 />
-                <tr v-if="files.length > 0" class="details-group-row">
-                  <th colspan="5" scope="rowgroup">文件</th>
-                </tr>
                 <DetailedTableRow
                   v-for="item in files"
                   :key="base64(item.name)"
@@ -954,10 +951,6 @@ const headerButtons = computed(() => {
 const isMobile = computed(() => {
   return width.value <= 899;
 });
-
-const isDesktopDetails = computed(
-  () => currentViewMode.value === "details" && !isMobile.value
-);
 
 const mobileDirectoryTitle = computed(() => {
   const name = fileStore.req?.name?.trim();

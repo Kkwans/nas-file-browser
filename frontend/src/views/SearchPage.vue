@@ -44,10 +44,26 @@
                 <h1 id="tag-results-title">{{ activeTag?.name || "标签" }}</h1>
               </div>
             </div>
+            <div class="tag-results-scope" role="group" aria-label="标签筛选范围">
+              <button
+                type="button"
+                :class="{ active: searchScope === 'current' }"
+                @click="setTagSearchScope('current')"
+              >
+                当前目录
+              </button>
+              <button
+                type="button"
+                :class="{ active: searchScope === 'global' }"
+                @click="setTagSearchScope('global')"
+              >
+                全局
+              </button>
+            </div>
             <button
               type="button"
               class="tag-results-back"
-              @click="clearTagMode"
+              @click.prevent="clearTagMode"
             >
               返回文件
             </button>
@@ -274,8 +290,14 @@ const loadTagResults = async () => {
 
   tagLoading.value = true;
   try {
+    const base = normalizeSearchBase(currentBasePath.value).replace(/\/$/, "") || "/";
+    const scopedPaths = tag.paths.filter((path) => {
+      if (searchScope.value === "global" || base === "/") return true;
+      const normalized = normalizeSearchBase(path).replace(/\/$/, "");
+      return normalized === base || normalized.startsWith(`${base}/`);
+    });
     const results = await Promise.all(
-      tag.paths.map(async (path) => {
+      scopedPaths.map(async (path) => {
         const normalizedPath = normalizeSearchBase(path).replace(/\/$/, "");
         try {
           const resource = await filesApi.fetch(
@@ -310,13 +332,35 @@ const loadTagResults = async () => {
   }
 };
 
-const clearTagMode = () => {
+const setTagSearchScope = async (scope: "current" | "global") => {
+  searchScope.value = scope;
+  await router.replace({
+    query: {
+      ...route.query,
+      scope,
+      base: scope === "global" ? "/" : currentBasePath.value,
+    },
+  });
+  await loadTagResults();
+};
+
+const clearTagMode = async () => {
   tagsStore.setFilter(null);
   const base =
     typeof route.query.base === "string"
       ? normalizeSearchBase(route.query.base)
       : "/";
-  router.replace({ path: "/files" + base });
+  const target = `/files${base === "/" ? "/" : base}`;
+  if (route.path === target) return;
+  try {
+    await router.push({ path: target });
+  } catch (error) {
+    // Navigation failures should not leave the search page in a dead state.
+    // A retry on the same canonical path is safe when a stale transition was
+    // cancelled by a previous search request.
+    if (route.path !== target) await router.replace({ path: target });
+    else if (error) console.warn("清除标签筛选时导航失败", error);
+  }
 };
 
 onMounted(() => {
@@ -691,6 +735,34 @@ const fileIcon = (item: SearchResult): string => {
   white-space: nowrap;
 }
 
+.tag-results-scope {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.625rem;
+  background: var(--surfaceSecondary, #f8fafc);
+}
+
+.tag-results-scope button {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border: 0;
+  border-radius: 0.4rem;
+  color: var(--textSecondary, #64748b);
+  background: transparent;
+  cursor: pointer;
+}
+
+.tag-results-scope button:hover,
+.tag-results-scope button:focus-visible,
+.tag-results-scope button.active {
+  color: var(--blue, #1677ff);
+  background: var(--surfacePrimary, #fff);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 10%);
+}
+
 .tag-results-back {
   min-height: 2.75rem;
   flex: 0 0 auto;
@@ -784,6 +856,14 @@ const fileIcon = (item: SearchResult): string => {
   .tag-results-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .tag-results-scope {
+    width: 100%;
+  }
+
+  .tag-results-scope button {
+    flex: 1;
   }
 
   .tag-results-back {

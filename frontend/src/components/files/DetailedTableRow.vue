@@ -10,6 +10,7 @@
     :aria-label="name"
     :aria-selected="isSelected"
     @click="itemClick"
+    @dblclick="open"
     @keydown.enter.prevent="itemClick"
     @keydown.space.prevent="itemClick"
     @contextmenu="contextMenu"
@@ -24,56 +25,59 @@
         <i v-else class="material-icons file-type-icon" aria-hidden="true"></i>
         <div class="details-name-content">
           <div class="name">
-            <span class="item-name">{{ name }}</span>
-            <i
-              v-if="isDir && riskLevel !== 'low'"
-              class="material-icons risk-icon"
-              :class="'risk-' + riskLevel"
-              :title="riskTitle"
-              aria-hidden="true"
-              >{{ riskLevel === "high" ? "warning" : "info" }}</i
-            >
-            <div class="item-quick-actions" @click.stop>
-              <button
-                class="item-icon-button favorite-star"
-                :class="{ 'is-fav': isFavorited }"
-                type="button"
-                :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
-                :title="isFavorited ? '取消收藏' : '添加收藏'"
-                @click.prevent="toggleFav"
+            <div class="item-title-row">
+              <span class="item-name">{{ name }}</span>
+              <i
+                v-if="isDir && riskLevel !== 'low'"
+                class="material-icons risk-icon"
+                :class="'risk-' + riskLevel"
+                :title="riskTitle"
+                aria-hidden="true"
+                >{{ riskLevel === "high" ? "warning" : "info" }}</i
               >
-                <i class="material-icons" aria-hidden="true">{{
-                  isFavorited ? "star" : "star_border"
-                }}</i>
-              </button>
-              <button
-                class="item-icon-button tag-btn"
-                :class="{ 'has-tags': pathTags.length > 0 }"
-                type="button"
-                title="分配标签"
-                aria-label="分配标签"
-                @click.prevent="toggleTagPicker"
-              >
-                <i class="material-icons" aria-hidden="true">label</i>
-              </button>
+              <div class="item-quick-actions" @click.stop>
+                <button
+                  class="item-icon-button favorite-star"
+                  :class="{ 'is-fav': isFavorited }"
+                  type="button"
+                  :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
+                  :title="isFavorited ? '取消收藏' : '添加收藏'"
+                  @click.prevent="toggleFav"
+                >
+                  <i class="material-icons" aria-hidden="true">{{
+                    isFavorited ? "star" : "star_border"
+                  }}</i>
+                </button>
+                <button
+                  class="item-icon-button tag-btn"
+                  :class="{ 'has-tags': pathTags.length > 0 }"
+                  type="button"
+                  title="分配标签"
+                  aria-label="分配标签"
+                  @click.prevent="toggleTagPicker"
+                >
+                  <i class="material-icons" aria-hidden="true">label</i>
+                </button>
+              </div>
             </div>
-            <span
-              v-for="tag in pathTags"
-              :key="tag.id"
-              class="tag-chip"
-              :style="{ '--tag-color': tag.color }"
-              :title="tag.name"
-            >
-              <span class="tag-chip-dot"></span>{{ tag.name }}
-            </span>
-          </div>
-          <div class="detail-meta">
-            <span class="detail-type">{{ fileTypeLabel }}</span>
+            <div v-if="pathTags.length" class="item-tag-list">
+              <span
+                v-for="tag in pathTags"
+                :key="tag.id"
+                class="tag-chip"
+                :style="{ '--tag-color': tag.color }"
+                :title="tag.name"
+              >
+                <span class="tag-chip-dot"></span>{{ tag.name }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </td>
-    <td class="details-type-cell">{{ fileTypeLabel }}</td>
+    <td class="details-type-cell">
+      <span v-if="!isDir">{{ fileTypeLabel }}</span>
+    </td>
     <td class="details-size-cell">{{ isDir ? "—" : humanSize }}</td>
     <td class="details-modified-cell">
       <time :datetime="modified">{{ humanTime }}</time>
@@ -222,7 +226,7 @@ const humanTime = computed(() =>
   dayjs(props.modified).format("YYYY/M/D HH:mm")
 );
 const fileTypeLabel = computed(() => {
-  if (props.isDir) return "文件夹";
+  if (props.isDir) return "";
   const extension = props.extension?.replace(/^\./, "").toLowerCase();
   const labels: Record<string, string> = {
     md: "Markdown 文件",
@@ -246,6 +250,10 @@ const fileTypeLabel = computed(() => {
 
 const toggleFav = () => {
   if (props.path) favoritesStore.toggleFavorite(props.path, props.name);
+};
+const open = (event?: MouseEvent) => {
+  if ((event?.target as HTMLElement | null)?.closest("button")) return;
+  router.push({ path: props.url });
 };
 const toggleTagPicker = () => {
   showTagPicker.value = !showTagPicker.value;

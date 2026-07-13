@@ -26,7 +26,11 @@
   >
     <div>
       <img
-        v-if="!readOnly && type === 'image' && isThumbsEnabled"
+        v-if="
+          !readOnly &&
+          (type === 'image' || type === 'video') &&
+          isThumbsEnabled
+        "
         v-lazy="thumbnailUrl"
         :alt="name"
       />
@@ -35,62 +39,66 @@
 
     <div>
       <div class="name">
-        <span class="item-name">{{ name }}</span>
-        <i
-          v-if="isDir && riskLevel !== 'low'"
-          class="material-icons risk-icon"
-          :class="'risk-' + riskLevel"
-          :title="riskTitle"
-          aria-hidden="true"
-          >{{ riskLevel === "high" ? "warning" : "info" }}</i
-        >
-        <div class="item-quick-actions" @click.stop>
-          <button
-            class="item-icon-button favorite-star"
-            :class="{ 'is-fav': isFavorited }"
-            type="button"
-            :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
-            :title="isFavorited ? '取消收藏' : '添加收藏'"
-            @click.prevent="toggleFav"
+        <div class="item-title-row">
+          <span class="item-name">{{ name }}</span>
+          <i
+            v-if="isDir && riskLevel !== 'low'"
+            class="material-icons risk-icon"
+            :class="'risk-' + riskLevel"
+            :title="riskTitle"
+            aria-hidden="true"
+            >{{ riskLevel === "high" ? "warning" : "info" }}</i
           >
-            <i class="material-icons" aria-hidden="true">{{
-              isFavorited ? "star" : "star_border"
-            }}</i>
-          </button>
+          <div class="item-quick-actions" @click.stop>
+            <button
+              class="item-icon-button favorite-star"
+              :class="{ 'is-fav': isFavorited }"
+              type="button"
+              :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
+              :title="isFavorited ? '取消收藏' : '添加收藏'"
+              @click.prevent="toggleFav"
+            >
+              <i class="material-icons" aria-hidden="true">{{
+                isFavorited ? "star" : "star_border"
+              }}</i>
+            </button>
+            <button
+              class="item-icon-button tag-btn"
+              :class="{ 'has-tags': pathTags.length > 0 }"
+              type="button"
+              title="分配标签"
+              aria-label="分配标签"
+              @click.prevent="toggleTagPicker"
+            >
+              <i class="material-icons" aria-hidden="true">label</i>
+            </button>
+          </div>
           <button
-            class="item-icon-button tag-btn"
-            :class="{ 'has-tags': pathTags.length > 0 }"
+            v-if="viewMode === 'details'"
+            class="mobile-item-more"
             type="button"
-            title="分配标签"
-            aria-label="分配标签"
-            @click.prevent="toggleTagPicker"
+            aria-label="更多操作"
+            title="更多操作"
+            @click.stop="openMobileActionSheet"
           >
-            <i class="material-icons" aria-hidden="true">label</i>
+            <i class="material-icons" aria-hidden="true">more_vert</i>
           </button>
         </div>
-        <button
-          v-if="viewMode === 'details'"
-          class="mobile-item-more"
-          type="button"
-          aria-label="更多操作"
-          title="更多操作"
-          @click.stop="openMobileActionSheet"
-        >
-          <i class="material-icons" aria-hidden="true">more_vert</i>
-        </button>
-        <span
-          v-for="tag in pathTags"
-          :key="tag.id"
-          class="tag-chip"
-          :style="{ '--tag-color': tag.color }"
-          :title="tag.name"
-        >
-          <span class="tag-chip-dot"></span>{{ tag.name }}
-        </span>
+        <div v-if="pathTags.length" class="item-tag-list">
+          <span
+            v-for="tag in pathTags"
+            :key="tag.id"
+            class="tag-chip"
+            :style="{ '--tag-color': tag.color }"
+            :title="tag.name"
+          >
+            <span class="tag-chip-dot"></span>{{ tag.name }}
+          </span>
+        </div>
       </div>
 
       <div class="detail-meta">
-        <span class="detail-type">{{ fileTypeLabel }}</span>
+        <span v-if="!isDir" class="detail-type">{{ fileTypeLabel }}</span>
         <span class="detail-path" :title="path">{{ path }}</span>
       </div>
 
@@ -415,7 +423,7 @@ const humanTime = computed(() => {
 });
 
 const fileTypeLabel = computed(() => {
-  if (props.isDir) return "文件夹";
+  if (props.isDir) return "";
   const extension = props.extension?.replace(/^\./, "").toUpperCase();
   if (!extension) return "文件";
   const labels: Record<string, string> = {

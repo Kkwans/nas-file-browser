@@ -101,6 +101,27 @@
                 >check</i
               >
             </button>
+            <template v-if="currentViewMode === 'compact-grid'">
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-section-title">图标大小</div>
+              <button
+                v-for="size in compactGridSizes"
+                :key="size.value"
+                class="dropdown-item compact-grid-size-option"
+                :class="{ active: compactGridSize === size.value }"
+                type="button"
+                @click="selectCompactGridSize(size.value)"
+              >
+                <i class="material-icons">{{ size.icon }}</i>
+                <span>{{ size.label }}</span>
+                <i
+                  v-if="compactGridSize === size.value"
+                  class="material-icons check"
+                  aria-hidden="true"
+                  >check</i
+                >
+              </button>
+            </template>
           </div>
         </div>
         <!-- Sort Dropdown -->
@@ -772,6 +793,25 @@ const viewModes = [
     label: "紧凑列表",
   },
 ];
+type CompactGridSize = "small" | "medium" | "large" | "xlarge";
+const compactGridSizes: Array<{
+  value: CompactGridSize;
+  icon: string;
+  label: string;
+}> = [
+  { value: "small", icon: "view_comfy", label: "小图标" },
+  { value: "medium", icon: "grid_on", label: "中图标" },
+  { value: "large", icon: "grid_view", label: "大图标" },
+  { value: "xlarge", icon: "photo_size_select_large", label: "超大图标" },
+];
+const storedCompactGridSize = localStorage.getItem(
+  "nas-file-browser-compact-grid-size"
+);
+const compactGridSize = ref<CompactGridSize>(
+  compactGridSizes.some((item) => item.value === storedCompactGridSize)
+    ? (storedCompactGridSize as CompactGridSize)
+    : "medium"
+);
 
 // Sort dropdown
 const showSortDropdown = ref<boolean>(false);
@@ -878,7 +918,12 @@ const skeletonViewMode = computed(() => {
   return mode;
 });
 
-const listingClass = computed(() => currentViewMode.value);
+const listingClass = computed(() => ({
+  [currentViewMode.value]: true,
+  ...(currentViewMode.value === "compact-grid"
+    ? { [`compact-grid-size-${compactGridSize.value}`]: true }
+    : {}),
+}));
 
 const viewIcon = computed(() => {
   const icons: Record<string, string> = {
@@ -1550,6 +1595,11 @@ const selectViewMode = (mode: ViewModeType) => {
 
   setItemWeight();
   fillWindow();
+};
+
+const selectCompactGridSize = (size: CompactGridSize) => {
+  compactGridSize.value = size;
+  localStorage.setItem("nas-file-browser-compact-grid-size", size);
 };
 
 const selectSort = async (by: string) => {

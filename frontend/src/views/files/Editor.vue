@@ -22,7 +22,7 @@
           :icon="
             showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
           "
-          label="显示行号"
+          :label="showLineNumbers ? '关闭行号' : '显示行号'"
           @action="toggleLineNumbers()"
         />
       </template>
@@ -154,7 +154,7 @@ const isMarkdownFile =
   fileStore.req?.name.endsWith(".md") ||
   fileStore.req?.name.endsWith(".markdown");
 const aceEditorReady = ref(false);
-const showLineNumbers = ref(false);
+const showLineNumbers = ref(!isMarkdownFile);
 const langCaption = ref("");
 const showCodeLanguagePicker = ref(false);
 const codeLanguageOptions = [

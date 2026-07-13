@@ -836,7 +836,7 @@ html.dark .risk-confirm-details {
   box-sizing: border-box;
 }
 
-/* Override mdPreview max-width inside quick preview modal */
+/* Override Markdown content width inside quick preview modal */
 .quick-preview-markdown.md_preview {
   max-width: 100%;
   padding: 1.5rem 2rem;

@@ -48,7 +48,9 @@ describe("Markdown 代码块契约", () => {
   });
 
   it("语言选择器写回可复现的 Markdown 围栏", () => {
-    expect(createMarkdownCodeFence("JavaScript")).toBe("```javascript\n\n```\n");
+    expect(createMarkdownCodeFence("JavaScript")).toBe(
+      "```javascript\n\n```\n"
+    );
     expect(createMarkdownCodeFence("unknown-language")).toBe("```\n\n```\n");
   });
 });

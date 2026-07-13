@@ -142,3 +142,16 @@ func (f favoritesBackend) UpdateGroup(group *favorites.FavoriteGroup) error {
 func (f favoritesBackend) DeleteGroup(id string) error {
 	return f.db.DeleteStruct(&favorites.FavoriteGroup{ID: id})
 }
+
+func (f favoritesBackend) DeleteByPath(path string) error {
+	var all []*favorites.Favorite
+	if err := f.db.All(&all); err != nil && !errors.Is(err, storm.ErrNotFound) {
+		return err
+	}
+	for _, fav := range all {
+		if fav.Path == path {
+			return f.db.DeleteStruct(fav)
+		}
+	}
+	return nil
+}

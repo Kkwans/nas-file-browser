@@ -40,11 +40,21 @@
                 >label</i
               >
               <div>
-                <span class="tag-results-kicker">全局标签筛选</span>
+                <span class="tag-results-kicker">
+                  {{
+                    searchScope === "global"
+                      ? "全局标签筛选"
+                      : "当前目录标签筛选"
+                  }}
+                </span>
                 <h1 id="tag-results-title">{{ activeTag?.name || "标签" }}</h1>
               </div>
             </div>
-            <div class="tag-results-scope" role="group" aria-label="标签筛选范围">
+            <div
+              class="tag-results-scope"
+              role="group"
+              aria-label="标签筛选范围"
+            >
               <button
                 type="button"
                 :class="{ active: searchScope === 'current' }"
@@ -65,7 +75,7 @@
               class="tag-results-back"
               @click.prevent="clearTagMode"
             >
-              返回文件
+              返回文件列表
             </button>
           </div>
 
@@ -264,6 +274,8 @@ const currentBasePath = ref(
   )
 );
 let searchAbortController = new AbortController();
+let tagLoadGeneration = 0;
+let tagLoadAbortController = new AbortController();
 
 const filteredResults = computed(() =>
   results.value.slice(0, resultsCount.value)
@@ -288,9 +300,14 @@ const loadTagResults = async () => {
     return;
   }
 
+  const generation = ++tagLoadGeneration;
+  tagLoadAbortController.abort();
+  tagLoadAbortController = new AbortController();
+  const signal = tagLoadAbortController.signal;
   tagLoading.value = true;
   try {
-    const base = normalizeSearchBase(currentBasePath.value).replace(/\/$/, "") || "/";
+    const base =
+      normalizeSearchBase(currentBasePath.value).replace(/\/$/, "") || "/";
     const scopedPaths = tag.paths.filter((path) => {
       if (searchScope.value === "global" || base === "/") return true;
       const normalized = normalizeSearchBase(path).replace(/\/$/, "");
@@ -302,7 +319,8 @@ const loadTagResults = async () => {
         try {
           const resource = await filesApi.fetch(
             "/files" +
-              buildTaggedPathUrl(normalizedPath, false).slice("/files".length)
+              buildTaggedPathUrl(normalizedPath, false).slice("/files".length),
+            signal
           );
           return {
             path: resource.path,
@@ -326,9 +344,13 @@ const loadTagResults = async () => {
         }
       })
     );
-    tagResults.value = results;
+    if (generation === tagLoadGeneration) tagResults.value = results;
+  } catch (error) {
+    if (!(error instanceof Error && error.name === "AbortError")) {
+      if (generation === tagLoadGeneration) tagResults.value = [];
+    }
   } finally {
-    tagLoading.value = false;
+    if (generation === tagLoadGeneration) tagLoading.value = false;
   }
 };
 
@@ -346,21 +368,17 @@ const setTagSearchScope = async (scope: "current" | "global") => {
 
 const clearTagMode = async () => {
   tagsStore.setFilter(null);
+  tagLoadGeneration++;
+  tagLoadAbortController.abort();
   const base =
     typeof route.query.base === "string"
       ? normalizeSearchBase(route.query.base)
       : "/";
   const target = `/files${base === "/" ? "/" : base}`;
   if (route.path === target) return;
-  try {
-    await router.push({ path: target });
-  } catch (error) {
-    // Navigation failures should not leave the search page in a dead state.
-    // A retry on the same canonical path is safe when a stale transition was
-    // cancelled by a previous search request.
-    if (route.path !== target) await router.replace({ path: target });
-    else if (error) console.warn("清除标签筛选时导航失败", error);
-  }
+  // 这是从临时结果页回到文件列表，不应再压入一个历史记录，
+  // 否则浏览器返回键会重新进入已失效的标签结果状态。
+  await router.replace({ path: target });
 };
 
 onMounted(() => {
@@ -392,6 +410,8 @@ watch(resultsRef, (el, oldEl) => {
 
 onUnmounted(() => {
   searchAbortController.abort();
+  tagLoadGeneration++;
+  tagLoadAbortController.abort();
   resultsRef.value?.removeEventListener("scroll", onScroll);
 });
 

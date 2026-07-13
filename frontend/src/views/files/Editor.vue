@@ -75,6 +75,41 @@
       <!-- Ace 编辑器（非 Markdown 文件） -->
       <form v-else id="editor"></form>
     </template>
+    <div
+      v-if="showCodeLanguagePicker"
+      class="markdown-language-picker-backdrop"
+      @click.self="showCodeLanguagePicker = false"
+    >
+      <div
+        class="markdown-language-picker"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="markdown-language-picker-title"
+      >
+        <div class="markdown-language-picker-header">
+          <strong id="markdown-language-picker-title">选择代码语言</strong>
+          <button
+            type="button"
+            class="markdown-language-picker-close"
+            aria-label="关闭"
+            @click="showCodeLanguagePicker = false"
+          >
+            <i class="material-icons" aria-hidden="true">close</i>
+          </button>
+        </div>
+        <div class="markdown-language-options">
+          <button
+            v-for="option in codeLanguageOptions"
+            :key="option.value"
+            type="button"
+            @click="insertMarkdownCodeBlock(option.value)"
+          >
+            <i class="material-icons" aria-hidden="true">code</i>
+            <span>{{ option.label }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -90,7 +125,10 @@ import {
   highlightAndAnnotateCodeBlocks,
   observeMarkdownThemeChanges,
 } from "@/utils/externalResources";
-import { getMarkdownLineNumberStorageKey } from "@/utils/markdownCode";
+import {
+  createMarkdownCodeFence,
+  getMarkdownLineNumberStorageKey,
+} from "@/utils/markdownCode";
 import ace, { Ace, version as ace_version } from "ace-builds";
 import "ace-builds/src-noconflict/ext-language_tools";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -118,6 +156,16 @@ const isMarkdownFile =
 const aceEditorReady = ref(false);
 const showLineNumbers = ref(false);
 const langCaption = ref("");
+const showCodeLanguagePicker = ref(false);
+const codeLanguageOptions = [
+  { value: "java", label: "Java" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "bash", label: "Shell" },
+  { value: "python", label: "Python" },
+  { value: "json", label: "JSON" },
+  { value: "markdown", label: "Markdown" },
+  { value: "plaintext", label: "纯文本" },
+];
 
 const currentMode = ref<"ir" | "sv" | "preview">("ir");
 let vditorInstance: VditorInstance | null = null;
@@ -294,6 +342,13 @@ const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
       "check",
       "|",
       "code",
+      {
+        name: "code-language",
+        tipPosition: "s",
+        tip: "插入代码块",
+        icon: '<i class="material-icons">code</i>',
+        click: () => openCodeLanguagePicker(),
+      },
       "inline-code",
       "table",
       "|",
@@ -528,6 +583,18 @@ const initAceEditor = (content: string) => {
   langCaption.value = detectedMode.caption || detectedMode.name || "";
 };
 
+const openCodeLanguagePicker = () => {
+  if (!isMarkdownFile || !vditorInstance) return;
+  showCodeLanguagePicker.value = true;
+};
+
+const insertMarkdownCodeBlock = (language: string) => {
+  showCodeLanguagePicker.value = false;
+  if (!vditorInstance?.insertValue) return;
+  vditorInstance.insertValue(createMarkdownCodeFence(language));
+  userEdited = true;
+};
+
 const toggleLineNumbers = () => {
   showLineNumbers.value = !showLineNumbers.value;
   persistLineNumberPreference();
@@ -582,6 +649,10 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
 
 const keyEvent = (event: KeyboardEvent) => {
   if (event.code === "Escape") {
+    if (showCodeLanguagePicker.value) {
+      showCodeLanguagePicker.value = false;
+      return;
+    }
     close();
   }
 
@@ -750,5 +821,92 @@ const finishClose = () => {
 .editor-lang-badge i {
   font-size: 14px;
   opacity: 0.7;
+}
+
+.markdown-language-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 28%);
+}
+
+.markdown-language-picker {
+  width: min(26rem, 100%);
+  overflow: hidden;
+  border: 1px solid var(--borderSecondary);
+  border-radius: 14px;
+  background: var(--surfacePrimary);
+  box-shadow: 0 20px 50px rgb(15 23 42 / 20%);
+}
+
+.markdown-language-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.25rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--borderSecondary);
+  color: var(--textPrimary);
+}
+
+.markdown-language-picker-close {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--textSecondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.markdown-language-picker-close:hover,
+.markdown-language-picker-close:focus-visible {
+  color: var(--textPrimary);
+  background: var(--surfaceSecondary);
+  outline: none;
+}
+
+.markdown-language-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.markdown-language-options button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--borderSecondary);
+  border-radius: 8px;
+  color: var(--textPrimary);
+  background: var(--surfacePrimary);
+  cursor: pointer;
+}
+
+.markdown-language-options button:hover,
+.markdown-language-options button:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--surfaceSecondary);
+  outline: none;
+}
+
+.markdown-language-options i {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 480px) {
+  .markdown-language-options {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

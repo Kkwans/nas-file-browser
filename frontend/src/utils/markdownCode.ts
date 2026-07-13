@@ -48,6 +48,12 @@ function normalizeLanguage(value: string): string | null {
   return LANGUAGE_ALIASES[token] ?? null;
 }
 
+/** Create a persistent fenced block for the language picker. */
+export function createMarkdownCodeFence(language: string): string {
+  const normalized = normalizeLanguage(language) ?? "";
+  return `\`\`\`${normalized}\n\n\`\`\`\n`;
+}
+
 /** Resolve an explicitly declared fence language. Unknown declarations return null. */
 export function resolveMarkdownCodeLanguage(
   className: string,

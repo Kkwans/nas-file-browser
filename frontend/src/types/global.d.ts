@@ -38,6 +38,7 @@ declare global {
   interface VditorInstance {
     getValue: () => string;
     setValue?: (value: string) => void;
+    insertValue?: (value: string) => void;
     getCurrentMode?: () => string;
     focus?: () => void;
     blur?: () => void;

@@ -233,156 +233,312 @@
         :class="listingClass"
         @click="handleEmptyAreaClick"
       >
-        <div>
-          <div class="item header">
-            <div>
-              <p
-                class="name"
-                role="button"
-                tabindex="0"
-                :aria-sort="headerSortState('name')"
-                @click="sortByHeader('name')"
-                @keyup.enter="sortByHeader('name')"
-              >
-                <span>名称</span>
-              </p>
-              <p
-                class="type"
-                role="button"
-                tabindex="0"
-                :aria-sort="headerSortState('type')"
-                @click="sortByHeader('type')"
-                @keyup.enter="sortByHeader('type')"
-              >
-                <span>类型</span>
-              </p>
-              <p
-                class="size"
-                role="button"
-                tabindex="0"
-                :aria-sort="headerSortState('size')"
-                @click="sortByHeader('size')"
-                @keyup.enter="sortByHeader('size')"
-              >
-                <span>大小</span>
-              </p>
-              <p
-                class="modified"
-                role="button"
-                tabindex="0"
-                :aria-sort="headerSortState('modified')"
-                @click="sortByHeader('modified')"
-                @keyup.enter="sortByHeader('modified')"
-              >
-                <span>修改时间</span>
-              </p>
-              <p class="actions"><span>操作</span></p>
+        <template v-if="!isDesktopDetails">
+          <div>
+            <div class="listing-table-header">
+              <div>
+                <p
+                  class="name"
+                  role="button"
+                  tabindex="0"
+                  :aria-sort="headerSortState('name')"
+                  @click="sortByHeader('name')"
+                  @keyup.enter="sortByHeader('name')"
+                >
+                  <span>名称</span>
+                </p>
+                <p
+                  class="type"
+                  role="button"
+                  tabindex="0"
+                  :aria-sort="headerSortState('type')"
+                  @click="sortByHeader('type')"
+                  @keyup.enter="sortByHeader('type')"
+                >
+                  <span>类型</span>
+                </p>
+                <p
+                  class="size"
+                  role="button"
+                  tabindex="0"
+                  :aria-sort="headerSortState('size')"
+                  @click="sortByHeader('size')"
+                  @keyup.enter="sortByHeader('size')"
+                >
+                  <span>大小</span>
+                </p>
+                <p
+                  class="modified"
+                  role="button"
+                  tabindex="0"
+                  :aria-sort="headerSortState('modified')"
+                  @click="sortByHeader('modified')"
+                  @keyup.enter="sortByHeader('modified')"
+                >
+                  <span>修改时间</span>
+                </p>
+                <p class="actions"><span>操作</span></p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
-          <i
-            class="material-icons"
-            :style="{ color: tagsStore.activeFilterTag.color }"
-            >label</i
-          >
-          <span
-            >正在按标签筛选：<strong>{{
-              tagsStore.activeFilterTag.name
-            }}</strong></span
-          >
-          <div class="tag-filter-scope" role="group" aria-label="标签筛选范围">
-            <button
-              type="button"
-              :class="{ active: tagsStore.filterMode === 'current' }"
-              @click="tagsStore.setFilterMode('current')"
+          <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
+            <i
+              class="material-icons"
+              :style="{ color: tagsStore.activeFilterTag.color }"
+              >label</i
             >
-              当前目录
-            </button>
-            <button
-              type="button"
-              :class="{ active: tagsStore.filterMode === 'global' }"
-              @click="tagsStore.setFilterMode('global')"
+            <span
+              >正在按标签筛选：<strong>{{
+                tagsStore.activeFilterTag.name
+              }}</strong></span
             >
-              全局
+            <div
+              class="tag-filter-scope"
+              role="group"
+              aria-label="标签筛选范围"
+            >
+              <button
+                type="button"
+                :class="{ active: tagsStore.filterMode === 'current' }"
+                @click="tagsStore.setFilterMode('current')"
+              >
+                当前目录
+              </button>
+              <button
+                type="button"
+                :class="{ active: tagsStore.filterMode === 'global' }"
+                @click="tagsStore.setFilterMode('global')"
+              >
+                全局
+              </button>
+            </div>
+            <button
+              class="tag-filter-clear-btn"
+              type="button"
+              @click="tagsStore.setFilter(null)"
+            >
+              <i class="material-icons">close</i>
             </button>
           </div>
-          <button
-            class="tag-filter-clear-btn"
-            type="button"
-            @click="tagsStore.setFilter(null)"
-          >
-            <i class="material-icons">close</i>
-          </button>
-        </div>
 
-        <div
-          v-if="items.dirs.length + items.files.length === 0"
-          class="message filtered-empty"
-        >
-          <i class="material-icons">filter_alt_off</i>
-          <span>当前目录没有匹配项，可切换为全局筛选或清除筛选</span>
-        </div>
+          <div
+            v-if="items.dirs.length + items.files.length === 0"
+            class="message filtered-empty"
+          >
+            <i class="material-icons">filter_alt_off</i>
+            <span>当前目录没有匹配项，可切换为全局筛选或清除筛选</span>
+          </div>
 
-        <h2 data-clear-on-click="true" v-if="items.dirs.length > 0">
-          文件夹
-          <button
-            v-if="hasSystemDirs"
-            class="system-dirs-toggle"
-            @click="toggleSystemDirs"
-            :title="showSystemDirs ? '隐藏系统文件夹' : '显示系统文件夹'"
+          <h2 data-clear-on-click="true" v-if="items.dirs.length > 0">
+            文件夹
+            <button
+              v-if="hasSystemDirs"
+              class="system-dirs-toggle"
+              @click="toggleSystemDirs"
+              :title="showSystemDirs ? '隐藏系统文件夹' : '显示系统文件夹'"
+            >
+              <i class="material-icons">{{
+                showSystemDirs ? "expand_less" : "expand_more"
+              }}</i>
+              <span>{{ systemDirs.length }} 项</span>
+            </button>
+          </h2>
+          <div
+            v-if="items.dirs.length > 0"
+            data-clear-on-click="true"
+            @contextmenu="showContextMenu"
           >
-            <i class="material-icons">{{
-              showSystemDirs ? "expand_less" : "expand_more"
-            }}</i>
-            <span>{{ systemDirs.length }} 项</span>
-          </button>
-        </h2>
-        <div
-          v-if="items.dirs.length > 0"
-          data-clear-on-click="true"
-          @contextmenu="showContextMenu"
-        >
-          <item
-            v-for="item in dirs"
-            :key="base64(item.name)"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
-            v-bind:url="item.url"
-            v-bind:modified="item.modified"
-            v-bind:type="item.type"
-            v-bind:extension="item.extension"
-            v-bind:view-mode="currentViewMode"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-          >
-          </item>
-        </div>
+            <item
+              v-for="item in dirs"
+              :key="base64(item.name)"
+              v-bind:index="item.index"
+              v-bind:name="item.name"
+              v-bind:isDir="item.isDir"
+              v-bind:url="item.url"
+              v-bind:modified="item.modified"
+              v-bind:type="item.type"
+              v-bind:extension="item.extension"
+              v-bind:view-mode="currentViewMode"
+              v-bind:size="item.size"
+              v-bind:path="item.path"
+            >
+            </item>
+          </div>
 
-        <h2 data-clear-on-click="true" v-if="files.length > 0">文件</h2>
-        <div
-          v-if="files.length > 0"
-          data-clear-on-click="true"
-          @contextmenu="showContextMenu"
-        >
-          <item
-            v-for="item in files"
-            :key="base64(item.name)"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
-            v-bind:url="item.url"
-            v-bind:modified="item.modified"
-            v-bind:type="item.type"
-            v-bind:extension="item.extension"
-            v-bind:view-mode="currentViewMode"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
+          <h2 data-clear-on-click="true" v-if="files.length > 0">文件</h2>
+          <div
+            v-if="files.length > 0"
+            data-clear-on-click="true"
+            @contextmenu="showContextMenu"
           >
-          </item>
-        </div>
+            <item
+              v-for="item in files"
+              :key="base64(item.name)"
+              v-bind:index="item.index"
+              v-bind:name="item.name"
+              v-bind:isDir="item.isDir"
+              v-bind:url="item.url"
+              v-bind:modified="item.modified"
+              v-bind:type="item.type"
+              v-bind:extension="item.extension"
+              v-bind:view-mode="currentViewMode"
+              v-bind:size="item.size"
+              v-bind:path="item.path"
+            >
+            </item>
+          </div>
+        </template>
+
+        <template v-else>
+          <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
+            <i
+              class="material-icons"
+              :style="{ color: tagsStore.activeFilterTag.color }"
+              >label</i
+            >
+            <span
+              >正在按标签筛选：<strong>{{
+                tagsStore.activeFilterTag.name
+              }}</strong></span
+            >
+            <div
+              class="tag-filter-scope"
+              role="group"
+              aria-label="标签筛选范围"
+            >
+              <button
+                type="button"
+                :class="{ active: tagsStore.filterMode === 'current' }"
+                @click="tagsStore.setFilterMode('current')"
+              >
+                当前目录
+              </button>
+              <button
+                type="button"
+                :class="{ active: tagsStore.filterMode === 'global' }"
+                @click="tagsStore.setFilterMode('global')"
+              >
+                全局
+              </button>
+            </div>
+            <button
+              class="tag-filter-clear-btn"
+              type="button"
+              aria-label="清除筛选"
+              @click="tagsStore.setFilter(null)"
+            >
+              <i class="material-icons">close</i>
+            </button>
+          </div>
+          <div class="details-table-shell">
+            <table class="details-table" aria-label="文件列表">
+              <colgroup>
+                <col class="details-col-name" />
+                <col class="details-col-type" />
+                <col class="details-col-size" />
+                <col class="details-col-modified" />
+                <col class="details-col-actions" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <button
+                      type="button"
+                      class="details-sort-button"
+                      :aria-sort="headerSortState('name')"
+                      @click="sortByHeader('name')"
+                    >
+                      名称
+                      <i
+                        v-if="currentSortBy === 'name'"
+                        class="material-icons"
+                        aria-hidden="true"
+                        >{{
+                          currentSortAsc ? "arrow_upward" : "arrow_downward"
+                        }}</i
+                      >
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button
+                      type="button"
+                      class="details-sort-button"
+                      :aria-sort="headerSortState('type')"
+                      @click="sortByHeader('type')"
+                    >
+                      类型
+                      <i
+                        v-if="currentSortBy === 'type'"
+                        class="material-icons"
+                        aria-hidden="true"
+                        >{{
+                          currentSortAsc ? "arrow_upward" : "arrow_downward"
+                        }}</i
+                      >
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button
+                      type="button"
+                      class="details-sort-button"
+                      :aria-sort="headerSortState('size')"
+                      @click="sortByHeader('size')"
+                    >
+                      大小
+                      <i
+                        v-if="currentSortBy === 'size'"
+                        class="material-icons"
+                        aria-hidden="true"
+                        >{{
+                          currentSortAsc ? "arrow_upward" : "arrow_downward"
+                        }}</i
+                      >
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button
+                      type="button"
+                      class="details-sort-button"
+                      :aria-sort="headerSortState('modified')"
+                      @click="sortByHeader('modified')"
+                    >
+                      修改时间
+                      <i
+                        v-if="currentSortBy === 'modified'"
+                        class="material-icons"
+                        aria-hidden="true"
+                        >{{
+                          currentSortAsc ? "arrow_upward" : "arrow_downward"
+                        }}</i
+                      >
+                    </button>
+                  </th>
+                  <th scope="col" class="details-actions-heading">操作</th>
+                </tr>
+              </thead>
+              <tbody @contextmenu="showContextMenu">
+                <tr v-if="dirs.length > 0" class="details-group-row">
+                  <th colspan="5" scope="rowgroup">文件夹</th>
+                </tr>
+                <DetailedTableRow
+                  v-for="item in dirs"
+                  :key="base64(item.name)"
+                  v-bind="item"
+                />
+                <tr v-if="files.length > 0" class="details-group-row">
+                  <th colspan="5" scope="rowgroup">文件</th>
+                </tr>
+                <DetailedTableRow
+                  v-for="item in files"
+                  :key="base64(item.name)"
+                  v-bind="item"
+                />
+              </tbody>
+            </table>
+          </div>
+        </template>
+
         <context-menu
           :show="isContextMenuVisible"
           :pos="contextMenuPos"
@@ -548,6 +704,7 @@ import { Base64 } from "js-base64";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
+import DetailedTableRow from "@/components/files/DetailedTableRow.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import LoadingSkeleton from "@/components/LoadingSkeleton.vue";
 import type {
@@ -750,8 +907,12 @@ const headerButtons = computed(() => {
 });
 
 const isMobile = computed(() => {
-  return width.value <= 736;
+  return width.value <= 899;
 });
+
+const isDesktopDetails = computed(
+  () => currentViewMode.value === "details" && !isMobile.value
+);
 
 const mobileDirectoryTitle = computed(() => {
   const name = fileStore.req?.name?.trim();

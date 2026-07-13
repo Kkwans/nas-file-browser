@@ -1,535 +1,110 @@
-/* ==========================================================================
-   Mobile Responsive Styles
-   Optimized for touch devices and small screens.
-   Breakpoints: 1024px (tablet), 736px (phone), 450px (small phone)
-   
-   Note: sidebar.css and header.css contain their own responsive rules.
-   This file handles listing, editor, selection bar, and global mobile layout.
-   ========================================================================== */
+/* 全局移动端壳层。文件列表和 Markdown 各自拥有独立的响应式布局文件。 */
 
-/* === Tablet (<= 1024px) === */
-@media (max-width: 1024px) {
+@media (max-width: 899px) {
   main {
-    margin-left: var(--sidebar-width, 224px);
-    width: calc(100% - var(--sidebar-width, 224px) - 1em);
+    width: calc(100% - 1rem);
+    margin: 0 0.5rem;
   }
 
-  #listing.mosaic .item {
-    width: calc(33.333% - 1em);
-    padding: 1.2em 0.7em 0.9em;
-  }
-
-  #listing.mosaic .item div:first-of-type {
-    width: 3.6em;
-    height: 3.6em;
-  }
-
-  #listing.mosaic .item div:first-of-type i {
-    font-size: 2.8em;
-  }
-
-  #listing.mosaic .item div:first-of-type img {
-    width: 3.6em;
-    height: 3.6em;
-  }
-}
-
-/* === Large Phone (<= 900px) === */
-@media (max-width: 900px) {
-  main {
-    margin: 0 0.5em;
-    width: calc(100% - 1em);
-  }
-
-  #listing.mosaic .item {
-    width: calc(33.333% - 0.8em);
-    padding: 1em 0.5em 0.8em;
-  }
-
-  #listing.mosaic .item div:first-of-type {
-    width: 3.2em;
-    height: 3.2em;
-    margin-bottom: 0.5em;
-  }
-
-  #listing.mosaic .item div:first-of-type i {
-    font-size: 2.6em;
-  }
-
-  #listing.mosaic .item div:first-of-type img {
-    width: 3.2em;
-    height: 3.2em;
-  }
-
-  #listing.mosaic .item .name {
-    font-size: 0.8em;
-  }
-
-  #listing.mosaic .item .modified {
-    font-size: 0.7em;
-  }
-
-  /* Better touch targets on tablet */
-  #listing.list .item {
-    min-height: 3em;
-    padding: 0.6em 1em;
-  }
-
-  #listing.compact-list .item {
-    min-height: 2.5em;
-    padding: 0.4em 1em;
-  }
-}
-
-/* === Phone (<= 736px) === */
-@media (max-width: 736px) {
-  /* --- Global Layout --- */
-  body {
-    padding-top: 3em;
-    padding-bottom: 5em;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  main {
-    margin: 0 0.75em;
-    width: calc(100% - 1.5em);
-  }
-
-  /* Sidebar is overlay on phone, so nav margin is handled by sidebar.css */
   html[dir="rtl"] main {
-    margin-right: 0.75em;
+    margin-right: 0.5rem;
+    margin-left: 0;
   }
 
-  /* --- File Listing --- */
-  #listing {
-    margin-bottom: 5em;
-  }
-
-  #listing.list .item {
-    padding: 0.5em 0.75em;
-    min-height: 2.75em;
-    gap: 0.4em;
-  }
-
-  #listing.list .item .size {
-    display: none;
-  }
-
-  #listing.list .item .name {
-    width: 60%;
-    font-size: 0.875em;
-    word-break: break-all;
-  }
-
-  #listing.list .item .checkbox {
-    width: 2.5em;
-    height: 2.5em;
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  /* === Mosaic (Grid) Mobile - Vertical Cards === */
-  #listing.mosaic > div {
-    gap: 0.35em;
-  }
-
-  #listing.mosaic .item {
-    width: calc(33.333% - 0.6em);
-    padding: 0.7em 0.4em 0.6em;
-    margin: 0.3em;
-  }
-
-  #listing.mosaic .item div:first-of-type {
-    width: 3em;
-    height: 3em;
-    margin-bottom: 0.35em;
-  }
-
-  #listing.mosaic .item div:first-of-type i {
-    font-size: 2.4em;
-  }
-
-  #listing.mosaic .item div:first-of-type img {
-    width: 3em;
-    height: 3em;
-    border-radius: 0.4em;
-  }
-
-  #listing.mosaic .item .name {
-    font-size: 0.72em;
-    -webkit-line-clamp: 2;
-    max-height: 2.5em;
-  }
-
-  #listing.mosaic .item .modified {
-    font-size: 0.63em;
-  }
-
-  #listing.mosaic .item .favorite-star {
-    position: absolute;
-    top: 0.35em;
-    right: 0.35em;
-    font-size: 0.72em !important;
-    margin-left: 0 !important;
-    opacity: 0.4;
-  }
-
-  #listing.mosaic .item .tag-btn {
-    display: none;
-  }
-
-  #listing.mosaic .item .tag-dot {
-    display: none;
-  }
-
-  /* Gallery view mobile */
-  #listing.mosaic.gallery .item {
-    width: calc(50% - 0.6em);
-    flex-direction: column;
-  }
-
-  #listing.mosaic.gallery .item div:first-of-type {
-    height: 7em;
-  }
-
-  #listing.mosaic.gallery .item i {
-    font-size: 4em;
-  }
-
-  /* Gallery view - 2 columns on phone */
-  #listing.gallery .item {
-    width: calc(50% - 0.75em);
-  }
-
-  /* --- Multiple Selection Bar Mobile --- */
-  #listing #multiple-selection {
-    padding: 0.5em 0.75em;
-    gap: 0.5em;
-    min-height: 3.25em;
-    flex-wrap: wrap;
-    border-radius: 0.75em 0.75em 0 0;
-  }
-
-  #listing #multiple-selection .selection-info span {
-    font-size: 0.8em;
-  }
-
-  #listing #multiple-selection .selection-btn {
-    padding: 0.5em 0.8em;
-    font-size: 0.82em;
-    min-width: 44px;
-    min-height: 44px;
-    justify-content: center;
-    border-radius: 0.6em;
-  }
-
-  #listing #multiple-selection .selection-btn span {
-    display: none;
-  }
-
-  #listing #multiple-selection .selection-btn i {
-    font-size: 1.3em;
-  }
-
-  /* --- File Selection Bar --- */
-  #file-selection {
-    position: fixed;
-    bottom: 1em;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    background: var(--surfacePrimary);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--borderPrimary);
-    border-radius: 1em;
-    box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.08),
-      0 1px 6px rgba(0, 0, 0, 0.04);
-    padding: 0.375em;
-    width: 92%;
-    max-width: 22em;
-    z-index: 100;
-    animation: slideUpIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes slideUpIn {
-    from {
-      opacity: 0;
-      transform: translateX(-50%) translateY(1em);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-  }
-
-  #file-selection .action {
-    border-radius: 50%;
-    width: 2.75em;
-    height: 2.75em;
-    min-width: 44px;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease;
-  }
-
-  #file-selection .action:active {
-    background: var(--hover);
-    transform: scale(0.92);
-  }
-
-  #file-selection > span {
-    display: inline-block;
-    margin-left: 0.75em;
-    color: var(--textSecondary);
-    font-size: 0.875em;
-    font-weight: 500;
-    margin-right: auto;
-  }
-
-  #file-selection .action span {
-    display: none;
-  }
-
-  /* --- Search on Mobile --- */
-  #search {
-    display: none;
-  }
-
-  #search.active {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 99998;
-    background: var(--surfacePrimary);
-    animation: fadeIn 0.2s ease;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  #search.active input {
-    font-size: 16px; /* Prevent iOS zoom */
-    padding: 0.875em 1em;
-    border-radius: 0;
-    border: none;
-    border-bottom: 2px solid var(--blue);
-  }
-
-  #search.active .result {
-    padding: 0.5em 0.75em;
-    min-height: 3em;
-  }
-
-  /* --- More Button --- */
-  #more {
-    display: inherit;
-  }
-
-  /* --- Shell Divider --- */
   .shell__divider {
     height: 12px;
   }
 
-  /* --- Editor Mobile --- */
+  .dashboard {
+    max-width: 100%;
+    padding: 1rem 0.5rem;
+  }
+
+  .dashboard .row {
+    margin-right: 0;
+  }
+
   .dashboard.editor {
     padding: 0;
   }
 
   .dashboard.editor .editor {
-    min-height: calc(100vh - 9em);
+    min-height: calc(100dvh - 9rem);
   }
 
-  /* Vditor mobile adjustments */
-  .vditor {
-    border: none !important;
-    border-radius: 0 !important;
-  }
-
-  .vditor-toolbar {
-    padding: 0.25em 0.375em !important;
-    flex-wrap: wrap;
-    gap: 0.125em;
-  }
-
-  .vditor-toolbar__item {
-    padding: 0.25em 0.375em !important;
-  }
-
-  .vditor-toolbar__item button {
-    width: 1.75em !important;
-    height: 1.75em !important;
-  }
-
-  .vditor-ir,
-  .vditor-sv,
-  .vditor-preview {
-    padding: 0.75em !important;
-    font-size: 15px !important;
-  }
-
-  /* Preview mode mobile */
-  .md_preview,
-  .vditor-reset.vditor-preview--content {
-    padding: 1em 0.75em;
-    font-size: 15px;
-    line-height: 1.75;
-  }
-
-  .md_preview pre,
-  .vditor-reset.vditor-preview--content pre,
-  #vditor-mount .vditor-ir pre,
-  #vditor-mount .vditor-sv pre {
-    font-size: 0.8125em;
-    padding: 0.875em;
-    border-radius: 0.5em;
-  }
-
-  .md_preview table,
-  .vditor-reset.vditor-preview--content table,
-  #vditor-mount .vditor-ir table,
-  #vditor-mount .vditor-sv table {
-    display: table;
-    width: 100%;
-  }
-
-  .md_preview img,
-  .vditor-reset.vditor-preview--content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.5em;
-  }
-
-  /* --- Dashboard / Settings Mobile --- */
-  .dashboard {
-    padding: 1em 0.5em;
-    max-width: 100%;
-  }
-
-  .dashboard .row {
-    margin-right: unset;
-  }
-
-  /* --- RTL Adjustments --- */
-  html[dir="rtl"] #listing {
-    margin-right: unset;
-  }
-
-  html[dir="rtl"] .breadcrumbs {
-    transform: translateX(16em);
-  }
-
-  html[dir="rtl"] #nav .wrapper {
-    margin-right: unset;
-  }
-
-  html[dir="rtl"] .dashboard .row {
-    margin-right: unset;
-  }
-
-  /* --- Touch-friendly interactive elements --- */
   .action,
-  .item {
+  .item,
+  button {
     -webkit-tap-highlight-color: transparent;
-  }
-
-  button,
-  .action {
     touch-action: manipulation;
   }
 
-  /* Ensure minimum touch target size */
-  #listing.list .item {
-    min-height: 44px;
+  html[dir="rtl"] .breadcrumbs {
+    transform: translateX(0);
   }
 
-  #listing.compact-list .item {
-    min-height: 36px;
-  }
-
-  /* Better mobile mosaic spacing */
-  #listing.mosaic > div {
-    gap: 0.4em;
-  }
-
-  /* Disable entrance animation on mobile for performance */
-  #listing .item:not(.header) {
-    animation: none !important;
+  html[dir="rtl"] #nav .wrapper {
+    margin-right: 0;
   }
 }
 
-/* === Small Phone (<= 450px) === */
-@media (max-width: 450px) {
-  #listing.list .item .modified {
+@media (max-width: 736px) {
+  body {
+    padding-top: 3rem;
+    padding-bottom: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  main {
+    width: calc(100% - 1.5rem);
+    margin: 0 0.75rem;
+  }
+
+  html[dir="rtl"] main {
+    margin-right: 0.75rem;
+  }
+
+  #search {
     display: none;
   }
 
-  #listing.list .item .name {
-    width: 100%;
-    font-size: 0.8125em;
-    word-break: break-all;
+  #search.active {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    display: block;
+    background: var(--surfacePrimary, #fff);
+    animation: fadeIn 0.2s ease;
   }
 
-  /* 3 columns on small phone, tighter */
-  #listing.mosaic .item {
-    width: calc(33.333% - 0.4em);
-    padding: 0.5em 0.35em;
+  #search.active input {
+    padding: 0.875rem 1rem;
+    border: 0;
+    border-bottom: 2px solid var(--blue);
+    border-radius: 0;
+    font-size: 16px;
   }
 
-  #listing.mosaic .item div:first-of-type i {
-    font-size: 2em;
+  #search.active .result {
+    min-height: 3rem;
+    padding: 0.5rem 0.75rem;
   }
 
-  #listing.mosaic .item div:first-of-type img {
-    width: 2.4em;
-    height: 2.4em;
-  }
-
-  #listing.mosaic .item .name {
-    font-size: 0.7em;
-    -webkit-line-clamp: 2;
-    max-height: 2.4em;
-  }
-
-  #listing.mosaic.gallery .item {
-    width: calc(50% - 0.4em);
-  }
-
-  #listing.gallery .item {
-    width: calc(50% - 0.5em);
-  }
-
-  /* Vditor toolbar - hide less-used buttons */
-  .vditor-toolbar {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .vditor-toolbar::-webkit-scrollbar {
-    display: none;
+  #more {
+    display: inherit;
   }
 }
 
-/* ============================================================
- *  SKELETON LOADING STATES
- *  Replaces raw text/icons during loading with animated placeholders
- * ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
+/* Skeleton and generic loading states. */
 @keyframes skeleton-shimmer {
   0% {
     background-position: -200px 0;
@@ -539,8 +114,9 @@
   }
 }
 
-/* Skeleton placeholder base */
 .skeleton {
+  display: inline-block;
+  border-radius: 0.3rem;
   background: linear-gradient(
     90deg,
     var(--surfaceSecondary, #f0f0f0) 25%,
@@ -549,32 +125,27 @@
   );
   background-size: 200px 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
-  border-radius: 0.3em;
-  display: inline-block;
 }
 
-:root.dark .skeleton,
-html.dark .skeleton {
+:root.dark .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.04) 75%
+    rgb(255 255 255 / 4%) 25%,
+    rgb(255 255 255 / 8%) 50%,
+    rgb(255 255 255 / 4%) 75%
   );
   background-size: 200px 100%;
 }
 
-/* Skeleton icon placeholder */
 .skeleton-icon {
-  width: 2.5em;
-  height: 2.5em;
-  border-radius: 0.4em;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.4rem;
 }
 
-/* Skeleton text placeholder */
 .skeleton-text {
-  height: 0.85em;
-  border-radius: 0.25em;
+  height: 0.85rem;
+  border-radius: 0.25rem;
 }
 
 .skeleton-text.short {
@@ -585,63 +156,23 @@ html.dark .skeleton {
   width: 80%;
 }
 
-/* Item loading state - hide raw content, show skeleton */
-#listing .item.loading .material-icons,
-#listing .item.loading i.material-icons {
-  visibility: hidden;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-#listing .item.loading img {
-  visibility: hidden;
-}
-
-#listing .item.loading .name,
-#listing .item.loading .size,
-#listing .item.loading .modified {
-  color: transparent !important;
-  user-select: none;
-}
-
-/* Loading message spinner enhancement */
 .message.delayed {
   display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5em;
-}
-
-.message.delayed .spinner {
-  display: flex;
-  gap: 0.3em;
-}
-
-/* Loading dots animation for inline use */
-@keyframes loading-pulse {
-  0%,
-  80%,
-  100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  40% {
-    opacity: 1;
-    transform: scale(1);
-  }
+  gap: 0.5rem;
 }
 
 .loading-dots {
   display: inline-flex;
-  gap: 0.25em;
   align-items: center;
+  gap: 0.25rem;
 }
 
 .loading-dots span {
-  width: 0.4em;
-  height: 0.4em;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--textSecondary, #888);
   animation: loading-pulse 1.4s ease-in-out infinite;
@@ -655,108 +186,15 @@ html.dark .skeleton {
   animation-delay: 0.32s;
 }
 
-/* 文件条目移动端契约：操作入口固定、可触摸、不会被旧的网格规则隐藏。 */
-@media (max-width: 736px) {
-  #listing .item-quick-actions {
-    display: inline-flex;
-    position: static;
-    gap: 0.25rem;
+@keyframes loading-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
   }
-
-  #listing .item-icon-button,
-  #listing .item-icon-button.favorite-star,
-  #listing .item-icon-button.tag-btn {
-    position: static;
-    display: inline-grid;
-    width: 2.5rem;
-    height: 2.5rem;
-    min-width: 2.5rem;
-    margin: 0;
-    padding: 0;
+  40% {
     opacity: 1;
-    transform: none;
-    background: transparent;
-    border: 1px solid transparent;
-  }
-
-  #listing .item-icon-button:hover,
-  #listing .item-icon-button:active {
-    transform: none;
-    background: var(--file-accent-soft, rgba(22, 119, 255, 0.1));
-  }
-
-  #listing .tag-btn {
-    display: inline-grid;
-  }
-
-  #listing.list .item > div:last-of-type,
-  #listing.details .item > div:last-of-type,
-  #listing.compact-list .item > div:last-of-type {
-    gap: 0.5rem;
-    padding-right: 0.25rem;
-  }
-
-  #listing.list .name,
-  #listing.details .name,
-  #listing.compact-list .name {
-    width: auto;
-    flex: 1;
-  }
-
-  #listing.mosaic .item {
-    width: calc(50% - 0.75rem);
-    min-height: 10rem;
-    padding: 0.875rem 0.625rem;
-  }
-
-  #listing.mosaic .item-quick-actions {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-  }
-
-  #listing.mosaic .item-icon-button {
-    width: 2.25rem;
-    height: 2.25rem;
-    min-width: 2.25rem;
-    background: var(--file-surface, #fff);
-    border-color: var(--file-border, #e5e7eb);
-  }
-
-  #listing.mosaic .risk-icon {
-    top: 0.625rem;
-    left: 0.625rem;
-  }
-
-  #listing.mosaic .tag-chip {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 420px) {
-  #listing.mosaic .item {
-    min-height: 9.25rem;
-    padding: 0.75rem 0.5rem;
-  }
-
-  #listing.mosaic .item > div:first-of-type {
-    width: 3.5rem;
-    height: 3.5rem;
-    margin-top: 0.75rem;
-  }
-
-  #listing.mosaic .item > div:first-of-type > i {
-    font-size: 2.75rem;
-  }
-
-  #listing.mosaic .item > div:first-of-type > img {
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-
-  #listing.mosaic .item-icon-button {
-    width: 2rem;
-    height: 2rem;
-    min-width: 2rem;
+    transform: scale(1);
   }
 }

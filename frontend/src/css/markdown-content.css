@@ -276,7 +276,7 @@
   )
   table {
   display: table;
-  width: 100%;
+  width: max-content;
   min-width: 0;
   max-width: 100%;
   margin: 1em 0 1.4em;
@@ -302,7 +302,7 @@
     #vditor-mount .vditor-sv
   )
   td {
-  min-width: 8rem;
+  min-width: 0;
   padding: 0.55em 0.8em;
   text-align: left;
   border-right: 1px solid var(--markdown-border-muted, #eaeef2);

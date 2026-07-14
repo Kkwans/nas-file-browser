@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  filterMarkdownCodeLanguages,
+  getMarkdownCodeSource,
+  getMarkdownHighlightOptions,
   createMarkdownCodeFence,
   getMarkdownLineNumberStorageKey,
   inferMarkdownCodeLanguage,
+  MARKDOWN_CODE_LANGUAGES,
+  normalizeMarkdownCodeLanguage,
   resolveMarkdownCodeLanguage,
   wrapMarkdownCodeLines,
 } from "../markdownCode";
@@ -36,6 +41,9 @@ describe("Markdown 代码块契约", () => {
     const withLineNumbers = wrapMarkdownCodeLines("a\nb\nc", true);
     expect(withLineNumbers.hasLineNumbers).toBe(true);
     expect(withLineNumbers.html.match(/class=\"code-line\"/g)).toHaveLength(3);
+    expect(
+      withLineNumbers.html.match(/class=\"code-line-content\"/g)
+    ).toHaveLength(3);
     expect(withLineNumbers.html).not.toContain("</span>\n<span");
   });
 
@@ -59,5 +67,34 @@ describe("Markdown 代码块契约", () => {
     expect(
       resolveMarkdownCodeLanguage("language-tsx", "const App = () => null;")
     ).toBe("typescript");
+  });
+
+  it("公开受支持语言目录，并可按名称、别名和说明筛选", () => {
+    expect(MARKDOWN_CODE_LANGUAGES.length).toBeGreaterThanOrEqual(20);
+    expect(
+      filterMarkdownCodeLanguages("js").map((item) => item.value)
+    ).toContain("javascript");
+    expect(
+      filterMarkdownCodeLanguages("命令").map((item) => item.value)
+    ).toContain("bash");
+    expect(normalizeMarkdownCodeLanguage("YML")).toBe("yaml");
+    expect(normalizeMarkdownCodeLanguage("not-supported")).toBe(null);
+  });
+
+  it("重复切换行号时始终使用原始换行，不能把代码粘成一行", () => {
+    const source = "const first = 1;\nconst second = 2;";
+    const decorated = wrapMarkdownCodeLines(source, true).html;
+
+    expect(getMarkdownCodeSource(decorated, source, true)).toBe(source);
+    expect(getMarkdownCodeSource(source, "stale", false)).toBe(source);
+  });
+
+  it("Vditor 编辑模式与预览模式共享行号开关", () => {
+    expect(getMarkdownHighlightOptions(true)).toEqual({
+      enable: true,
+      lineNumber: true,
+      style: "github",
+    });
+    expect(getMarkdownHighlightOptions(false).lineNumber).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 /** Shared external resource loader for Vditor (Markdown) and highlight.js. */
 
 import {
+  getMarkdownCodeSource,
   resolveMarkdownCodeLanguage,
   wrapMarkdownCodeLines,
 } from "@/utils/markdownCode";
@@ -156,7 +157,11 @@ export function highlightAndAnnotateCodeBlocks(
     // Keep the last raw source in data-* so a transient empty DOM does not
     // erase the block on the next decoration pass. If fresh text exists it
     // always wins, which keeps edits and re-renders authoritative.
-    const rawText = textContent || codeEl.dataset.rawSource || "";
+    const rawText = getMarkdownCodeSource(
+      textContent,
+      codeEl.dataset.rawSource,
+      codeEl.dataset.markdownDecorated === "true"
+    );
     codeEl.dataset.rawSource = rawText;
     const lang = resolveMarkdownCodeLanguage(codeEl.className, rawText);
     if (lang) {
@@ -182,6 +187,7 @@ export function highlightAndAnnotateCodeBlocks(
     const rendered = wrapMarkdownCodeLines(codeEl.innerHTML, showLineNumbers);
     codeEl.innerHTML = rendered.html;
     codeEl.classList.toggle("has-line-numbers", rendered.hasLineNumbers);
+    codeEl.dataset.markdownDecorated = "true";
 
     if (pre) {
       let toolbar = pre.querySelector<HTMLElement>(

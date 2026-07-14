@@ -1,43 +1,54 @@
-/* Markdown 代码块：默认浅色，深色主题只由 html.dark 激活。 */
+/* Markdown 代码视觉只作用于阅读预览；Vditor 编辑 DOM 保持原生结构，避免点击代码块时错位。 */
 
-:where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) code:not(pre code) {
-  padding: 0.12em 0.38em;
-  border: 1px solid var(--markdown-border, #d0d7de);
+:where(.md_preview, .vditor-reset.vditor-preview--content) code:not(pre code) {
+  display: inline;
+  padding: 0.1em 0.38em;
+  border: 1px solid var(--markdown-border, #d8dee6);
   border-radius: 5px;
-  color: #8250df;
-  background: #f6f8fa;
-  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+  color: #7c3aed;
+  background: #f3f5f7;
+  box-decoration-break: clone;
+  font-family: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
   font-size: 0.88em;
+  line-height: inherit;
+  white-space: normal;
+  -webkit-box-decoration-break: clone;
 }
 
-:where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre {
+:where(.md_preview, .vditor-reset.vditor-preview--content) pre {
   position: relative;
+  width: fit-content;
+  min-width: min(100%, 42rem);
+  max-width: 100%;
   margin: 1.1em 0 1.4em;
-  padding: 2.55rem 1rem 1rem;
+  padding: 2.35rem 0 0.85rem;
   overflow: auto;
-  border: 1px solid #d0d7de;
-  border-radius: 8px;
-  background: #f6f8fa;
+  border: 1px solid #d8dee6;
+  border-radius: 9px;
   color: #24292f;
-  box-shadow: 0 1px 2px rgb(27 31 36 / 8%);
-  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
-  font-size: 0.88em;
-  line-height: 1.65;
+  background: #f6f8fa;
+  box-shadow: 0 1px 2px rgb(27 31 36 / 6%);
+  font-family: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
+  font-size: 0.875em;
+  line-height: 1.6;
   tab-size: 2;
 }
 
-:where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code {
+:where(.md_preview, .vditor-reset.vditor-preview--content) pre code {
   display: block;
   min-width: max-content;
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: transparent;
   color: inherit;
+  background: transparent !important;
   font: inherit;
+}
+
+:where(.md_preview, .vditor-reset.vditor-preview--content)
+  pre
+  code:not(.has-line-numbers) {
+  padding-inline: 1rem;
 }
 
 .markdown-code-toolbar {
@@ -45,32 +56,37 @@
   top: 0;
   right: 0;
   left: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 2.05rem;
-  padding: 0 0.55rem 0 0.8rem;
-  border-bottom: 1px solid #d0d7de;
-  background: #eef1f4;
+  height: 2.1rem;
+  padding: 0 0.45rem 0 0.8rem;
+  border-bottom: 1px solid #d8dee6;
+  border-radius: 9px 9px 0 0;
   color: #57606a;
+  background: #eef2f6;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
 .markdown-code-language {
-  color: #57606a;
-  font-weight: 600;
+  overflow: hidden;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
   text-transform: lowercase;
+  white-space: nowrap;
 }
 
 .markdown-code-copy {
   display: inline-grid;
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 1.75rem;
+  height: 1.75rem;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 5px;
+  border-radius: 6px;
   color: #57606a;
   background: transparent;
   cursor: pointer;
@@ -78,8 +94,8 @@
 
 .markdown-code-copy:hover,
 .markdown-code-copy:focus-visible {
-  background: rgb(9 105 218 / 12%);
   color: #0969da;
+  background: rgb(9 105 218 / 10%);
   outline: none;
 }
 
@@ -91,115 +107,121 @@
   font-size: 1rem;
 }
 
-:where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers {
+:where(.md_preview, .vditor-reset.vditor-preview--content)
+  pre
+  code.has-line-numbers {
   counter-reset: markdown-line;
 }
 
-:where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line {
-  position: relative;
-  display: block;
-  min-height: 1.65em;
-  padding-left: 3.25rem;
+:where(.md_preview, .vditor-reset.vditor-preview--content)
+  pre
+  code.has-line-numbers
+  .code-line {
+  display: grid;
+  grid-template-columns: 2.75rem max-content;
+  min-width: 100%;
+  min-height: 1.6em;
   counter-increment: markdown-line;
   white-space: pre;
 }
 
-:where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line::before {
-  position: absolute;
+:where(.md_preview, .vditor-reset.vditor-preview--content)
+  pre
+  code.has-line-numbers
+  .code-line::before {
+  position: sticky;
   left: 0;
-  width: 2.6rem;
+  z-index: 1;
+  grid-column: 1;
+  padding-right: 0.7rem;
+  border-right: 1px solid #e1e6ec;
   color: #8c959f;
+  background: #f6f8fa;
   content: counter(markdown-line);
   font-variant-numeric: tabular-nums;
   text-align: right;
   user-select: none;
 }
 
-:where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line:hover {
-  background: rgb(9 105 218 / 7%);
+:where(.md_preview, .vditor-reset.vditor-preview--content)
+  pre
+  code.has-line-numbers
+  .code-line-content {
+  grid-column: 2;
+  padding: 0 1rem;
 }
 
-:root.dark :where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) code:not(pre code) {
+:where(.md_preview, .vditor-reset.vditor-preview--content)
+  pre
+  code.has-line-numbers
+  .code-line:hover {
+  background: rgb(9 105 218 / 5%);
+}
+
+/* 编辑区只统一浅色表面与行内代码，不重排 Vditor 的可编辑代码节点。 */
+#vditor-mount .vditor-ir pre,
+#vditor-mount .vditor-sv pre {
+  border-color: var(--markdown-border, #d8dee6) !important;
+  border-radius: 8px !important;
+  color: var(--markdown-code-text, #24292f) !important;
+  background: var(--markdown-code-surface, #f6f8fa) !important;
+}
+
+#vditor-mount .vditor-ir code:not(pre code),
+#vditor-mount .vditor-sv code:not(pre code) {
+  display: inline !important;
+  width: auto !important;
+  padding: 0.1em 0.38em !important;
+  border: 1px solid var(--markdown-border, #d8dee6) !important;
+  border-radius: 5px !important;
+  color: #7c3aed !important;
+  background: var(--markdown-inline-surface, #f3f5f7) !important;
+  white-space: normal !important;
+}
+
+:root.dark
+  :where(.md_preview, .vditor-reset.vditor-preview--content)
+  code:not(pre code) {
   border-color: #30363d;
   color: #d2a8ff;
   background: #161b22;
 }
 
-:root.dark :where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre {
+:root.dark :where(.md_preview, .vditor-reset.vditor-preview--content) pre {
   border-color: #30363d;
-  background: #161b22;
   color: #e6edf3;
+  background: #161b22;
   box-shadow: none;
 }
 
 :root.dark .markdown-code-toolbar {
   border-bottom-color: #30363d;
+  color: #8b949e;
   background: #21262d;
-  color: #8b949e;
 }
 
-:root.dark .markdown-code-language {
-  color: #8b949e;
-}
-
-:root.dark .markdown-code-copy {
-  color: #8b949e;
-}
-
-:root.dark .markdown-code-copy:hover,
-:root.dark .markdown-code-copy:focus-visible {
-  background: rgb(88 166 255 / 14%);
-  color: #58a6ff;
-}
-
-:root.dark :where(.md_preview, .vditor-reset.vditor-preview--content,
-  #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre code.has-line-numbers .code-line::before {
+:root.dark
+  :where(.md_preview, .vditor-reset.vditor-preview--content)
+  pre
+  code.has-line-numbers
+  .code-line::before {
+  border-right-color: #30363d;
   color: #6e7681;
-}
-
-@media (max-width: 899px) {
-  :where(.md_preview, .vditor-reset.vditor-preview--content,
-    #vditor-mount .vditor-ir, #vditor-mount .vditor-sv) pre {
-    margin-right: -0.25rem;
-    margin-left: -0.25rem;
-    font-size: 0.82rem;
-  }
-}
-
-/* Vditor 的默认代码主题会覆盖应用的浅色主题；编辑器和预览必须保持一致。 */
-#vditor-mount .vditor-ir pre,
-#vditor-mount .vditor-sv pre,
-#vditor-mount .vditor-preview pre,
-#vditor-mount .vditor-reset pre,
-.vditor-reset.vditor-preview--content pre {
-  background: var(--markdown-code-surface, #f6f8fa) !important;
-  color: var(--markdown-code-text, #24292f) !important;
-}
-
-#vditor-mount .vditor-ir code:not(pre code),
-#vditor-mount .vditor-sv code:not(pre code),
-#vditor-mount .vditor-preview code:not(pre code),
-.vditor-reset.vditor-preview--content code:not(pre code) {
-  display: inline !important;
-  padding: 0.12em 0.38em !important;
-  border: 1px solid var(--markdown-border, #d0d7de) !important;
-  border-radius: 5px !important;
-  background: var(--markdown-inline-surface, #f6f8fa) !important;
-  color: #8250df !important;
-  white-space: normal !important;
+  background: #161b22;
 }
 
 :root.dark #vditor-mount .vditor-ir pre,
-:root.dark #vditor-mount .vditor-sv pre,
-:root.dark #vditor-mount .vditor-preview pre,
-:root.dark #vditor-mount .vditor-reset pre,
-:root.dark .vditor-reset.vditor-preview--content pre {
-  background: #161b22 !important;
+:root.dark #vditor-mount .vditor-sv pre {
+  border-color: #30363d !important;
   color: #e6edf3 !important;
+  background: #161b22 !important;
+}
+
+@media (max-width: 899px) {
+  :where(.md_preview, .vditor-reset.vditor-preview--content) pre {
+    width: 100%;
+    min-width: 0;
+    margin: 1em 0;
+    font-size: 0.8rem;
+  }
 }

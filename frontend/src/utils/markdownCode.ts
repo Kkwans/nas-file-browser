@@ -55,16 +55,66 @@ const LANGUAGE_ALIASES: Record<string, string> = {
   graphql: "graphql",
 };
 
+export type MarkdownCodeLanguage = {
+  value: string;
+  label: string;
+  keywords: string;
+};
+
+/** highlight.js common build 中可稳定使用的语言。 */
+export const MARKDOWN_CODE_LANGUAGES: MarkdownCodeLanguage[] = [
+  { value: "plaintext", label: "纯文本", keywords: "text txt plain 文本" },
+  { value: "bash", label: "Bash / Shell", keywords: "sh shell 命令 脚本" },
+  { value: "powershell", label: "PowerShell", keywords: "ps ps1 windows 命令" },
+  { value: "javascript", label: "JavaScript", keywords: "js jsx node" },
+  { value: "typescript", label: "TypeScript", keywords: "ts tsx" },
+  { value: "java", label: "Java", keywords: "jdk spring" },
+  { value: "python", label: "Python", keywords: "py" },
+  { value: "go", label: "Go", keywords: "golang" },
+  { value: "rust", label: "Rust", keywords: "rs" },
+  { value: "c", label: "C", keywords: "clang" },
+  { value: "cpp", label: "C++", keywords: "cxx" },
+  { value: "csharp", label: "C#", keywords: "cs dotnet" },
+  { value: "kotlin", label: "Kotlin", keywords: "kt android" },
+  { value: "swift", label: "Swift", keywords: "ios" },
+  { value: "php", label: "PHP", keywords: "php" },
+  { value: "ruby", label: "Ruby", keywords: "rb rails" },
+  { value: "sql", label: "SQL", keywords: "mysql sqlite database 数据库" },
+  { value: "json", label: "JSON", keywords: "jsonc 配置" },
+  { value: "yaml", label: "YAML", keywords: "yml compose 配置" },
+  { value: "xml", label: "HTML / XML", keywords: "html htm svg" },
+  { value: "css", label: "CSS", keywords: "style 样式" },
+  { value: "scss", label: "SCSS", keywords: "sass 样式" },
+  { value: "less", label: "Less", keywords: "css 样式" },
+  { value: "markdown", label: "Markdown", keywords: "md 文档" },
+  { value: "dockerfile", label: "Dockerfile", keywords: "docker 容器 镜像" },
+  { value: "ini", label: "INI / TOML", keywords: "toml config 配置" },
+  { value: "graphql", label: "GraphQL", keywords: "gql api" },
+];
+
 const LANGUAGE_DECLARATION = /(?:^|\s)(?:language|lang)-([a-z0-9+_.-]+)/i;
 
-function normalizeLanguage(value: string): string | null {
+export function normalizeMarkdownCodeLanguage(value: string): string | null {
   const token = value.trim().toLowerCase().replace(/^\+/, "");
   return LANGUAGE_ALIASES[token] ?? null;
 }
 
+export function filterMarkdownCodeLanguages(
+  query: string
+): MarkdownCodeLanguage[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return MARKDOWN_CODE_LANGUAGES;
+
+  return MARKDOWN_CODE_LANGUAGES.filter((language) =>
+    `${language.value} ${language.label} ${language.keywords}`
+      .toLowerCase()
+      .includes(normalizedQuery)
+  );
+}
+
 /** Create a persistent fenced block for the language picker. */
 export function createMarkdownCodeFence(language: string): string {
-  const normalized = normalizeLanguage(language) ?? "";
+  const normalized = normalizeMarkdownCodeLanguage(language) ?? "";
   return `\`\`\`${normalized}\n\n\`\`\`\n`;
 }
 
@@ -74,8 +124,20 @@ export function resolveMarkdownCodeLanguage(
   source: string
 ): string | null {
   const declaration = className.match(LANGUAGE_DECLARATION);
-  if (declaration) return normalizeLanguage(declaration[1]);
+  if (declaration) return normalizeMarkdownCodeLanguage(declaration[1]);
   return inferMarkdownCodeLanguage(source);
+}
+
+/**
+ * 已装饰的代码节点不再包含文本换行，重复开关行号时必须读取缓存的原始文本。
+ */
+export function getMarkdownCodeSource(
+  textContent: string,
+  cachedSource: string | undefined,
+  decorated: boolean
+): string {
+  if (decorated && cachedSource !== undefined) return cachedSource;
+  return textContent || cachedSource || "";
 }
 
 /**
@@ -134,7 +196,10 @@ export function wrapMarkdownCodeLines(
   const lines = normalized.split("\n");
   return {
     html: lines
-      .map((line) => `<span class="code-line">${line}</span>`)
+      .map(
+        (line) =>
+          `<span class="code-line"><span class="code-line-content">${line}</span></span>`
+      )
       // 每个代码行由 CSS 独立占据一行；不要再插入文本换行，否则
       // white-space: pre 会把它渲染成额外的空白行。
       .join(""),
@@ -147,4 +212,13 @@ export function getMarkdownLineNumberStorageKey(
 ): string {
   const namespace = String(userId ?? "").trim() || "guest";
   return `nas-file-browser:markdown-line-numbers:${namespace}`;
+}
+
+/** Keep Vditor's editable renderer and the custom reading renderer in sync. */
+export function getMarkdownHighlightOptions(showLineNumbers: boolean) {
+  return {
+    enable: true,
+    lineNumber: showLineNumbers,
+    style: "github",
+  } as const;
 }

@@ -90,6 +90,9 @@
       >
         <div class="markdown-language-picker-header">
           <strong id="markdown-language-picker-title">选择代码语言</strong>
+          <span class="markdown-language-count"
+            >支持 {{ MARKDOWN_CODE_LANGUAGES.length }} 种</span
+          >
           <button
             type="button"
             class="markdown-language-picker-close"
@@ -106,13 +109,23 @@
             type="search"
             placeholder="搜索语言"
             aria-label="搜索代码语言"
+            role="combobox"
+            aria-controls="markdown-language-options"
+            :aria-expanded="showCodeLanguagePicker"
+            autocomplete="off"
+            @keydown.enter.prevent="insertFirstFilteredLanguage"
           />
         </div>
-        <div class="markdown-language-options">
+        <div
+          id="markdown-language-options"
+          class="markdown-language-options"
+          role="listbox"
+        >
           <button
             v-for="option in filteredCodeLanguageOptions"
             :key="option.value"
             type="button"
+            role="option"
             @click="insertMarkdownCodeBlock(option.value)"
           >
             <i class="material-icons" aria-hidden="true">code</i>
@@ -144,7 +157,10 @@ import {
 } from "@/utils/externalResources";
 import {
   createMarkdownCodeFence,
+  filterMarkdownCodeLanguages,
+  getMarkdownHighlightOptions,
   getMarkdownLineNumberStorageKey,
+  MARKDOWN_CODE_LANGUAGES,
 } from "@/utils/markdownCode";
 import ace, { Ace, version as ace_version } from "ace-builds";
 import "ace-builds/src-noconflict/ext-language_tools";
@@ -175,44 +191,9 @@ const showLineNumbers = ref(!isMarkdownFile);
 const langCaption = ref("");
 const showCodeLanguagePicker = ref(false);
 const codeLanguageQuery = ref("");
-const codeLanguageOptions = [
-  { value: "java", label: "Java" },
-  { value: "javascript", label: "JavaScript" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "jsx", label: "JSX" },
-  { value: "html", label: "HTML" },
-  { value: "css", label: "CSS" },
-  { value: "scss", label: "SCSS" },
-  { value: "less", label: "Less" },
-  { value: "bash", label: "Shell" },
-  { value: "powershell", label: "PowerShell" },
-  { value: "python", label: "Python" },
-  { value: "json", label: "JSON" },
-  { value: "yaml", label: "YAML" },
-  { value: "toml", label: "TOML" },
-  { value: "dockerfile", label: "Dockerfile" },
-  { value: "sql", label: "SQL" },
-  { value: "graphql", label: "GraphQL" },
-  { value: "go", label: "Go" },
-  { value: "rust", label: "Rust" },
-  { value: "csharp", label: "C#" },
-  { value: "cpp", label: "C++" },
-  { value: "kotlin", label: "Kotlin" },
-  { value: "swift", label: "Swift" },
-  { value: "php", label: "PHP" },
-  { value: "ruby", label: "Ruby" },
-  { value: "markdown", label: "Markdown" },
-  { value: "plaintext", label: "纯文本" },
-];
-const filteredCodeLanguageOptions = computed(() => {
-  const query = codeLanguageQuery.value.toLowerCase();
-  if (!query) return codeLanguageOptions;
-  return codeLanguageOptions.filter(
-    (option) =>
-      option.label.toLowerCase().includes(query) ||
-      option.value.toLowerCase().includes(query)
-  );
-});
+const filteredCodeLanguageOptions = computed(() =>
+  filterMarkdownCodeLanguages(codeLanguageQuery.value)
+);
 
 const currentMode = ref<"ir" | "sv" | "preview">("ir");
 let vditorInstance: VditorInstance | null = null;
@@ -367,7 +348,11 @@ const loadVditorResources = async () => {
   await loadMarkdownResources();
 };
 
-const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
+const initVditorWithMode = async (
+  content: string,
+  mode: "ir" | "sv",
+  dirtyState = false
+) => {
   const generation = ++editorGeneration;
   await loadVditorResources();
 
@@ -440,6 +425,7 @@ const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
     undoDelay: 200,
     tab: "\t",
     preview: {
+      hljs: getMarkdownHighlightOptions(showLineNumbers.value),
       theme: {
         current: isDark ? "dark" : "light",
       },
@@ -462,7 +448,7 @@ const initVditorWithMode = async (content: string, mode: "ir" | "sv") => {
       } catch {}
       mdInitialized = true;
       // 初始化期间可能触发 input 事件，重置 dirty 标记
-      userEdited = false;
+      userEdited = dirtyState;
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
       if (currentMode.value === "preview") refreshMarkdownCodeBlocks();
@@ -652,7 +638,13 @@ const initAceEditor = (content: string) => {
 
 const openCodeLanguagePicker = () => {
   if (!isMarkdownFile || !vditorInstance) return;
+  codeLanguageQuery.value = "";
   showCodeLanguagePicker.value = true;
+};
+
+const insertFirstFilteredLanguage = () => {
+  const first = filteredCodeLanguageOptions.value[0];
+  if (first) insertMarkdownCodeBlock(first.value);
 };
 
 const insertMarkdownCodeBlock = (language: string) => {
@@ -665,7 +657,37 @@ const insertMarkdownCodeBlock = (language: string) => {
   userEdited = true;
 };
 
-const toggleLineNumbers = () => {
+const rebuildMarkdownMode = async (mode: "ir" | "sv" | "preview") => {
+  if (!vditorInstance) return;
+
+  let content: string;
+  try {
+    content = vditorInstance.getValue();
+  } catch {
+    content = markdownBuffer;
+  }
+  const dirtyState = userEdited;
+  markdownBuffer = content;
+
+  try {
+    vditorInstance.destroy();
+  } catch {}
+  vditorInstance = null;
+  mdInitialized = false;
+  editorGeneration++;
+  _outlineHandlerBound = false;
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  if (mode === "preview") {
+    await initVditorPreview(content);
+    userEdited = dirtyState;
+    return;
+  }
+  await initVditorWithMode(content, mode, dirtyState);
+};
+
+const toggleLineNumbers = async () => {
   if (isMarkdownFile && currentMode.value === "sv") return;
   showLineNumbers.value = !showLineNumbers.value;
   persistLineNumberPreference();
@@ -674,6 +696,10 @@ const toggleLineNumbers = () => {
       showGutter: showLineNumbers.value,
       showLineNumbers: showLineNumbers.value,
     });
+  }
+  if (isMarkdownFile && currentMode.value === "ir") {
+    await rebuildMarkdownMode("ir");
+    return;
   }
   refreshMarkdownCodeBlocks();
 };
@@ -700,6 +726,7 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
     content = markdownBuffer;
   }
   markdownBuffer = content;
+  const dirtyState = userEdited;
   currentMode.value = mode;
   // 模式切换不算用户编辑
   // userEdited 保持不变，因为用户之前可能已经编辑过
@@ -723,7 +750,7 @@ const switchMode = async (mode: "ir" | "sv" | "preview") => {
     await initVditorPreview(content);
   } else {
     // ir 或 sv 模式
-    await initVditorWithMode(content, mode);
+    await initVditorWithMode(content, mode, dirtyState);
   }
 };
 
@@ -859,6 +886,15 @@ const finishClose = () => {
   overflow: auto;
 }
 
+/* 编辑器标题与操作占满整条工具栏，避免桌面端两侧出现无意义空白。 */
+#editor-container :deep(header > .header-center) {
+  position: static;
+  width: auto;
+  padding-inline: 0;
+  justify-content: flex-start;
+  transform: none;
+}
+
 /* Vditor 容器全屏 */
 #vditor-mount :deep(.vditor) {
   border: none !important;
@@ -931,6 +967,13 @@ const finishClose = () => {
   padding: 0 1rem;
   border-bottom: 1px solid var(--borderSecondary);
   color: var(--textPrimary);
+}
+
+.markdown-language-count {
+  margin-left: auto;
+  margin-right: 0.5rem;
+  color: var(--textSecondary);
+  font-size: 0.75rem;
 }
 
 .markdown-language-picker-close {

@@ -170,9 +170,9 @@
               :class="{ 'drag-over-group': dragOverGroupId === group.id }"
             >
               <i
-                class="material-icons"
+                class="material-icons favorite-group-icon"
                 :style="{ color: group.color || 'var(--blue)' }"
-                >folder</i
+                >inventory_2</i
               >
               <span class="group-name">{{ group.name }}</span>
               <span class="category-count">{{
@@ -576,7 +576,6 @@ import {
 import { files as api } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import prettyBytes from "pretty-bytes";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };
 
 const $showError = inject<IToastError>("$showError")!;

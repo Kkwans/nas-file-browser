@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  getFileTypeLabel,
   normalizeViewMode,
   selectForContextMenu,
   sortItemsByType,
 } from "../fileListing";
 
 describe("file listing preferences", () => {
+  it("keeps directory type explicit in the detailed list", () => {
+    expect(getFileTypeLabel({ isDir: true })).toBe("文件夹");
+    expect(getFileTypeLabel({ isDir: false, extension: ".md" })).toBe(
+      "Markdown 文件"
+    );
+  });
   it("supports the four required file views", () => {
     expect(normalizeViewMode("mosaic")).toBe("mosaic");
     expect(normalizeViewMode("compact-grid")).toBe("compact-grid");

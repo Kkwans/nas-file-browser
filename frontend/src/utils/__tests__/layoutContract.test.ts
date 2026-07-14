@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   chooseListingLayout,
+  getTapSelectionBehavior,
   getGridColumnCount,
   shouldRenderMobileSelection,
 } from "../layoutContract";
@@ -23,5 +24,31 @@ describe("file listing layout contract", () => {
     expect(getGridColumnCount("mosaic", 360)).toBe(2);
     expect(getGridColumnCount("mosaic", 736)).toBe(2);
     expect(getGridColumnCount("mosaic", 1200)).toBeGreaterThanOrEqual(4);
+  });
+
+  it("keeps prior selections when a touch user taps another item", () => {
+    expect(
+      getTapSelectionBehavior({
+        isTouch: true,
+        multiple: false,
+        selectedCount: 1,
+      })
+    ).toEqual({ preserveExisting: true, allowDoubleOpen: false });
+
+    expect(
+      getTapSelectionBehavior({
+        isTouch: true,
+        multiple: false,
+        selectedCount: 0,
+      })
+    ).toEqual({ preserveExisting: false, allowDoubleOpen: true });
+
+    expect(
+      getTapSelectionBehavior({
+        isTouch: false,
+        multiple: false,
+        selectedCount: 1,
+      })
+    ).toEqual({ preserveExisting: false, allowDoubleOpen: true });
   });
 });

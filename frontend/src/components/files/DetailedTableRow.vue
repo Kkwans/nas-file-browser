@@ -17,16 +17,42 @@
   >
     <td class="details-name-cell">
       <div class="details-identity">
-        <img
+        <video
           v-if="
+            !videoPreviewFailed &&
             !readOnly &&
-            (type === 'image' || type === 'video') &&
+            type === 'video' &&
             isThumbsEnabled
           "
-          v-lazy="thumbnailUrl"
+          :src="videoPreviewUrl"
+          :aria-label="`${name} 视频预览`"
+          muted
+          playsinline
+          preload="metadata"
+          @loadedmetadata="showVideoPreviewFrame"
+          @error="videoPreviewFailed = true"
+        ></video>
+        <img
+          v-if="
+            !previewFailed && !readOnly && type === 'image' && isThumbsEnabled
+          "
+          :src="thumbnailUrl"
           :alt="name"
+          loading="lazy"
+          decoding="async"
+          @error="previewFailed = true"
         />
-        <i v-else class="material-icons file-type-icon" aria-hidden="true"></i>
+        <i
+          v-if="
+            readOnly ||
+            !isThumbsEnabled ||
+            (type !== 'image' && type !== 'video') ||
+            previewFailed ||
+            videoPreviewFailed
+          "
+          class="material-icons file-type-icon"
+          aria-hidden="true"
+        ></i>
         <div class="details-name-content">
           <div class="name">
             <div class="item-title-row">
@@ -39,30 +65,6 @@
                 aria-hidden="true"
                 >{{ riskLevel === "high" ? "warning" : "info" }}</i
               >
-              <div class="item-quick-actions" @click.stop>
-                <button
-                  class="item-icon-button favorite-star"
-                  :class="{ 'is-fav': isFavorited }"
-                  type="button"
-                  :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
-                  :title="isFavorited ? '取消收藏' : '添加收藏'"
-                  @click.prevent="toggleFav"
-                >
-                  <i class="material-icons" aria-hidden="true">{{
-                    isFavorited ? "star" : "star_border"
-                  }}</i>
-                </button>
-                <button
-                  class="item-icon-button tag-btn"
-                  :class="{ 'has-tags': pathTags.length > 0 }"
-                  type="button"
-                  title="分配标签"
-                  aria-label="分配标签"
-                  @click.prevent="toggleTagPicker"
-                >
-                  <i class="material-icons" aria-hidden="true">label</i>
-                </button>
-              </div>
             </div>
             <div v-if="pathTags.length" class="item-tag-list">
               <span
@@ -80,13 +82,35 @@
       </div>
     </td>
     <td class="details-type-cell">
-      <span v-if="!isDir">{{ fileTypeLabel }}</span>
+      <span>{{ fileTypeLabel }}</span>
     </td>
     <td class="details-size-cell">{{ isDir ? "—" : humanSize }}</td>
     <td class="details-modified-cell">
       <time :datetime="modified">{{ humanTime }}</time>
     </td>
     <td class="details-actions-cell" @click.stop>
+      <button
+        class="detail-action-button favorite-star"
+        :class="{ 'is-fav': isFavorited }"
+        type="button"
+        :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
+        :title="isFavorited ? '取消收藏' : '添加收藏'"
+        @click.prevent="toggleFav"
+      >
+        <i class="material-icons" aria-hidden="true">{{
+          isFavorited ? "star" : "star_border"
+        }}</i>
+      </button>
+      <button
+        class="detail-action-button tag-btn"
+        :class="{ 'has-tags': pathTags.length > 0 }"
+        type="button"
+        title="分配标签"
+        aria-label="分配标签"
+        @click.prevent="toggleTagPicker"
+      >
+        <i class="material-icons" aria-hidden="true">label</i>
+      </button>
       <button
         class="detail-action-button"
         type="button"
@@ -169,6 +193,7 @@ import { files as api } from "@/api";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
+import { getFileTypeLabel } from "@/utils/fileListing";
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
@@ -202,6 +227,21 @@ const thumbnailUrl = computed(() =>
     "thumb"
   )
 );
+const videoPreviewUrl = computed(
+  () =>
+    `${api.getDownloadURL(
+      { path: props.path, modified: props.modified } as Parameters<
+        typeof api.getDownloadURL
+      >[0],
+      true
+    )}#t=0.1`
+);
+const showVideoPreviewFrame = (event: Event) => {
+  const video = event.currentTarget as HTMLVideoElement;
+  if (Number.isFinite(video.duration) && video.duration > 0) {
+    video.currentTime = Math.min(0.1, video.duration / 2);
+  }
+};
 const riskLevel = computed(() => {
   if (!props.isDir || !props.path) return "low";
   return categoriesStore.getRiskLevel(props.path);
@@ -229,28 +269,9 @@ const humanSize = computed(() =>
 const humanTime = computed(() =>
   dayjs(props.modified).format("YYYY/M/D HH:mm")
 );
-const fileTypeLabel = computed(() => {
-  if (props.isDir) return "";
-  const extension = props.extension?.replace(/^\./, "").toLowerCase();
-  const labels: Record<string, string> = {
-    md: "Markdown 文件",
-    db: "数据库文件",
-    json: "JSON 文件",
-    js: "JavaScript 文件",
-    ts: "TypeScript 文件",
-    vue: "Vue 组件文件",
-    sh: "Shell 脚本",
-    mp4: "视频文件",
-    mp3: "音频文件",
-    jpg: "JPEG 图片",
-    jpeg: "JPEG 图片",
-    png: "PNG 图片",
-  };
-  return (
-    (extension && labels[extension]) ||
-    (extension ? `${extension.toUpperCase()} 文件` : "文件")
-  );
-});
+const fileTypeLabel = computed(() =>
+  getFileTypeLabel({ isDir: props.isDir, extension: props.extension })
+);
 
 const toggleFav = () => {
   if (props.path) favoritesStore.toggleFavorite(props.path, props.name);
@@ -263,6 +284,8 @@ const toggleTagPicker = () => {
   showTagPicker.value = !showTagPicker.value;
 };
 const showTagPicker = ref(false);
+const previewFailed = ref(false);
+const videoPreviewFailed = ref(false);
 const closeTagPicker = () => {
   showTagPicker.value = false;
 };

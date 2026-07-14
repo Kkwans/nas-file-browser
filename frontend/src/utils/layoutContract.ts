@@ -20,6 +20,25 @@ export function shouldRenderMobileSelection(
   return isMobile && (multiple || selectedCount > 0);
 }
 
+export interface TapSelectionInput {
+  isTouch: boolean;
+  multiple: boolean;
+  selectedCount: number;
+}
+
+/** Keep touch selection additive and prevent a second selection from opening an item. */
+export function getTapSelectionBehavior({
+  isTouch,
+  multiple,
+  selectedCount,
+}: TapSelectionInput) {
+  const preserveExisting = multiple || (isTouch && selectedCount > 0);
+  return {
+    preserveExisting,
+    allowDoubleOpen: !preserveExisting,
+  };
+}
+
 /**
  * Return a stable grid column count. CSS remains the source of truth for the
  * final width; this helper is only used for responsive state and tests.
@@ -31,5 +50,8 @@ export function getGridColumnCount(
   if (containerWidth <= 736) return 2;
 
   const minimumCardWidth = mode === "compact-grid" ? 108 : 180;
-  return Math.max(2, Math.min(6, Math.floor(containerWidth / minimumCardWidth)));
+  return Math.max(
+    2,
+    Math.min(6, Math.floor(containerWidth / minimumCardWidth))
+  );
 }

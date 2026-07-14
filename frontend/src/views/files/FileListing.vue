@@ -2,7 +2,6 @@
   <div>
     <header-bar showMenu showLogo>
       <div class="listing-search">
-        <i class="material-icons" aria-hidden="true">search</i>
         <input
           v-model.trim="inlineSearch"
           type="search"
@@ -19,7 +18,7 @@
           title="开始搜索"
           @click="submitInlineSearch"
         >
-          <i class="material-icons" aria-hidden="true">arrow_forward</i>
+          <i class="material-icons" aria-hidden="true">search</i>
         </button>
       </div>
       <template #actions>
@@ -66,13 +65,25 @@
           @action="layoutStore.toggleShell"
         />
         <!-- View Mode Dropdown -->
-        <div class="view-mode-dropdown" ref="viewDropdownRef">
+        <div
+          class="view-mode-dropdown"
+          :class="{ open: showViewDropdown }"
+          ref="viewDropdownRef"
+        >
           <action
             :icon="viewIcon"
             label="切换视图"
             @action="toggleViewDropdown"
           />
           <div v-if="showViewDropdown" class="dropdown-menu">
+            <button
+              class="dropdown-back"
+              type="button"
+              @click.stop="showViewDropdown = false"
+            >
+              <i class="material-icons">arrow_back</i>
+              <span>选择视图</span>
+            </button>
             <button
               v-for="mode in viewModes"
               :key="mode.value"
@@ -112,9 +123,21 @@
           </div>
         </div>
         <!-- Sort Dropdown -->
-        <div class="sort-dropdown" ref="sortDropdownRef">
+        <div
+          class="sort-dropdown"
+          :class="{ open: showSortDropdown }"
+          ref="sortDropdownRef"
+        >
           <action icon="sort" label="排序" @action="toggleSortDropdown" />
           <div v-if="showSortDropdown" class="dropdown-menu">
+            <button
+              class="dropdown-back"
+              type="button"
+              @click.stop="showSortDropdown = false"
+            >
+              <i class="material-icons">arrow_back</i>
+              <span>选择排序方式</span>
+            </button>
             <button
               v-for="opt in sortOptions"
               :key="opt.by"
@@ -168,7 +191,9 @@
         'file-selection-margin-bottom': fileStore.multiple,
       }"
     >
-      <span v-if="fileStore.selectedCount > 0"> 已选择 </span>
+      <span v-if="fileStore.selectedCount > 0" class="selection-count">
+        已选 {{ fileStore.selectedCount }} 项
+      </span>
       <action icon="select_all" label="全选" @action="selectAll" />
       <action
         v-if="headerButtons.share"
@@ -200,6 +225,7 @@
         label="删除"
         show="delete"
       />
+      <action icon="close" label="取消选择" @action="clearSelection" />
     </div>
 
     <div v-if="layoutStore.loading" class="loading-skeleton-wrapper">
@@ -1486,6 +1512,11 @@ const clearInlineSearch = () => {
 const toggleMultipleSelection = () => {
   fileStore.toggleMultiple();
   layoutStore.closeHovers();
+};
+
+const clearSelection = () => {
+  fileStore.multiple = false;
+  fileStore.selected = [];
 };
 
 const selectAll = () => {

@@ -25,62 +25,87 @@
     @contextmenu="contextMenu"
   >
     <div>
-      <img
+      <video
         v-if="
-          !readOnly && (type === 'image' || type === 'video') && isThumbsEnabled
+          !readOnly &&
+          type === 'video' &&
+          isThumbsEnabled &&
+          !videoPreviewFailed
         "
+        :src="videoPreviewUrl"
+        :aria-label="`${name} 视频预览`"
+        muted
+        playsinline
+        preload="metadata"
+        @loadedmetadata="showVideoPreviewFrame"
+        @error="videoPreviewFailed = true"
+      ></video>
+      <img
+        v-if="!readOnly && type === 'image' && isThumbsEnabled"
         v-lazy="thumbnailUrl"
         :alt="name"
       />
-      <i v-else class="material-icons file-type-icon" aria-hidden="true"></i>
+      <i
+        v-if="
+          readOnly ||
+          !isThumbsEnabled ||
+          (type !== 'image' && type !== 'video') ||
+          videoPreviewFailed
+        "
+        class="material-icons file-type-icon"
+        aria-hidden="true"
+      ></i>
+    </div>
+
+    <div class="item-controls" @click.stop>
+      <span
+        v-if="isDir && riskLevel !== 'low'"
+        class="risk-badge"
+        :class="'risk-' + riskLevel"
+        :title="riskTitle"
+        :aria-label="riskTitle"
+        >{{ riskLevel === "high" ? "高危" : "中危" }}</span
+      >
+      <div class="item-quick-actions">
+        <button
+          class="item-icon-button favorite-star"
+          :class="{ 'is-fav': isFavorited }"
+          type="button"
+          :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
+          :title="isFavorited ? '取消收藏' : '添加收藏'"
+          @click.prevent="toggleFav"
+        >
+          <i class="material-icons" aria-hidden="true">{{
+            isFavorited ? "star" : "star_border"
+          }}</i>
+        </button>
+        <button
+          class="item-icon-button tag-btn"
+          :class="{ 'has-tags': pathTags.length > 0 }"
+          type="button"
+          title="分配标签"
+          aria-label="分配标签"
+          @click.prevent="toggleTagPicker"
+        >
+          <i class="material-icons" aria-hidden="true">label</i>
+        </button>
+      </div>
+      <button
+        v-if="viewMode === 'details'"
+        class="mobile-item-more"
+        type="button"
+        aria-label="更多操作"
+        title="更多操作"
+        @click.stop="openMobileActionSheet"
+      >
+        <i class="material-icons" aria-hidden="true">more_vert</i>
+      </button>
     </div>
 
     <div>
       <div class="name">
         <div class="item-title-row">
           <span class="item-name">{{ name }}</span>
-          <span
-            v-if="isDir && riskLevel !== 'low'"
-            class="risk-badge"
-            :class="'risk-' + riskLevel"
-            :title="riskTitle"
-            :aria-label="riskTitle"
-            >{{ riskLevel === "high" ? "高危" : "中危" }}</span
-          >
-          <div class="item-quick-actions" @click.stop>
-            <button
-              class="item-icon-button favorite-star"
-              :class="{ 'is-fav': isFavorited }"
-              type="button"
-              :aria-label="isFavorited ? '取消收藏' : '添加收藏'"
-              :title="isFavorited ? '取消收藏' : '添加收藏'"
-              @click.prevent="toggleFav"
-            >
-              <i class="material-icons" aria-hidden="true">{{
-                isFavorited ? "star" : "star_border"
-              }}</i>
-            </button>
-            <button
-              class="item-icon-button tag-btn"
-              :class="{ 'has-tags': pathTags.length > 0 }"
-              type="button"
-              title="分配标签"
-              aria-label="分配标签"
-              @click.prevent="toggleTagPicker"
-            >
-              <i class="material-icons" aria-hidden="true">label</i>
-            </button>
-          </div>
-          <button
-            v-if="viewMode === 'details'"
-            class="mobile-item-more"
-            type="button"
-            aria-label="更多操作"
-            title="更多操作"
-            @click.stop="openMobileActionSheet"
-          >
-            <i class="material-icons" aria-hidden="true">more_vert</i>
-          </button>
         </div>
         <div v-if="pathTags.length" class="item-tag-list">
           <span
@@ -96,7 +121,7 @@
       </div>
 
       <div class="detail-meta">
-        <span v-if="!isDir" class="detail-type">{{ fileTypeLabel }}</span>
+        <span class="detail-type">{{ fileTypeLabel }}</span>
         <span class="detail-path" :title="path">{{ path }}</span>
       </div>
 
@@ -251,6 +276,8 @@ import { useTagsStore } from "@/stores/tags";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
+import { getTapSelectionBehavior } from "@/utils/layoutContract";
+import { getFileTypeLabel } from "@/utils/fileListing";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, ref } from "vue";
@@ -262,6 +289,7 @@ const touches = ref<number>(0);
 
 const longPressTimer = ref<number | null>(null);
 const longPressTriggered = ref<boolean>(false);
+const touchInteraction = ref<boolean>(false);
 const longPressDelay = ref<number>(500);
 const startPosition = ref<{ x: number; y: number } | null>(null);
 const moveThreshold = ref<number>(10);
@@ -320,6 +348,20 @@ const thumbnailUrl = computed(() => {
 
   return api.getPreviewURL(file as Resource, "thumb");
 });
+const videoPreviewFailed = ref(false);
+const videoPreviewUrl = computed(() => {
+  const file = {
+    path: props.path,
+    modified: props.modified,
+  } as Resource;
+  return `${api.getDownloadURL(file, true)}#t=0.1`;
+});
+const showVideoPreviewFrame = (event: Event) => {
+  const video = event.currentTarget as HTMLVideoElement;
+  if (Number.isFinite(video.duration) && video.duration > 0) {
+    video.currentTime = Math.min(0.1, video.duration / 2);
+  }
+};
 
 const isThumbsEnabled = computed(() => {
   return enableThumbs;
@@ -422,26 +464,9 @@ const humanTime = computed(() => {
   return dayjs(props.modified).fromNow();
 });
 
-const fileTypeLabel = computed(() => {
-  if (props.isDir) return "";
-  const extension = props.extension?.replace(/^\./, "").toUpperCase();
-  if (!extension) return "文件";
-  const labels: Record<string, string> = {
-    md: "Markdown 文件",
-    db: "数据库文件",
-    json: "JSON 文件",
-    js: "JavaScript 文件",
-    ts: "TypeScript 文件",
-    vue: "Vue 组件文件",
-    sh: "Shell 脚本",
-    mp4: "视频文件",
-    mp3: "音频文件",
-    jpg: "JPEG 图片",
-    jpeg: "JPEG 图片",
-    png: "PNG 图片",
-  };
-  return labels[extension.toLowerCase()] || `${extension} 文件`;
-});
+const fileTypeLabel = computed(() =>
+  getFileTypeLabel({ isDir: props.isDir, extension: props.extension })
+);
 
 const dragStart = () => {
   if (fileStore.selectedCount === 0) {
@@ -562,15 +587,22 @@ const itemClick = (event: Event | KeyboardEvent) => {
     return;
   }
 
+  const selectionBehavior = getTapSelectionBehavior({
+    isTouch: touchInteraction.value,
+    multiple: fileStore.multiple,
+    selectedCount: fileStore.selectedCount,
+  });
+  touchInteraction.value = false;
+
   if (
     singleClick.value &&
     !(event as KeyboardEvent).ctrlKey &&
     !(event as KeyboardEvent).metaKey &&
     !(event as KeyboardEvent).shiftKey &&
-    !fileStore.multiple
+    !selectionBehavior.preserveExisting
   )
     open();
-  else click(event);
+  else click(event, selectionBehavior);
 };
 
 const contextMenu = (event: MouseEvent) => {
@@ -584,24 +616,35 @@ const contextMenu = (event: MouseEvent) => {
   }
 };
 
-const click = (event: Event | KeyboardEvent) => {
+const click = (
+  event: Event | KeyboardEvent,
+  selectionBehavior = getTapSelectionBehavior({
+    isTouch: false,
+    multiple: fileStore.multiple,
+    selectedCount: fileStore.selectedCount,
+  })
+) => {
   if (!singleClick.value && fileStore.selectedCount !== 0)
     event.preventDefault();
 
-  setTimeout(() => {
-    touches.value = 0;
-  }, 300);
+  if (selectionBehavior.allowDoubleOpen) {
+    setTimeout(() => {
+      touches.value = 0;
+    }, 300);
 
-  touches.value++;
-  if (touches.value > 1) {
-    open();
+    touches.value++;
+    if (touches.value > 1) {
+      open();
+    }
+  } else {
+    touches.value = 0;
   }
 
   if (fileStore.selected.indexOf(props.index) !== -1) {
     if (
       (event as KeyboardEvent).ctrlKey ||
       (event as KeyboardEvent).metaKey ||
-      fileStore.multiple
+      selectionBehavior.preserveExisting
     ) {
       fileStore.removeSelected(props.index);
     } else {
@@ -634,7 +677,7 @@ const click = (event: Event | KeyboardEvent) => {
   if (
     !(event as KeyboardEvent).ctrlKey &&
     !(event as KeyboardEvent).metaKey &&
-    !fileStore.multiple
+    !selectionBehavior.preserveExisting
   ) {
     fileStore.selected = [];
   }
@@ -672,7 +715,14 @@ const cancelLongPress = () => {
 const handleLongPress = () => {
   if (singleClick.value) {
     longPressTriggered.value = true;
-    click(new Event("longpress"));
+    click(
+      new Event("longpress"),
+      getTapSelectionBehavior({
+        isTouch: true,
+        multiple: fileStore.multiple,
+        selectedCount: fileStore.selectedCount,
+      })
+    );
   }
   cancelLongPress();
 };
@@ -702,6 +752,7 @@ const handleMouseLeave = () => {
 };
 
 const handleTouchStart = (event: TouchEvent) => {
+  touchInteraction.value = true;
   if (event.touches.length === 1) {
     const touch = event.touches[0];
     startLongPress(touch.clientX, touch.clientY);
@@ -713,6 +764,7 @@ const handleTouchEnd = () => {
 };
 
 const handleTouchCancel = () => {
+  touchInteraction.value = false;
   cancelLongPress();
 };
 
@@ -720,6 +772,7 @@ const handleTouchMove = (event: TouchEvent) => {
   if (event.touches.length === 1 && startPosition.value) {
     const touch = event.touches[0];
     if (checkMovement(touch.clientX, touch.clientY)) {
+      touchInteraction.value = false;
       cancelLongPress();
     }
   }

@@ -1,10 +1,6 @@
 <template>
   <div v-show="active" @click="closeHovers" class="overlay"></div>
-  <nav
-    class="sidebar"
-    :class="{ active }"
-    :style="{ width: sidebarWidth + 'px' }"
-  >
+  <nav class="sidebar" :class="{ active }">
     <div
       class="sidebar-resize-handle"
       @mousedown="startResize"

@@ -201,6 +201,104 @@ nav.sidebar .action:hover i {
   background: rgba(22, 119, 255, 0.22);
 }
 
+/* Canonical navigation surface: compact, opaque and stable across sections. */
+nav.sidebar {
+  overflow-x: hidden;
+  background: var(--surfacePrimary, #fff);
+  border-right: 1px solid var(--divider, #e5e7eb);
+  box-shadow: 1px 0 0 rgba(15, 23, 42, 0.02);
+  scrollbar-color: rgba(100, 116, 139, 0.28) transparent;
+  scrollbar-width: thin;
+}
+
+nav.sidebar .sidebar-primary-nav {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+}
+
+nav.sidebar .sidebar-primary-nav .action,
+nav.sidebar .favorite-item,
+nav.sidebar .tag-filter-item,
+nav.sidebar .volume-item,
+nav.sidebar .category-group-header,
+nav.sidebar .category-path-item {
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+nav.sidebar .sidebar-primary-nav .action:hover,
+nav.sidebar .favorite-item:hover,
+nav.sidebar .tag-filter-item:hover,
+nav.sidebar .volume-item:hover,
+nav.sidebar .category-group-header:hover,
+nav.sidebar .category-path-item:hover {
+  border-color: rgba(22, 119, 255, 0.12);
+  background: rgba(22, 119, 255, 0.065);
+}
+
+nav.sidebar .tag-filter-item.active {
+  border-color: rgba(22, 119, 255, 0.2);
+  background: rgba(22, 119, 255, 0.1);
+}
+
+nav.sidebar .favorites-section,
+nav.sidebar .tags-section,
+nav.sidebar .volumes-section,
+nav.sidebar .categories-section {
+  margin: 0;
+  padding: 0.625rem 0.75rem !important;
+}
+
+nav.sidebar .favorites-header,
+nav.sidebar .tags-header,
+nav.sidebar .volumes-header,
+nav.sidebar .categories-header {
+  min-height: 2.25rem;
+  padding: 0 0.25rem;
+}
+
+nav.sidebar .section-toggle,
+nav.sidebar .volumes-header,
+nav.sidebar .categories-header {
+  color: var(--textSecondary, #475569);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+nav.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+nav.sidebar::-webkit-scrollbar-thumb {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.28);
+  background-clip: padding-box;
+}
+
+@media (max-width: 736px) {
+  nav.sidebar {
+    width: min(86vw, 20rem) !important;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    border-right: 0;
+    box-shadow: 10px 0 36px rgba(15, 23, 42, 0.18);
+    overscroll-behavior: contain;
+  }
+
+  nav.sidebar:not(.active) {
+    box-shadow: none;
+  }
+}
+
 /* 最终视觉收口：侧栏使用同一套间距和状态层，不让悬停改变尺寸。 */
 nav.sidebar {
   box-sizing: border-box;
@@ -325,11 +423,7 @@ nav.sidebar .sidebar-resize-handle {
 
 nav.sidebar .sidebar-resize-handle:hover,
 nav.sidebar .sidebar-resize-handle:active {
-  background: color-mix(
-    in srgb,
-    var(--blue, #1677ff) 18%,
-    transparent
-  );
+  background: color-mix(in srgb, var(--blue, #1677ff) 18%, transparent);
 }
 
 nav.sidebar::-webkit-scrollbar {
@@ -1725,8 +1819,8 @@ html[dir="rtl"] .sidebar-resize-handle:active {
   nav.sidebar {
     top: 0;
     z-index: 99999;
-    width: 17em;
-    left: -18em;
+    width: min(86vw, 20rem);
+    left: min(-86vw, -20rem);
     /* On phone, sidebar is overlay — ignore --sidebar-width */
     box-shadow: none;
     transition:
@@ -1736,7 +1830,7 @@ html[dir="rtl"] .sidebar-resize-handle:active {
 
   html[dir="rtl"] nav.sidebar {
     left: unset;
-    right: -18em;
+    right: min(-86vw, -20rem);
     transition:
       0.25s cubic-bezier(0.4, 0, 0.2, 1) right,
       0.25s ease box-shadow;
@@ -1755,6 +1849,10 @@ html[dir="rtl"] .sidebar-resize-handle:active {
 
   nav.sidebar .action {
     padding: 0.75em 1.2em;
+  }
+
+  nav.sidebar .sidebar-resize-handle {
+    display: none;
   }
 }
 

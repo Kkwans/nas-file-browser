@@ -27,9 +27,7 @@
     <div>
       <img
         v-if="
-          !readOnly &&
-          (type === 'image' || type === 'video') &&
-          isThumbsEnabled
+          !readOnly && (type === 'image' || type === 'video') && isThumbsEnabled
         "
         v-lazy="thumbnailUrl"
         :alt="name"
@@ -41,13 +39,13 @@
       <div class="name">
         <div class="item-title-row">
           <span class="item-name">{{ name }}</span>
-          <i
+          <span
             v-if="isDir && riskLevel !== 'low'"
-            class="material-icons risk-icon"
+            class="risk-badge"
             :class="'risk-' + riskLevel"
             :title="riskTitle"
-            aria-hidden="true"
-            >{{ riskLevel === "high" ? "warning" : "info" }}</i
+            :aria-label="riskTitle"
+            >{{ riskLevel === "high" ? "高危" : "中危" }}</span
           >
           <div class="item-quick-actions" @click.stop>
             <button
@@ -196,7 +194,9 @@
           role="menuitem"
           @click="runMobileAction('rename')"
         >
-          <i class="material-icons" aria-hidden="true">drive_file_rename_outline</i>
+          <i class="material-icons" aria-hidden="true"
+            >drive_file_rename_outline</i
+          >
           <span>重命名</span>
         </button>
         <button

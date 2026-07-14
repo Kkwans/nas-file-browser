@@ -204,6 +204,32 @@
   color: #b54708;
 }
 
+#listing .risk-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: var(--listing-surface, #fff);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#listing .risk-badge.risk-high {
+  color: #b42318;
+  background: #fff4f2;
+}
+
+#listing .risk-badge.risk-medium {
+  color: #b54708;
+  background: #fffaeb;
+}
+
 #listing .item-quick-actions {
   position: static;
   display: inline-flex;
@@ -300,10 +326,11 @@
 }
 
 #listing.mosaic .item {
+  position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 208px;
-  padding: 14px;
+  min-height: 224px;
+  padding: 16px;
   border: 1px solid var(--listing-border);
   border-radius: 10px;
   background: var(--listing-surface);
@@ -319,15 +346,15 @@
 }
 
 #listing.mosaic .item > div:first-child {
-  flex: 0 0 86px;
-  margin: 10px 0 8px;
+  flex: 0 0 100px;
+  margin: 14px 0 8px;
 }
 
 #listing.mosaic .item > div:first-child > img,
 #listing.mosaic .item > div:first-child > .file-type-icon {
-  width: 78px;
-  height: 78px;
-  font-size: 78px;
+  width: 92px;
+  height: 92px;
+  font-size: 92px;
 }
 
 #listing.mosaic .item > div:last-child {
@@ -343,9 +370,9 @@
 }
 
 #listing.mosaic .item-title-row {
-  position: relative;
+  position: static;
   justify-content: center;
-  padding-right: 68px;
+  padding: 0;
 }
 
 #listing.mosaic .item-title-row .item-name {
@@ -354,8 +381,16 @@
 
 #listing.mosaic .item-quick-actions {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+#listing.mosaic .risk-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
 }
 
 #listing.mosaic .item-name {
@@ -460,7 +495,8 @@
 #listing.compact-grid .modified,
 #listing.compact-grid .item-quick-actions,
 #listing.compact-grid .tag-chip,
-#listing.compact-grid .risk-icon {
+#listing.compact-grid .risk-icon,
+#listing.compact-grid .risk-badge {
   display: none;
 }
 
@@ -833,7 +869,8 @@
 
 #listing.compact-list .item-quick-actions,
 #listing.compact-list .tag-chip,
-#listing.compact-list .risk-icon {
+#listing.compact-list .risk-icon,
+#listing.compact-list .risk-badge {
   display: none;
 }
 
@@ -935,7 +972,7 @@
   padding: 5px;
   border: 1px solid var(--listing-border);
   border-radius: 10px;
-  background: var(--listing-surface);
+  background: var(--listing-surface, #fff);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
 }
 
@@ -1239,6 +1276,12 @@
 }
 
 @container (max-width: 899px) {
+  #listing.details .details-mobile-list {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+  }
+
   /* On phones the semantic table becomes a card list. Keeping the desktop
      min-width here makes the name column disappear into horizontal overflow. */
   #listing.details .details-table-shell {
@@ -1344,12 +1387,12 @@
 
   #listing.details .item {
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr) 32px;
+    grid-template-columns: 56px minmax(0, 1fr);
     grid-template-rows: auto auto auto;
     column-gap: 10px;
-    row-gap: 3px;
-    min-height: 92px;
-    padding: 10px;
+    row-gap: 7px;
+    min-height: 124px;
+    padding: 12px;
     border: 1px solid var(--listing-border);
     border-radius: 10px;
     background: var(--listing-surface);
@@ -1362,9 +1405,11 @@
 
   #listing.details .item > div:first-child > img,
   #listing.details .item > div:first-child > .file-type-icon {
-    width: 44px;
-    height: 44px;
-    font-size: 44px;
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    font-size: 52px;
+    object-fit: cover;
   }
 
   #listing.details .item > div:last-child {
@@ -1372,9 +1417,44 @@
   }
 
   #listing.details .item .name {
-    grid-column: 2 / 4;
+    grid-column: 2;
     grid-row: 1;
-    padding-right: 36px;
+    min-width: 0;
+    padding: 0;
+  }
+
+  #listing.details .item .item-title-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "name quick more"
+      "risk risk risk";
+    align-items: start;
+    gap: 6px;
+  }
+
+  #listing.details .item .item-name {
+    grid-area: name;
+  }
+
+  #listing.details .item .item-quick-actions {
+    grid-area: quick;
+    position: static;
+    display: inline-flex;
+    gap: 2px;
+  }
+
+  #listing.details .item .item-icon-button,
+  #listing.details .item .mobile-item-more {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+
+  #listing.details .item .risk-badge {
+    grid-area: risk;
+    width: max-content;
+    margin-top: 4px;
   }
 
   #listing.details .item .item-name {
@@ -1385,8 +1465,9 @@
   }
 
   #listing.details .item .detail-meta {
-    grid-column: 2 / 4;
+    grid-column: 2;
     grid-row: 2;
+    min-width: 0;
   }
 
   #listing.details .item .size {
@@ -1401,7 +1482,7 @@
   }
 
   #listing.details .item .modified {
-    grid-column: 2 / 4;
+    grid-column: 2;
     grid-row: 3;
     text-align: right;
   }
@@ -1411,9 +1492,8 @@
   }
 
   #listing.details .item .mobile-item-more {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+    grid-area: more;
+    position: static;
     display: inline-flex;
   }
 
@@ -1423,20 +1503,20 @@
   }
 
   #listing.mosaic .item {
-    min-height: 196px;
-    padding: 10px;
+    min-height: 210px;
+    padding: 12px;
   }
 
   #listing.mosaic .item > div:first-child {
-    flex-basis: 78px;
-    margin-top: 14px;
+    flex-basis: 88px;
+    margin-top: 18px;
   }
 
   #listing.mosaic .item > div:first-child > img,
   #listing.mosaic .item > div:first-child > .file-type-icon {
-    width: 70px;
-    height: 70px;
-    font-size: 70px;
+    width: 80px;
+    height: 80px;
+    font-size: 80px;
   }
 
   #listing.mosaic .item-name {
@@ -1444,8 +1524,13 @@
   }
 
   #listing.mosaic .item-quick-actions {
-    top: -2px;
-    right: -2px;
+    top: 8px;
+    right: 8px;
+  }
+
+  #listing.mosaic .risk-badge {
+    top: 10px;
+    left: 10px;
   }
 
   #listing.mosaic .item-icon-button {
@@ -1671,11 +1756,44 @@
   }
 
   .listing-search {
-    display: none;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    padding: 0 8px;
   }
 
-  .listing-mobile-title {
-    flex: 1;
+  .listing-search > .material-icons {
+    margin-right: 6px;
+    font-size: 18px;
+  }
+
+  .listing-search input {
+    font-size: 13px;
+  }
+
+  .view-mode-dropdown,
+  .sort-dropdown {
+    width: 100%;
+  }
+
+  .view-mode-dropdown > .action,
+  .sort-dropdown > .action {
+    width: 100%;
+  }
+
+  .dropdown-menu {
+    position: fixed;
+    top: 3.75rem;
+    right: 0.75rem;
+    left: auto;
+    z-index: 100002;
+    width: min(20rem, calc(100vw - 1.5rem));
+    max-height: calc(100dvh - 4.5rem);
+    overflow-y: auto;
+    border-color: var(--listing-border, #dfe3e8);
+    background: var(--listing-surface, #fff);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.2);
   }
 }
 

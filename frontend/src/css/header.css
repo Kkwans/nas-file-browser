@@ -18,7 +18,9 @@ header {
   display: flex;
   align-items: center;
   gap: 0.5em;
-  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
 }
 
 header:hover {
@@ -64,7 +66,9 @@ header img {
   height: 2.25em;
   margin-right: 0.625em;
   border-radius: 0.5em;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -78,7 +82,7 @@ header title {
   display: block;
   flex: 1 1 auto;
   padding: 0 0.75em;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 1em;
@@ -124,7 +128,10 @@ header .menu-button {
 
 header .action {
   border-radius: 0.5em;
-  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease;
   position: relative;
 }
 
@@ -133,7 +140,10 @@ header .action i {
   border-radius: 0.5em;
   font-size: 1.25em;
   color: var(--action);
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
 }
 
 header .action:hover {
@@ -191,7 +201,10 @@ header .action.active i {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-0.5em) scale(0.97);
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s ease;
   transform-origin: top right;
   background: var(--surfacePrimary);
   border: 1px solid var(--borderPrimary);
@@ -230,6 +243,14 @@ header .action.active i {
 
 /* Desktop workspace toolbar: keep FileBrowser's primary actions visible. */
 @media (min-width: 737px) {
+  header > .header-center {
+    position: absolute;
+    left: 50%;
+    width: min(52vw, 860px);
+    justify-content: center;
+    transform: translateX(-50%);
+  }
+
   header > .header-trailing #dropdown {
     position: static;
     display: flex;
@@ -486,7 +507,10 @@ html[dir="rtl"] #search .boxes h3 {
   cursor: pointer;
   flex-grow: 1;
   border-radius: 0.5em;
-  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   font-size: 0.875em;
 }
 
@@ -528,7 +552,9 @@ header .breadcrumbs span:not(.chevron) {
   color: var(--textPrimary);
   padding: 0.3em 0.6em;
   border-radius: 0.375em;
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -632,6 +658,8 @@ html.dark header .breadcrumbs a:hover {
 
   header > .header-center {
     justify-content: center;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   header .menu-button i {
@@ -669,11 +697,15 @@ html.dark header .breadcrumbs a:hover {
 
   header > .header-trailing #dropdown {
     position: fixed;
-    top: 0.5em;
-    right: 0.5em;
-    min-width: 12em;
+    top: 3.25rem;
+    right: 0.75rem;
+    width: min(20rem, calc(100vw - 1.5rem));
+    min-width: 0;
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;
     transform: translateY(-0.5em) scale(0.95);
     border-radius: 0.75em;
+    background: var(--surfacePrimary, #fff);
   }
 
   #dropdown.active {

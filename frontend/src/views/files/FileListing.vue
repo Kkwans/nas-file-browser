@@ -1,13 +1,13 @@
 <template>
   <div>
     <header-bar showMenu showLogo>
-      <div v-if="!isMobile" class="listing-search">
+      <div class="listing-search">
         <i class="material-icons" aria-hidden="true">search</i>
         <input
           v-model.trim="inlineSearch"
           type="search"
           aria-label="在当前目录搜索"
-          placeholder="在当前目录搜索文件"
+          :placeholder="isMobile ? '搜索当前目录' : '在当前目录搜索文件'"
           @keyup.enter="submitInlineSearch"
           @keyup.escape="clearInlineSearch"
         />
@@ -22,19 +22,6 @@
           <i class="material-icons" aria-hidden="true">arrow_forward</i>
         </button>
       </div>
-      <div v-else class="listing-mobile-title" :title="mobileDirectoryTitle">
-        {{ mobileDirectoryTitle }}
-      </div>
-
-      <template #mobile-actions>
-        <action
-          class="search-button"
-          icon="search"
-          label="搜索"
-          @action="openSearch()"
-        />
-      </template>
-
       <template #actions>
         <template v-if="!isMobile">
           <action
@@ -455,7 +442,21 @@
               <i class="material-icons">close</i>
             </button>
           </div>
-          <div class="details-table-shell">
+          <div v-if="isMobile" class="details-mobile-list">
+            <Item
+              v-for="item in dirs"
+              :key="base64(item.name)"
+              v-bind="item"
+              view-mode="details"
+            />
+            <Item
+              v-for="item in files"
+              :key="base64(item.name)"
+              v-bind="item"
+              view-mode="details"
+            />
+          </div>
+          <div v-else class="details-table-shell">
             <table class="details-table" aria-label="文件列表">
               <colgroup>
                 <col class="details-col-name" />
@@ -950,13 +951,6 @@ const headerButtons = computed(() => {
 
 const isMobile = computed(() => {
   return width.value <= 899;
-});
-
-const mobileDirectoryTitle = computed(() => {
-  const name = fileStore.req?.name?.trim();
-  if (name) return name;
-  const segments = route.path.split("/").filter(Boolean);
-  return segments.at(-1) || "我的文件";
 });
 
 const shouldRenderMobileSelectionBar = computed(() =>
@@ -1487,13 +1481,6 @@ const submitInlineSearch = () => {
 
 const clearInlineSearch = () => {
   inlineSearch.value = "";
-};
-
-const openSearch = () => {
-  router.push({
-    path: "/search",
-    query: { base: searchBasePath.value, scope: "current" },
-  });
 };
 
 const toggleMultipleSelection = () => {

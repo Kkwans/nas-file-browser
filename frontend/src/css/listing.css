@@ -204,30 +204,34 @@
   color: #b54708;
 }
 
+#listing .item-visual {
+  position: relative;
+  display: grid;
+  width: max-content;
+  height: max-content;
+  place-items: center;
+}
+
 #listing .risk-badge {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  min-height: 20px;
-  padding: 0 7px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  background: var(--listing-surface, #fff);
-  font-size: 11px;
-  font-weight: 650;
-  line-height: 1;
-  white-space: nowrap;
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  z-index: 2;
+  display: block;
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: 2px solid var(--listing-surface, #fff);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgb(15 23 42 / 12%);
 }
 
 #listing .risk-badge.risk-high {
-  color: #b42318;
-  background: #fff4f2;
+  background: #e5484d;
 }
 
 #listing .risk-badge.risk-medium {
-  color: #b54708;
-  background: #fffaeb;
+  background: #f5a524;
 }
 
 #listing .item-quick-actions {
@@ -387,10 +391,8 @@
 }
 
 #listing.mosaic .risk-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 2;
+  right: 2px;
+  bottom: 2px;
 }
 
 #listing.mosaic .item-name {
@@ -497,7 +499,7 @@
 #listing.compact-grid .tag-chip,
 #listing.compact-grid .risk-icon,
 #listing.compact-grid .risk-badge {
-  display: none;
+  display: block;
 }
 
 #listing.compact-grid.compact-grid-size-small
@@ -869,8 +871,7 @@
 
 #listing.compact-list .item-quick-actions,
 #listing.compact-list .tag-chip,
-#listing.compact-list .risk-icon,
-#listing.compact-list .risk-badge {
+#listing.compact-list .risk-icon {
   display: none;
 }
 

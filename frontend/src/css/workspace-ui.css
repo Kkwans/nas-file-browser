@@ -1143,8 +1143,8 @@ nav.sidebar .sidebar-resize-handle:active {
   #listing.details .details-mobile-list .item {
     display: grid;
     grid-template-areas: "visual content controls";
-    grid-template-columns: 50px minmax(0, 1fr) auto;
-    min-height: 88px;
+    grid-template-columns: 50px minmax(0, 1fr) 88px;
+    min-height: 108px;
     padding: 10px;
     border: 1px solid var(--borderPrimary, #e2e7ed);
     border-radius: 12px;
@@ -1166,6 +1166,9 @@ nav.sidebar .sidebar-resize-handle:active {
   #listing.details .details-mobile-list .item > div:first-child {
     grid-area: visual;
     align-self: center;
+    justify-self: center;
+    width: 48px;
+    height: 48px;
   }
 
   #listing.details .details-mobile-list .item > div:first-child > img,
@@ -1184,34 +1187,47 @@ nav.sidebar .sidebar-resize-handle:active {
 
   #listing.details .details-mobile-list .item > .item-controls {
     grid-area: controls;
-    display: flex;
-    align-self: start;
-    align-items: center;
-    gap: 1px;
+    display: grid;
+    grid-template-columns: repeat(2, 44px);
+    grid-template-rows: repeat(2, 44px);
+    align-self: center;
+    justify-self: end;
+    width: 88px;
+    height: 88px;
+    place-items: center;
   }
 
-  #listing.details .details-mobile-list .item-controls .risk-badge {
-    position: absolute;
-    bottom: 10px;
-    left: 12px;
+  #listing.details .details-mobile-list .item-visual .risk-badge {
+    grid-area: auto;
+    width: 11px;
+    height: 11px;
+    margin: 0;
+    right: -2px;
+    bottom: -2px;
   }
 
   #listing.details .details-mobile-list .item-quick-actions {
-    display: flex;
-    gap: 1px;
+    display: contents;
   }
 
   #listing.details .details-mobile-list .item-icon-button,
   #listing.details .details-mobile-list .mobile-item-more {
     display: grid;
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
     place-items: center;
     padding: 0;
     border: 0;
     border-radius: 8px;
     background: transparent;
+  }
+
+  #listing.details .details-mobile-list .mobile-item-more {
+    grid-area: auto;
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: center;
   }
 
   #listing.details .details-mobile-list .item > div:last-child {

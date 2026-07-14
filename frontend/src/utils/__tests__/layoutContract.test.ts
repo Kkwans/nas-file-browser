@@ -4,6 +4,8 @@ import {
   chooseListingLayout,
   getTapSelectionBehavior,
   getGridColumnCount,
+  shouldOpenDetailedRow,
+  shouldOpenDetailedRowFromClick,
   shouldRenderMobileSelection,
 } from "../layoutContract";
 
@@ -50,5 +52,17 @@ describe("file listing layout contract", () => {
         selectedCount: 1,
       })
     ).toEqual({ preserveExisting: false, allowDoubleOpen: true });
+  });
+
+  it("opens a detailed row from its content but never from an action button", () => {
+    expect(shouldOpenDetailedRow(false)).toBe(true);
+    expect(shouldOpenDetailedRow(true)).toBe(false);
+  });
+
+  it("opens on the second click even when selection state updates between clicks", () => {
+    expect(shouldOpenDetailedRowFromClick(2, false, false)).toBe(true);
+    expect(shouldOpenDetailedRowFromClick(1, true, false)).toBe(true);
+    expect(shouldOpenDetailedRowFromClick(1, true, true)).toBe(false);
+    expect(shouldOpenDetailedRowFromClick(1, false, false)).toBe(false);
   });
 });

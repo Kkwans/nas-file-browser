@@ -15,7 +15,11 @@
     @keydown.space.prevent="itemClick"
     @contextmenu="contextMenu"
   >
-    <td class="details-name-cell">
+    <td
+      class="details-name-cell"
+      @click.stop="itemClick"
+      @dblclick.stop.prevent="open"
+    >
       <div class="details-identity">
         <video
           v-if="
@@ -81,14 +85,22 @@
         </div>
       </div>
     </td>
-    <td class="details-type-cell">
+    <td
+      class="details-type-cell"
+      @click.stop="itemClick"
+      @dblclick.stop.prevent="open"
+    >
       <span>{{ fileTypeLabel }}</span>
     </td>
     <td class="details-size-cell">{{ isDir ? "—" : humanSize }}</td>
-    <td class="details-modified-cell">
+    <td
+      class="details-modified-cell"
+      @click.stop="itemClick"
+      @dblclick.stop.prevent="open"
+    >
       <time :datetime="modified">{{ humanTime }}</time>
     </td>
-    <td class="details-actions-cell" @click.stop>
+    <td class="details-actions-cell" @click.stop @dblclick.stop>
       <button
         class="detail-action-button favorite-star"
         :class="{ 'is-fav': isFavorited }"
@@ -194,6 +206,10 @@ import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { getFileTypeLabel } from "@/utils/fileListing";
+import {
+  shouldOpenDetailedRow,
+  shouldOpenDetailedRowFromClick,
+} from "@/utils/layoutContract";
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
@@ -277,7 +293,10 @@ const toggleFav = () => {
   if (props.path) favoritesStore.toggleFavorite(props.path, props.name);
 };
 const open = (event?: MouseEvent) => {
-  if ((event?.target as HTMLElement | null)?.closest("button")) return;
+  const isActionControl = Boolean(
+    (event?.target as HTMLElement | null)?.closest(".details-actions-cell")
+  );
+  if (!shouldOpenDetailedRow(isActionControl)) return;
   router.push({ path: props.url });
 };
 const toggleTagPicker = () => {
@@ -314,7 +333,13 @@ const downloadItem = () => {
 };
 const itemClick = (event: Event | KeyboardEvent) => {
   if ((event.target as HTMLElement).closest("button")) return;
-  if (authStore.user?.singleClick && !fileStore.multiple) {
+  if (
+    shouldOpenDetailedRowFromClick(
+      (event as MouseEvent).detail ?? 0,
+      Boolean(authStore.user?.singleClick),
+      fileStore.multiple
+    )
+  ) {
     router.push({ path: props.url });
     return;
   }

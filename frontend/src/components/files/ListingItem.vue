@@ -24,7 +24,7 @@
     :data-ext="getExtension(name).toLowerCase()"
     @contextmenu="contextMenu"
   >
-    <div>
+    <div class="item-visual">
       <video
         v-if="
           !readOnly &&
@@ -55,17 +55,16 @@
         class="material-icons file-type-icon"
         aria-hidden="true"
       ></i>
-    </div>
-
-    <div class="item-controls" @click.stop>
       <span
         v-if="isDir && riskLevel !== 'low'"
         class="risk-badge"
         :class="'risk-' + riskLevel"
         :title="riskTitle"
         :aria-label="riskTitle"
-        >{{ riskLevel === "high" ? "高危" : "中危" }}</span
-      >
+      ></span>
+    </div>
+
+    <div class="item-controls" @click.stop>
       <div class="item-quick-actions">
         <button
           class="item-icon-button favorite-star"

@@ -20,6 +20,19 @@ export function shouldRenderMobileSelection(
   return isMobile && (multiple || selectedCount > 0);
 }
 
+/** A double click on row content opens it; embedded action controls never do. */
+export function shouldOpenDetailedRow(isActionControl: boolean): boolean {
+  return !isActionControl;
+}
+
+export function shouldOpenDetailedRowFromClick(
+  clickCount: number,
+  singleClickEnabled: boolean,
+  multipleSelection: boolean
+): boolean {
+  return clickCount >= 2 || (singleClickEnabled && !multipleSelection);
+}
+
 export interface TapSelectionInput {
   isTouch: boolean;
   multiple: boolean;

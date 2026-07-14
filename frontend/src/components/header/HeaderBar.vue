@@ -7,7 +7,7 @@
         class="menu-button"
         icon="menu"
         label="切换侧边栏"
-        @action="layoutStore.showHover('sidebar')"
+        @action="layoutStore.toggleTransient('sidebar')"
       />
     </div>
 
@@ -31,7 +31,7 @@
         id="more"
         icon="more_vert"
         label="更多"
-        @action="layoutStore.showHover('more')"
+        @action="layoutStore.toggleTransient('more')"
       />
     </div>
 
@@ -58,7 +58,7 @@ defineProps<{
 const layoutStore = useLayoutStore();
 const slots = useSlots();
 
-const ifActionsSlot = computed(
-  () => Boolean(slots.actions || slots["mobile-actions"])
+const ifActionsSlot = computed(() =>
+  Boolean(slots.actions || slots["mobile-actions"])
 );
 </script>

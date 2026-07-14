@@ -27,5 +27,23 @@ export function normalizeSearchBase(rawBase: string): string {
   if (!base.startsWith("/")) base = `/${base}`;
   base = base.replace(/\/+/g, "/");
   if (base.length > 1) base = base.replace(/\/+$/, "");
+  if (base === "/") return "/";
   return `${base}/`;
+}
+
+/** 将搜索上下文稳定映射回文件列表路由。 */
+export function buildFilesRouteFromSearchBase(rawBase: string): string {
+  const base = normalizeSearchBase(rawBase);
+  return base === "/" ? "/files/" : `/files${base}`;
+}
+
+/** 切换搜索范围时保留进入搜索页前的目录，供“返回文件列表”使用。 */
+export function buildTagSearchQuery(
+  rawBase: string,
+  scope: "current" | "global"
+): { base: string; scope: "current" | "global" } {
+  return {
+    base: normalizeSearchBase(rawBase),
+    scope,
+  };
 }

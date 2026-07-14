@@ -19,8 +19,8 @@ export const useLayoutStore = defineStore("layout", {
         ? state.prompts[state.prompts.length - 1]
         : null;
     },
-    currentPromptName(): string | null | undefined {
-      return this.currentPrompt?.prompt;
+    currentPromptName(): string | null {
+      return this.currentPrompt?.prompt ?? null;
     },
     // user and jwt getter removed, no longer needed
   },
@@ -56,6 +56,17 @@ export const useLayoutStore = defineStore("layout", {
         props: value?.props,
         close: value?.close,
       });
+    },
+    toggleTransient(prompt: "sidebar" | "more") {
+      if (this.currentPromptName === prompt) {
+        this.closeHovers();
+        return;
+      }
+
+      this.prompts = this.prompts.filter(
+        (item) => item.prompt !== "sidebar" && item.prompt !== "more"
+      );
+      this.showHover(prompt);
     },
     showError() {
       this.prompts.push({

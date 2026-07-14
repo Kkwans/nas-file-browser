@@ -70,13 +70,14 @@
                 全局
               </button>
             </div>
-            <button
-              type="button"
+            <router-link
+              :to="returnFileRoute"
+              replace
               class="tag-results-back"
-              @click.prevent="clearTagMode"
+              @click="prepareTagExit"
             >
               返回文件列表
-            </button>
+            </router-link>
           </div>
 
           <div v-if="tagLoading" class="search-loading">
@@ -213,7 +214,11 @@ import { useFileStore } from "@/stores/file";
 import { useTagsStore, type Tag } from "@/stores/tags";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
-import { normalizeSearchBase } from "@/utils/searchPath";
+import {
+  buildFilesRouteFromSearchBase,
+  buildTagSearchQuery,
+  normalizeSearchBase,
+} from "@/utils/searchPath";
 import { buildTaggedPathUrl, getTaggedPathName } from "@/utils/tagResults";
 import dayjs from "@/utils/date";
 import {
@@ -359,26 +364,22 @@ const setTagSearchScope = async (scope: "current" | "global") => {
   await router.replace({
     query: {
       ...route.query,
-      scope,
-      base: scope === "global" ? "/" : currentBasePath.value,
+      ...buildTagSearchQuery(currentBasePath.value, scope),
     },
   });
   await loadTagResults();
 };
 
-const clearTagMode = async () => {
+const returnFileRoute = computed(() =>
+  buildFilesRouteFromSearchBase(
+    typeof route.query.base === "string" ? route.query.base : "/"
+  )
+);
+
+const prepareTagExit = () => {
   tagsStore.setFilter(null);
   tagLoadGeneration++;
   tagLoadAbortController.abort();
-  const base =
-    typeof route.query.base === "string"
-      ? normalizeSearchBase(route.query.base)
-      : "/";
-  const target = `/files${base === "/" ? "/" : base}`;
-  if (route.path === target) return;
-  // 这是从临时结果页回到文件列表，不应再压入一个历史记录，
-  // 否则浏览器返回键会重新进入已失效的标签结果状态。
-  await router.replace({ path: target });
 };
 
 onMounted(() => {
@@ -784,6 +785,9 @@ const fileIcon = (item: SearchResult): string => {
 }
 
 .tag-results-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 2.75rem;
   flex: 0 0 auto;
   padding: 0 0.875rem;
@@ -792,6 +796,7 @@ const fileIcon = (item: SearchResult): string => {
   border: 1px solid var(--borderPrimary, #e2e8f0);
   border-radius: 0.5rem;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .tag-results-back:hover,

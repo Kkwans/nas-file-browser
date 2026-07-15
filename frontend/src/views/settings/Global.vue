@@ -60,7 +60,7 @@
           <h3>品牌定制</h3>
 
           <p class="small">
-            '如需自定义品牌，请参考'
+            如需自定义品牌，请参考
             <a
               class="link"
               target="_blank"

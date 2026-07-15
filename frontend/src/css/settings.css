@@ -610,8 +610,21 @@
  * * * * * * * * * * * * * * * */
 
 @media (max-width: 768px) {
+  .dashboard {
+    width: 100%;
+    max-width: none;
+    margin-right: 0;
+    margin-left: 0;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+  }
+
   .dashboard .row {
     flex-direction: column;
+    width: 100%;
+    max-width: none;
+    padding-right: 0;
+    padding-left: 0;
   }
 
   .dashboard .row .column {

@@ -21,54 +21,55 @@
       @dblclick.stop.prevent="open"
     >
       <div class="details-identity">
-        <video
-          v-if="
-            !videoPreviewFailed &&
-            !readOnly &&
-            type === 'video' &&
-            isThumbsEnabled
-          "
-          :src="videoPreviewUrl"
-          :aria-label="`${name} 视频预览`"
-          muted
-          playsinline
-          preload="metadata"
-          @loadedmetadata="showVideoPreviewFrame"
-          @error="videoPreviewFailed = true"
-        ></video>
-        <img
-          v-if="
-            !previewFailed && !readOnly && type === 'image' && isThumbsEnabled
-          "
-          :src="thumbnailUrl"
-          :alt="name"
-          loading="lazy"
-          decoding="async"
-          @error="previewFailed = true"
-        />
-        <i
-          v-if="
-            readOnly ||
-            !isThumbsEnabled ||
-            (type !== 'image' && type !== 'video') ||
-            previewFailed ||
-            videoPreviewFailed
-          "
-          class="material-icons file-type-icon"
-          aria-hidden="true"
-        ></i>
+        <div class="details-row-visual item-visual">
+          <video
+            v-if="
+              !videoPreviewFailed &&
+              !readOnly &&
+              type === 'video' &&
+              isThumbsEnabled
+            "
+            :src="videoPreviewUrl"
+            :aria-label="`${name} 视频预览`"
+            muted
+            playsinline
+            preload="metadata"
+            @loadedmetadata="showVideoPreviewFrame"
+            @error="videoPreviewFailed = true"
+          ></video>
+          <img
+            v-if="
+              !previewFailed && !readOnly && type === 'image' && isThumbsEnabled
+            "
+            :src="thumbnailUrl"
+            :alt="name"
+            loading="lazy"
+            decoding="async"
+            @error="previewFailed = true"
+          />
+          <i
+            v-if="
+              readOnly ||
+              !isThumbsEnabled ||
+              (type !== 'image' && type !== 'video') ||
+              previewFailed ||
+              videoPreviewFailed
+            "
+            class="material-icons file-type-icon"
+            aria-hidden="true"
+          ></i>
+          <span
+            v-if="isDir && riskLevel !== 'low'"
+            class="risk-badge"
+            :class="'risk-' + riskLevel"
+            :title="riskTitle"
+            :aria-label="riskTitle"
+          ></span>
+        </div>
         <div class="details-name-content">
           <div class="name">
             <div class="item-title-row">
               <span class="item-name">{{ name }}</span>
-              <i
-                v-if="isDir && riskLevel !== 'low'"
-                class="material-icons risk-icon"
-                :class="'risk-' + riskLevel"
-                :title="riskTitle"
-                aria-hidden="true"
-                >{{ riskLevel === "high" ? "warning" : "info" }}</i
-              >
             </div>
             <div v-if="pathTags.length" class="item-tag-list">
               <span

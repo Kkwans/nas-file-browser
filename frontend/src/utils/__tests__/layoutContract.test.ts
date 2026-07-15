@@ -4,6 +4,7 @@ import {
   chooseListingLayout,
   getTapSelectionBehavior,
   getGridColumnCount,
+  getListingFieldVisibility,
   shouldOpenDetailedRow,
   shouldOpenDetailedRowFromClick,
   shouldRenderMobileSelection,
@@ -26,6 +27,24 @@ describe("file listing layout contract", () => {
     expect(getGridColumnCount("mosaic", 360)).toBe(2);
     expect(getGridColumnCount("mosaic", 736)).toBe(2);
     expect(getGridColumnCount("mosaic", 1200)).toBeGreaterThanOrEqual(4);
+  });
+
+  it("keeps compact grids limited to the visual and file name", () => {
+    expect(getListingFieldVisibility("compact-grid")).toEqual({
+      quickActions: false,
+      tags: false,
+      type: false,
+      size: false,
+      modified: false,
+    });
+
+    expect(getListingFieldVisibility("mosaic")).toEqual({
+      quickActions: true,
+      tags: true,
+      type: true,
+      size: true,
+      modified: true,
+    });
   });
 
   it("keeps prior selections when a touch user taps another item", () => {

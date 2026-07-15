@@ -214,12 +214,12 @@
 
 #listing .risk-badge {
   position: absolute;
-  right: -1px;
-  bottom: -1px;
+  top: 8px;
+  left: 8px;
   z-index: 2;
   display: block;
-  width: 11px;
-  height: 11px;
+  width: 8px;
+  height: 8px;
   padding: 0;
   border: 2px solid var(--listing-surface, #fff);
   border-radius: 50%;
@@ -351,6 +351,7 @@
 
 #listing.mosaic .item > div:first-child {
   flex: 0 0 100px;
+  justify-self: center;
   margin: 14px 0 8px;
 }
 
@@ -388,11 +389,6 @@
   top: 10px;
   right: 10px;
   z-index: 2;
-}
-
-#listing.mosaic .risk-badge {
-  right: 2px;
-  bottom: 2px;
 }
 
 #listing.mosaic .item-name {
@@ -497,7 +493,10 @@
 #listing.compact-grid .modified,
 #listing.compact-grid .item-quick-actions,
 #listing.compact-grid .tag-chip,
-#listing.compact-grid .risk-icon,
+#listing.compact-grid .risk-icon {
+  display: none;
+}
+
 #listing.compact-grid .risk-badge {
   display: block;
 }
@@ -707,15 +706,18 @@
   gap: 12px;
 }
 
-#listing.details .details-identity > img,
-#listing.details .details-identity > .file-type-icon {
+#listing.details .details-row-visual,
+#listing.details .details-row-visual > img,
+#listing.details .details-row-visual > video,
+#listing.details .details-row-visual > .file-type-icon {
   flex: 0 0 48px;
   width: 48px;
   height: 48px;
   font-size: 48px;
 }
 
-#listing.details .details-identity > img {
+#listing.details .details-row-visual > img,
+#listing.details .details-row-visual > video {
   overflow: hidden;
   border-radius: 10px;
   object-fit: cover;

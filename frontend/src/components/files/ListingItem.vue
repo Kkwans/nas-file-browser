@@ -64,7 +64,7 @@
       ></span>
     </div>
 
-    <div class="item-controls" @click.stop>
+    <div v-if="fieldVisibility.quickActions" class="item-controls" @click.stop>
       <div class="item-quick-actions">
         <button
           class="item-icon-button favorite-star"
@@ -106,7 +106,10 @@
         <div class="item-title-row">
           <span class="item-name">{{ name }}</span>
         </div>
-        <div v-if="pathTags.length" class="item-tag-list">
+        <div
+          v-if="fieldVisibility.tags && pathTags.length"
+          class="item-tag-list"
+        >
           <span
             v-for="tag in pathTags"
             :key="tag.id"
@@ -119,16 +122,16 @@
         </div>
       </div>
 
-      <div class="detail-meta">
+      <div v-if="fieldVisibility.type" class="detail-meta">
         <span class="detail-type">{{ fileTypeLabel }}</span>
         <span class="detail-path" :title="path">{{ path }}</span>
       </div>
 
-      <p class="size" :data-order="humanSize">
+      <p v-if="fieldVisibility.size" class="size" :data-order="humanSize">
         {{ isDir ? "—" : humanSize }}
       </p>
 
-      <p class="modified">
+      <p v-if="fieldVisibility.modified" class="modified">
         <time :datetime="modified">{{ humanTime }}</time>
       </p>
 
@@ -275,7 +278,10 @@ import { useTagsStore } from "@/stores/tags";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
-import { getTapSelectionBehavior } from "@/utils/layoutContract";
+import {
+  getListingFieldVisibility,
+  getTapSelectionBehavior,
+} from "@/utils/layoutContract";
 import { getFileTypeLabel } from "@/utils/fileListing";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
@@ -316,6 +322,9 @@ const layoutStore = useLayoutStore();
 const categoriesStore = useCategoriesStore();
 const favoritesStore = useFavoritesStore();
 const tagsStore = useTagsStore();
+const fieldVisibility = computed(() =>
+  getListingFieldVisibility(props.viewMode)
+);
 
 const singleClick = computed(
   () => !props.readOnly && authStore.user?.singleClick

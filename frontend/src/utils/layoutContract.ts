@@ -2,6 +2,37 @@ import type { ViewModeType } from "@/types/user";
 
 export type ListingLayout = "table" | "mobile";
 
+export type ListingFieldVisibility = {
+  quickActions: boolean;
+  tags: boolean;
+  type: boolean;
+  size: boolean;
+  modified: boolean;
+};
+
+/** Compact grids deliberately expose only the visual, name and folder risk dot. */
+export function getListingFieldVisibility(
+  mode: ViewModeType | string | undefined
+): ListingFieldVisibility {
+  if (mode === "compact-grid") {
+    return {
+      quickActions: false,
+      tags: false,
+      type: false,
+      size: false,
+      modified: false,
+    };
+  }
+
+  return {
+    quickActions: true,
+    tags: true,
+    type: true,
+    size: true,
+    modified: true,
+  };
+}
+
 /**
  * The detailed list switches layout from the available listing container,
  * not from the viewport. This keeps the contract correct when the sidebar is

@@ -5,15 +5,15 @@
 
 /* Header search --------------------------------------------------------- */
 header > .header-center {
-  justify-content: center;
+  justify-content: flex-start;
   padding-inline: 12px;
 }
 
 .listing-search {
-  width: min(100%, 720px);
+  width: 100%;
   min-width: 240px;
   height: 40px;
-  margin: 0 auto;
+  margin: 0;
   padding: 0 6px;
   border: 1px solid var(--borderPrimary, #dbe2ea);
   border-radius: 10px;
@@ -34,14 +34,9 @@ header > .header-center {
 
 .listing-search input {
   height: 100%;
-  padding-inline: 38px;
+  padding: 0 10px 0 12px;
   color: var(--textPrimary, #1f2937);
   font-size: 14px;
-  text-align: center;
-}
-
-.listing-search input:focus,
-.listing-search input:not(:placeholder-shown) {
   text-align: left;
 }
 
@@ -50,14 +45,42 @@ header > .header-center {
   opacity: 0.9;
 }
 
-.listing-search-submit {
+.listing-search-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+}
+
+.listing-search-submit,
+.listing-search-clear {
+  display: inline-grid;
   width: 32px;
   min-width: 32px;
   height: 32px;
+  place-items: center;
+  padding: 0;
+  border: 0;
   border-radius: 8px;
+  color: var(--textSecondary, #64748b);
+  background: transparent;
+  cursor: pointer;
 }
 
-.listing-search-submit .material-icons {
+.listing-search-submit {
+  color: var(--blue, #1677ff);
+}
+
+.listing-search-submit:hover,
+.listing-search-clear:hover,
+.listing-search-submit:focus-visible,
+.listing-search-clear:focus-visible {
+  background: color-mix(in srgb, var(--blue, #1677ff) 10%, transparent);
+  outline: none;
+}
+
+.listing-search-submit .material-icons,
+.listing-search-clear .material-icons {
   font-size: 19px;
 }
 
@@ -259,9 +282,10 @@ header > .header-center {
   gap: 12px;
 }
 
-#listing.details .details-identity > img,
-#listing.details .details-identity > video,
-#listing.details .details-identity > .file-type-icon {
+#listing.details .details-row-visual,
+#listing.details .details-row-visual > img,
+#listing.details .details-row-visual > video,
+#listing.details .details-row-visual > .file-type-icon {
   width: 44px;
   min-width: 44px;
   height: 44px;
@@ -292,11 +316,6 @@ header > .header-center {
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-#listing.details .risk-icon {
-  flex: 0 0 auto;
-  font-size: 17px;
 }
 
 #listing.details .details-name-content .item-tag-list {
@@ -404,6 +423,11 @@ header > .header-center {
   font-size: 92px;
 }
 
+#listing.mosaic .item > .item-visual {
+  align-self: center;
+  justify-self: center;
+}
+
 #listing.mosaic .item > .item-controls {
   position: absolute;
   top: 10px;
@@ -412,19 +436,21 @@ header > .header-center {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   min-width: 0;
   gap: 6px;
 }
 
-#listing.mosaic .item > .item-controls .risk-badge {
-  margin-right: auto;
+#listing.mosaic .item > .item-controls .item-quick-actions {
+  display: contents;
 }
 
-#listing.mosaic .item > .item-controls .item-quick-actions {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 3px;
+#listing.mosaic .item > .item-controls .tag-btn {
+  order: 1;
+}
+
+#listing.mosaic .item > .item-controls .favorite-star {
+  order: 2;
 }
 
 #listing.mosaic .item-icon-button {
@@ -951,6 +977,7 @@ nav.sidebar .sidebar-resize-handle:active {
   }
 
   header > .header-center {
+    justify-content: center;
     padding: 0 4px;
   }
 
@@ -965,7 +992,7 @@ nav.sidebar .sidebar-resize-handle:active {
   }
 
   .listing-search input {
-    padding-inline: 34px;
+    padding-inline: 8px;
     font-size: 12px;
     text-align: center;
   }
@@ -1202,8 +1229,8 @@ nav.sidebar .sidebar-resize-handle:active {
     width: 11px;
     height: 11px;
     margin: 0;
-    right: -2px;
-    bottom: -2px;
+    top: 4px;
+    left: 4px;
   }
 
   #listing.details .details-mobile-list .item-quick-actions {
@@ -1362,9 +1389,9 @@ nav.sidebar .sidebar-resize-handle:active {
   }
 
   #listing.mosaic .risk-badge {
-    height: 20px;
-    padding-inline: 6px;
-    font-size: 10px;
+    width: 8px;
+    height: 8px;
+    padding: 0;
   }
 }
 

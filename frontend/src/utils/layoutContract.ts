@@ -10,6 +10,16 @@ export type ListingFieldVisibility = {
   modified: boolean;
 };
 
+export type ListingTagPresentation = "names" | "dots" | "none";
+
+export function getListingTagPresentation(
+  mode: ViewModeType | string | undefined
+): ListingTagPresentation {
+  if (mode === "mosaic") return "dots";
+  if (mode === "details") return "names";
+  return "none";
+}
+
 /** Compact grids deliberately expose only the visual, name and folder risk dot. */
 export function getListingFieldVisibility(
   mode: ViewModeType | string | undefined

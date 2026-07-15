@@ -1,118 +1,185 @@
 <template>
-  <div class="tag-manager">
-    <div class="tag-manager-header">
-      <h3>管理标签</h3>
-      <button class="close-btn" @click="close" title="关闭">
-        <i class="material-icons">close</i>
+  <div
+    class="tag-manager"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tag-manager-title"
+  >
+    <header class="tag-manager-header">
+      <div>
+        <h3 id="tag-manager-title">管理标签</h3>
+        <p>为标签选择容易辨认且不重复的颜色</p>
+      </div>
+      <button
+        class="icon-button close-button"
+        type="button"
+        title="关闭"
+        @click="close"
+      >
+        <i class="material-icons" aria-hidden="true">close</i>
       </button>
-    </div>
+    </header>
 
-    <!-- Create new tag -->
-    <div class="tag-create">
-      <div class="tag-create-row">
+    <section class="tag-create" aria-label="创建标签">
+      <div class="tag-create-controls">
         <input
           v-model="newTagName"
-          type="text"
           class="tag-input"
-          placeholder="标签名称..."
+          type="text"
+          placeholder="输入标签名称"
           maxlength="20"
           @keyup.enter="createTag"
         />
-        <div class="color-picker">
-          <button
-            v-for="c in TAG_COLORS"
-            :key="c"
-            class="color-dot"
-            :class="{ active: newTagColor === c }"
-            :style="{ background: c }"
-            type="button"
-            :aria-label="`选择颜色 ${c}`"
-            @click="newTagColor = c"
-          />
-          <label
-            class="color-dot custom-color"
-            :class="{ active: !TAG_COLORS.includes(newTagColor) }"
-            title="自定义颜色"
-            aria-label="自定义颜色"
-          >
-            <span class="custom-color-center">
-              <i class="material-icons">palette</i>
-            </span>
-            <input
-              v-model="newTagColor"
-              type="color"
-              aria-label="选择自定义颜色"
-            />
-          </label>
-        </div>
         <button
-          class="tag-create-btn"
-          :disabled="!newTagName.trim()"
+          class="primary-button"
+          type="button"
+          :disabled="!canCreateTag"
           @click="createTag"
         >
-          <i class="material-icons">add</i>
+          <i class="material-icons" aria-hidden="true">add</i>
           创建标签
         </button>
       </div>
-    </div>
 
-    <!-- Tag list -->
-    <div class="tag-list">
-      <div v-if="tagsStore.sortedTags.length === 0" class="tag-empty">
-        暂无标签，创建一个吧
+      <div class="color-grid" aria-label="标签颜色">
+        <button
+          v-for="color in TAG_COLORS"
+          :key="color"
+          class="color-swatch"
+          :class="{
+            selected: isSameColor(newTagColor, color),
+            unavailable: !isColorAvailable(color),
+          }"
+          :style="{ '--swatch-color': color }"
+          type="button"
+          :disabled="!isColorAvailable(color)"
+          :aria-label="colorLabel(color)"
+          :aria-pressed="isSameColor(newTagColor, color)"
+          @click="newTagColor = color"
+        >
+          <i
+            v-if="isSameColor(newTagColor, color)"
+            class="material-icons"
+            aria-hidden="true"
+            >check</i
+          >
+        </button>
+        <label
+          class="color-swatch custom-swatch"
+          :class="{ selected: isCustomColorSelected(newTagColor) }"
+          title="自定义颜色"
+          aria-label="自定义颜色"
+        >
+          <i class="material-icons" aria-hidden="true">palette</i>
+          <input
+            v-model="newTagColor"
+            type="color"
+            aria-label="选择自定义颜色"
+          />
+        </label>
       </div>
-      <div v-for="tag in tagsStore.sortedTags" :key="tag.id" class="tag-item">
-        <!-- View mode -->
-        <template v-if="editingId !== tag.id">
-          <span class="tag-dot" :style="{ background: tag.color }"></span>
-          <span class="tag-name">{{ tag.name }}</span>
-          <span class="tag-count">{{ tag.paths.length }}</span>
+      <p v-if="createError" class="form-error" role="alert">
+        {{ createError }}
+      </p>
+    </section>
+
+    <section class="tag-list" aria-label="已有标签">
+      <p v-if="tagsStore.sortedTags.length === 0" class="tag-empty">
+        暂无标签，可以先创建一个标签
+      </p>
+
+      <article
+        v-for="tag in tagsStore.sortedTags"
+        :key="tag.id"
+        class="tag-entry"
+      >
+        <div v-if="editingId !== tag.id" class="tag-row">
+          <span
+            class="tag-dot"
+            :style="{ backgroundColor: tag.color }"
+            aria-hidden="true"
+          ></span>
+          <span class="tag-name" :title="tag.name">{{ tag.name }}</span>
+          <span class="tag-count" :aria-label="`${tag.paths.length} 个项目`">{{
+            tag.paths.length
+          }}</span>
           <button
-            class="tag-action-btn"
+            class="icon-button"
+            type="button"
             title="编辑标签"
             @click="startEdit(tag)"
           >
-            <i class="material-icons">edit</i>
+            <i class="material-icons" aria-hidden="true">edit</i>
           </button>
           <button
-            class="tag-action-btn delete"
+            class="icon-button danger-button"
+            type="button"
             title="删除标签"
             @click="confirmDelete(tag)"
           >
-            <i class="material-icons">delete</i>
+            <i class="material-icons" aria-hidden="true">delete</i>
           </button>
-        </template>
+        </div>
 
-        <!-- Edit mode -->
-        <template v-else>
-          <input
-            v-model="editName"
-            type="text"
-            class="tag-input small"
-            maxlength="20"
-            @keyup.enter="saveEdit(tag.id)"
-            @keyup.escape="cancelEdit"
-          />
-          <div class="color-picker compact">
-            <button
-              v-for="c in TAG_COLORS"
-              :key="c"
-              class="color-dot small"
-              :class="{ active: editColor === c }"
-              :style="{ background: c }"
-              type="button"
-              :aria-label="`选择颜色 ${c}`"
-              @click="editColor = c"
+        <div v-else class="tag-edit-panel">
+          <div class="tag-edit-controls">
+            <input
+              v-model="editName"
+              class="tag-input"
+              type="text"
+              maxlength="20"
+              aria-label="标签名称"
+              @keyup.enter="saveEdit(tag.id)"
+              @keyup.escape="cancelEdit"
             />
+            <button
+              class="icon-button save-button"
+              type="button"
+              title="保存"
+              @click="saveEdit(tag.id)"
+            >
+              <i class="material-icons" aria-hidden="true">check</i>
+            </button>
+            <button
+              class="icon-button"
+              type="button"
+              title="取消"
+              @click="cancelEdit"
+            >
+              <i class="material-icons" aria-hidden="true">close</i>
+            </button>
+          </div>
+
+          <div class="color-grid edit-color-grid" aria-label="修改标签颜色">
+            <button
+              v-for="color in TAG_COLORS"
+              :key="color"
+              class="color-swatch small"
+              :class="{
+                selected: isSameColor(editColor, color),
+                unavailable: !isColorAvailable(color, tag.id),
+              }"
+              :style="{ '--swatch-color': color }"
+              type="button"
+              :disabled="!isColorAvailable(color, tag.id)"
+              :aria-label="colorLabel(color, tag.id)"
+              :aria-pressed="isSameColor(editColor, color)"
+              @click="editColor = color"
+            >
+              <i
+                v-if="isSameColor(editColor, color)"
+                class="material-icons"
+                aria-hidden="true"
+                >check</i
+              >
+            </button>
             <label
-              class="color-dot small custom-color"
-              :class="{ active: !TAG_COLORS.includes(editColor) }"
+              class="color-swatch custom-swatch small"
+              :class="{ selected: isCustomColorSelected(editColor) }"
               title="自定义颜色"
               aria-label="自定义颜色"
             >
-              <span class="custom-color-center">
-                <i class="material-icons">palette</i>
-              </span>
+              <i class="material-icons" aria-hidden="true">palette</i>
               <input
                 v-model="editColor"
                 type="color"
@@ -120,76 +187,149 @@
               />
             </label>
           </div>
-          <button class="tag-action-btn save" @click="saveEdit(tag.id)">
-            <i class="material-icons">check</i>
-          </button>
-          <button class="tag-action-btn" @click="cancelEdit">
-            <i class="material-icons">close</i>
-          </button>
-        </template>
-      </div>
-    </div>
+          <p v-if="editError" class="form-error" role="alert">
+            {{ editError }}
+          </p>
+        </div>
 
-    <!-- Delete confirmation -->
-    <div v-if="deleteTarget" class="tag-delete-confirm">
-      <p>确定删除标签「{{ deleteTarget.name }}」？</p>
-      <div class="tag-delete-actions">
-        <button class="btn-cancel" @click="deleteTarget = null">取消</button>
-        <button class="btn-delete" @click="doDelete">删除</button>
-      </div>
-    </div>
+        <div
+          v-if="deleteTarget?.id === tag.id"
+          class="delete-confirmation"
+          role="alertdialog"
+        >
+          <div>
+            <strong>删除“{{ tag.name }}”？</strong>
+            <p>标签关联会一并移除，但不会删除文件。</p>
+          </div>
+          <div class="delete-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              @click="deleteTarget = null"
+            >
+              取消
+            </button>
+            <button class="delete-button" type="button" @click="doDelete">
+              确认删除
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useTagsStore, TAG_COLORS, type Tag } from "@/stores/tags";
-const emit = defineEmits<{
-  close: [];
-}>();
+import { computed, ref } from "vue";
+import { TAG_COLORS, type Tag, useTagsStore } from "@/stores/tags";
+import { isTagColorAvailable, normalizeTagColor } from "@/utils/tagColors";
 
+const emit = defineEmits<{ close: [] }>();
 const tagsStore = useTagsStore();
 
 const newTagName = ref("");
-const newTagColor = ref(TAG_COLORS[5]); // Blue default
+const newTagColor = ref(
+  TAG_COLORS.find((color) => isTagColorAvailable(tagsStore.tags, color)) ??
+    "#2E90FA"
+);
+const createError = ref("");
 
 const editingId = ref<string | null>(null);
 const editName = ref("");
 const editColor = ref("");
-
+const editError = ref("");
 const deleteTarget = ref<Tag | null>(null);
 
-function createTag() {
+const canCreateTag = computed(
+  () =>
+    newTagName.value.trim().length > 0 && isColorAvailable(newTagColor.value)
+);
+
+function isSameColor(first: string, second: string) {
+  return normalizeTagColor(first) === normalizeTagColor(second);
+}
+
+function isColorAvailable(color: string, excludedTagId?: string) {
+  return isTagColorAvailable(tagsStore.tags, color, excludedTagId);
+}
+
+function isCustomColorSelected(color: string) {
+  return !TAG_COLORS.some((preset) => isSameColor(color, preset));
+}
+
+function colorLabel(color: string, excludedTagId?: string) {
+  return isColorAvailable(color, excludedTagId)
+    ? `选择颜色 ${color}`
+    : `颜色 ${color} 已被其他标签使用`;
+}
+
+function selectNextAvailableColor() {
+  const nextColor = TAG_COLORS.find((color) => isColorAvailable(color));
+  if (nextColor) newTagColor.value = nextColor;
+}
+
+async function createTag() {
   if (!newTagName.value.trim()) return;
-  tagsStore.createTag(newTagName.value, newTagColor.value);
+  createError.value = "";
+  if (!isColorAvailable(newTagColor.value)) {
+    createError.value = "该颜色已被其他标签使用，请选择其他颜色。";
+    return;
+  }
+  const created = await tagsStore.createTag(
+    newTagName.value,
+    newTagColor.value
+  );
+  if (!created) {
+    createError.value = "该颜色已被其他标签使用，请选择其他颜色。";
+    return;
+  }
   newTagName.value = "";
+  selectNextAvailableColor();
 }
 
 function startEdit(tag: Tag) {
+  deleteTarget.value = null;
   editingId.value = tag.id;
   editName.value = tag.name;
   editColor.value = tag.color;
+  editError.value = "";
 }
 
-function saveEdit(id: string) {
-  if (!editName.value.trim()) return;
-  tagsStore.updateTag(id, { name: editName.value, color: editColor.value });
+async function saveEdit(id: string) {
+  if (!editName.value.trim()) {
+    editError.value = "标签名称不能为空。";
+    return;
+  }
+  if (!isColorAvailable(editColor.value, id)) {
+    editError.value = "该颜色已被其他标签使用，请选择其他颜色。";
+    return;
+  }
+  editError.value = "";
+  const saved = await tagsStore.updateTag(id, {
+    name: editName.value,
+    color: editColor.value,
+  });
+  if (!saved) {
+    editError.value = "保存失败，请稍后重试。";
+    return;
+  }
   editingId.value = null;
 }
 
 function cancelEdit() {
   editingId.value = null;
+  editError.value = "";
 }
 
 function confirmDelete(tag: Tag) {
-  deleteTarget.value = tag;
+  editingId.value = null;
+  deleteTarget.value = deleteTarget.value?.id === tag.id ? null : tag;
 }
 
-function doDelete() {
-  if (deleteTarget.value) {
-    tagsStore.deleteTag(deleteTarget.value.id);
-    deleteTarget.value = null;
-  }
+async function doDelete() {
+  if (!deleteTarget.value) return;
+  await tagsStore.deleteTag(deleteTarget.value.id);
+  deleteTarget.value = null;
 }
 
 function close() {
@@ -199,342 +339,9 @@ function close() {
 
 <style scoped>
 .tag-manager {
-  background: var(--surfacePrimary, #fff);
-  border-radius: 0.75em;
-  padding: 1.5em;
-  max-width: 28em;
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.tag-manager-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1em;
-}
-
-.tag-manager-header h3 {
-  margin: 0;
-  font-size: 1.125em;
-  font-weight: 600;
-  color: var(--textPrimary, #1a1a2e);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--textSecondary, #666);
-  padding: 0.25em;
-  border-radius: 50%;
-  display: flex;
-}
-
-.close-btn:hover {
-  background: var(--hover, rgba(0, 0, 0, 0.06));
-}
-
-/* Create section */
-.tag-create {
-  margin-bottom: 1.25em;
-  padding-bottom: 1em;
-  border-bottom: 1px solid var(--divider, rgba(0, 0, 0, 0.08));
-}
-
-.tag-create-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
-
-.tag-input {
-  width: 100%;
-  padding: 0.5em 0.75em;
-  border: 1px solid var(--divider, rgba(0, 0, 0, 0.15));
-  border-radius: 0.5em;
-  background: var(--surfaceSecondary, #f5f5f5);
-  color: var(--textPrimary, #1a1a2e);
-  font-size: 0.875em;
-  outline: none;
   box-sizing: border-box;
-}
-
-.tag-input:focus {
-  border-color: var(--blue, #2196f3);
-}
-
-.tag-input.small {
-  flex: 1;
-  min-width: 0;
-}
-
-.color-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35em;
-}
-
-.color-picker.compact {
-  gap: 0.25em;
-}
-
-.color-dot {
-  width: 1.25em;
-  height: 1.25em;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    transform 0.15s;
-}
-
-.color-dot.small {
-  width: 1em;
-  height: 1em;
-}
-
-.color-dot:hover {
-  transform: scale(1.15);
-}
-
-.color-dot.active {
-  border-color: var(--textPrimary, #1a1a2e);
-}
-
-.custom-color {
-  position: relative;
-  overflow: hidden;
-  background: conic-gradient(
-    from 20deg,
-    #ff5f6d,
-    #ffc371,
-    #8bd450,
-    #39c6f4,
-    #5975e8,
-    #c56cf0,
-    #ff5f6d
-  );
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
-}
-
-.custom-color-center {
-  display: grid;
-  place-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #64748b;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.color-dot.small .custom-color-center {
-  width: 0.7rem;
-  height: 0.7rem;
-}
-
-.custom-color-center .material-icons {
-  font-size: 0.85rem;
-}
-
-.color-dot.small .custom-color-center .material-icons {
-  font-size: 0.5rem;
-}
-
-.custom-color input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.tag-create-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.25em;
-  padding: 0.4em 0.75em;
-  background: var(--blue, #2196f3);
-  color: #fff;
-  border: none;
-  border-radius: 0.5em;
-  font-size: 0.8125em;
-  cursor: pointer;
-  align-self: flex-end;
-}
-
-.tag-create-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.tag-create-btn:not(:disabled):hover {
-  filter: brightness(1.1);
-}
-
-.tag-create-btn .material-icons {
-  font-size: 1em;
-}
-
-/* Tag list */
-.tag-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375em;
-}
-
-.tag-empty {
-  text-align: center;
-  padding: 1.5em 0;
-  color: var(--textSecondary, #999);
-  font-size: 0.875em;
-}
-
-.tag-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.4em 0.5em;
-  border-radius: 0.375em;
-  transition: background 0.15s;
-}
-
-.tag-item:hover {
-  background: var(--hover, rgba(0, 0, 0, 0.04));
-}
-
-.tag-dot {
-  width: 0.625em;
-  height: 0.625em;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.tag-name {
-  flex: 1;
-  font-size: 0.875em;
-  color: var(--textPrimary, #1a1a2e);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tag-count {
-  font-size: 0.75em;
-  color: var(--textSecondary, #999);
-  background: var(--surfaceSecondary, #f0f0f0);
-  padding: 0.1em 0.4em;
-  border-radius: 0.75em;
-  min-width: 1.2em;
-  text-align: center;
-}
-
-.tag-action-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--textSecondary, #888);
-  padding: 0.2em;
-  border-radius: 0.25em;
-  display: flex;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.tag-item:hover .tag-action-btn {
-  opacity: 1;
-}
-
-.tag-action-btn:hover {
-  background: var(--hover, rgba(0, 0, 0, 0.08));
-  color: var(--textPrimary, #1a1a2e);
-}
-
-.tag-action-btn.delete:hover {
-  color: var(--icon-red, #da4453);
-}
-
-.tag-action-btn.save {
-  color: var(--icon-green, #27ae60);
-  opacity: 1;
-}
-
-.tag-action-btn .material-icons {
-  font-size: 1em;
-}
-
-/* Delete confirmation */
-.tag-delete-confirm {
-  margin-top: 0.75em;
-  padding: 0.75em;
-  background: rgba(244, 67, 54, 0.06);
-  border: 1px solid rgba(244, 67, 54, 0.2);
-  border-radius: 0.5em;
-}
-
-.tag-delete-confirm p {
-  margin: 0 0 0.5em;
-  font-size: 0.8125em;
-  color: var(--textPrimary, #1a1a2e);
-}
-
-.tag-delete-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5em;
-}
-
-.btn-cancel,
-.btn-delete {
-  padding: 0.3em 0.75em;
-  border: none;
-  border-radius: 0.375em;
-  font-size: 0.8125em;
-  cursor: pointer;
-}
-
-.btn-cancel {
-  background: var(--surfaceSecondary, #f0f0f0);
-  color: var(--textPrimary, #1a1a2e);
-}
-
-.btn-delete {
-  background: var(--icon-red, #da4453);
-  color: #fff;
-}
-
-.btn-delete:hover {
-  filter: brightness(1.1);
-}
-
-/* Dark mode */
-.dark .tag-manager {
-  background: var(--surfacePrimary, #1e1e2e);
-}
-.dark .tag-input {
-  background: var(--surfaceSecondary, #2a2a3e);
-  border-color: var(--divider, rgba(255, 255, 255, 0.1));
-  color: var(--textPrimary, #e0e0e0);
-}
-.dark .tag-delete-confirm {
-  background: rgba(244, 67, 54, 0.1);
-}
-</style>
-
-<style scoped>
-/* 标签管理器采用清晰的工具面板层级，所有动作都保持固定命中区域。 */
-.tag-manager {
-  box-sizing: border-box;
-  width: min(36rem, calc(100vw - 2rem));
-  max-width: none;
-  max-height: min(42rem, calc(100dvh - 2rem));
+  width: min(42rem, calc(100vw - 2rem));
+  max-height: min(46rem, calc(100dvh - 2rem));
   padding: 1.5rem;
   overflow-y: auto;
   color: var(--textPrimary, #1e293b);
@@ -544,8 +351,26 @@ function close() {
   box-shadow: 0 1.5rem 4rem rgba(15, 23, 42, 0.2);
 }
 
+.tag-manager-header,
+.tag-create-controls,
+.tag-row,
+.tag-edit-controls,
+.delete-confirmation,
+.delete-actions {
+  display: flex;
+  align-items: center;
+}
+
 .tag-manager-header {
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1.25rem;
+}
+
+.tag-manager-header h3,
+.tag-manager-header p,
+.delete-confirmation p {
+  margin: 0;
 }
 
 .tag-manager-header h3 {
@@ -553,26 +378,10 @@ function close() {
   letter-spacing: -0.02em;
 }
 
-.close-btn,
-.tag-action-btn,
-.color-dot {
-  display: inline-grid;
-  place-items: center;
-  min-width: 2.5rem;
-  min-height: 2.5rem;
-  padding: 0;
-  cursor: pointer;
-}
-
-.close-btn {
+.tag-manager-header p {
+  margin-top: 0.25rem;
   color: var(--textSecondary, #64748b);
-  border: 1px solid var(--divider, #e2e8f0);
-  border-radius: 0.5rem;
-}
-
-.close-btn:hover {
-  color: #dc2626;
-  background: #fef2f2;
+  font-size: 0.8125rem;
 }
 
 .tag-create {
@@ -583,127 +392,326 @@ function close() {
   border-radius: 0.75rem;
 }
 
-.tag-create-row {
-  gap: 0.75rem;
+.tag-create-controls,
+.tag-edit-controls {
+  gap: 0.625rem;
 }
 
 .tag-input {
+  box-sizing: border-box;
+  min-width: 0;
   min-height: 2.75rem;
+  flex: 1;
   padding: 0.625rem 0.75rem;
+  color: var(--textPrimary, #1e293b);
   background: var(--surfacePrimary, #fff);
-  border-color: var(--divider, #cbd5e1);
+  border: 1px solid var(--divider, #cbd5e1);
   border-radius: 0.5rem;
-  font-size: 0.9375rem;
+  outline: none;
+  font: inherit;
 }
 
-.color-picker {
-  display: grid;
-  grid-template-columns: repeat(9, 2.25rem);
-  gap: 0.5rem;
-  justify-content: start;
+.tag-input:focus {
+  border-color: #2e90fa;
+  box-shadow: 0 0 0 3px rgba(46, 144, 250, 0.14);
 }
 
-.color-dot {
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 3px solid transparent;
-  border-radius: 50%;
-  transition: box-shadow 140ms ease;
+.primary-button,
+.secondary-button,
+.delete-button,
+.icon-button {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
 }
 
-.color-dot:hover {
-  transform: none;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.18);
-}
-
-.color-dot.active {
-  border-color: var(--textPrimary, #1e293b);
-  box-shadow:
-    0 0 0 2px var(--surfacePrimary, #fff),
-    0 0 0 4px #1677ff;
-}
-
-.color-picker.compact {
-  grid-template-columns: repeat(9, 1rem);
-  gap: 0.25rem;
-}
-
-.color-picker .color-dot {
-  justify-self: center;
-}
-
-.tag-create-btn {
-  min-height: 2.75rem;
+.primary-button {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 0.25rem;
+  min-height: 2.75rem;
   padding: 0.625rem 1rem;
+  color: #fff;
   background: #1677ff;
   border-radius: 0.5rem;
   font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.primary-button .material-icons {
+  font-size: 1.125rem;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(2.25rem, 1fr));
+  gap: 0.75rem 0.625rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.color-swatch {
+  --swatch-color: transparent;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  justify-self: center;
+  box-sizing: border-box;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: #fff;
+  background: var(--swatch-color);
+  border: 2px solid transparent;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+}
+
+.color-swatch:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px rgba(46, 144, 250, 0.18);
+}
+
+.color-swatch.selected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px #2e90fa;
+}
+
+.color-swatch.unavailable {
+  cursor: not-allowed;
+  opacity: 0.24;
+}
+
+.color-swatch .material-icons {
+  font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
+}
+
+.custom-swatch {
+  overflow: hidden;
+  color: #fff;
+  background: conic-gradient(
+    #ef4444,
+    #f59e0b,
+    #84cc16,
+    #14b8a6,
+    #3b82f6,
+    #8b5cf6,
+    #ec4899,
+    #ef4444
+  );
+}
+
+.custom-swatch > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.form-error {
+  margin: 0.625rem 0 0;
+  color: #d92d20;
+  font-size: 0.8125rem;
 }
 
 .tag-list {
+  display: grid;
   gap: 0.5rem;
 }
 
-.tag-item {
-  min-height: 3.25rem;
-  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
-  border: 1px solid transparent;
-  border-radius: 0.625rem;
-}
-
-.tag-item:hover {
-  background: var(--surfaceSecondary, #f8fafc);
-  border-color: var(--divider, #e2e8f0);
-}
-
-.tag-action-btn {
-  opacity: 1;
+.tag-empty {
+  margin: 0;
+  padding: 2rem 1rem;
   color: var(--textSecondary, #64748b);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 0.375rem;
+  text-align: center;
 }
 
-.tag-action-btn:hover {
-  color: #1677ff;
-  background: rgba(22, 119, 255, 0.08);
+.tag-entry {
+  overflow: hidden;
+  border: 1px solid var(--divider, #e2e8f0);
+  border-radius: 0.75rem;
 }
 
-.tag-action-btn.delete:hover {
-  color: #dc2626;
-  background: #fef2f2;
+.tag-row {
+  min-height: 3.5rem;
+  gap: 0.625rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.875rem;
+}
+
+.tag-row:hover {
+  background: var(--surfaceSecondary, #f8fafc);
+}
+
+.tag-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.tag-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tag-count {
   min-width: 2rem;
   padding: 0.25rem 0.5rem;
+  color: var(--textSecondary, #64748b);
+  background: var(--surfaceSecondary, #f1f5f9);
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--textSecondary, #64748b);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+}
+
+.icon-button:hover {
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.08);
+}
+
+.close-button {
+  border-color: var(--divider, #e2e8f0);
+}
+
+.danger-button:hover {
+  color: #d92d20;
+  background: #fef3f2;
+}
+
+.save-button {
+  color: #079455;
+  background: #ecfdf3;
+}
+
+.icon-button .material-icons {
+  font-size: 1.25rem;
+}
+
+.tag-edit-panel {
+  padding: 0.75rem;
+  background: var(--surfaceSecondary, #f8fafc);
+}
+
+.edit-color-grid {
+  grid-template-columns: repeat(9, minmax(1.75rem, 1fr));
+  gap: 0.5rem 0.375rem;
+  margin-top: 0.75rem;
+}
+
+.color-swatch.small {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.color-swatch.small .material-icons {
+  font-size: 0.8125rem;
+}
+
+.delete-confirmation {
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.875rem;
+  background: #fff8f7;
+  border-top: 1px solid #fecdca;
+}
+
+.delete-confirmation strong {
+  font-size: 0.875rem;
+}
+
+.delete-confirmation p {
+  margin-top: 0.125rem;
+  color: var(--textSecondary, #64748b);
+  font-size: 0.75rem;
+}
+
+.delete-actions {
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.secondary-button,
+.delete-button {
+  min-height: 2.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.secondary-button {
+  color: var(--textPrimary, #1e293b);
+  background: var(--surfacePrimary, #fff);
+  border: 1px solid var(--divider, #d0d5dd);
+}
+
+.delete-button {
+  color: #fff;
+  background: #d92d20;
 }
 
 @media (max-width: 736px) {
   .tag-manager {
     width: 100%;
-    max-height: 80dvh;
+    max-height: 84dvh;
     padding: 1rem;
     border: 0;
     border-radius: 1rem 1rem 0 0;
   }
 
-  .tag-create-row {
-    display: grid;
+  .tag-create-controls {
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .color-picker {
-    grid-template-columns: repeat(6, 2.25rem);
+  .color-grid {
+    grid-template-columns: repeat(6, 1fr);
   }
 
-  .color-picker.compact {
-    grid-template-columns: repeat(9, 1rem);
+  .edit-color-grid {
+    grid-template-columns: repeat(6, 1fr);
   }
 
-  .tag-list {
-    max-height: 40dvh;
+  .delete-confirmation {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .delete-actions {
+    justify-content: flex-end;
   }
 }
 </style>

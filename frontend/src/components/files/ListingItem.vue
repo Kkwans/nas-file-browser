@@ -109,15 +109,21 @@
         <div
           v-if="fieldVisibility.tags && pathTags.length"
           class="item-tag-list"
+          :class="`tag-presentation-${tagPresentation}`"
         >
           <span
             v-for="tag in pathTags"
             :key="tag.id"
-            class="tag-chip"
+            :class="
+              tagPresentation === 'dots' ? 'tag-color-marker' : 'tag-chip'
+            "
             :style="{ '--tag-color': tag.color }"
             :title="tag.name"
+            :aria-label="tag.name"
           >
-            <span class="tag-chip-dot"></span>{{ tag.name }}
+            <template v-if="tagPresentation === 'names'">
+              <span class="tag-chip-dot"></span>{{ tag.name }}
+            </template>
           </span>
         </div>
       </div>
@@ -280,6 +286,7 @@ import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import {
   getListingFieldVisibility,
+  getListingTagPresentation,
   getTapSelectionBehavior,
 } from "@/utils/layoutContract";
 import { getFileTypeLabel } from "@/utils/fileListing";
@@ -324,6 +331,9 @@ const favoritesStore = useFavoritesStore();
 const tagsStore = useTagsStore();
 const fieldVisibility = computed(() =>
   getListingFieldVisibility(props.viewMode)
+);
+const tagPresentation = computed(() =>
+  getListingTagPresentation(props.viewMode)
 );
 
 const singleClick = computed(

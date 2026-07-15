@@ -320,6 +320,24 @@
   background: var(--tag-color, #64748b);
 }
 
+#listing .tag-presentation-dots {
+  min-height: 18px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+#listing .tag-color-marker {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--listing-surface, #fff);
+  border-radius: 50%;
+  background: var(--tag-color, #64748b);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tag-color) 45%, #cbd5e1);
+}
+
 /* Detailed grid */
 #listing.mosaic > div[data-clear-on-click="true"],
 #listing.compact-grid > div[data-clear-on-click="true"] {

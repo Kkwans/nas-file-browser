@@ -8,6 +8,7 @@ import {
   userStorageKey,
 } from "@/utils/favoritePersistence";
 import { isDescendantPath, normalizeTagPath } from "@/utils/tagPath";
+import { isTagColorAvailable, normalizeTagColor } from "@/utils/tagColors";
 
 export interface Tag {
   id: string;
@@ -25,29 +26,30 @@ const API_BASE = "/api/tags";
 function normalizeTag(tag: Tag): Tag {
   return {
     ...tag,
+    color: normalizeTagColor(tag.color),
     paths: (tag.paths || []).map(normalizeTagPath),
   };
 }
 
 // Predefined color palette for tags
 export const TAG_COLORS = [
-  "#F44336", // Red
-  "#E91E63", // Pink
-  "#9C27B0", // Purple
-  "#673AB7", // Deep Purple
-  "#3F51B5", // Indigo
-  "#2196F3", // Blue
-  "#03A9F4", // Light Blue
-  "#00BCD4", // Cyan
-  "#009688", // Teal
-  "#4CAF50", // Green
-  "#8BC34A", // Light Green
-  "#CDDC39", // Lime
-  "#FFC107", // Amber
-  "#FF9800", // Orange
-  "#FF5722", // Deep Orange
-  "#795548", // Brown
-  "#607D8B", // Blue Grey
+  "#F04438",
+  "#E31B54",
+  "#BA24D5",
+  "#7F56D9",
+  "#444CE7",
+  "#2E90FA",
+  "#06AED4",
+  "#15B79E",
+  "#12B76A",
+  "#66C61C",
+  "#CA8504",
+  "#F79009",
+  "#EF6820",
+  "#EE46BC",
+  "#875BF7",
+  "#8E4B10",
+  "#667085",
 ];
 
 export const useTagsStore = defineStore("tags", () => {
@@ -212,11 +214,13 @@ export const useTagsStore = defineStore("tags", () => {
   }
 
   // Create a new tag
-  async function createTag(name: string, color: string): Promise<Tag> {
+  async function createTag(name: string, color: string): Promise<Tag | null> {
+    const normalizedColor = normalizeTagColor(color);
+    if (!isTagColorAvailable(tags.value, normalizedColor)) return null;
     const tag: Tag = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       name: name.trim(),
-      color,
+      color: normalizedColor,
       paths: [],
       createdAt: Date.now(),
     };
@@ -236,14 +240,24 @@ export const useTagsStore = defineStore("tags", () => {
   async function updateTag(
     id: string,
     updates: Partial<Pick<Tag, "name" | "color">>
-  ) {
+  ): Promise<boolean> {
     const tag = tags.value.find((t) => t.id === id);
-    if (!tag) return;
+    if (!tag) return false;
+    if (
+      updates.color !== undefined &&
+      !isTagColorAvailable(tags.value, updates.color, id)
+    ) {
+      return false;
+    }
     if (updates.name !== undefined) tag.name = updates.name.trim();
-    if (updates.color !== undefined) tag.color = updates.color;
+    if (updates.color !== undefined) {
+      updates.color = normalizeTagColor(updates.color);
+      tag.color = updates.color;
+    }
     saveToLocalStorage();
     const result = await apiUpdate(id, updates);
     if (!result.ok && result.status === 404) await refreshAfterMutation();
+    return result.ok;
   }
 
   // Delete a tag

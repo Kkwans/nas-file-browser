@@ -5,6 +5,7 @@ import {
   getTapSelectionBehavior,
   getGridColumnCount,
   getListingFieldVisibility,
+  getListingTagPresentation,
   isEditableKeyboardTarget,
   shouldOpenDetailedRow,
   shouldOpenDetailedRowFromClick,
@@ -12,6 +13,13 @@ import {
 } from "../layoutContract";
 
 describe("file listing layout contract", () => {
+  it("shows color-only tag markers in the detailed grid", () => {
+    expect(getListingTagPresentation("mosaic")).toBe("dots");
+    expect(getListingTagPresentation("details")).toBe("names");
+    expect(getListingTagPresentation("compact-grid")).toBe("none");
+    expect(getListingTagPresentation("compact-list")).toBe("none");
+  });
+
   it("uses a semantic table only when the listing container is wide enough", () => {
     expect(chooseListingLayout(899)).toBe("mobile");
     expect(chooseListingLayout(900)).toBe("table");

@@ -286,16 +286,18 @@ import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import {
+  getMobileTouchAction,
   getListingFieldVisibility,
   getListingTagPresentation,
   getTapSelectionBehavior,
+  shouldSuppressDesktopContextMenu,
   shouldRenderListingSize,
   shouldRenderListingTagSlot,
 } from "@/utils/layoutContract";
 import { getFileTypeLabel } from "@/utils/fileListing";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
-import { computed, inject, ref } from "vue";
+import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
 import type { Resource, ConflictingResource, MoveCopyItem } from "@/types/file";
@@ -305,7 +307,13 @@ const touches = ref<number>(0);
 const longPressTimer = ref<number | null>(null);
 const longPressTriggered = ref<boolean>(false);
 const touchInteraction = ref<boolean>(false);
+const touchGestureActive = ref<boolean>(false);
+const touchMoved = ref<boolean>(false);
+const mobileTapCount = ref<number>(0);
+const mobileTapTimer = ref<number | null>(null);
+const touchResetTimer = ref<number | null>(null);
 const longPressDelay = ref<number>(500);
+const doubleTapDelay = ref<number>(320);
 const startPosition = ref<{ x: number; y: number } | null>(null);
 const moveThreshold = ref<number>(10);
 
@@ -608,6 +616,10 @@ const itemClick = (event: Event | KeyboardEvent) => {
   // Close pickers on any item click
   showTagPicker.value = false;
 
+  // Browsers dispatch a synthetic click after touchend. Mobile gestures are
+  // resolved in the touch handlers, so this click must never select an item.
+  if (touchInteraction.value) return;
+
   // If long press was triggered, prevent normal click behavior
   if (longPressTriggered.value) {
     longPressTriggered.value = false;
@@ -619,8 +631,6 @@ const itemClick = (event: Event | KeyboardEvent) => {
     multiple: fileStore.multiple,
     selectedCount: fileStore.selectedCount,
   });
-  touchInteraction.value = false;
-
   if (
     singleClick.value &&
     !(event as KeyboardEvent).ctrlKey &&
@@ -634,6 +644,10 @@ const itemClick = (event: Event | KeyboardEvent) => {
 
 const contextMenu = (event: MouseEvent) => {
   event.preventDefault();
+  if (shouldSuppressDesktopContextMenu(touchInteraction.value)) {
+    event.stopPropagation();
+    return;
+  }
   if (
     fileStore.selected.length === 0 ||
     event.ctrlKey ||
@@ -731,6 +745,24 @@ const startLongPress = (clientX: number, clientY: number) => {
   }, longPressDelay.value);
 };
 
+const clearMobileTapCandidate = () => {
+  if (mobileTapTimer.value !== null) {
+    window.clearTimeout(mobileTapTimer.value);
+    mobileTapTimer.value = null;
+  }
+  mobileTapCount.value = 0;
+};
+
+const finishTouchInteraction = () => {
+  if (touchResetTimer.value !== null) {
+    window.clearTimeout(touchResetTimer.value);
+  }
+  touchResetTimer.value = window.setTimeout(() => {
+    touchInteraction.value = false;
+    touchResetTimer.value = null;
+  }, doubleTapDelay.value + 80);
+};
+
 const cancelLongPress = () => {
   if (longPressTimer.value !== null) {
     window.clearTimeout(longPressTimer.value);
@@ -740,16 +772,22 @@ const cancelLongPress = () => {
 };
 
 const handleLongPress = () => {
-  if (singleClick.value) {
+  const action = getMobileTouchAction({
+    tapCount: mobileTapCount.value,
+    longPress: touchGestureActive.value,
+    moved: touchMoved.value,
+  });
+  if (action === "select-and-menu") {
     longPressTriggered.value = true;
-    click(
-      new Event("longpress"),
-      getTapSelectionBehavior({
-        isTouch: true,
-        multiple: fileStore.multiple,
-        selectedCount: fileStore.selectedCount,
-      })
-    );
+    clearMobileTapCandidate();
+    fileStore.multiple = true;
+    if (!fileStore.selected.includes(props.index)) {
+      fileStore.selected.push(props.index);
+    }
+    openMobileActionSheet();
+  } else if (singleClick.value) {
+    longPressTriggered.value = true;
+    click(new Event("longpress"));
   }
   cancelLongPress();
 };
@@ -779,7 +817,17 @@ const handleMouseLeave = () => {
 };
 
 const handleTouchStart = (event: TouchEvent) => {
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("button, input, select, textarea, a")) return;
+
+  if (touchResetTimer.value !== null) {
+    window.clearTimeout(touchResetTimer.value);
+    touchResetTimer.value = null;
+  }
   touchInteraction.value = true;
+  touchGestureActive.value = true;
+  touchMoved.value = false;
+  longPressTriggered.value = false;
   if (event.touches.length === 1) {
     const touch = event.touches[0];
     startLongPress(touch.clientX, touch.clientY);
@@ -787,21 +835,64 @@ const handleTouchStart = (event: TouchEvent) => {
 };
 
 const handleTouchEnd = () => {
+  if (!touchGestureActive.value) return;
   cancelLongPress();
+
+  const wasLongPress = longPressTriggered.value;
+  if (!wasLongPress && !touchMoved.value) {
+    mobileTapCount.value += 1;
+    const action = getMobileTouchAction({
+      tapCount: mobileTapCount.value,
+      longPress: false,
+      moved: false,
+    });
+
+    if (action === "open") {
+      clearMobileTapCandidate();
+      open();
+    } else {
+      if (mobileTapTimer.value !== null) {
+        window.clearTimeout(mobileTapTimer.value);
+      }
+      mobileTapTimer.value = window.setTimeout(() => {
+        clearMobileTapCandidate();
+      }, doubleTapDelay.value);
+    }
+  } else if (touchMoved.value) {
+    clearMobileTapCandidate();
+  }
+
+  touchGestureActive.value = false;
+  touchMoved.value = false;
+  longPressTriggered.value = false;
+  finishTouchInteraction();
 };
 
 const handleTouchCancel = () => {
-  touchInteraction.value = false;
+  touchGestureActive.value = false;
+  touchMoved.value = true;
+  longPressTriggered.value = false;
+  clearMobileTapCandidate();
   cancelLongPress();
+  finishTouchInteraction();
 };
 
 const handleTouchMove = (event: TouchEvent) => {
   if (event.touches.length === 1 && startPosition.value) {
     const touch = event.touches[0];
     if (checkMovement(touch.clientX, touch.clientY)) {
-      touchInteraction.value = false;
+      touchMoved.value = true;
+      clearMobileTapCandidate();
       cancelLongPress();
     }
   }
 };
+
+onBeforeUnmount(() => {
+  cancelLongPress();
+  clearMobileTapCandidate();
+  if (touchResetTimer.value !== null) {
+    window.clearTimeout(touchResetTimer.value);
+  }
+});
 </script>

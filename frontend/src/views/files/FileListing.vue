@@ -755,6 +755,7 @@ import {
 import {
   isEditableKeyboardTarget,
   shouldRenderMobileSelection,
+  shouldSuppressDesktopContextMenu,
 } from "@/utils/layoutContract";
 import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
@@ -1762,6 +1763,11 @@ const revealPreviousItem = () => {
 
 const showContextMenu = (event: MouseEvent) => {
   event.preventDefault();
+  if (shouldSuppressDesktopContextMenu(isMobile.value)) {
+    event.stopPropagation();
+    hideContextMenu();
+    return;
+  }
 
   const target = event.target;
   if (target instanceof HTMLElement) {

@@ -95,6 +95,14 @@ export interface TapSelectionInput {
   selectedCount: number;
 }
 
+export type MobileTouchAction = "none" | "open" | "select-and-menu";
+
+export interface MobileTouchInput {
+  tapCount: number;
+  longPress: boolean;
+  moved: boolean;
+}
+
 type EditableKeyboardTarget = {
   tagName?: string;
   isContentEditable?: boolean;
@@ -128,14 +136,39 @@ export function getTapSelectionBehavior({
 }
 
 /**
+ * Touch gestures intentionally do not reuse the desktop click contract:
+ * a single tap is inert, a double tap opens, and a stationary long press
+ * enters selection and opens the mobile action sheet.
+ */
+export function getMobileTouchAction({
+  tapCount,
+  longPress,
+  moved,
+}: MobileTouchInput): MobileTouchAction {
+  if (moved) return "none";
+  if (longPress) return "select-and-menu";
+  if (tapCount >= 2) return "open";
+  return "none";
+}
+
+export function shouldSuppressDesktopContextMenu(isMobile: boolean): boolean {
+  return isMobile;
+}
+
+/**
  * Return a stable grid column count. CSS remains the source of truth for the
  * final width; this helper is only used for responsive state and tests.
  */
 export function getGridColumnCount(
   mode: Extract<ViewModeType, "mosaic" | "compact-grid">,
-  containerWidth: number
+  containerWidth: number,
+  compactGridSize: "small" | "medium" | "large" | "xlarge" = "medium"
 ): number {
-  if (containerWidth <= 736) return 2;
+  if (containerWidth <= 736) {
+    if (mode === "compact-grid" && compactGridSize === "small") return 4;
+    if (mode === "compact-grid" && compactGridSize === "medium") return 3;
+    return 2;
+  }
 
   const minimumCardWidth = mode === "compact-grid" ? 108 : 180;
   return Math.max(

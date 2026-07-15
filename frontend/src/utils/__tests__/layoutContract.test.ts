@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   chooseListingLayout,
+  getMobileTouchAction,
   getTapSelectionBehavior,
   getGridColumnCount,
   getListingFieldVisibility,
@@ -12,6 +13,7 @@ import {
   shouldRenderListingSize,
   shouldRenderListingTagSlot,
   shouldRenderMobileSelection,
+  shouldSuppressDesktopContextMenu,
 } from "../layoutContract";
 
 describe("file listing layout contract", () => {
@@ -38,6 +40,12 @@ describe("file listing layout contract", () => {
     expect(getGridColumnCount("mosaic", 360)).toBe(2);
     expect(getGridColumnCount("mosaic", 736)).toBe(2);
     expect(getGridColumnCount("mosaic", 1200)).toBeGreaterThanOrEqual(4);
+  });
+
+  it("uses four compact columns for small icons and three for medium icons on phones", () => {
+    expect(getGridColumnCount("compact-grid", 360, "small")).toBe(4);
+    expect(getGridColumnCount("compact-grid", 360, "medium")).toBe(3);
+    expect(getGridColumnCount("compact-grid", 360, "large")).toBe(2);
   });
 
   it("keeps compact grids limited to the visual and file name", () => {
@@ -107,6 +115,29 @@ describe("file listing layout contract", () => {
     expect(shouldOpenDetailedRowFromClick(1, true, false)).toBe(true);
     expect(shouldOpenDetailedRowFromClick(1, true, true)).toBe(false);
     expect(shouldOpenDetailedRowFromClick(1, false, false)).toBe(false);
+  });
+
+  it("keeps a single mobile tap inert and opens on the second tap", () => {
+    expect(
+      getMobileTouchAction({ tapCount: 1, longPress: false, moved: false })
+    ).toBe("none");
+    expect(
+      getMobileTouchAction({ tapCount: 2, longPress: false, moved: false })
+    ).toBe("open");
+  });
+
+  it("opens the bottom action menu only after a stationary long press", () => {
+    expect(
+      getMobileTouchAction({ tapCount: 1, longPress: true, moved: false })
+    ).toBe("select-and-menu");
+    expect(
+      getMobileTouchAction({ tapCount: 2, longPress: true, moved: true })
+    ).toBe("none");
+  });
+
+  it("suppresses the desktop context menu on mobile only", () => {
+    expect(shouldSuppressDesktopContextMenu(true)).toBe(true);
+    expect(shouldSuppressDesktopContextMenu(false)).toBe(false);
   });
 
   it("does not let file shortcuts capture keyboard input from editable controls", () => {

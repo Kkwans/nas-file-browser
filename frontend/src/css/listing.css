@@ -1563,6 +1563,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  #listing.compact-grid.compact-grid-size-medium
+    > div[data-clear-on-click="true"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   #listing.compact-grid .item {
     min-height: 128px;
   }
@@ -1582,7 +1587,7 @@
      mobile rule above is only the medium-icon fallback. */
   #listing.compact-grid.compact-grid-size-small
     > div[data-clear-on-click="true"] {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   #listing.compact-grid.compact-grid-size-small .item {

@@ -33,7 +33,7 @@
       <!-- Basic info rows -->
       <div class="info-row" v-if="selected.length < 2">
         <span class="info-label">类型</span>
-        <span class="info-value">{{ dir ? "文件夹" : "文件" }}</span>
+        <span class="info-value">{{ fileTypeLabel }}</span>
       </div>
 
       <div class="info-row" v-if="!dir || selected.length > 1">
@@ -184,6 +184,7 @@ import { files as api } from "@/api";
 import { removePrefix } from "@/api/utils";
 import url from "@/utils/url";
 import { summarizeDirectory } from "@/utils/directoryStats";
+import { getFileTypeLabel } from "@/utils/fileListing";
 
 const $showError = inject<IToastError>("$showError")!;
 const showChecksums = ref(false);
@@ -317,6 +318,14 @@ const dir = computed(() => {
 });
 
 const isDirectoryInfo = computed(() => dir.value && selectedCount.value <= 1);
+
+const fileTypeLabel = computed(() => {
+  const fileName = name.value;
+  const extension = fileName.includes(".")
+    ? fileName.slice(fileName.lastIndexOf(".") + 1)
+    : undefined;
+  return getFileTypeLabel({ isDir: dir.value, extension });
+});
 
 const directoryPath = computed(() => {
   if (selectedCount.value === 0) return route.path;

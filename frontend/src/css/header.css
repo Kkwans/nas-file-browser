@@ -244,11 +244,11 @@ header .action.active i {
 /* Desktop workspace toolbar: keep FileBrowser's primary actions visible. */
 @media (min-width: 737px) {
   header > .header-center {
-    position: absolute;
-    left: 50%;
-    width: min(52vw, 860px);
-    justify-content: center;
-    transform: translateX(-50%);
+    position: static;
+    width: 18rem;
+    flex: 0 1 18rem;
+    justify-content: flex-start;
+    transform: none;
   }
 
   header > .header-trailing #dropdown {

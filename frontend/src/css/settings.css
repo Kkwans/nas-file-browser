@@ -68,11 +68,14 @@
 .dashboard .row {
   gap: 1em;
   margin: 0 auto;
-  max-width: 100%;
+  max-width: 1120px;
   padding: 0 1em;
 }
 
 .dashboard .row .column {
+  min-width: 0;
+  flex: 1 1 30rem;
+  width: auto;
   padding: 0;
 }
 

@@ -10,16 +10,26 @@
           @keyup.enter="submitInlineSearch"
           @keyup.escape="clearInlineSearch"
         />
-        <button
-          v-if="inlineSearch"
-          type="button"
-          class="listing-search-submit"
-          aria-label="开始搜索"
-          title="开始搜索"
-          @click="submitInlineSearch"
-        >
-          <i class="material-icons" aria-hidden="true">search</i>
-        </button>
+        <div v-if="inlineSearch" class="listing-search-actions">
+          <button
+            type="button"
+            class="listing-search-clear"
+            aria-label="清空搜索内容"
+            title="清空搜索内容"
+            @click="clearInlineSearch"
+          >
+            <i class="material-icons" aria-hidden="true">close</i>
+          </button>
+          <button
+            type="button"
+            class="listing-search-submit"
+            aria-label="开始搜索"
+            title="开始搜索"
+            @click="submitInlineSearch"
+          >
+            <i class="material-icons" aria-hidden="true">search</i>
+          </button>
+        </div>
       </div>
       <template #actions>
         <template v-if="!isMobile">

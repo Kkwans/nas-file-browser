@@ -7,6 +7,10 @@ import {
   resolvePersistenceState,
   userStorageKey,
 } from "@/utils/favoritePersistence";
+import {
+  reorderFavoriteItems,
+  type FavoriteDropPosition,
+} from "@/utils/sidebarFavorites";
 
 export interface FavoriteGroup {
   id: string;
@@ -357,6 +361,35 @@ export const useFavoritesStore = defineStore("favorites", () => {
     await apiReorder(favorites.value.map((f) => f.id));
   }
 
+  async function moveAndReorderFavorite(
+    draggedId: string,
+    targetId: string,
+    position: FavoriteDropPosition
+  ) {
+    const next = reorderFavoriteItems(
+      favorites.value,
+      draggedId,
+      targetId,
+      position
+    );
+    const moved = next.find((favorite) => favorite.id === draggedId);
+    const previous = favorites.value.find(
+      (favorite) => favorite.id === draggedId
+    );
+    if (!moved || !previous) return;
+
+    const groupChanged = (previous.groupId || "") !== (moved.groupId || "");
+    favorites.value = next;
+    saveToLocalStorage();
+    if (groupChanged) {
+      const result = await apiUpdate(draggedId, {
+        groupId: moved.groupId || "",
+      });
+      if (!result.ok && result.status === 404) await refreshAfterMutation();
+    }
+    await apiReorder(next.map((favorite) => favorite.id));
+  }
+
   async function syncFavorites() {
     const apiData = await apiGet();
     if (apiData) {
@@ -503,6 +536,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
     toggleFavorite,
     moveFavoriteToGroup,
     reorderFavorite,
+    moveAndReorderFavorite,
     syncFavorites,
     addGroup,
     updateGroup,

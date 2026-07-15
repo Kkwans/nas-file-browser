@@ -10,13 +10,17 @@
     ></div>
     <template v-if="isLoggedIn">
       <div class="sidebar-primary-nav">
-        <button type="button" @click="toAccountSettings" class="action">
+        <button
+          type="button"
+          @click="toAccountSettings"
+          class="action sidebar-user-card"
+        >
           <i class="material-icons">person</i>
           <span>{{ user?.username }}</span>
         </button>
         <button
           type="button"
-          class="action"
+          class="action sidebar-command"
           @click="toRoot"
           aria-label="我的文件"
           title="我的文件"
@@ -27,7 +31,7 @@
 
         <button
           type="button"
-          class="action"
+          class="action sidebar-command"
           @click="openSearch"
           aria-label="搜索"
           title="搜索"
@@ -38,8 +42,8 @@
       </div>
 
       <!-- Favorites Section -->
-      <div class="favorites-section">
-        <div class="favorites-header">
+      <div class="favorites-section sidebar-module">
+        <div class="favorites-header sidebar-level-one">
           <button
             class="section-toggle"
             type="button"
@@ -63,7 +67,7 @@
               class="section-action-btn"
               type="button"
               title="清空收藏夹"
-              @click.stop.prevent="clearAllFavorites"
+              @click.stop.prevent="showClearFavoritesConfirm = true"
             >
               <i class="material-icons">delete_sweep</i>
             </button>
@@ -80,6 +84,25 @@
                 :class="{ expanded: !collapsedSections.favorites }"
                 >expand_more</i
               >
+            </button>
+          </div>
+        </div>
+        <div
+          v-if="showClearFavoritesConfirm"
+          class="sidebar-inline-confirm"
+          role="alertdialog"
+          aria-label="确认清空收藏夹"
+        >
+          <span
+            >确认清空全部
+            {{ favoritesStore.sortedFavorites.length }} 项收藏？</span
+          >
+          <div class="sidebar-inline-confirm-actions">
+            <button type="button" @click="showClearFavoritesConfirm = false">
+              取消
+            </button>
+            <button type="button" class="danger" @click="clearAllFavorites">
+              清空
             </button>
           </div>
         </div>
@@ -122,13 +145,14 @@
               v-for="fav in favoritesStore.favoritesByGroup['']"
               :key="fav.id"
               class="action favorite-item"
+              :class="favoriteDropClass(fav.id)"
               draggable="true"
               @click="navigateVolume(fav.path)"
               :title="fav.path"
               @dragstart="onFavDragStart($event, fav.id)"
-              @dragover.prevent="onFavDragOverItem($event)"
+              @dragover.prevent="onFavDragOverItem($event, fav.id)"
               @dragleave="onFavDragLeaveItem"
-              @drop="onFavDropOnItem($event)"
+              @drop="onFavDropOnItem($event, fav.id)"
               @dragend="onFavDragEnd"
             >
               <i class="material-icons favorite-icon favorite-drag-handle"
@@ -158,7 +182,7 @@
             class="favorite-group"
           >
             <div
-              class="favorite-group-header"
+              class="favorite-group-header sidebar-level-two"
               role="button"
               tabindex="0"
               @click="toggleGroupCollapse(group.id)"
@@ -197,13 +221,14 @@
                 v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
                 :key="fav.id"
                 class="action favorite-item category-path-item"
+                :class="favoriteDropClass(fav.id)"
                 draggable="true"
                 @click="navigateVolume(fav.path)"
                 :title="fav.path"
                 @dragstart="onFavDragStart($event, fav.id)"
-                @dragover.prevent="onFavDragOverItem($event)"
+                @dragover.prevent="onFavDragOverItem($event, fav.id)"
                 @dragleave="onFavDragLeaveItem"
-                @drop="onFavDropOnItem($event)"
+                @drop="onFavDropOnItem($event, fav.id)"
                 @dragend="onFavDragEnd"
               >
                 <i class="material-icons favorite-icon favorite-drag-handle"
@@ -239,8 +264,8 @@
       </div>
 
       <!-- Tags Filter Section -->
-      <div class="tags-section">
-        <div class="tags-header">
+      <div class="tags-section sidebar-module">
+        <div class="tags-header sidebar-level-one">
           <button
             class="section-toggle"
             type="button"
@@ -307,9 +332,12 @@
       <!-- Storage Volumes Section (admin only) -->
       <div
         v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
-        class="volumes-section"
+        class="volumes-section sidebar-module"
       >
-        <button class="volumes-header" @click="toggleSection('volumes')">
+        <button
+          class="volumes-header sidebar-level-one"
+          @click="toggleSection('volumes')"
+        >
           <i class="material-icons">storage</i>
           <span>存储卷</span>
           <i
@@ -379,9 +407,12 @@
       <!-- Category Quick Navigation (admin only) -->
       <div
         v-if="user?.perm?.admin && categoryGroups.length > 0"
-        class="categories-section"
+        class="categories-section sidebar-module"
       >
-        <button class="categories-header" @click="toggleSection('categories')">
+        <button
+          class="categories-header sidebar-level-one"
+          @click="toggleSection('categories')"
+        >
           <i class="material-icons">category</i>
           <span>目录分类</span>
           <i
@@ -398,7 +429,7 @@
           >
             <div class="category-group-header-row">
               <button
-                class="action category-group-header category-group-nav"
+                class="action category-group-header category-group-nav sidebar-level-two"
                 @click="navigateCategoryFirst(group)"
                 title="查看内容"
               >
@@ -450,10 +481,10 @@
         </template>
       </div>
 
-      <div v-if="user?.perm?.create">
+      <div v-if="user?.perm?.create" class="sidebar-secondary-actions">
         <button
           @click="showHover('newDir')"
-          class="action"
+          class="action sidebar-command"
           aria-label="新建文件夹"
           title="新建文件夹"
         >
@@ -463,7 +494,7 @@
 
         <button
           @click="showHover('newFile')"
-          class="action"
+          class="action sidebar-command"
           aria-label="新建文件"
           title="新建文件"
         >
@@ -472,9 +503,9 @@
         </button>
       </div>
 
-      <div v-if="user?.perm?.admin">
+      <div v-if="user?.perm?.admin" class="sidebar-secondary-actions">
         <button
-          class="action"
+          class="action sidebar-command"
           @click="toGlobalSettings"
           aria-label="设置"
           title="设置"
@@ -486,7 +517,7 @@
       <button
         v-if="canLogout"
         @click="logout"
-        class="action"
+        class="action sidebar-command"
         id="logout"
         aria-label="退出"
         title="登出"
@@ -519,25 +550,13 @@
       </router-link>
     </template>
 
-    <div
-      class="credits"
-      v-if="isFiles && !disableUsedPercentage"
-      style="width: 90%; margin: 2em 2.5em 3em 2.5em"
-    >
-      <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
-      <br />
-      磁盘使用：{{ usage.used }} / {{ usage.total }}
-    </div>
-
     <p class="credits">
       <span>
-        <span v-if="disableExternal">File Browser</span>
         <a
-          v-else
           rel="noopener noreferrer"
           target="_blank"
-          href="https://github.com/filebrowser/filebrowser"
-          >File Browser</a
+          href="https://github.com/Kkwans/nas-file-browser"
+          >NAS File Browser</a
         >
         <span> {{ " " }} {{ version }}</span>
       </span>
@@ -553,7 +572,6 @@ import { computed, inject, onUnmounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
-import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useVolumesStore } from "@/stores/volumes";
 import { useCategoriesStore } from "@/stores/categories";
@@ -564,26 +582,23 @@ import { useTagsStore } from "@/stores/tags";
 import * as auth from "@/utils/auth";
 import { getFileIcon, isFileByExtension } from "@/utils/fileIcons";
 import {
+  getFavoriteDropPosition,
+  type FavoriteDropPosition,
+} from "@/utils/sidebarFavorites";
+import {
   version,
   signup,
   hideLoginButton,
-  disableExternal,
-  disableUsedPercentage,
   noAuth,
   logoutPage,
   loginPage,
 } from "@/utils/constants";
-import { files as api } from "@/api";
-import ProgressBar from "@/components/ProgressBar.vue";
-import prettyBytes from "pretty-bytes";
-const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };
 
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();
 const router = useRouter();
 
 const authStore = useAuthStore();
-const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const volumesStore = useVolumesStore();
 const categoriesStore = useCategoriesStore();
@@ -592,18 +607,14 @@ const tagsStore = useTagsStore();
 
 const { closeHovers, showHover } = layoutStore;
 const { user, isLoggedIn } = storeToRefs(authStore);
-const { isFiles } = storeToRefs(fileStore);
 const { currentPromptName } = storeToRefs(layoutStore);
 
 // State
-const usage = reactive({ ...USAGE_DEFAULT });
-let usageAbortController = new AbortController();
-let usageDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 const expandedCategories = reactive<Record<string, boolean>>({});
 const collapsedSections = reactive({
   favorites: false,
-  tags: false,
+  tags: true,
   volumes: false,
   categories: false,
 });
@@ -616,14 +627,20 @@ try {
   }
 } catch {}
 
-const dragFromIndex = ref(-1);
-const dragOverIndex = ref(-1);
-const dragOverPosition = ref("");
 const showCreateGroup = ref(false);
+const showClearFavoritesConfirm = ref(false);
 const newGroupName = ref("");
 const collapsedGroups = reactive<Record<string, boolean>>({});
+try {
+  const savedGroups = localStorage.getItem(
+    "nas-file-browser-collapsed-favorite-groups"
+  );
+  if (savedGroups) Object.assign(collapsedGroups, JSON.parse(savedGroups));
+} catch {}
 const dragOverGroupId = ref("");
 const draggedFavId = ref("");
+const dragOverFavoriteId = ref("");
+const dragOverFavoritePosition = ref<FavoriteDropPosition>("before");
 const sidebarWidth = ref(
   parseInt(localStorage.getItem("nas-file-browser-sidebar-width") || "256")
 );
@@ -738,35 +755,6 @@ const resetSidebarWidth = () => {
   } catch {}
 };
 
-const abortOngoingFetchUsage = () => {
-  usageAbortController.abort();
-};
-
-const debouncedFetchUsage = () => {
-  if (usageDebounceTimer) clearTimeout(usageDebounceTimer);
-  usageDebounceTimer = setTimeout(() => fetchUsage(), 300);
-};
-
-const fetchUsage = async () => {
-  const path = route.path.endsWith("/") ? route.path : route.path + "/";
-  let usageStats = { ...USAGE_DEFAULT };
-  if (disableUsedPercentage) {
-    return Object.assign(usage, usageStats);
-  }
-  try {
-    abortOngoingFetchUsage();
-    usageAbortController = new AbortController();
-    const result = await api.usage(path, usageAbortController.signal);
-    usageStats = {
-      used: prettyBytes(result.used, { binary: true }),
-      total: prettyBytes(result.total, { binary: true }),
-      usedPercentage: Math.round((result.used / result.total) * 100),
-    };
-  } finally {
-    return Object.assign(usage, usageStats);
-  }
-};
-
 const volumeBarColor = (percent: number) => {
   if (percent >= 90) return "var(--icon-red, #DA4453)";
   if (percent >= 70) return "var(--icon-orange, #F5A623)";
@@ -814,6 +802,7 @@ const clearAllFavorites = async () => {
   for (const fav of favs) {
     await favoritesStore.removeFavorite(fav.id);
   }
+  showClearFavoritesConfirm.value = false;
 };
 
 const createGroup = async () => {
@@ -833,6 +822,12 @@ const deleteGroup = async (id: string) => {
 
 const toggleGroupCollapse = (id: string) => {
   collapsedGroups[id] = !collapsedGroups[id];
+  try {
+    localStorage.setItem(
+      "nas-file-browser-collapsed-favorite-groups",
+      JSON.stringify(collapsedGroups)
+    );
+  } catch {}
 };
 
 const onFavDragStart = (event: DragEvent, favId: string) => {
@@ -841,16 +836,47 @@ const onFavDragStart = (event: DragEvent, favId: string) => {
   event.dataTransfer!.setData("text/plain", favId);
 };
 
-const onFavDragOverItem = (event: DragEvent) => {
+const onFavDragOverItem = (event: DragEvent, favoriteId: string) => {
   event.dataTransfer!.dropEffect = "move";
+  const element = event.currentTarget as HTMLElement;
+  const rect = element.getBoundingClientRect();
+  dragOverFavoriteId.value = favoriteId;
+  dragOverFavoritePosition.value = getFavoriteDropPosition(
+    event.clientY,
+    rect.top,
+    rect.height
+  );
 };
 
-const onFavDragLeaveItem = () => {};
+const onFavDragLeaveItem = (event: DragEvent) => {
+  const element = event.currentTarget as HTMLElement;
+  if (!element.contains(event.relatedTarget as Node)) {
+    dragOverFavoriteId.value = "";
+  }
+};
 
-const onFavDropOnItem = async (event: DragEvent) => {
+const onFavDropOnItem = async (event: DragEvent, targetId: string) => {
   event.preventDefault();
   dragOverGroupId.value = "";
+  if (draggedFavId.value && draggedFavId.value !== targetId) {
+    await favoritesStore.moveAndReorderFavorite(
+      draggedFavId.value,
+      targetId,
+      dragOverFavoritePosition.value
+    );
+  }
+  dragOverFavoriteId.value = "";
+  draggedFavId.value = "";
 };
+
+const favoriteDropClass = (favoriteId: string) => ({
+  "drag-over-top":
+    dragOverFavoriteId.value === favoriteId &&
+    dragOverFavoritePosition.value === "before",
+  "drag-over-bottom":
+    dragOverFavoriteId.value === favoriteId &&
+    dragOverFavoritePosition.value === "after",
+});
 
 const onFavDragOverGroup = (event: DragEvent, groupId: string) => {
   event.dataTransfer!.dropEffect = "move";
@@ -875,10 +901,8 @@ const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
 };
 
 const onFavDragEnd = () => {
-  dragFromIndex.value = -1;
-  dragOverIndex.value = -1;
-  dragOverPosition.value = "";
   dragOverGroupId.value = "";
+  dragOverFavoriteId.value = "";
   draggedFavId.value = "";
 };
 
@@ -891,7 +915,7 @@ const filterByTag = (tagId: string) => {
     clearTagFilter();
     return;
   }
-  tagsStore.setFilterMode("global");
+  tagsStore.setFilterMode("current");
   tagsStore.setFilter(tagId);
   const base = route.path.startsWith("/files")
     ? route.path.slice("/files".length) || "/"
@@ -901,7 +925,7 @@ const filterByTag = (tagId: string) => {
     query: {
       tag: tagId,
       base: base.endsWith("/") ? base : base + "/",
-      scope: "global",
+      scope: "current",
     },
   });
   closeHovers();
@@ -968,17 +992,6 @@ const help = () => {
 
 const logout = () => auth.logout();
 
-// Watchers
-watch(
-  () => route.path,
-  (path) => {
-    if (path.includes("/files")) {
-      debouncedFetchUsage();
-    }
-  },
-  { immediate: true }
-);
-
 // Lifecycle
 let loadedUserId: number | null = null;
 
@@ -1006,8 +1019,17 @@ watch(
   { immediate: true }
 );
 
+watch(
+  () => favoritesStore.sortedGroups.map((group) => group.id),
+  (groupIds) => {
+    for (const groupId of groupIds) {
+      if (!(groupId in collapsedGroups)) collapsedGroups[groupId] = true;
+    }
+  },
+  { immediate: true }
+);
+
 onUnmounted(() => {
-  if (usageDebounceTimer) clearTimeout(usageDebounceTimer);
-  abortOngoingFetchUsage();
+  stopResize();
 });
 </script>

@@ -12,12 +12,12 @@ import (
 
 // Volume represents a storage volume on the NAS.
 type Volume struct {
-	Path       string     `json:"path"`
-	Name       string     `json:"name"`
-	Type       string     `json:"type"` // system, usb, network, docker
-	TotalSpace uint64     `json:"totalSpace"`
-	UsedSpace  uint64     `json:"usedSpace"`
-	SubDirs    []SubDir   `json:"subDirs,omitempty"`
+	Path       string   `json:"path"`
+	Name       string   `json:"name"`
+	Type       string   `json:"type"` // system, usb, network, docker
+	TotalSpace uint64   `json:"totalSpace"`
+	UsedSpace  uint64   `json:"usedSpace"`
+	SubDirs    []SubDir `json:"subDirs,omitempty"`
 }
 
 // SubDir represents a notable subdirectory within a volume.
@@ -48,8 +48,12 @@ func knownSubDirs(volumePath string) []SubDir {
 		{"@RecentlyScan", "最近扫描"},
 		{"@eaDir", "NAS 元数据"},
 		{"Docker", "Docker 项目"},
-		{"DockerProject", "Docker 工程"},
-		{"docker-apps", "Docker 应用"},
+		{"OpenClaw", "OpenClaw"},
+		{"Project", "Project"},
+		{"Hermes", "Hermes"},
+		{"docker", "docker"},
+		{"DockerProject", "DockerProject"},
+		{"docker-apps", "docker-apps"},
 		{"Download", "下载"},
 		{"Movie", "电影"},
 		{"Movies", "电影"},
@@ -60,7 +64,8 @@ func knownSubDirs(volumePath string) []SubDir {
 		{"Video", "视频"},
 		{"Videos", "视频"},
 		{"Documents", "文档"},
-		{"Common", "公共文件"},
+		{"Common", "Common"},
+		{"ViEDO", "ViEDO"},
 		{"迅雷下载", "迅雷下载"},
 	}
 
@@ -134,9 +139,9 @@ var volumesHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *da
 		}
 
 		vol := Volume{
-			Path: fullPath,
-			Name: volumeName(fullPath),
-			Type: volumeType(fullPath),
+			Path:    fullPath,
+			Name:    volumeName(fullPath),
+			Type:    volumeType(fullPath),
 			SubDirs: knownSubDirs(fullPath),
 		}
 

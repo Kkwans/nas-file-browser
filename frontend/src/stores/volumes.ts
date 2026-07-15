@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { Volume, SubDir } from "@/api/volumes";
 import { getVolumes } from "@/api/volumes";
-import prettyBytes from "pretty-bytes";
+import { formatStorageSize } from "@/utils/storageSize";
 
 export interface VolumeDisplay extends Volume {
   displayName: string;
@@ -31,8 +31,8 @@ export const useVolumesStore = defineStore("volumes", () => {
       return {
         ...vol,
         displayName: vol.name,
-        usedFormatted: prettyBytes(vol.usedSpace, { binary: true }),
-        totalFormatted: prettyBytes(vol.totalSpace, { binary: true }),
+        usedFormatted: formatStorageSize(vol.usedSpace),
+        totalFormatted: formatStorageSize(vol.totalSpace),
         usedPercentage:
           vol.totalSpace > 0
             ? Math.round((vol.usedSpace / vol.totalSpace) * 100)

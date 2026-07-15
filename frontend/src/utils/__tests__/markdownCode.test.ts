@@ -5,10 +5,12 @@ import {
   getMarkdownHighlightOptions,
   createMarkdownCodeFence,
   getMarkdownLineNumberStorageKey,
+  getMarkdownOutlineStorageKey,
   inferMarkdownCodeLanguage,
   MARKDOWN_CODE_LANGUAGES,
   normalizeMarkdownCodeLanguage,
   resolveMarkdownCodeLanguage,
+  renderMarkdownCodeLines,
   wrapMarkdownCodeLines,
 } from "../markdownCode";
 
@@ -47,12 +49,30 @@ describe("Markdown 代码块契约", () => {
     expect(withLineNumbers.html).not.toContain("</span>\n<span");
   });
 
+  it("逐行高亮后保持每行标签闭合，避免多行代码互相覆盖", () => {
+    const rendered = renderMarkdownCodeLines(
+      "first\nsecond",
+      true,
+      (line) => `<span class="token">${line}</span>`
+    );
+
+    expect(rendered.html).toContain(
+      '<span class="code-line-content"><span class="token">first</span></span>'
+    );
+    expect(rendered.html).toContain(
+      '<span class="code-line-content"><span class="token">second</span></span>'
+    );
+  });
+
   it("按用户 ID 隔离行号偏好，访客使用固定命名空间", () => {
     expect(getMarkdownLineNumberStorageKey("42")).toBe(
       "nas-file-browser:markdown-line-numbers:42"
     );
     expect(getMarkdownLineNumberStorageKey(null)).toBe(
       "nas-file-browser:markdown-line-numbers:guest"
+    );
+    expect(getMarkdownOutlineStorageKey("42")).toBe(
+      "nas-file-browser:markdown-outline:42"
     );
   });
 

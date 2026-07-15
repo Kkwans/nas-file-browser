@@ -8,7 +8,8 @@
   color: #7c3aed;
   background: #f3f5f7;
   box-decoration-break: clone;
-  font-family: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
+  font-family:
+    "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
   font-size: 0.88em;
   line-height: inherit;
   white-space: normal;
@@ -17,8 +18,8 @@
 
 :where(.md_preview, .vditor-reset.vditor-preview--content) pre {
   position: relative;
-  width: fit-content;
-  min-width: min(100%, 42rem);
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
   margin: 1.1em 0 1.4em;
   padding: 2.35rem 0 0.85rem;
@@ -28,7 +29,8 @@
   color: #24292f;
   background: #f6f8fa;
   box-shadow: 0 1px 2px rgb(27 31 36 / 6%);
-  font-family: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
+  font-family:
+    "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
   font-size: 0.875em;
   line-height: 1.6;
   tab-size: 2;
@@ -117,8 +119,7 @@
   pre
   code.has-line-numbers
   .code-line {
-  display: grid;
-  grid-template-columns: 2.75rem max-content;
+  display: flex;
   min-width: 100%;
   min-height: 1.6em;
   counter-increment: markdown-line;
@@ -132,7 +133,7 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  grid-column: 1;
+  flex: 0 0 2.75rem;
   padding-right: 0.7rem;
   border-right: 1px solid #e1e6ec;
   color: #8c959f;
@@ -147,7 +148,7 @@
   pre
   code.has-line-numbers
   .code-line-content {
-  grid-column: 2;
+  flex: 0 0 auto;
   padding: 0 1rem;
 }
 
@@ -159,6 +160,7 @@
 }
 
 /* 编辑区只统一浅色表面与行内代码，不重排 Vditor 的可编辑代码节点。 */
+#vditor-mount .vditor-wysiwyg pre,
 #vditor-mount .vditor-ir pre,
 #vditor-mount .vditor-sv pre {
   border-color: var(--markdown-border, #d8dee6) !important;
@@ -167,6 +169,7 @@
   background: var(--markdown-code-surface, #f6f8fa) !important;
 }
 
+#vditor-mount .vditor-wysiwyg code:not(pre code),
 #vditor-mount .vditor-ir code:not(pre code),
 #vditor-mount .vditor-sv code:not(pre code) {
   display: inline !important;
@@ -210,6 +213,7 @@
   background: #161b22;
 }
 
+:root.dark #vditor-mount .vditor-wysiwyg pre,
 :root.dark #vditor-mount .vditor-ir pre,
 :root.dark #vditor-mount .vditor-sv pre {
   border-color: #30363d !important;

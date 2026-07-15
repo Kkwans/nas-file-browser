@@ -33,12 +33,18 @@
         <action
           icon="edit"
           label="所见即所得"
+          @action="switchMode('wysiwyg')"
+          :class="{ active: currentMode === 'wysiwyg' }"
+        />
+        <action
+          icon="auto_awesome"
+          label="即时渲染"
           @action="switchMode('ir')"
           :class="{ active: currentMode === 'ir' }"
         />
         <action
           icon="vertical_split"
-          label="即时渲染"
+          label="分屏对照"
           @action="switchMode('sv')"
           :class="{ active: currentMode === 'sv' }"
         />
@@ -56,6 +62,12 @@
           @action="toggleLineNumbers()"
           :class="{ active: showLineNumbers, disabled: currentMode === 'sv' }"
           :aria-disabled="currentMode === 'sv'"
+        />
+        <action
+          icon="toc"
+          :label="showOutline ? '关闭大纲' : '显示大纲'"
+          @action="toggleOutline()"
+          :class="{ active: showOutline }"
         />
       </template>
     </header-bar>
@@ -160,6 +172,7 @@ import {
   filterMarkdownCodeLanguages,
   getMarkdownHighlightOptions,
   getMarkdownLineNumberStorageKey,
+  getMarkdownOutlineStorageKey,
   MARKDOWN_CODE_LANGUAGES,
 } from "@/utils/markdownCode";
 import ace, { Ace, version as ace_version } from "ace-builds";
@@ -195,7 +208,11 @@ const filteredCodeLanguageOptions = computed(() =>
   filterMarkdownCodeLanguages(codeLanguageQuery.value)
 );
 
-const currentMode = ref<"ir" | "sv" | "preview">("ir");
+type MarkdownMode = "wysiwyg" | "ir" | "sv" | "preview";
+type MarkdownEditMode = Exclude<MarkdownMode, "preview">;
+
+const currentMode = ref<MarkdownMode>("wysiwyg");
+const showOutline = ref(true);
 let vditorInstance: VditorInstance | null = null;
 let aceEditor: Ace.Editor | null = null;
 // Content tracking removed - unused variables
@@ -209,6 +226,8 @@ let stopThemeObserver: (() => void) | null = null;
 
 const markdownLineNumberKey = () =>
   getMarkdownLineNumberStorageKey(authStore.user?.id);
+const markdownOutlineKey = () =>
+  getMarkdownOutlineStorageKey(authStore.user?.id);
 
 const restoreLineNumberPreference = () => {
   if (!isMarkdownFile) return;
@@ -221,11 +240,25 @@ const persistLineNumberPreference = () => {
   localStorage.setItem(markdownLineNumberKey(), String(showLineNumbers.value));
 };
 
+const restoreOutlinePreference = () => {
+  if (!isMarkdownFile) return;
+  showOutline.value = localStorage.getItem(markdownOutlineKey()) !== "false";
+};
+
+const persistOutlinePreference = () => {
+  if (!isMarkdownFile) return;
+  localStorage.setItem(markdownOutlineKey(), String(showOutline.value));
+};
+
 restoreLineNumberPreference();
+restoreOutlinePreference();
 
 watch(
   () => authStore.user?.id,
-  () => restoreLineNumberPreference()
+  () => {
+    restoreLineNumberPreference();
+    restoreOutlinePreference();
+  }
 );
 
 onMounted(() => {
@@ -341,7 +374,7 @@ const initVditor = async (content: string) => {
   markdownBaselineReady = false;
   mdInitialized = false;
   userEdited = false;
-  await initVditorWithMode(content, "ir");
+  await initVditorWithMode(content, "wysiwyg");
 };
 
 const loadVditorResources = async () => {
@@ -350,7 +383,7 @@ const loadVditorResources = async () => {
 
 const initVditorWithMode = async (
   content: string,
-  mode: "ir" | "sv",
+  mode: MarkdownEditMode,
   dirtyState = false
 ) => {
   const generation = ++editorGeneration;
@@ -415,7 +448,7 @@ const initVditorWithMode = async (
       hide: false,
     },
     outline: {
-      enable: true,
+      enable: showOutline.value,
       position: "right",
     },
     counter: {
@@ -555,10 +588,45 @@ const initVditorPreview = async (content: string) => {
     return;
   }
 
+  const previewShell = document.createElement("div");
+  previewShell.className = "markdown-preview-shell";
+
   const previewElement = document.createElement("div");
   previewElement.className = "vditor-reset vditor-preview--content";
   previewElement.innerHTML = html;
-  mountEl.appendChild(previewElement);
+  previewShell.appendChild(previewElement);
+
+  let outlineElement: HTMLElement | null = null;
+  if (showOutline.value) {
+    outlineElement = document.createElement("aside");
+    outlineElement.className = "markdown-preview-outline";
+    outlineElement.setAttribute("aria-label", "文档大纲");
+    const title = document.createElement("strong");
+    title.className = "markdown-preview-outline-title";
+    title.textContent = "大纲";
+    outlineElement.appendChild(title);
+
+    const list = document.createElement("nav");
+    list.className = "markdown-preview-outline-list";
+    previewElement
+      .querySelectorAll<HTMLElement>("h1, h2, h3, h4, h5, h6")
+      .forEach((heading, index) => {
+        const targetId = heading.id || `markdown-heading-${index + 1}`;
+        heading.id = targetId;
+        const link = document.createElement("a");
+        link.href = `#${targetId}`;
+        link.className = `outline-level-${heading.tagName.slice(1)}`;
+        link.textContent = heading.textContent?.trim() || `章节 ${index + 1}`;
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          heading.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        list.appendChild(link);
+      });
+    outlineElement.appendChild(list);
+    previewShell.appendChild(outlineElement);
+  }
+  mountEl.appendChild(previewShell);
 
   // 为代码块添加语法高亮、语言标签和可选行号
   highlightAndAnnotateCodeBlocks(previewElement, {
@@ -569,7 +637,7 @@ const initVditorPreview = async (content: string) => {
   vditorInstance = {
     getValue: () => content,
     destroy: () => {
-      previewElement.remove();
+      previewShell.remove();
     },
   };
   // 预览模式基线与实际内容一致
@@ -657,7 +725,7 @@ const insertMarkdownCodeBlock = (language: string) => {
   userEdited = true;
 };
 
-const rebuildMarkdownMode = async (mode: "ir" | "sv" | "preview") => {
+const rebuildMarkdownMode = async (mode: MarkdownMode) => {
   if (!vditorInstance) return;
 
   let content: string;
@@ -697,11 +765,18 @@ const toggleLineNumbers = async () => {
       showLineNumbers: showLineNumbers.value,
     });
   }
-  if (isMarkdownFile && currentMode.value === "ir") {
-    await rebuildMarkdownMode("ir");
+  if (isMarkdownFile && currentMode.value !== "preview") {
+    await rebuildMarkdownMode(currentMode.value);
     return;
   }
   refreshMarkdownCodeBlocks();
+};
+
+const toggleOutline = async () => {
+  if (!isMarkdownFile) return;
+  showOutline.value = !showOutline.value;
+  persistOutlinePreference();
+  await rebuildMarkdownMode(currentMode.value);
 };
 
 const refreshMarkdownCodeBlocks = () => {
@@ -712,7 +787,7 @@ const refreshMarkdownCodeBlocks = () => {
   });
 };
 
-const switchMode = async (mode: "ir" | "sv" | "preview") => {
+const switchMode = async (mode: MarkdownMode) => {
   if (!vditorInstance) return;
   if (currentMode.value === mode) return;
 

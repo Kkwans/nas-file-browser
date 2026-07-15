@@ -207,11 +207,36 @@ export function wrapMarkdownCodeLines(
   };
 }
 
+/**
+ * Highlight each source line independently before adding the gutter. This keeps
+ * every token span balanced inside its own visual row and prevents a multiline
+ * highlight span from collapsing the line-number grid.
+ */
+export function renderMarkdownCodeLines(
+  source: string,
+  showLineNumbers: boolean,
+  renderLine: (line: string) => string
+): { html: string; hasLineNumbers: boolean } {
+  const normalized = source.replace(/\r\n?/g, "\n").replace(/\n$/, "");
+  const highlighted = normalized
+    .split("\n")
+    .map((line) => renderLine(line))
+    .join("\n");
+  return wrapMarkdownCodeLines(highlighted, showLineNumbers);
+}
+
 export function getMarkdownLineNumberStorageKey(
   userId: string | number | null | undefined
 ): string {
   const namespace = String(userId ?? "").trim() || "guest";
   return `nas-file-browser:markdown-line-numbers:${namespace}`;
+}
+
+export function getMarkdownOutlineStorageKey(
+  userId: string | number | null | undefined
+): string {
+  const namespace = String(userId ?? "").trim() || "guest";
+  return `nas-file-browser:markdown-outline:${namespace}`;
 }
 
 /** Keep Vditor's editable renderer and the custom reading renderer in sync. */

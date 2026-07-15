@@ -2,8 +2,8 @@
 
 import {
   getMarkdownCodeSource,
+  renderMarkdownCodeLines,
   resolveMarkdownCodeLanguage,
-  wrapMarkdownCodeLines,
 } from "@/utils/markdownCode";
 
 let vditorCSSLoaded = false;
@@ -171,20 +171,23 @@ export function highlightAndAnnotateCodeBlocks(
     }
 
     codeEl.classList.remove("hljs");
-    if (hljs && lang && hljs.getLanguage(lang)) {
+    const highlightLine = (line: string) => {
+      if (!hljs || !lang || !hljs.getLanguage(lang)) return line;
       try {
-        const result = hljs.highlight(rawText, {
+        return hljs.highlight(line, {
           language: lang,
           ignoreIllegals: true,
-        });
-        codeEl.innerHTML = result.value;
-        codeEl.classList.add("hljs");
+        }).value;
       } catch {
-        // Language not supported, skip highlighting
+        return line;
       }
-    }
-
-    const rendered = wrapMarkdownCodeLines(codeEl.innerHTML, showLineNumbers);
+    };
+    const rendered = renderMarkdownCodeLines(
+      rawText,
+      showLineNumbers,
+      highlightLine
+    );
+    if (hljs && lang && hljs.getLanguage(lang)) codeEl.classList.add("hljs");
     codeEl.innerHTML = rendered.html;
     codeEl.classList.toggle("has-line-numbers", rendered.hasLineNumbers);
     codeEl.dataset.markdownDecorated = "true";

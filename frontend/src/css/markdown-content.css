@@ -3,6 +3,7 @@
 :where(
   .md_preview,
   .vditor-reset.vditor-preview--content,
+  #vditor-mount .vditor-wysiwyg,
   #vditor-mount .vditor-ir,
   #vditor-mount .vditor-sv
 ) {
@@ -288,6 +289,20 @@
   table-layout: auto;
 }
 
+/* Vditor 自带的 `.vditor-reset table` 选择器会把表格强制撑满正文。
+ * 阅读模式需要由内容决定宽度，避免少量列右侧出现大片空白。 */
+.md_preview table,
+.vditor-reset.vditor-preview--content table,
+#vditor-mount .vditor-wysiwyg table,
+#vditor-mount .vditor-ir table,
+#vditor-mount .vditor-sv table {
+  display: table;
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: auto;
+}
+
 :where(
     .md_preview,
     .vditor-reset.vditor-preview--content,
@@ -376,7 +391,7 @@
     )
     table {
     width: max-content;
-    min-width: 100%;
-    max-width: none;
+    min-width: 0;
+    max-width: 100%;
   }
 }

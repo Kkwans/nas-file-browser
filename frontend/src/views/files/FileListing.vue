@@ -7,7 +7,7 @@
           type="search"
           aria-label="在当前目录搜索"
           :placeholder="isMobile ? '搜索当前目录' : '在当前目录搜索文件'"
-          @keyup.enter="submitInlineSearch"
+          @keyup.enter.stop.prevent="submitInlineSearch"
           @keyup.escape="clearInlineSearch"
         />
         <div v-if="inlineSearch" class="listing-search-actions">
@@ -752,7 +752,10 @@ import {
   selectForContextMenu,
   sortItemsByType,
 } from "@/utils/fileListing";
-import { shouldRenderMobileSelection } from "@/utils/layoutContract";
+import {
+  isEditableKeyboardTarget,
+  shouldRenderMobileSelection,
+} from "@/utils/layoutContract";
 import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
 
@@ -1060,6 +1063,8 @@ onBeforeUnmount(() => {
 const base64 = (name: string) => Base64.encodeURI(name);
 
 const keyEvent = (event: KeyboardEvent) => {
+  if (isEditableKeyboardTarget(event.target)) return;
+
   // No prompts are shown
   if (layoutStore.currentPrompt !== null) {
     return;

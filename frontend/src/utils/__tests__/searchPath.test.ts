@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildFilesRouteFromSearchBase,
   buildTagSearchQuery,
+  getSearchPromptFromRoute,
   normalizeSearchBase,
 } from "../searchPath";
 
@@ -35,5 +36,11 @@ describe("search route helpers", () => {
       base: "/home/Kkwans/电影/",
       scope: "global",
     });
+  });
+
+  it("clears a stale keyword when the route switches to tag filtering", () => {
+    expect(getSearchPromptFromRoute("Video", "tag-1")).toBe("");
+    expect(getSearchPromptFromRoute("Video", undefined)).toBe("Video");
+    expect(getSearchPromptFromRoute(["Video"], undefined)).toBe("");
   });
 });

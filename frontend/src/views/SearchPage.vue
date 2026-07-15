@@ -217,6 +217,7 @@ import { getFileIcon } from "@/utils/fileIcons";
 import {
   buildFilesRouteFromSearchBase,
   buildTagSearchQuery,
+  getSearchPromptFromRoute,
   normalizeSearchBase,
 } from "@/utils/searchPath";
 import { buildTaggedPathUrl, getTaggedPathName } from "@/utils/tagResults";
@@ -383,11 +384,11 @@ const prepareTagExit = () => {
 };
 
 onMounted(() => {
-  const query = route.query.q;
-  if (typeof query === "string") {
-    prompt.value = query;
-  }
+  prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
   if (tagMode.value) {
+    searchAbortController.abort();
+    ongoing.value = false;
+    results.value = [];
     loadTagResults();
     return;
   }
@@ -396,8 +397,22 @@ onMounted(() => {
 });
 
 watch(tagId, () => {
+  searchAbortController.abort();
+  ongoing.value = false;
+  results.value = [];
+  resultsCount.value = 100;
+  prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
   if (tagMode.value) loadTagResults();
 });
+
+watch(
+  () => route.query.q,
+  (query) => {
+    if (!tagMode.value) {
+      prompt.value = getSearchPromptFromRoute(query, route.query.tag);
+    }
+  }
+);
 
 // 滚动加载更多：resultsRef 是条件渲染的，需要 watch 等元素挂载后再绑定
 let scrollListenerBound = false;
@@ -462,25 +477,22 @@ const submit = async () => {
 
   ongoing.value = true;
   searchAbortController.abort();
-  searchAbortController = new AbortController();
+  const controller = new AbortController();
+  searchAbortController = controller;
   results.value = [];
   resultsCount.value = 100;
 
   try {
-    await search(
-      searchBase.value,
-      prompt.value,
-      searchAbortController.signal,
-      (item) => {
-        results.value.push(item);
-      }
-    );
+    await search(searchBase.value, prompt.value, controller.signal, (item) => {
+      results.value.push(item);
+    });
   } catch (error: any) {
-    if (error instanceof StatusError && error.is_canceled) return;
-    $showError(error);
+    if (!(error instanceof StatusError && error.is_canceled)) {
+      $showError(error);
+    }
+  } finally {
+    if (searchAbortController === controller) ongoing.value = false;
   }
-
-  ongoing.value = false;
 };
 
 const formatSize = (size: number): string => {

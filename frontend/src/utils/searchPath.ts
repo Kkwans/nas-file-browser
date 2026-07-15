@@ -47,3 +47,9 @@ export function buildTagSearchQuery(
     scope,
   };
 }
+
+/** 标签筛选和关键词搜索互斥，进入标签路由时不能残留旧关键词。 */
+export function getSearchPromptFromRoute(query: unknown, tag: unknown): string {
+  if (typeof tag === "string" && tag.length > 0) return "";
+  return typeof query === "string" ? query : "";
+}

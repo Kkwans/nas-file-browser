@@ -70,6 +70,25 @@ export interface TapSelectionInput {
   selectedCount: number;
 }
 
+type EditableKeyboardTarget = {
+  tagName?: string;
+  isContentEditable?: boolean;
+};
+
+/** File-list shortcuts must never intercept text entry or rich-text editing. */
+export function isEditableKeyboardTarget(
+  target: EventTarget | EditableKeyboardTarget | null
+): boolean {
+  if (!target || typeof target !== "object") return false;
+  const element = target as EditableKeyboardTarget;
+  return (
+    element.isContentEditable === true ||
+    ["INPUT", "TEXTAREA", "SELECT"].includes(
+      (element.tagName || "").toUpperCase()
+    )
+  );
+}
+
 /** Keep touch selection additive and prevent a second selection from opening an item. */
 export function getTapSelectionBehavior({
   isTouch,

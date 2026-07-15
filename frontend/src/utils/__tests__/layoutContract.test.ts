@@ -5,6 +5,7 @@ import {
   getTapSelectionBehavior,
   getGridColumnCount,
   getListingFieldVisibility,
+  isEditableKeyboardTarget,
   shouldOpenDetailedRow,
   shouldOpenDetailedRowFromClick,
   shouldRenderMobileSelection,
@@ -83,5 +84,13 @@ describe("file listing layout contract", () => {
     expect(shouldOpenDetailedRowFromClick(1, true, false)).toBe(true);
     expect(shouldOpenDetailedRowFromClick(1, true, true)).toBe(false);
     expect(shouldOpenDetailedRowFromClick(1, false, false)).toBe(false);
+  });
+
+  it("does not let file shortcuts capture keyboard input from editable controls", () => {
+    expect(isEditableKeyboardTarget({ tagName: "INPUT" })).toBe(true);
+    expect(isEditableKeyboardTarget({ tagName: "TEXTAREA" })).toBe(true);
+    expect(isEditableKeyboardTarget({ isContentEditable: true })).toBe(true);
+    expect(isEditableKeyboardTarget({ tagName: "DIV" })).toBe(false);
+    expect(isEditableKeyboardTarget(null)).toBe(false);
   });
 });

@@ -43,6 +43,21 @@ export function getListingFieldVisibility(
   };
 }
 
+export function shouldRenderListingTagSlot(
+  mode: ViewModeType | string | undefined,
+  tagCount: number
+): boolean {
+  if (!getListingFieldVisibility(mode).tags) return false;
+  return mode === "mosaic" || tagCount > 0;
+}
+
+export function shouldRenderListingSize(
+  mode: ViewModeType | string | undefined,
+  isDirectory: boolean
+): boolean {
+  return getListingFieldVisibility(mode).size && !isDirectory;
+}
+
 /**
  * The detailed list switches layout from the available listing container,
  * not from the viewport. This keeps the contract correct when the sidebar is

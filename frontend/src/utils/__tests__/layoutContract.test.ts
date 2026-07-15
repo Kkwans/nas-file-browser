@@ -9,6 +9,8 @@ import {
   isEditableKeyboardTarget,
   shouldOpenDetailedRow,
   shouldOpenDetailedRowFromClick,
+  shouldRenderListingSize,
+  shouldRenderListingTagSlot,
   shouldRenderMobileSelection,
 } from "../layoutContract";
 
@@ -54,6 +56,19 @@ describe("file listing layout contract", () => {
       size: true,
       modified: true,
     });
+  });
+
+  it("reserves a stable tag row only for detailed grids", () => {
+    expect(shouldRenderListingTagSlot("mosaic", 0)).toBe(true);
+    expect(shouldRenderListingTagSlot("details", 0)).toBe(false);
+    expect(shouldRenderListingTagSlot("details", 2)).toBe(true);
+    expect(shouldRenderListingTagSlot("compact-grid", 2)).toBe(false);
+  });
+
+  it("never renders a size row for folders", () => {
+    expect(shouldRenderListingSize("mosaic", true)).toBe(false);
+    expect(shouldRenderListingSize("mosaic", false)).toBe(true);
+    expect(shouldRenderListingSize("compact-grid", false)).toBe(false);
   });
 
   it("keeps prior selections when a touch user taps another item", () => {

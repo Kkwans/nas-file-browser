@@ -107,9 +107,10 @@
           <span class="item-name">{{ name }}</span>
         </div>
         <div
-          v-if="fieldVisibility.tags && pathTags.length"
+          v-if="renderTagSlot"
           class="item-tag-list"
           :class="`tag-presentation-${tagPresentation}`"
+          :aria-hidden="pathTags.length === 0"
         >
           <span
             v-for="tag in pathTags"
@@ -133,8 +134,8 @@
         <span class="detail-path" :title="path">{{ path }}</span>
       </div>
 
-      <p v-if="fieldVisibility.size" class="size" :data-order="humanSize">
-        {{ isDir ? "—" : humanSize }}
+      <p v-if="renderSize" class="size" :data-order="humanSize">
+        {{ humanSize }}
       </p>
 
       <p v-if="fieldVisibility.modified" class="modified">
@@ -288,6 +289,8 @@ import {
   getListingFieldVisibility,
   getListingTagPresentation,
   getTapSelectionBehavior,
+  shouldRenderListingSize,
+  shouldRenderListingTagSlot,
 } from "@/utils/layoutContract";
 import { getFileTypeLabel } from "@/utils/fileListing";
 import { files as api } from "@/api";
@@ -432,6 +435,12 @@ const pathTags = computed(() => {
   if (!props.path) return [];
   return tagsStore.getTagsForPath(props.path);
 });
+const renderTagSlot = computed(() =>
+  shouldRenderListingTagSlot(props.viewMode, pathTags.value.length)
+);
+const renderSize = computed(() =>
+  shouldRenderListingSize(props.viewMode, props.isDir)
+);
 
 const toggleTagPicker = (e: Event) => {
   e.stopPropagation();

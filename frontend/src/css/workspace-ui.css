@@ -406,8 +406,8 @@ header > .header-center {
   position: relative;
   display: grid;
   grid-template-rows: 108px minmax(0, 1fr);
-  min-height: 250px;
-  padding: 48px 14px 14px;
+  min-height: 230px;
+  padding: 14px;
   border: 1px solid var(--borderPrimary, #e2e7ed);
   border-radius: 12px;
   background: var(--surfacePrimary, #fff);
@@ -444,9 +444,9 @@ header > .header-center {
 
 #listing.mosaic .item > .item-controls {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  left: 10px;
+  top: 14px;
+  right: 14px;
+  left: 14px;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -512,8 +512,9 @@ header > .header-center {
 #listing.mosaic .item-tag-list {
   justify-content: center;
   width: 100%;
-  max-height: 22px;
-  margin-top: 5px;
+  min-height: 18px;
+  max-height: 18px;
+  margin-top: 4px;
   overflow: hidden;
 }
 
@@ -523,6 +524,19 @@ header > .header-center {
   margin-top: 4px;
   color: var(--textSecondary, #718096);
   font-size: 12px;
+}
+
+#listing.mosaic .item[data-dir="true"] {
+  min-height: 208px;
+}
+
+#listing.mosaic .item[data-dir="true"] > div:last-child {
+  justify-content: flex-start;
+}
+
+#listing.mosaic .item[data-dir="true"] .modified {
+  margin-top: 4px;
+  padding-top: 0;
 }
 
 #listing.mosaic .item[data-dir="true"] .detail-meta {

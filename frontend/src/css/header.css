@@ -92,6 +92,10 @@ header title {
   line-height: 1.4;
 }
 
+#editor-container header title {
+  overflow: hidden;
+}
+
 /* Overlay for dropdown */
 header .overlay {
   width: 0;
@@ -672,6 +676,14 @@ html.dark header .breadcrumbs a:hover {
 
   header title {
     font-size: 0.9375em;
+  }
+
+  #editor-container header > .header-center {
+    justify-content: flex-start;
+  }
+
+  #editor-container header > .header-trailing #dropdown .editor-save-desktop {
+    display: none;
   }
 
   #search {

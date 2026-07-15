@@ -4,71 +4,84 @@
       <action icon="close" label="关闭" @action="close()" />
       <title>{{ fileStore.req?.name ?? "" }}</title>
 
-      <action
-        v-if="authStore.user?.perm.modify"
-        id="save-button"
-        icon="save"
-        label="保存"
-        @action="save()"
-      />
-
-      <!-- 代码语言标识 + 行号切换（非 Markdown 文件） -->
-      <template v-if="!isMarkdownFile && aceEditorReady">
-        <span class="editor-lang-badge" :title="langCaption">
-          <i class="material-icons">code</i>
-          {{ langCaption }}
-        </span>
+      <template #mobile-actions>
         <action
-          :icon="
-            showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
-          "
-          :label="showLineNumbers ? '关闭行号' : '显示行号'"
-          @action="toggleLineNumbers()"
-          :class="{ active: showLineNumbers }"
+          v-if="authStore.user?.perm.modify"
+          id="save-button-mobile"
+          icon="save"
+          label="保存"
+          @action="save()"
         />
       </template>
 
-      <!-- Markdown 模式切换 -->
-      <template v-if="isMarkdownFile">
+      <template #actions>
         <action
-          icon="edit"
-          label="所见即所得"
-          @action="switchMode('wysiwyg')"
-          :class="{ active: currentMode === 'wysiwyg' }"
+          v-if="authStore.user?.perm.modify"
+          id="save-button"
+          class="editor-save-desktop"
+          icon="save"
+          label="保存"
+          @action="save()"
         />
-        <action
-          icon="auto_awesome"
-          label="即时渲染"
-          @action="switchMode('ir')"
-          :class="{ active: currentMode === 'ir' }"
-        />
-        <action
-          icon="vertical_split"
-          label="分屏对照"
-          @action="switchMode('sv')"
-          :class="{ active: currentMode === 'sv' }"
-        />
-        <action
-          icon="visibility"
-          label="预览模式"
-          @action="switchMode('preview')"
-          :class="{ active: currentMode === 'preview' }"
-        />
-        <action
-          :icon="
-            showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
-          "
-          :label="showLineNumbers ? '关闭行号' : '显示行号'"
-          @action="toggleLineNumbers()"
-          :class="{ active: showLineNumbers, disabled: currentMode === 'sv' }"
-          :aria-disabled="currentMode === 'sv'"
-        />
-        <action
-          icon="toc"
-          :label="showOutline ? '关闭大纲' : '显示大纲'"
-          @action="toggleOutline()"
-          :class="{ active: showOutline }"
-        />
+
+        <!-- 代码语言标识 + 行号切换（非 Markdown 文件） -->
+        <template v-if="!isMarkdownFile && aceEditorReady">
+          <span class="editor-lang-badge" :title="langCaption">
+            <i class="material-icons">code</i>
+            {{ langCaption }}
+          </span>
+          <action
+            :icon="
+              showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
+            "
+            :label="showLineNumbers ? '关闭行号' : '显示行号'"
+            @action="toggleLineNumbers()"
+            :class="{ active: showLineNumbers }"
+          />
+        </template>
+
+        <!-- Markdown 模式切换 -->
+        <template v-if="isMarkdownFile">
+          <action
+            icon="edit"
+            label="所见即所得"
+            @action="switchMode('wysiwyg')"
+            :class="{ active: currentMode === 'wysiwyg' }"
+          />
+          <action
+            icon="auto_awesome"
+            label="即时渲染"
+            @action="switchMode('ir')"
+            :class="{ active: currentMode === 'ir' }"
+          />
+          <action
+            icon="vertical_split"
+            label="分屏对照"
+            @action="switchMode('sv')"
+            :class="{ active: currentMode === 'sv' }"
+          />
+          <action
+            icon="visibility"
+            label="预览模式"
+            @action="switchMode('preview')"
+            :class="{ active: currentMode === 'preview' }"
+          />
+          <action
+            :icon="
+              showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
+            "
+            :label="showLineNumbers ? '关闭行号' : '显示行号'"
+            @action="toggleLineNumbers()"
+            :class="{ active: showLineNumbers }"
+            :disabled="currentMode === 'sv'"
+          />
+          <action
+            icon="toc"
+            :label="showOutline ? '关闭大纲' : '显示大纲'"
+            @action="toggleOutline()"
+            :class="{ active: showOutline }"
+          />
+        </template>
       </template>
     </header-bar>
 

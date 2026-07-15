@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildTaggedPathUrl, getTaggedPathName } from "../tagResults";
+import {
+  buildResultParentRoute,
+  buildTaggedPathUrl,
+  getResultParentPath,
+  getTaggedPathName,
+} from "../tagResults";
 
 describe("tag result paths", () => {
   it("builds a routable URL for a tagged Chinese directory", () => {
@@ -10,5 +15,23 @@ describe("tag result paths", () => {
 
   it("decodes the final path segment for display", () => {
     expect(getTaggedPathName("/volume2/%E7%94%B5%E5%BD%B1/精选")).toBe("精选");
+  });
+
+  it("shows only the parent path without repeating the result name", () => {
+    expect(
+      getResultParentPath(
+        "/home/Kkwans/HOME/专题/V/1 (10).mp4",
+        "/home/Kkwans/HOME/专题/"
+      )
+    ).toBe("V/");
+    expect(getResultParentPath("V/1 (10).mp4", "/home/Kkwans/HOME/专题/")).toBe(
+      "V/"
+    );
+  });
+
+  it("builds the file route of the containing directory", () => {
+    expect(buildResultParentRoute("/home/Kkwans/专题/1 (10).mp4")).toBe(
+      "/files/home/Kkwans/%E4%B8%93%E9%A2%98/"
+    );
   });
 });

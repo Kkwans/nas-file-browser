@@ -1,227 +1,93 @@
 <template>
   <div id="search-page">
-    <header-bar showMenu showLogo>
-      <div class="search-page-input">
-        <button
-          class="action"
-          type="button"
-          @click="goBack"
-          aria-label="返回"
-          title="返回"
-        >
-          <i class="material-icons">arrow_back</i>
-        </button>
+    <header-bar show-menu show-logo>
+      <form v-if="!tagMode" class="search-page-input" @submit.prevent="submit">
         <input
-          type="text"
           ref="inputRef"
           v-model.trim="prompt"
-          placeholder="搜索"
-          aria-label="搜索"
-          @keyup.enter="submit"
-          @keyup.escape="goBack"
+          type="search"
+          placeholder="搜索文件"
+          aria-label="搜索文件"
           autofocus
+          @keyup.escape="clearSearch"
         />
-        <i v-show="ongoing" class="material-icons spin">autorenew</i>
-        <span v-show="results.length > 0" class="result-count">{{
-          results.length
-        }}</span>
-      </div>
+        <div class="search-page-actions">
+          <button
+            v-if="prompt"
+            type="button"
+            title="清空搜索内容"
+            aria-label="清空搜索内容"
+            @click="clearSearch"
+          >
+            <i class="material-icons" aria-hidden="true">close</i>
+          </button>
+          <button
+            type="submit"
+            title="开始搜索"
+            aria-label="开始搜索"
+            :disabled="!prompt"
+          >
+            <i
+              class="material-icons"
+              :class="{ spin: ongoing }"
+              aria-hidden="true"
+            >
+              {{ ongoing ? "autorenew" : "search" }}
+            </i>
+          </button>
+        </div>
+        <span v-if="results.length" class="search-result-count"
+          >{{ results.length }} 项</span
+        >
+      </form>
     </header-bar>
 
-    <div class="search-page-content">
-      <template v-if="tagMode">
-        <section class="tag-results" aria-labelledby="tag-results-title">
-          <div class="tag-results-header">
-            <div class="tag-results-heading">
-              <i
-                class="material-icons"
-                :style="{ color: activeTag?.color || 'var(--blue)' }"
-                aria-hidden="true"
-                >label</i
-              >
-              <div>
-                <span class="tag-results-kicker">
-                  {{
-                    searchScope === "global"
-                      ? "全局标签筛选"
-                      : "当前目录标签筛选"
-                  }}
-                </span>
-                <h1 id="tag-results-title">{{ activeTag?.name || "标签" }}</h1>
-              </div>
-            </div>
-            <div
-              class="tag-results-scope"
-              role="group"
-              aria-label="标签筛选范围"
-            >
-              <button
-                type="button"
-                :class="{ active: searchScope === 'current' }"
-                @click="setTagSearchScope('current')"
-              >
-                当前目录
-              </button>
-              <button
-                type="button"
-                :class="{ active: searchScope === 'global' }"
-                @click="setTagSearchScope('global')"
-              >
-                全局
-              </button>
-            </div>
-            <router-link
-              :to="returnFileRoute"
-              replace
-              class="tag-results-back"
-              @click="prepareTagExit"
-            >
-              返回文件列表
-            </router-link>
-          </div>
-
-          <div v-if="tagLoading" class="search-loading">
-            <div class="spinner">
-              <div class="bounce1"></div>
-              <div class="bounce2"></div>
-              <div class="bounce3"></div>
-            </div>
-          </div>
-          <div v-else-if="tagResults.length === 0" class="search-empty">
-            <i class="material-icons">label_off</i>
-            <p>这个标签暂时没有可访问的文件或文件夹</p>
-          </div>
-          <div v-else class="tag-results-list">
-            <router-link
-              v-for="result in tagResults"
-              :key="result.path"
-              :to="result.url"
-              class="tag-result-item"
-            >
-              <i class="material-icons" aria-hidden="true">{{
-                getFileIcon(result.name, result.dir)
-              }}</i>
-              <div class="search-result-info">
-                <span class="search-result-name">{{ result.name }}</span>
-                <span class="search-result-path">{{ result.path }}</span>
-              </div>
-              <div class="search-result-meta">
-                <span v-if="!result.dir" class="search-result-size">
-                  {{ formatSize(result.size) }}
-                </span>
-                <span v-if="result.modified" class="search-result-time">
-                  {{ formatTime(result.modified) }}
-                </span>
-              </div>
-            </router-link>
-          </div>
-        </section>
-      </template>
+    <main class="search-page-content">
+      <result-explorer
+        v-if="tagMode"
+        kind="tag"
+        :scope="searchScope"
+        :title="activeTag?.name || '标签'"
+        :results="tagResults"
+        :loading="tagLoading"
+        :base-path="currentBasePath"
+        :return-route="returnFileRoute"
+        :icon-color="activeTag?.color"
+        @scope-change="setTagSearchScope"
+        @return="prepareTagExit"
+        @action="handleResultAction"
+      />
 
       <template v-else>
-        <div class="search-scope-bar" role="group" aria-label="搜索范围">
-          <span class="search-scope-label">搜索范围</span>
+        <div v-if="!prompt && results.length === 0" class="search-shortcuts">
+          <span>按文件类型快速搜索</span>
           <button
+            v-for="(item, type) in searchTypes"
+            :key="type"
             type="button"
-            :class="{ active: searchScope === 'current' }"
-            @click="setSearchScope('current')"
+            @click="initSearch(`type:${type}`)"
           >
-            当前目录
+            <i class="material-icons" aria-hidden="true">{{ item.icon }}</i>
+            {{ item.label }}
           </button>
-          <button
-            type="button"
-            :class="{ active: searchScope === 'global' }"
-            @click="setSearchScope('global')"
-          >
-            全局
-          </button>
-          <span class="search-scope-path">{{ searchScopeText }}</span>
         </div>
-
-        <!-- '类型快捷入口' -->
-        <div
-          v-if="prompt.length === 0 && results.length === 0"
-          class="search-hints"
-        >
-          <p>输入关键词搜索</p>
-          <div class="search-types">
-            <div
-              tabindex="0"
-              v-for="(v, k) in boxes"
-              :key="k"
-              class="search-type-item"
-              role="button"
-              @click="initSearch('type:' + k)"
-            >
-              <i class="material-icons">{{ v.icon }}</i>
-              <span>{{ v.label }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- '搜索中...' -->
-        <div v-else-if="ongoing && results.length === 0" class="search-loading">
-          <div class="spinner">
-            <div class="bounce1"></div>
-            <div class="bounce2"></div>
-            <div class="bounce3"></div>
-          </div>
-        </div>
-
-        <!-- 无结果 -->
-        <div
-          v-else-if="!ongoing && prompt.length > 0 && results.length === 0"
-          class="search-empty"
-        >
-          <i class="material-icons">search_off</i>
-          <p>无搜索结果</p>
-        </div>
-
-        <!-- '搜索结果' -->
-        <div v-else class="search-results" ref="resultsRef">
-          <router-link
-            v-for="(item, index) in filteredResults"
-            :key="index"
-            :to="item.url ?? '#'"
-            class="search-result-item"
-          >
-            <i class="material-icons">{{ fileIcon(item) }}</i>
-            <div class="search-result-info">
-              <span class="search-result-name">{{ item.name }}</span>
-              <span class="search-result-path">{{ item.path }}</span>
-            </div>
-            <div class="search-result-meta">
-              <span v-if="!item.dir" class="search-result-size">{{
-                formatSize(item.size)
-              }}</span>
-              <span v-if="item.modified" class="search-result-time">{{
-                formatTime(item.modified)
-              }}</span>
-            </div>
-          </router-link>
-        </div>
+        <result-explorer
+          kind="search"
+          :scope="searchScope"
+          :title="prompt || '搜索文件'"
+          :results="searchResults"
+          :loading="ongoing"
+          :base-path="searchBase"
+          :return-route="returnFileRoute"
+          @scope-change="setSearchScope"
+          @action="handleResultAction"
+        />
       </template>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import HeaderBar from "@/components/header/HeaderBar.vue";
-import type { SearchResult } from "@/types/file";
-import { files as filesApi, search } from "@/api";
-import { StatusError } from "@/api/utils";
-import { useFileStore } from "@/stores/file";
-import { useTagsStore, type Tag } from "@/stores/tags";
-import { filesize } from "@/utils";
-import { getFileIcon } from "@/utils/fileIcons";
-import {
-  buildFilesRouteFromSearchBase,
-  buildTagSearchQuery,
-  getSearchPromptFromRoute,
-  normalizeSearchBase,
-} from "@/utils/searchPath";
-import { buildTaggedPathUrl, getTaggedPathName } from "@/utils/tagResults";
-import dayjs from "@/utils/date";
 import {
   computed,
   inject,
@@ -231,37 +97,50 @@ import {
   ref,
   watch,
 } from "vue";
-import { throttle } from "lodash-es";
 import { useRoute, useRouter } from "vue-router";
-const boxes = {
+import HeaderBar from "@/components/header/HeaderBar.vue";
+import ResultExplorer, {
+  type ExplorerResult,
+  type ExplorerResultAction,
+} from "@/components/search/ResultExplorer.vue";
+import type { SearchResult } from "@/types/file";
+import { files as filesApi, search } from "@/api";
+import { StatusError } from "@/api/utils";
+import { useFileStore } from "@/stores/file";
+import { useLayoutStore } from "@/stores/layout";
+import { type Tag, useTagsStore } from "@/stores/tags";
+import {
+  buildFilesRouteFromSearchBase,
+  buildTagSearchQuery,
+  getSearchPromptFromRoute,
+  normalizeSearchBase,
+} from "@/utils/searchPath";
+import {
+  buildResultParentRoute,
+  buildTaggedPathUrl,
+  getTaggedPathName,
+} from "@/utils/tagResults";
+
+const searchTypes = {
   image: { label: "图片", icon: "insert_photo" },
   audio: { label: "音频", icon: "volume_up" },
   video: { label: "视频", icon: "movie" },
   pdf: { label: "PDF 文档", icon: "picture_as_pdf" },
 };
+
 const router = useRouter();
 const route = useRoute();
 const fileStore = useFileStore();
+const layoutStore = useLayoutStore();
 const tagsStore = useTagsStore();
 const $showError = inject<IToastError>("$showError")!;
 
-const prompt = ref<string>("");
-const ongoing = ref<boolean>(false);
+const prompt = ref("");
+const ongoing = ref(false);
 const results = ref<SearchResult[]>([]);
-const resultsCount = ref<number>(100);
 const inputRef = ref<HTMLInputElement | null>(null);
-const resultsRef = ref<HTMLElement | null>(null);
 const tagLoading = ref(false);
-const tagResults = ref<
-  Array<{
-    path: string;
-    name: string;
-    dir: boolean;
-    size: number;
-    modified: string;
-    url: string;
-  }>
->([]);
+const tagResults = ref<ExplorerResult[]>([]);
 const tagId = computed(() =>
   typeof route.query.tag === "string" ? route.query.tag : ""
 );
@@ -283,23 +162,26 @@ let searchAbortController = new AbortController();
 let tagLoadGeneration = 0;
 let tagLoadAbortController = new AbortController();
 
-const filteredResults = computed(() =>
-  results.value.slice(0, resultsCount.value)
+const searchBase = computed(() =>
+  searchScope.value === "global" ? "/" : currentBasePath.value
+);
+const returnFileRoute = computed(() =>
+  buildFilesRouteFromSearchBase(
+    typeof route.query.base === "string"
+      ? route.query.base
+      : currentBasePath.value
+  )
+);
+const searchResults = computed<ExplorerResult[]>(() =>
+  results.value.map((item) => ({
+    ...item,
+    url: item.url ?? buildTaggedPathUrl(item.path, item.dir),
+  }))
 );
 
-const searchBase = computed(() => {
-  if (searchScope.value === "global") return "/";
-  return currentBasePath.value;
-});
-
-const searchScopeText = computed(() =>
-  searchScope.value === "global" ? "全部可访问目录" : searchBase.value
-);
-
-const loadTagResults = async () => {
+async function loadTagResults() {
   if (!tagMode.value) return;
   if (!tagsStore.loaded) await tagsStore.loadTags();
-
   const tag = activeTag.value;
   if (!tag) {
     tagResults.value = [];
@@ -314,18 +196,17 @@ const loadTagResults = async () => {
   try {
     const base =
       normalizeSearchBase(currentBasePath.value).replace(/\/$/, "") || "/";
-    const scopedPaths = tag.paths.filter((path) => {
+    const paths = tag.paths.filter((path) => {
       if (searchScope.value === "global" || base === "/") return true;
       const normalized = normalizeSearchBase(path).replace(/\/$/, "");
       return normalized === base || normalized.startsWith(`${base}/`);
     });
-    const results = await Promise.all(
-      scopedPaths.map(async (path) => {
+    const loaded = await Promise.all(
+      paths.map(async (path): Promise<ExplorerResult> => {
         const normalizedPath = normalizeSearchBase(path).replace(/\/$/, "");
         try {
           const resource = await filesApi.fetch(
-            "/files" +
-              buildTaggedPathUrl(normalizedPath, false).slice("/files".length),
+            buildTaggedPathUrl(normalizedPath, false),
             signal
           );
           return {
@@ -337,8 +218,6 @@ const loadTagResults = async () => {
             url: buildTaggedPathUrl(resource.path, resource.isDir),
           };
         } catch {
-          // 权限变化或文件已删除时仍保留一个可读的路径条目，
-          // 让用户知道标签记录存在，而不是静默丢失。
           return {
             path: normalizedPath,
             name: getTaggedPathName(normalizedPath),
@@ -350,17 +229,14 @@ const loadTagResults = async () => {
         }
       })
     );
-    if (generation === tagLoadGeneration) tagResults.value = results;
-  } catch (error) {
-    if (!(error instanceof Error && error.name === "AbortError")) {
-      if (generation === tagLoadGeneration) tagResults.value = [];
-    }
+    if (generation === tagLoadGeneration) tagResults.value = loaded;
   } finally {
     if (generation === tagLoadGeneration) tagLoading.value = false;
   }
-};
+}
 
-const setTagSearchScope = async (scope: "current" | "global") => {
+async function setTagSearchScope(scope: "current" | "global") {
+  if (searchScope.value === scope) return;
   searchScope.value = scope;
   await router.replace({
     query: {
@@ -369,85 +245,9 @@ const setTagSearchScope = async (scope: "current" | "global") => {
     },
   });
   await loadTagResults();
-};
+}
 
-const returnFileRoute = computed(() =>
-  buildFilesRouteFromSearchBase(
-    typeof route.query.base === "string" ? route.query.base : "/"
-  )
-);
-
-const prepareTagExit = () => {
-  tagsStore.setFilter(null);
-  tagLoadGeneration++;
-  tagLoadAbortController.abort();
-};
-
-onMounted(() => {
-  prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
-  if (tagMode.value) {
-    searchAbortController.abort();
-    ongoing.value = false;
-    results.value = [];
-    loadTagResults();
-    return;
-  }
-  inputRef.value?.focus();
-  if (prompt.value) nextTick(submit);
-});
-
-watch(tagId, () => {
-  searchAbortController.abort();
-  ongoing.value = false;
-  results.value = [];
-  resultsCount.value = 100;
-  prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
-  if (tagMode.value) loadTagResults();
-});
-
-watch(
-  () => route.query.q,
-  (query) => {
-    if (!tagMode.value) {
-      prompt.value = getSearchPromptFromRoute(query, route.query.tag);
-    }
-  }
-);
-
-// 滚动加载更多：resultsRef 是条件渲染的，需要 watch 等元素挂载后再绑定
-let scrollListenerBound = false;
-watch(resultsRef, (el, oldEl) => {
-  if (oldEl) oldEl.removeEventListener("scroll", onScroll);
-  if (el && !scrollListenerBound) {
-    el.addEventListener("scroll", onScroll);
-    scrollListenerBound = true;
-  }
-});
-
-onUnmounted(() => {
-  searchAbortController.abort();
-  tagLoadGeneration++;
-  tagLoadAbortController.abort();
-  resultsRef.value?.removeEventListener("scroll", onScroll);
-});
-
-const onScroll = throttle((event: Event) => {
-  const el = event.target as HTMLElement;
-  if (el.offsetHeight + el.scrollTop >= el.scrollHeight - 100) {
-    resultsCount.value += 50;
-  }
-}, 200);
-
-const goBack = () => {
-  router.back();
-};
-
-const initSearch = (text: string) => {
-  prompt.value = `${text} `;
-  nextTick(() => inputRef.value?.focus());
-};
-
-const setSearchScope = async (scope: "current" | "global") => {
+async function setSearchScope(scope: "current" | "global") {
   if (searchScope.value === scope) return;
   searchScope.value = scope;
   await router.replace({
@@ -459,11 +259,29 @@ const setSearchScope = async (scope: "current" | "global") => {
     },
   });
   if (prompt.value) await submit();
-};
+}
 
-const submit = async () => {
-  if (prompt.value === "") return;
+function prepareTagExit() {
+  tagsStore.setFilter(null);
+  tagLoadGeneration++;
+  tagLoadAbortController.abort();
+}
 
+function clearSearch() {
+  searchAbortController.abort();
+  ongoing.value = false;
+  prompt.value = "";
+  results.value = [];
+  nextTick(() => inputRef.value?.focus());
+}
+
+function initSearch(text: string) {
+  prompt.value = `${text} `;
+  nextTick(() => inputRef.value?.focus());
+}
+
+async function submit() {
+  if (!prompt.value) return;
   await router.replace({
     path: "/search",
     query: {
@@ -480,431 +298,214 @@ const submit = async () => {
   const controller = new AbortController();
   searchAbortController = controller;
   results.value = [];
-  resultsCount.value = 100;
-
   try {
-    await search(searchBase.value, prompt.value, controller.signal, (item) => {
-      results.value.push(item);
-    });
+    await search(searchBase.value, prompt.value, controller.signal, (item) =>
+      results.value.push(item)
+    );
   } catch (error: any) {
-    if (!(error instanceof StatusError && error.is_canceled)) {
-      $showError(error);
-    }
+    if (!(error instanceof StatusError && error.is_canceled)) $showError(error);
   } finally {
     if (searchAbortController === controller) ongoing.value = false;
   }
-};
+}
 
-const formatSize = (size: number): string => {
-  return filesize(size);
-};
+function refreshActiveResults() {
+  if (tagMode.value) loadTagResults();
+  else if (prompt.value) submit();
+}
 
-const formatTime = (time: string): string => {
-  return dayjs(time).fromNow();
-};
+async function handleResultAction(
+  action: ExplorerResultAction,
+  result: ExplorerResult
+) {
+  if (action === "open-location") {
+    prepareTagExit();
+    fileStore.preselect = result.path;
+    await router.push(buildResultParentRoute(result.path));
+    return;
+  }
+  if (action === "download") {
+    filesApi.download(null, result.url);
+    return;
+  }
+  layoutStore.showHover({
+    prompt: "result-action",
+    props: { mode: action, result },
+    action: refreshActiveResults,
+  });
+}
 
-const fileIcon = (item: SearchResult): string => {
-  return getFileIcon(item.name, item.dir);
-};
+onMounted(() => {
+  prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
+  if (tagMode.value) loadTagResults();
+  else {
+    inputRef.value?.focus();
+    if (prompt.value) nextTick(submit);
+  }
+});
+
+watch(tagId, () => {
+  searchAbortController.abort();
+  ongoing.value = false;
+  results.value = [];
+  prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
+  if (tagMode.value) loadTagResults();
+});
+
+onUnmounted(() => {
+  searchAbortController.abort();
+  tagLoadGeneration++;
+  tagLoadAbortController.abort();
+});
 </script>
 
 <style scoped>
 #search-page {
   display: flex;
-  flex-direction: column;
   height: 100%;
+  flex-direction: column;
 }
 
 .search-page-input {
+  position: relative;
   display: flex;
   align-items: center;
-  flex: 1;
-  gap: 8px;
-  padding: 0 8px;
+  width: min(46rem, 100%);
+  height: 2.5rem;
+  margin: 0 auto;
+  padding: 0 0.3125rem 0 0.875rem;
+  background: var(--surfaceSecondary, #f6f8fb);
+  border: 1px solid var(--borderPrimary, #dbe2ea);
+  border-radius: 0.625rem;
+}
+
+.search-page-input:focus-within {
+  background: var(--surfacePrimary, #fff);
+  border-color: rgba(22, 119, 255, 0.55);
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
 }
 
 .search-page-input input {
+  min-width: 0;
+  height: 100%;
   flex: 1;
-  border: none;
-  outline: none;
+  padding: 0;
+  color: var(--textPrimary, #1e293b);
   background: transparent;
-  font-size: 16px;
-  padding: 8px;
-  color: var(--textPrimary);
+  border: 0;
+  outline: 0;
+  font: inherit;
+  text-align: center;
 }
 
-.search-page-input .result-count {
-  font-size: 13px;
-  color: var(--textSecondary);
-  background: var(--surfaceSecondary);
-  padding: 2px 8px;
-  border-radius: 10px;
+.search-page-input input:focus,
+.search-page-input input:not(:placeholder-shown) {
+  text-align: left;
+}
+
+.search-page-actions {
+  display: inline-flex;
+  gap: 0.125rem;
+}
+
+.search-page-actions button {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  color: var(--textSecondary, #64748b);
+  background: transparent;
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.search-page-actions button:last-child {
+  color: var(--blue, #1677ff);
+}
+
+.search-page-actions button:hover:not(:disabled) {
+  background: rgba(22, 119, 255, 0.08);
+}
+
+.search-page-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.search-page-actions .material-icons {
+  font-size: 1.125rem;
+}
+
+.search-result-count {
+  position: absolute;
+  left: calc(100% + 0.75rem);
+  padding: 0.25rem 0.625rem;
+  color: var(--textSecondary, #64748b);
+  background: var(--surfaceSecondary, #f1f5f9);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .search-page-content {
   flex: 1;
+  padding: 1.5rem;
   overflow-y: auto;
-  padding: 16px 24px;
 }
 
-.search-scope-bar {
+.search-shortcuts {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  width: min(76rem, 100%);
   gap: 0.5rem;
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 0.625rem 0.75rem;
+  margin: 0 auto 1rem;
   color: var(--textSecondary, #64748b);
-  background: var(--surfaceSecondary, #f8fafc);
-  border: 1px solid var(--borderPrimary, #e2e8f0);
-  border-radius: 0.75rem;
-}
-
-.search-scope-label {
-  margin-right: 0.25rem;
-  font-size: 0.8125rem;
-  font-weight: 650;
-}
-
-.search-scope-bar button {
-  min-height: 2.5rem;
-  padding: 0.375rem 0.875rem;
-  color: var(--textSecondary, #475569);
-  background: var(--surfacePrimary, #fff);
-  border: 1px solid var(--borderPrimary, #e2e8f0);
-  border-radius: 0.5rem;
-  cursor: pointer;
   font-size: 0.8125rem;
 }
 
-.search-scope-bar button:hover,
-.search-scope-bar button.active {
-  color: var(--blue, #1677ff);
-  background: rgba(22, 119, 255, 0.1);
-  border-color: rgba(22, 119, 255, 0.24);
-}
-
-.search-scope-path {
-  min-width: 0;
-  margin-left: auto;
-  overflow: hidden;
-  color: var(--textSecondary, #64748b);
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.search-hints {
-  text-align: center;
-  padding-top: 40px;
-  color: var(--textSecondary);
-}
-
-.search-types {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 24px;
-  flex-wrap: wrap;
-}
-
-.search-type-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 24px;
-  border-radius: 12px;
-  background: var(--surfaceSecondary);
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    transform 0.1s;
-  color: var(--textPrimary);
-}
-
-.search-type-item:hover {
-  background: var(--hover);
-  transform: translateY(-2px);
-}
-
-.search-type-item:active {
-  transform: translateY(0);
-}
-
-.search-type-item i {
-  font-size: 28px;
-  color: var(--blue);
-}
-
-.search-loading {
-  display: flex;
-  justify-content: center;
-  padding-top: 80px;
-}
-
-.search-empty {
-  text-align: center;
-  padding-top: 80px;
-  color: var(--textSecondary);
-}
-
-.search-empty i {
-  font-size: 48px;
-  opacity: 0.4;
-}
-
-.search-results {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
-}
-
-.search-result-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: var(--textPrimary);
-  transition: background 0.15s;
-}
-
-.search-result-item:hover {
-  background: var(--hover);
-}
-
-.search-result-item i {
-  color: var(--textSecondary);
-  font-size: 20px;
-}
-
-.search-result-item i:first-child {
-  color: var(--blue);
-}
-
-.search-result-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.search-result-name {
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.search-result-path {
-  font-size: 12px;
-  color: var(--textSecondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.search-result-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.search-result-size,
-.search-result-time {
-  font-size: 12px;
-  color: var(--textSecondary);
-  white-space: nowrap;
-}
-
-.tag-results {
-  width: min(72rem, 100%);
-  margin: 0 auto;
-}
-
-.tag-results-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding: 1rem 1.25rem;
-  background: var(--surfacePrimary, #fff);
-  border: 1px solid var(--borderPrimary, #e2e8f0);
-  border-radius: 0.875rem;
-}
-
-.tag-results-heading {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  gap: 0.75rem;
-}
-
-.tag-results-heading > .material-icons {
-  flex: 0 0 auto;
-  font-size: 1.75rem;
-}
-
-.tag-results-kicker {
-  display: block;
-  color: var(--textSecondary, #64748b);
-  font-size: 0.75rem;
-}
-
-.tag-results-heading h1 {
-  margin: 0.15rem 0 0;
-  overflow: hidden;
-  color: var(--textPrimary, #1e293b);
-  font-size: 1.125rem;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tag-results-scope {
+.search-shortcuts button {
   display: inline-flex;
-  flex: 0 0 auto;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--borderPrimary, #e2e8f0);
-  border-radius: 0.625rem;
-  background: var(--surfaceSecondary, #f8fafc);
-}
-
-.tag-results-scope button {
+  align-items: center;
   min-height: 2rem;
-  padding: 0 0.7rem;
-  border: 0;
-  border-radius: 0.4rem;
-  color: var(--textSecondary, #64748b);
-  background: transparent;
-  cursor: pointer;
-}
-
-.tag-results-scope button:hover,
-.tag-results-scope button:focus-visible,
-.tag-results-scope button.active {
-  color: var(--blue, #1677ff);
-  background: var(--surfacePrimary, #fff);
-  box-shadow: 0 1px 3px rgb(15 23 42 / 10%);
-}
-
-.tag-results-back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;
-  flex: 0 0 auto;
-  padding: 0 0.875rem;
-  color: var(--textSecondary, #475569);
-  background: transparent;
-  border: 1px solid var(--borderPrimary, #e2e8f0);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.tag-results-back:hover,
-.tag-results-back:focus-visible {
-  color: var(--blue, #1677ff);
-  border-color: var(--blue, #1677ff);
-}
-
-.tag-results-list {
-  display: flex;
-  flex-direction: column;
   gap: 0.25rem;
-  padding: 0.5rem;
+  padding: 0 0.625rem;
+  color: var(--textSecondary, #475569);
   background: var(--surfacePrimary, #fff);
   border: 1px solid var(--borderPrimary, #e2e8f0);
-  border-radius: 0.875rem;
-}
-
-.tag-result-item {
-  display: flex;
-  align-items: center;
-  min-height: 3.5rem;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  color: var(--textPrimary, #1e293b);
   border-radius: 0.5rem;
-  text-decoration: none;
+  cursor: pointer;
 }
 
-.tag-result-item:hover,
-.tag-result-item:focus-visible {
-  background: var(--hover, #f4f7fb);
-}
-
-.tag-result-item > .material-icons {
-  flex: 0 0 auto;
+.search-shortcuts button:hover {
   color: var(--blue, #1677ff);
-  font-size: 1.75rem;
+  border-color: rgba(22, 119, 255, 0.35);
+}
+
+.search-shortcuts .material-icons {
+  font-size: 1rem;
 }
 
 @media (max-width: 736px) {
   .search-page-content {
-    padding: 12px 16px;
+    padding: 0.75rem;
   }
 
-  .search-result-item {
-    padding: 8px 12px;
+  .search-result-count {
+    display: none;
   }
 
-  .search-scope-bar {
-    align-items: stretch;
-    gap: 0.375rem;
+  .search-shortcuts {
+    overflow-x: auto;
   }
 
-  .search-scope-label {
-    flex: 0 0 100%;
+  .search-shortcuts > span {
+    display: none;
   }
 
-  .search-scope-bar button {
-    flex: 1;
-  }
-
-  .search-scope-path {
-    flex: 0 0 100%;
-    margin-left: 0;
-  }
-
-  .search-result-meta {
-    flex-direction: column;
-    gap: 2px;
-    align-items: flex-end;
-  }
-
-  .search-types {
-    gap: 12px;
-  }
-
-  .search-type-item {
-    padding: 12px 16px;
-  }
-
-  .tag-results-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .tag-results-scope {
-    width: 100%;
-  }
-
-  .tag-results-scope button {
-    flex: 1;
-  }
-
-  .tag-results-back {
-    width: 100%;
+  .search-shortcuts button {
+    flex: 0 0 auto;
   }
 }
 </style>

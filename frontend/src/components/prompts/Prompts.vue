@@ -1,7 +1,11 @@
 <template>
   <base-modal v-if="modal != null" :prompt="currentPromptName" @closed="close">
     <keep-alive>
-      <component :is="modal" @close="close" />
+      <component
+        :is="modal"
+        v-bind="layoutStore.currentPrompt?.props || {}"
+        @close="close"
+      />
     </keep-alive>
   </base-modal>
 </template>
@@ -32,6 +36,7 @@ import CurrentPassword from "./CurrentPassword.vue";
 import RiskConfirm from "./RiskConfirm.vue";
 import TagManager from "@/components/TagManager.vue";
 import QuickPreview from "./QuickPreview.vue";
+import ResultAction from "./ResultAction.vue";
 
 const layoutStore = useLayoutStore();
 
@@ -58,6 +63,7 @@ const components = new Map<string, any>([
   ["risk-confirm", RiskConfirm],
   ["tag-manager", TagManager],
   ["quick-preview", QuickPreview],
+  ["result-action", ResultAction],
 ]);
 
 const modal = computed(() => {

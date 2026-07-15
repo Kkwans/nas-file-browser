@@ -5,12 +5,12 @@
 
 /* Header search --------------------------------------------------------- */
 header > .header-center {
-  justify-content: flex-start;
+  justify-content: center;
   padding-inline: 12px;
 }
 
 .listing-search {
-  width: 100%;
+  width: min(46rem, 100%);
   min-width: 240px;
   height: 40px;
   margin: 0;
@@ -38,6 +38,10 @@ header > .header-center {
   color: var(--textPrimary, #1f2937);
   font-size: 14px;
   text-align: left;
+}
+
+.listing-search input:placeholder-shown {
+  text-align: center;
 }
 
 .listing-search input::placeholder {
@@ -82,6 +86,16 @@ header > .header-center {
 .listing-search-submit .material-icons,
 .listing-search-clear .material-icons {
   font-size: 19px;
+}
+
+@media (min-width: 1100px) {
+  header > .header-center {
+    position: absolute;
+    left: 50%;
+    width: min(46rem, 48vw);
+    padding: 0;
+    transform: translateX(-50%);
+  }
 }
 
 /* Breadcrumb ------------------------------------------------------------ */

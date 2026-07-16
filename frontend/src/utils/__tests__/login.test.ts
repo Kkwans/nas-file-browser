@@ -25,6 +25,9 @@ describe("login copy", () => {
     expect(getLogoutReasonText("expired")).toBe(
       "\u4f1a\u8bdd\u5df2\u8fc7\u671f\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55"
     );
+    expect(getLogoutReasonText("inactivity")).toBe(
+      "\u957f\u65f6\u95f4\u672a\u64cd\u4f5c\uff0c\u767b\u5f55\u72b6\u6001\u5df2\u5931\u6548\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55"
+    );
   });
 
   it("does not expose an unknown upstream reason", () => {

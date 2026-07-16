@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { StatusError } from "@/api/utils";
 import * as auth from "@/utils/auth";
-import { getLoginTitle } from "@/utils/login";
+import { getLoginTitle, getLogoutReasonText } from "@/utils/login";
 import {
   name,
   logoURL,
@@ -80,18 +80,7 @@ const $showError = inject<IToastError>("$showError")!;
 const reason = route.query["logout-reason"] ?? null;
 const loginTitle = computed(() => getLoginTitle(name));
 
-const logoutReasonText = computed(() => {
-  switch (reason) {
-    case "unknown":
-      return "您已退出登录";
-    case "logout":
-      return "已成功退出登录";
-    case "expired":
-      return "会话已过期，请重新登录";
-    default:
-      return reason ? String(reason) : "";
-  }
-});
+const logoutReasonText = computed(() => getLogoutReasonText(reason));
 
 const submit = async (event: Event) => {
   event.preventDefault();

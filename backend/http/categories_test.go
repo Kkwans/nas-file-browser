@@ -1,6 +1,11 @@
 package fbhttp
 
-import "testing"
+import (
+	"path"
+	"reflect"
+	"strings"
+	"testing"
+)
 
 func TestUGREENSharedFoldersAreClassifiedAsShared(t *testing.T) {
 	t.Parallel()
@@ -34,5 +39,67 @@ func TestDockerSystemFolderRemainsSystem(t *testing.T) {
 
 	if category := classifyPath("/volume2/Docker"); category.ID != "system" {
 		t.Fatalf("classifyPath(/volume2/Docker) = %q, want system", category.ID)
+	}
+}
+
+func TestParseRegisteredSharedFolderPatterns(t *testing.T) {
+	t.Parallel()
+
+	config := `
+[personal_folder]
+path = %H
+
+[Project]
+path = /volume2/Project
+
+[家庭资料]
+path = /volume1/家庭资料
+
+[外接备份]
+path = /mnt/@ext/disk-1
+
+[无路径配置]
+browseable = yes
+`
+	got, err := parseRegisteredSharedFolderPatterns(strings.NewReader(config))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		path.Clean("/mnt/@ext/disk-1"),
+		path.Clean("/volume1/家庭资料"),
+		path.Clean("/volume2/Project"),
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("parseRegisteredSharedFolderPatterns() = %#v, want %#v", got, want)
+	}
+}
+
+func TestBuildCategoryRulesUsesRegisteredSharedFoldersAsAuthority(t *testing.T) {
+	t.Parallel()
+
+	sharedPath := path.Clean("/volume1/家庭资料")
+	rules := buildCategoryRules([]string{sharedPath})
+	var shared CategoryRule
+	for _, rule := range rules {
+		if rule.ID == "shared" {
+			shared = rule
+			break
+		}
+	}
+
+	found := false
+	for _, pattern := range shared.Patterns {
+		if pattern == sharedPath {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("shared rules do not include discovered path %q: %#v", sharedPath, shared.Patterns)
+	}
+	if len(shared.Patterns) != 1 {
+		t.Fatalf("shared rules = %#v, want only registered paths", shared.Patterns)
 	}
 }

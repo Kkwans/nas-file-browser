@@ -1,9 +1,14 @@
 package fbhttp
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -92,12 +97,98 @@ var builtinCategoryRules = []CategoryRule{
 	},
 }
 
+const defaultSharedFolderConfigPath = "/run/ugreen/smbshare.conf"
+
+func parseRegisteredSharedFolderPatterns(reader io.Reader) ([]string, error) {
+	patterns := make([]string, 0)
+	seen := make(map[string]struct{})
+	scanner := bufio.NewScanner(reader)
+	section := ""
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
+			continue
+		}
+		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+			section = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(line, "["), "]"))
+			continue
+		}
+		if section == "" || section == "personal_folder" {
+			continue
+		}
+
+		key, value, found := strings.Cut(line, "=")
+		if !found || !strings.EqualFold(strings.TrimSpace(key), "path") {
+			continue
+		}
+		registeredPath := path.Clean(strings.TrimSpace(value))
+		if !strings.HasPrefix(registeredPath, "/") {
+			continue
+		}
+		if _, exists := seen[registeredPath]; exists {
+			continue
+		}
+		seen[registeredPath] = struct{}{}
+		patterns = append(patterns, registeredPath)
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	sort.Strings(patterns)
+	return patterns, nil
+}
+
+func registeredSharedFolderPatterns(configPath string) ([]string, error) {
+	file, err := os.Open(configPath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return parseRegisteredSharedFolderPatterns(file)
+}
+
+func buildCategoryRules(registeredSharedFolders []string) []CategoryRule {
+	rules := make([]CategoryRule, len(builtinCategoryRules))
+	for i, rule := range builtinCategoryRules {
+		rules[i] = rule
+		rules[i].Patterns = append([]string(nil), rule.Patterns...)
+	}
+
+	if len(registeredSharedFolders) == 0 {
+		return rules
+	}
+	for i := range rules {
+		if rules[i].ID != "shared" {
+			continue
+		}
+		rules[i].Patterns = append([]string(nil), registeredSharedFolders...)
+		break
+	}
+
+	return rules
+}
+
+func currentCategoryRules() []CategoryRule {
+	configPath := os.Getenv("UGREEN_SMB_SHARE_CONFIG")
+	if configPath == "" {
+		configPath = defaultSharedFolderConfigPath
+	}
+	registered, err := registeredSharedFolderPatterns(configPath)
+	if err != nil {
+		return buildCategoryRules(nil)
+	}
+	return buildCategoryRules(registered)
+}
+
 // classifyPath determines which category a directory path belongs to.
 // Returns the matching category, or a default "other" category if no match.
 func classifyPath(path string) Category {
 	cleaned := filepath.Clean(path)
 
-	for _, rule := range builtinCategoryRules {
+	for _, rule := range currentCategoryRules() {
 		for _, pattern := range rule.Patterns {
 			if matchPattern(pattern, cleaned) {
 				return Category{
@@ -211,7 +302,7 @@ var categoriesHandler = withUser(func(w http.ResponseWriter, r *http.Request, d 
 	}
 
 	info := CategoryInfo{
-		Categories: builtinCategoryRules,
+		Categories: currentCategoryRules(),
 	}
 
 	return renderJSON(w, r, info)

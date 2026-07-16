@@ -40,6 +40,23 @@ func videoCondition(path string) bool {
 	return strings.HasPrefix(mimetype, "video")
 }
 
+func extensionsCondition(extensions ...string) condition {
+	allowed := make(map[string]struct{}, len(extensions))
+	for _, extension := range extensions {
+		allowed[strings.ToLower(extension)] = struct{}{}
+	}
+
+	return func(path string) bool {
+		name := strings.ToLower(filepath.Base(path))
+		if strings.HasPrefix(name, ".") && !strings.Contains(name[1:], ".") {
+			_, ok := allowed[name[1:]]
+			return ok
+		}
+		_, ok := allowed[strings.TrimPrefix(strings.ToLower(filepath.Ext(name)), ".")]
+		return ok
+	}
+}
+
 func parseSearch(value string) *searchOptions {
 	opts := &searchOptions{
 		CaseSensitive: strings.Contains(value, "case:sensitive"),
@@ -65,6 +82,19 @@ func parseSearch(value string) *searchOptions {
 			opts.Conditions = append(opts.Conditions, audioCondition)
 		case "video":
 			opts.Conditions = append(opts.Conditions, videoCondition)
+		case "markdown":
+			opts.Conditions = append(opts.Conditions, extensionsCondition("md", "markdown", "mdown", "mkd"))
+		case "config":
+			opts.Conditions = append(opts.Conditions, extensionsCondition(
+				"json", "json5", "yaml", "yml", "toml", "ini", "conf", "config",
+				"env", "xml", "properties",
+			))
+		case "code":
+			opts.Conditions = append(opts.Conditions, extensionsCondition(
+				"java", "py", "go", "js", "jsx", "ts", "tsx", "vue", "rs",
+				"c", "h", "cpp", "hpp", "cs", "php", "rb", "kt", "kts",
+				"swift", "sh", "ps1", "sql",
+			))
 		default:
 			opts.Conditions = append(opts.Conditions, extensionCondition(t[1]))
 		}

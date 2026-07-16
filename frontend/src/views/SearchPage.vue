@@ -36,8 +36,8 @@
             </i>
           </button>
         </div>
-        <span v-if="results.length" class="search-result-count"
-          >{{ results.length }} 项</span
+        <span v-if="searchResults.length" class="search-result-count"
+          >{{ searchResults.length }} 项</span
         >
       </form>
     </header-bar>
@@ -59,13 +59,22 @@
       />
 
       <template v-else>
-        <div v-if="!prompt && results.length === 0" class="search-shortcuts">
+        <div class="search-shortcuts">
           <span>按文件类型快速搜索</span>
           <button
-            v-for="(item, type) in searchTypes"
+            type="button"
+            :class="{ active: activeType === null }"
+            @click="selectSearchType(null)"
+          >
+            <i class="material-icons" aria-hidden="true">apps</i>
+            全部
+          </button>
+          <button
+            v-for="(item, type) in SEARCH_TYPE_OPTIONS"
             :key="type"
             type="button"
-            @click="initSearch(`type:${type}`)"
+            :class="{ active: activeType === type }"
+            @click="selectSearchType(type)"
           >
             <i class="material-icons" aria-hidden="true">{{ item.icon }}</i>
             {{ item.label }}
@@ -74,7 +83,7 @@
         <result-explorer
           kind="search"
           :scope="searchScope"
-          :title="prompt || '搜索文件'"
+          :title="searchTitle"
           :results="searchResults"
           :loading="ongoing"
           :base-path="searchBase"
@@ -120,13 +129,13 @@ import {
   buildTaggedPathUrl,
   getTaggedPathName,
 } from "@/utils/tagResults";
-
-const searchTypes = {
-  image: { label: "图片", icon: "insert_photo" },
-  audio: { label: "音频", icon: "volume_up" },
-  video: { label: "视频", icon: "movie" },
-  pdf: { label: "PDF 文档", icon: "picture_as_pdf" },
-};
+import {
+  applySearchType,
+  detectSearchType,
+  filterSearchResults,
+  SEARCH_TYPE_OPTIONS,
+  type SearchType,
+} from "@/utils/searchFilters";
 
 const router = useRouter();
 const route = useRoute();
@@ -138,6 +147,8 @@ const $showError = inject<IToastError>("$showError")!;
 const prompt = ref("");
 const ongoing = ref(false);
 const results = ref<SearchResult[]>([]);
+const activeType = ref<SearchType | null>(null);
+const submittedType = ref<SearchType | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 const tagLoading = ref(false);
 const tagResults = ref<ExplorerResult[]>([]);
@@ -172,11 +183,19 @@ const returnFileRoute = computed(() =>
       : currentBasePath.value
   )
 );
+const visibleResults = computed(() =>
+  submittedType.value === null
+    ? filterSearchResults(results.value, activeType.value)
+    : results.value
+);
 const searchResults = computed<ExplorerResult[]>(() =>
-  results.value.map((item) => ({
+  visibleResults.value.map((item) => ({
     ...item,
     url: item.url ?? buildTaggedPathUrl(item.path, item.dir),
   }))
+);
+const searchTitle = computed(
+  () => applySearchType(prompt.value, null) || "搜索文件"
 );
 
 async function loadTagResults() {
@@ -272,16 +291,32 @@ function clearSearch() {
   ongoing.value = false;
   prompt.value = "";
   results.value = [];
+  activeType.value = null;
+  submittedType.value = null;
   nextTick(() => inputRef.value?.focus());
 }
 
-function initSearch(text: string) {
-  prompt.value = `${text} `;
+async function selectSearchType(type: SearchType | null) {
+  const nextType = activeType.value === type ? null : type;
+  if (results.value.length > 0 && submittedType.value === null) {
+    activeType.value = nextType;
+    return;
+  }
+
+  activeType.value = nextType;
+  prompt.value = applySearchType(prompt.value, nextType);
+  if (submittedType.value !== null) {
+    if (prompt.value) await submit();
+    else clearSearch();
+    return;
+  }
   nextTick(() => inputRef.value?.focus());
 }
 
 async function submit() {
   if (!prompt.value) return;
+  submittedType.value = detectSearchType(prompt.value);
+  activeType.value = submittedType.value;
   await router.replace({
     path: "/search",
     query: {
@@ -337,6 +372,7 @@ async function handleResultAction(
 
 onMounted(() => {
   prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
+  activeType.value = detectSearchType(prompt.value);
   if (tagMode.value) loadTagResults();
   else {
     inputRef.value?.focus();
@@ -349,6 +385,8 @@ watch(tagId, () => {
   ongoing.value = false;
   results.value = [];
   prompt.value = getSearchPromptFromRoute(route.query.q, route.query.tag);
+  activeType.value = detectSearchType(prompt.value);
+  submittedType.value = null;
   if (tagMode.value) loadTagResults();
 });
 
@@ -451,6 +489,8 @@ onUnmounted(() => {
 
 .search-page-content {
   flex: 1;
+  width: 100%;
+  margin: 0;
   padding: 1.5rem;
   overflow-y: auto;
 }
@@ -480,6 +520,12 @@ onUnmounted(() => {
 
 .search-shortcuts button:hover {
   color: var(--blue, #1677ff);
+  border-color: rgba(22, 119, 255, 0.35);
+}
+
+.search-shortcuts button.active {
+  color: var(--blue, #1677ff);
+  background: rgba(22, 119, 255, 0.08);
   border-color: rgba(22, 119, 255, 0.35);
 }
 

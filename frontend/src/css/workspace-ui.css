@@ -123,6 +123,8 @@ header > .header-center {
 .breadcrumbs > a,
 .breadcrumbs > span > a,
 .breadcrumbs > span:last-child {
+  display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
   min-width: 0;
   max-width: 240px;
@@ -134,6 +136,17 @@ header > .header-center {
   font-weight: 550;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.breadcrumbs > a:first-child {
+  align-self: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.breadcrumbs > a:first-child .material-icons {
+  display: block;
+  line-height: 1;
 }
 
 .breadcrumbs > a:hover,

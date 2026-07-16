@@ -247,11 +247,14 @@
           items.dirs.length + items.files.length === 0 &&
           !tagsStore.activeFilterTag
         "
+        class="file-empty-state"
+        role="status"
       >
-        <h2 class="message">
-          <i class="material-icons">sentiment_dissatisfied</i>
-          <span>这里没有任何文件...</span>
-        </h2>
+        <span class="file-empty-state-icon" aria-hidden="true">
+          <i class="material-icons">folder_open</i>
+        </span>
+        <h2>这个文件夹是空的</h2>
+        <p>可以新建文件或文件夹，也可以把文件上传到这里。</p>
         <input
           style="display: none"
           type="file"

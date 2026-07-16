@@ -1,0 +1,257 @@
+/* PC 侧边栏最终契约：统一基线、统一层级、稳定滚动槽和低干扰调整边界。 */
+nav.sidebar {
+  --sidebar-inline-gutter: 0.75rem;
+  box-sizing: border-box;
+  padding: 0.5rem 0 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+nav.sidebar.is-scrolling {
+  scrollbar-color: rgba(100, 116, 139, 0.46) transparent;
+}
+
+nav.sidebar .sidebar-primary-nav,
+nav.sidebar .sidebar-secondary-actions,
+nav.sidebar > #logout,
+nav.sidebar > .credits {
+  box-sizing: border-box;
+  width: auto;
+  margin-inline: var(--sidebar-inline-gutter);
+}
+
+nav.sidebar .sidebar-primary-nav {
+  padding: 0 0 0.75rem;
+}
+
+nav.sidebar .sidebar-primary-nav .action,
+nav.sidebar .sidebar-secondary-actions .action,
+nav.sidebar > #logout {
+  width: 100%;
+  margin-inline: 0;
+  padding-inline: 0.75rem;
+  gap: 0.75rem;
+}
+
+nav.sidebar .sidebar-primary-nav .action > i,
+nav.sidebar .sidebar-secondary-actions .action > i,
+nav.sidebar > #logout > i {
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  display: inline-grid;
+  place-items: center;
+  margin: 0;
+}
+
+nav.sidebar .sidebar-module {
+  box-sizing: border-box;
+  width: auto;
+  margin-inline: var(--sidebar-inline-gutter);
+  padding: 0.625rem 0 !important;
+  border-top: 1px solid var(--divider, #e2e8f0);
+  background: transparent !important;
+}
+
+nav.sidebar .sidebar-section-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.25rem 0.375rem 0.25rem 0.625rem;
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.75rem;
+  background: var(--surfaceSecondary, #f8fafc);
+}
+
+nav.sidebar .sidebar-section-header .section-toggle {
+  min-height: 2.375rem;
+  padding: 0;
+  gap: 0.75rem;
+  color: var(--textPrimary, #334155);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+nav.sidebar .sidebar-section-header .section-toggle .material-icons {
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  display: inline-grid;
+  place-items: center;
+  color: var(--blue, #1677ff);
+  font-size: 1.25rem;
+}
+
+nav.sidebar .sidebar-section-header--favorite .section-toggle .material-icons {
+  color: #d97706;
+}
+
+nav.sidebar .sidebar-section-header .section-tools,
+nav.sidebar .sidebar-group-tools {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 2.375rem;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+nav.sidebar .sidebar-section-header .section-action-btn,
+nav.sidebar .sidebar-group-tools .section-action-btn {
+  width: 2.375rem;
+  min-width: 2.375rem;
+  height: 2.375rem;
+  min-height: 2.375rem;
+  margin: 0;
+}
+
+nav.sidebar .section-arrow,
+nav.sidebar .category-arrow {
+  transform-origin: center;
+}
+
+nav.sidebar .sidebar-group-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  min-height: 3rem;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem 0.375rem 0.25rem 0.625rem;
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.75rem;
+  background: var(--surfacePrimary, #fff);
+  color: var(--textPrimary, #334155);
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+nav.sidebar .sidebar-group-header:hover,
+nav.sidebar .sidebar-group-header:focus-within {
+  border-color: rgba(22, 119, 255, 0.2);
+  background: rgba(22, 119, 255, 0.045);
+  box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.04);
+}
+
+nav.sidebar .sidebar-group-primary {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  min-height: 2.375rem;
+  padding: 0;
+  gap: 0.75rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+nav.sidebar .sidebar-group-primary > .material-icons {
+  width: 1.75rem;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.25rem;
+}
+
+nav.sidebar .sidebar-group-name {
+  overflow: hidden;
+  color: var(--textPrimary, #334155);
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+nav.sidebar .favorite-group-header,
+nav.sidebar .category-group-header {
+  width: 100%;
+  margin-inline: 0;
+}
+
+nav.sidebar .category-paths {
+  padding: 0.25rem 0 0 0.75rem;
+  border-bottom: 0;
+}
+
+nav.sidebar .sidebar-module .favorite-item,
+nav.sidebar .sidebar-module .tag-filter-item,
+nav.sidebar .sidebar-module .volume-item,
+nav.sidebar .sidebar-module .category-path-item {
+  width: 100%;
+  margin-inline: 0;
+}
+
+nav.sidebar .sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -0.375rem;
+  z-index: 100;
+  width: 0.75rem;
+  height: 100%;
+  background: transparent;
+  opacity: 1;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+nav.sidebar .sidebar-resize-handle::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 1px;
+  background: var(--divider, #e2e8f0);
+  transform: translateX(-50%);
+  transition:
+    width 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+nav.sidebar .sidebar-resize-handle:hover,
+nav.sidebar .sidebar-resize-handle:active,
+nav.sidebar.is-resizing .sidebar-resize-handle {
+  right: -0.375rem;
+  width: 0.75rem;
+  background: transparent;
+}
+
+nav.sidebar .sidebar-resize-handle:hover::after,
+nav.sidebar .sidebar-resize-handle:active::after,
+nav.sidebar.is-resizing .sidebar-resize-handle::after {
+  width: 2px;
+  background: #94a3b8;
+  box-shadow: 0 0 0.5rem rgba(15, 23, 42, 0.18);
+}
+
+nav.sidebar::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
+nav.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+nav.sidebar::-webkit-scrollbar-thumb {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  background-clip: padding-box;
+}
+
+nav.sidebar.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.46);
+  background-clip: padding-box;
+}
+
+@media (max-width: 736px) {
+  nav.sidebar {
+    scrollbar-gutter: auto;
+  }
+}

@@ -1,6 +1,14 @@
 <template>
   <div v-show="active" @click="closeHovers" class="overlay"></div>
-  <nav class="sidebar" :class="{ active }">
+  <nav
+    class="sidebar"
+    :class="{
+      active,
+      'is-resizing': isResizing,
+      'is-scrolling': sidebarScrolling,
+    }"
+    @scroll.passive="onSidebarScroll"
+  >
     <div
       class="sidebar-resize-handle"
       @mousedown="startResize"
@@ -43,17 +51,14 @@
 
       <!-- Favorites Section -->
       <div class="favorites-section sidebar-module">
-        <div class="favorites-header sidebar-level-one">
-          <button
-            class="section-toggle"
-            type="button"
-            :aria-expanded="!collapsedSections.favorites"
-            @click="toggleSection('favorites')"
-          >
-            <i class="material-icons">star</i>
-            <span>收藏夹</span>
-          </button>
-          <div class="section-tools">
+        <SidebarSectionHeader
+          icon="star"
+          label="收藏夹"
+          tone="favorite"
+          :expanded="!collapsedSections.favorites"
+          @toggle="toggleSection('favorites')"
+        >
+          <template #tools>
             <button
               class="section-action-btn"
               type="button"
@@ -71,22 +76,8 @@
             >
               <i class="material-icons">delete_sweep</i>
             </button>
-            <button
-              class="section-action-btn section-collapse-btn"
-              type="button"
-              :aria-label="
-                collapsedSections.favorites ? '展开收藏夹' : '收起收藏夹'
-              "
-              @click="toggleSection('favorites')"
-            >
-              <i
-                class="material-icons section-arrow"
-                :class="{ expanded: !collapsedSections.favorites }"
-                >expand_more</i
-              >
-            </button>
-          </div>
-        </div>
+          </template>
+        </SidebarSectionHeader>
         <div
           v-if="showClearFavoritesConfirm"
           class="sidebar-inline-confirm"
@@ -181,41 +172,31 @@
             :key="group.id"
             class="favorite-group"
           >
-            <div
-              class="favorite-group-header sidebar-level-two"
-              role="button"
-              tabindex="0"
-              @click="toggleGroupCollapse(group.id)"
-              @keydown.enter.prevent="toggleGroupCollapse(group.id)"
-              @keydown.space.prevent="toggleGroupCollapse(group.id)"
+            <SidebarGroupHeader
+              class="favorite-group-header"
+              icon="inventory_2"
+              :label="group.name"
+              :count="(favoritesStore.favoritesByGroup[group.id] || []).length"
+              :expanded="!collapsedGroups[group.id]"
+              :color="group.color || 'var(--blue)'"
+              @primary="toggleGroupCollapse(group.id)"
+              @toggle="toggleGroupCollapse(group.id)"
               @dragover.prevent="onFavDragOverGroup($event, group.id)"
               @drop="onFavDropOnGroup($event, group.id)"
               @dragleave="onFavDragLeaveGroup"
               :class="{ 'drag-over-group': dragOverGroupId === group.id }"
             >
-              <i
-                class="material-icons favorite-group-icon"
-                :style="{ color: group.color || 'var(--blue)' }"
-                >inventory_2</i
-              >
-              <span class="group-name">{{ group.name }}</span>
-              <span class="category-count">{{
-                (favoritesStore.favoritesByGroup[group.id] || []).length
-              }}</span>
-              <button
-                class="section-action-btn"
-                type="button"
-                title="删除分组"
-                @click.stop.prevent="deleteGroup(group.id)"
-              >
-                <i class="material-icons">close</i>
-              </button>
-              <i
-                class="material-icons category-arrow"
-                :class="{ expanded: !collapsedGroups[group.id] }"
-                >expand_more</i
-              >
-            </div>
+              <template #actions>
+                <button
+                  class="section-action-btn"
+                  type="button"
+                  title="删除分组"
+                  @click.stop.prevent="deleteGroup(group.id)"
+                >
+                  <i class="material-icons">close</i>
+                </button>
+              </template>
+            </SidebarGroupHeader>
             <template v-if="!collapsedGroups[group.id]">
               <button
                 v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
@@ -265,17 +246,13 @@
 
       <!-- Tags Filter Section -->
       <div class="tags-section sidebar-module">
-        <div class="tags-header sidebar-level-one">
-          <button
-            class="section-toggle"
-            type="button"
-            :aria-expanded="!collapsedSections.tags"
-            @click="toggleSection('tags')"
-          >
-            <i class="material-icons">label</i>
-            <span>标签</span>
-          </button>
-          <div class="section-tools">
+        <SidebarSectionHeader
+          icon="label"
+          label="标签"
+          :expanded="!collapsedSections.tags"
+          @toggle="toggleSection('tags')"
+        >
+          <template #tools>
             <button
               class="section-action-btn"
               type="button"
@@ -284,20 +261,8 @@
             >
               <i class="material-icons">settings</i>
             </button>
-            <button
-              class="section-action-btn section-collapse-btn"
-              type="button"
-              :aria-label="collapsedSections.tags ? '展开标签' : '收起标签'"
-              @click="toggleSection('tags')"
-            >
-              <i
-                class="material-icons section-arrow"
-                :class="{ expanded: !collapsedSections.tags }"
-                >expand_more</i
-              >
-            </button>
-          </div>
-        </div>
+          </template>
+        </SidebarSectionHeader>
         <template v-if="!collapsedSections.tags">
           <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
             <i class="material-icons">turned_in_not</i>
@@ -334,18 +299,12 @@
         v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
         class="volumes-section sidebar-module"
       >
-        <button
-          class="volumes-header sidebar-level-one"
-          @click="toggleSection('volumes')"
-        >
-          <i class="material-icons">storage</i>
-          <span>存储卷</span>
-          <i
-            class="material-icons section-arrow"
-            :class="{ expanded: !collapsedSections.volumes }"
-            >expand_more</i
-          >
-        </button>
+        <SidebarSectionHeader
+          icon="storage"
+          label="存储卷"
+          :expanded="!collapsedSections.volumes"
+          @toggle="toggleSection('volumes')"
+        />
         <template v-if="!collapsedSections.volumes">
           <button
             v-for="vol in volumesStore.systemVolumes"
@@ -409,48 +368,28 @@
         v-if="user?.perm?.admin && categoryGroups.length > 0"
         class="categories-section sidebar-module"
       >
-        <button
-          class="categories-header sidebar-level-one"
-          @click="toggleSection('categories')"
-        >
-          <i class="material-icons">category</i>
-          <span>目录分类</span>
-          <i
-            class="material-icons section-arrow"
-            :class="{ expanded: !collapsedSections.categories }"
-            >expand_more</i
-          >
-        </button>
+        <SidebarSectionHeader
+          icon="category"
+          label="目录分类"
+          :expanded="!collapsedSections.categories"
+          @toggle="toggleSection('categories')"
+        />
         <template v-if="!collapsedSections.categories">
           <div
             v-for="group in categoryGroups"
             :key="group.id"
             class="category-group"
           >
-            <div class="category-group-header-row">
-              <button
-                class="action category-group-header category-group-nav sidebar-level-two"
-                @click="navigateCategoryFirst(group)"
-                title="查看内容"
-              >
-                <i class="material-icons" :style="{ color: group.color }">{{
-                  group.icon
-                }}</i>
-                <span>{{ group.name }}</span>
-                <span class="category-count">{{ group.paths.length }}</span>
-              </button>
-              <button
-                class="category-expand-btn"
-                @click="toggleCategory(group.id)"
-                :title="expandedCategories[group.id] ? '收起分类' : '展开分类'"
-              >
-                <i
-                  class="material-icons category-arrow"
-                  :class="{ expanded: expandedCategories[group.id] }"
-                  >expand_more</i
-                >
-              </button>
-            </div>
+            <SidebarGroupHeader
+              class="category-group-header"
+              :icon="group.icon"
+              :label="group.name"
+              :count="group.paths.length"
+              :expanded="Boolean(expandedCategories[group.id])"
+              :color="group.color"
+              @primary="navigateCategoryFirst(group)"
+              @toggle="toggleCategory(group.id)"
+            />
             <div v-if="expandedCategories[group.id]" class="category-paths">
               <button
                 v-for="p in group.paths"
@@ -578,6 +517,8 @@ import { useCategoriesStore } from "@/stores/categories";
 import type { CategoryGroup } from "@/api/categories";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
+import SidebarSectionHeader from "@/components/sidebar/SidebarSectionHeader.vue";
+import SidebarGroupHeader from "@/components/sidebar/SidebarGroupHeader.vue";
 
 import * as auth from "@/utils/auth";
 import { getFileIcon, isFileByExtension } from "@/utils/fileIcons";
@@ -649,6 +590,8 @@ document.documentElement.style.setProperty(
   sidebarWidth.value + "px"
 );
 const isResizing = ref(false);
+const sidebarScrolling = ref(false);
+let sidebarScrollTimer: ReturnType<typeof setTimeout> | undefined;
 const startX = ref(0);
 const startWidth = ref(0);
 const groupInputRef = ref<HTMLInputElement | null>(null);
@@ -753,6 +696,14 @@ const resetSidebarWidth = () => {
       defaultWidth.toString()
     );
   } catch {}
+};
+
+const onSidebarScroll = () => {
+  sidebarScrolling.value = true;
+  if (sidebarScrollTimer) clearTimeout(sidebarScrollTimer);
+  sidebarScrollTimer = setTimeout(() => {
+    sidebarScrolling.value = false;
+  }, 700);
 };
 
 const volumeBarColor = (percent: number) => {
@@ -1030,6 +981,7 @@ watch(
 );
 
 onUnmounted(() => {
+  if (sidebarScrollTimer) clearTimeout(sidebarScrollTimer);
   stopResize();
 });
 </script>

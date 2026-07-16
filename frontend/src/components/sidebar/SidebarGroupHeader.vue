@@ -1,27 +1,31 @@
 <template>
-  <div class="sidebar-group-header sidebar-level-two">
-    <button
-      class="sidebar-group-primary"
-      type="button"
-      @click="$emit('primary')"
+  <div
+    class="sidebar-group-header sidebar-level-two"
+    role="button"
+    tabindex="0"
+    :aria-expanded="expanded"
+    :aria-label="expanded ? `收起${label}` : `展开${label}`"
+    @click="$emit('toggle')"
+    @keydown.enter.prevent="$emit('toggle')"
+    @keydown.space.prevent="$emit('toggle')"
+  >
+    <i
+      class="material-icons favorite-group-icon"
+      :style="{ color }"
+      aria-hidden="true"
+      >{{ icon }}</i
     >
-      <i class="material-icons" :style="{ color }">{{ icon }}</i>
-      <span class="sidebar-group-name">{{ label }}</span>
-      <span class="category-count">{{ count }}</span>
-    </button>
-    <div class="sidebar-group-tools">
+    <span class="group-name">{{ label }}</span>
+    <span class="category-count">{{ count }}</span>
+    <span class="sidebar-group-actions">
       <slot name="actions"></slot>
-      <button
-        class="section-action-btn sidebar-group-toggle"
-        type="button"
-        :aria-label="expanded ? `收起${label}` : `展开${label}`"
-        @click="$emit('toggle')"
-      >
-        <i class="material-icons category-arrow" :class="{ expanded }"
-          >expand_more</i
-        >
-      </button>
-    </div>
+    </span>
+    <i
+      class="material-icons category-arrow"
+      :class="{ expanded }"
+      aria-hidden="true"
+      >expand_more</i
+    >
   </div>
 </template>
 
@@ -37,5 +41,5 @@ withDefaults(
   { color: "var(--blue, #1677ff)" }
 );
 
-defineEmits<{ primary: []; toggle: [] }>();
+defineEmits<{ toggle: [] }>();
 </script>

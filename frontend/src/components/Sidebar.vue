@@ -179,7 +179,6 @@
               :count="(favoritesStore.favoritesByGroup[group.id] || []).length"
               :expanded="!collapsedGroups[group.id]"
               :color="group.color || 'var(--blue)'"
-              @primary="toggleGroupCollapse(group.id)"
               @toggle="toggleGroupCollapse(group.id)"
               @dragover.prevent="onFavDragOverGroup($event, group.id)"
               @drop="onFavDropOnGroup($event, group.id)"
@@ -387,7 +386,6 @@
               :count="group.paths.length"
               :expanded="Boolean(expandedCategories[group.id])"
               :color="group.color"
-              @primary="navigateCategoryFirst(group)"
               @toggle="toggleCategory(group.id)"
             />
             <div v-if="expandedCategories[group.id]" class="category-paths">
@@ -899,13 +897,6 @@ const openSearch = () => {
     query: { base: base.endsWith("/") ? base : `${base}/`, scope: "current" },
   });
   closeHovers();
-};
-
-const navigateCategoryFirst = (group: CategoryGroup) => {
-  if (group.paths.length > 0) {
-    navigateVolume(group.paths[0].path);
-  }
-  expandedCategories[group.id] = true;
 };
 
 const isDuplicateName = (name: string, groupId: string) => {

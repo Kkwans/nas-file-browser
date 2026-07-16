@@ -17,6 +17,7 @@ export interface IUser {
   viewMode: ViewModeType;
   sorting?: Sorting;
   aceEditorTheme: string;
+  sidebarPreferences?: string;
 }
 
 export type ViewModeType =

@@ -22,13 +22,22 @@ nav.sidebar > .credits {
   margin-inline: var(--sidebar-inline-gutter);
 }
 
+nav.sidebar .sidebar-personalized-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 nav.sidebar .sidebar-primary-nav {
-  padding: 0 0 0.75rem;
+  width: auto;
+  margin-inline: var(--sidebar-inline-gutter);
+  padding: 0 0 0.625rem;
 }
 
 nav.sidebar .sidebar-primary-nav .action,
 nav.sidebar .sidebar-secondary-actions .action,
-nav.sidebar > #logout {
+nav.sidebar > #logout,
+nav.sidebar .sidebar-personalized-stack > #logout {
   width: 100%;
   margin-inline: 0;
   padding-inline: 0.75rem;
@@ -45,6 +54,11 @@ nav.sidebar > #logout > i {
   margin: 0;
 }
 
+nav.sidebar .sidebar-user-card {
+  width: 100%;
+  margin: 0 !important;
+}
+
 nav.sidebar .sidebar-module {
   box-sizing: border-box;
   width: auto;
@@ -52,6 +66,51 @@ nav.sidebar .sidebar-module {
   padding: 0.625rem 0 !important;
   border-top: 1px solid var(--divider, #e2e8f0);
   background: transparent !important;
+}
+
+nav.sidebar .system-options-section .sidebar-command {
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0.25rem 0 0;
+  padding-inline: 0.625rem;
+  border-radius: 0.625rem;
+}
+
+nav.sidebar .system-options-section .sidebar-command > .material-icons {
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  display: inline-grid;
+  place-items: center;
+  margin: 0;
+}
+
+nav.sidebar .sidebar-personalized-stack > #logout {
+  box-sizing: border-box;
+  width: auto;
+  margin: 0.625rem var(--sidebar-inline-gutter);
+  padding-inline: 0.75rem;
+}
+
+nav.sidebar .sidebar-sortable-module,
+nav.sidebar .sidebar-sortable-item,
+nav.sidebar .sidebar-section-header[draggable="true"],
+nav.sidebar .sidebar-group-header[draggable="true"] {
+  cursor: grab;
+}
+
+nav.sidebar .sidebar-sortable-module:active,
+nav.sidebar .sidebar-sortable-item:active,
+nav.sidebar .sidebar-section-header[draggable="true"]:active,
+nav.sidebar .sidebar-group-header[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+nav.sidebar .sidebar-sortable-item[draggable="true"] {
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+nav.sidebar .sidebar-sortable-item[draggable="true"]:hover {
+  transform: translateX(1px);
 }
 
 nav.sidebar .sidebar-section-header {

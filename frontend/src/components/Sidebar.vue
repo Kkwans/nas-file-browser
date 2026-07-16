@@ -17,190 +17,157 @@
       title="拖拽调节侧边栏宽度"
     ></div>
     <template v-if="isLoggedIn">
-      <div class="sidebar-primary-nav">
-        <button
-          type="button"
-          @click="toAccountSettings"
-          class="action sidebar-user-card"
-        >
-          <i class="material-icons">person</i>
-          <span>{{ user?.username }}</span>
-        </button>
-        <button
-          type="button"
-          class="action sidebar-command"
-          @click="toRoot"
-          aria-label="我的文件"
-          title="我的文件"
-        >
-          <i class="material-icons">folder</i>
-          <span>我的文件</span>
-        </button>
-
-        <button
-          type="button"
-          class="action sidebar-command"
-          @click="openSearch"
-          aria-label="搜索"
-          title="搜索"
-        >
-          <i class="material-icons">search</i>
-          <span>搜索</span>
-        </button>
-      </div>
-
-      <!-- Favorites Section -->
-      <div class="favorites-section sidebar-module">
-        <SidebarSectionHeader
-          icon="star"
-          label="收藏夹"
-          tone="favorite"
-          :expanded="!collapsedSections.favorites"
-          @toggle="toggleSection('favorites')"
-        >
-          <template #tools>
-            <button
-              class="section-action-btn"
-              type="button"
-              title="新建分组"
-              @click.stop.prevent="showCreateGroup = !showCreateGroup"
-            >
-              <i class="material-icons">create_new_folder</i>
-            </button>
-            <button
-              v-if="favoritesStore.sortedFavorites.length > 0"
-              class="section-action-btn"
-              type="button"
-              title="清空收藏夹"
-              @click.stop.prevent="showClearFavoritesConfirm = true"
-            >
-              <i class="material-icons">delete_sweep</i>
-            </button>
-          </template>
-        </SidebarSectionHeader>
+      <div class="sidebar-personalized-stack">
         <div
-          v-if="showClearFavoritesConfirm"
-          class="sidebar-inline-confirm"
-          role="alertdialog"
-          aria-label="确认清空收藏夹"
+          class="sidebar-primary-nav sidebar-sortable-module"
+          :style="moduleStyle('user')"
+          @dragover.prevent
+          @drop="onModuleDrop('user')"
         >
-          <span
-            >确认清空全部
-            {{ favoritesStore.sortedFavorites.length }} 项收藏？</span
+          <button
+            type="button"
+            @click="toAccountSettings"
+            class="action sidebar-user-card"
+            draggable="true"
+            @dragstart="onModuleDragStart($event, 'user')"
+            @dragend="clearSidebarDrag"
           >
-          <div class="sidebar-inline-confirm-actions">
-            <button type="button" @click="showClearFavoritesConfirm = false">
-              取消
-            </button>
-            <button type="button" class="danger" @click="clearAllFavorites">
-              清空
-            </button>
-          </div>
+            <i class="material-icons">person</i>
+            <span>{{ user?.username }}</span>
+          </button>
         </div>
-        <template v-if="!collapsedSections.favorites">
-          <!-- Create group input -->
-          <div v-if="showCreateGroup" class="create-group-input">
-            <input
-              v-model="newGroupName"
-              placeholder="分组名称"
-              @keyup.enter="createGroup"
-              @keyup.escape="showCreateGroup = false"
-              ref="groupInputRef"
-            />
-            <button @click="createGroup" :disabled="!newGroupName.trim()">
-              <i class="material-icons">check</i>
-            </button>
-            <button @click="showCreateGroup = false">
-              <i class="material-icons">close</i>
-            </button>
-          </div>
-          <!-- Empty state -->
-          <div
-            v-if="
-              favoritesStore.sortedFavorites.length === 0 &&
-              favoritesStore.sortedGroups.length === 0
-            "
-            class="section-empty"
-          >
-            <i class="material-icons">star_border</i>
-            <span>暂无收藏目录</span>
-          </div>
-          <!-- Ungrouped favorites -->
-          <template
-            v-if="
-              favoritesStore.favoritesByGroup[''] &&
-              favoritesStore.favoritesByGroup[''].length > 0
-            "
-          >
+
+        <div
+          class="system-options-section sidebar-module sidebar-sortable-module"
+          :style="moduleStyle('system-options')"
+          @dragover.prevent
+          @drop="onModuleDrop('system-options')"
+        >
+          <SidebarSectionHeader
+            icon="tune"
+            label="系统选项"
+            :expanded="!collapsedSections.systemOptions"
+            draggable="true"
+            @dragstart="onModuleDragStart($event, 'system-options')"
+            @dragend="clearSidebarDrag"
+            @toggle="toggleSection('systemOptions')"
+          />
+          <template v-if="!collapsedSections.systemOptions">
             <button
-              v-for="fav in favoritesStore.favoritesByGroup['']"
-              :key="fav.id"
-              class="action favorite-item"
-              :class="favoriteDropClass(fav.id)"
+              v-for="option in orderedSystemOptions"
+              :key="option.id"
+              type="button"
+              class="action sidebar-command sidebar-sortable-item"
               draggable="true"
-              @click="navigateVolume(fav.path)"
-              :title="fav.path"
-              @dragstart="onFavDragStart($event, fav.id)"
-              @dragover.prevent="onFavDragOverItem($event, fav.id)"
-              @dragleave="onFavDragLeaveItem"
-              @drop="onFavDropOnItem($event, fav.id)"
-              @dragend="onFavDragEnd"
+              @click="runSystemOption(option.id)"
+              @dragstart.stop="
+                onPreferenceDragStart($event, 'systemOptionOrder', option.id)
+              "
+              @dragover.prevent
+              @drop.stop="onPreferenceDrop('systemOptionOrder', option.id)"
+              @dragend="clearSidebarDrag"
             >
-              <i class="material-icons favorite-icon favorite-drag-handle"
-                >drag_indicator</i
-              >
-              <i class="material-icons favorite-icon">{{
-                favoriteIcon(fav.name)
-              }}</i>
-              <div class="favorite-info">
-                <span class="favorite-name">{{ fav.name }}</span>
-                <span class="favorite-path" v-if="fav.path !== fav.name">{{
-                  fav.path
-                }}</span>
-              </div>
-              <i
-                class="material-icons favorite-remove"
-                title="取消收藏"
-                @click.stop.prevent="removeFavorite(fav.id)"
-                >close</i
-              >
+              <i class="material-icons">{{ option.icon }}</i>
+              <span>{{ option.label }}</span>
             </button>
           </template>
-          <!-- Groups -->
-          <div
-            v-for="group in favoritesStore.sortedGroups"
-            :key="group.id"
-            class="favorite-group"
+        </div>
+
+        <!-- Favorites Section -->
+        <div
+          class="favorites-section sidebar-module sidebar-sortable-module"
+          :style="moduleStyle('favorites')"
+          @dragover.prevent
+          @drop="onModuleDrop('favorites')"
+        >
+          <SidebarSectionHeader
+            icon="star"
+            label="收藏夹"
+            tone="favorite"
+            :expanded="!collapsedSections.favorites"
+            draggable="true"
+            @dragstart="onModuleDragStart($event, 'favorites')"
+            @dragend="clearSidebarDrag"
+            @toggle="toggleSection('favorites')"
           >
-            <SidebarGroupHeader
-              class="favorite-group-header"
-              icon="inventory_2"
-              :label="group.name"
-              :count="(favoritesStore.favoritesByGroup[group.id] || []).length"
-              :expanded="!collapsedGroups[group.id]"
-              :color="group.color || 'var(--blue)'"
-              @toggle="toggleGroupCollapse(group.id)"
-              @dragover.prevent="onFavDragOverGroup($event, group.id)"
-              @drop="onFavDropOnGroup($event, group.id)"
-              @dragleave="onFavDragLeaveGroup"
-              :class="{ 'drag-over-group': dragOverGroupId === group.id }"
-            >
-              <template #actions>
-                <button
-                  class="section-action-btn"
-                  type="button"
-                  title="删除分组"
-                  @click.stop.prevent="deleteGroup(group.id)"
-                >
-                  <i class="material-icons">close</i>
-                </button>
-              </template>
-            </SidebarGroupHeader>
-            <template v-if="!collapsedGroups[group.id]">
+            <template #tools>
               <button
-                v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
+                class="section-action-btn"
+                type="button"
+                title="新建分组"
+                @click.stop.prevent="showCreateGroup = !showCreateGroup"
+              >
+                <i class="material-icons">create_new_folder</i>
+              </button>
+              <button
+                v-if="favoritesStore.sortedFavorites.length > 0"
+                class="section-action-btn"
+                type="button"
+                title="清空收藏夹"
+                @click.stop.prevent="showClearFavoritesConfirm = true"
+              >
+                <i class="material-icons">delete_sweep</i>
+              </button>
+            </template>
+          </SidebarSectionHeader>
+          <div
+            v-if="showClearFavoritesConfirm"
+            class="sidebar-inline-confirm"
+            role="alertdialog"
+            aria-label="确认清空收藏夹"
+          >
+            <span
+              >确认清空全部
+              {{ favoritesStore.sortedFavorites.length }} 项收藏？</span
+            >
+            <div class="sidebar-inline-confirm-actions">
+              <button type="button" @click="showClearFavoritesConfirm = false">
+                取消
+              </button>
+              <button type="button" class="danger" @click="clearAllFavorites">
+                清空
+              </button>
+            </div>
+          </div>
+          <template v-if="!collapsedSections.favorites">
+            <!-- Create group input -->
+            <div v-if="showCreateGroup" class="create-group-input">
+              <input
+                v-model="newGroupName"
+                placeholder="分组名称"
+                @keyup.enter="createGroup"
+                @keyup.escape="showCreateGroup = false"
+                ref="groupInputRef"
+              />
+              <button @click="createGroup" :disabled="!newGroupName.trim()">
+                <i class="material-icons">check</i>
+              </button>
+              <button @click="showCreateGroup = false">
+                <i class="material-icons">close</i>
+              </button>
+            </div>
+            <!-- Empty state -->
+            <div
+              v-if="
+                favoritesStore.sortedFavorites.length === 0 &&
+                favoritesStore.sortedGroups.length === 0
+              "
+              class="section-empty"
+            >
+              <i class="material-icons">star_border</i>
+              <span>暂无收藏目录</span>
+            </div>
+            <!-- Ungrouped favorites -->
+            <template
+              v-if="
+                favoritesStore.favoritesByGroup[''] &&
+                favoritesStore.favoritesByGroup[''].length > 0
+              "
+            >
+              <button
+                v-for="fav in favoritesStore.favoritesByGroup['']"
                 :key="fav.id"
-                class="action favorite-item category-path-item"
+                class="action favorite-item"
                 :class="favoriteDropClass(fav.id)"
                 draggable="true"
                 @click="navigateVolume(fav.path)"
@@ -230,238 +197,304 @@
                   >close</i
                 >
               </button>
-              <div
-                v-if="
-                  (favoritesStore.favoritesByGroup[group.id] || []).length === 0
-                "
-                class="section-empty"
-              >
-                <span>该分组暂无收藏</span>
-              </div>
             </template>
-          </div>
-        </template>
-      </div>
-
-      <!-- Tags Filter Section -->
-      <div class="tags-section sidebar-module">
-        <SidebarSectionHeader
-          icon="label"
-          label="标签"
-          :expanded="!collapsedSections.tags"
-          @toggle="toggleSection('tags')"
-        >
-          <template #tools>
-            <button
-              class="section-action-btn"
-              type="button"
-              title="管理标签"
-              @click.stop.prevent="openTagManager"
+            <!-- Groups -->
+            <div
+              v-for="group in favoritesStore.sortedGroups"
+              :key="group.id"
+              class="favorite-group"
             >
-              <i class="material-icons">settings</i>
+              <SidebarGroupHeader
+                class="favorite-group-header"
+                icon="inventory_2"
+                :label="group.name"
+                :count="
+                  (favoritesStore.favoritesByGroup[group.id] || []).length
+                "
+                :expanded="!collapsedGroups[group.id]"
+                :color="group.color || 'var(--blue)'"
+                draggable="true"
+                @dragstart.stop="onFavoriteGroupDragStart($event, group.id)"
+                @dragend="clearSidebarDrag"
+                @toggle="toggleGroupCollapse(group.id)"
+                @dragover.prevent="onFavDragOverGroup($event, group.id)"
+                @drop="onFavDropOnGroup($event, group.id)"
+                @dragleave="onFavDragLeaveGroup"
+                :class="{ 'drag-over-group': dragOverGroupId === group.id }"
+              >
+                <template #actions>
+                  <button
+                    class="section-action-btn"
+                    type="button"
+                    title="删除分组"
+                    @click.stop.prevent="deleteGroup(group.id)"
+                  >
+                    <i class="material-icons">close</i>
+                  </button>
+                </template>
+              </SidebarGroupHeader>
+              <template v-if="!collapsedGroups[group.id]">
+                <button
+                  v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
+                  :key="fav.id"
+                  class="action favorite-item category-path-item"
+                  :class="favoriteDropClass(fav.id)"
+                  draggable="true"
+                  @click="navigateVolume(fav.path)"
+                  :title="fav.path"
+                  @dragstart="onFavDragStart($event, fav.id)"
+                  @dragover.prevent="onFavDragOverItem($event, fav.id)"
+                  @dragleave="onFavDragLeaveItem"
+                  @drop="onFavDropOnItem($event, fav.id)"
+                  @dragend="onFavDragEnd"
+                >
+                  <i class="material-icons favorite-icon favorite-drag-handle"
+                    >drag_indicator</i
+                  >
+                  <i class="material-icons favorite-icon">{{
+                    favoriteIcon(fav.name)
+                  }}</i>
+                  <div class="favorite-info">
+                    <span class="favorite-name">{{ fav.name }}</span>
+                    <span class="favorite-path" v-if="fav.path !== fav.name">{{
+                      fav.path
+                    }}</span>
+                  </div>
+                  <i
+                    class="material-icons favorite-remove"
+                    title="取消收藏"
+                    @click.stop.prevent="removeFavorite(fav.id)"
+                    >close</i
+                  >
+                </button>
+                <div
+                  v-if="
+                    (favoritesStore.favoritesByGroup[group.id] || []).length ===
+                    0
+                  "
+                  class="section-empty"
+                >
+                  <span>该分组暂无收藏</span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- Tags Filter Section -->
+        <div
+          class="tags-section sidebar-module sidebar-sortable-module"
+          :style="moduleStyle('tags')"
+          @dragover.prevent
+          @drop="onModuleDrop('tags')"
+        >
+          <SidebarSectionHeader
+            icon="label"
+            label="标签"
+            :expanded="!collapsedSections.tags"
+            draggable="true"
+            @dragstart="onModuleDragStart($event, 'tags')"
+            @dragend="clearSidebarDrag"
+            @toggle="toggleSection('tags')"
+          >
+            <template #tools>
+              <button
+                class="section-action-btn"
+                type="button"
+                title="管理标签"
+                @click.stop.prevent="openTagManager"
+              >
+                <i class="material-icons">settings</i>
+              </button>
+            </template>
+          </SidebarSectionHeader>
+          <template v-if="!collapsedSections.tags">
+            <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
+              <i class="material-icons">turned_in_not</i>
+              <span>暂无标签，创建一个吧</span>
+            </div>
+            <button
+              v-for="tag in orderedTags"
+              :key="tag.id"
+              class="action tag-filter-item sidebar-sortable-item"
+              :class="{ active: tagsStore.activeFilter === tag.id }"
+              draggable="true"
+              @click="filterByTag(tag.id)"
+              @dragstart.stop="
+                onPreferenceDragStart($event, 'tagOrder', tag.id)
+              "
+              @dragover.prevent
+              @drop.stop="onPreferenceDrop('tagOrder', tag.id)"
+              @dragend="clearSidebarDrag"
+            >
+              <i
+                class="material-icons tag-filter-dot"
+                :style="{ color: tag.color }"
+                >label</i
+              >
+              <span class="tag-filter-name">{{ tag.name }}</span>
+              <span class="tag-filter-count">{{ tag.paths.length }}</span>
+            </button>
+            <button
+              v-if="tagsStore.activeFilter"
+              class="action tag-filter-clear"
+              @click="clearTagFilter"
+            >
+              <i class="material-icons">filter_list_off</i>
+              <span>清除筛选</span>
             </button>
           </template>
-        </SidebarSectionHeader>
-        <template v-if="!collapsedSections.tags">
-          <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
-            <i class="material-icons">turned_in_not</i>
-            <span>暂无标签，创建一个吧</span>
-          </div>
-          <button
-            v-for="tag in tagsStore.sortedTags"
-            :key="tag.id"
-            class="action tag-filter-item"
-            :class="{ active: tagsStore.activeFilter === tag.id }"
-            @click="filterByTag(tag.id)"
-          >
-            <i
-              class="material-icons tag-filter-dot"
-              :style="{ color: tag.color }"
-              >label</i
+        </div>
+
+        <!-- Storage Volumes Section (admin only) -->
+        <div
+          v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
+          class="volumes-section sidebar-module sidebar-sortable-module"
+          :style="moduleStyle('volumes')"
+          @dragover.prevent
+          @drop="onModuleDrop('volumes')"
+        >
+          <SidebarSectionHeader
+            icon="storage"
+            label="存储卷"
+            :expanded="!collapsedSections.volumes"
+            draggable="true"
+            @dragstart="onModuleDragStart($event, 'volumes')"
+            @dragend="clearSidebarDrag"
+            @toggle="toggleSection('volumes')"
+          />
+          <template v-if="!collapsedSections.volumes">
+            <button
+              v-for="vol in orderedVolumes"
+              :key="vol.path"
+              class="action volume-item sidebar-sortable-item"
+              draggable="true"
+              @click="navigateVolume(vol.path)"
+              @dragstart.stop="
+                onPreferenceDragStart($event, 'volumeOrder', vol.path)
+              "
+              @dragover.prevent
+              @drop.stop="onPreferenceDrop('volumeOrder', vol.path)"
+              @dragend="clearSidebarDrag"
             >
-            <span class="tag-filter-name">{{ tag.name }}</span>
-            <span class="tag-filter-count">{{ tag.paths.length }}</span>
-          </button>
-          <button
-            v-if="tagsStore.activeFilter"
-            class="action tag-filter-clear"
-            @click="clearTagFilter"
-          >
-            <i class="material-icons">filter_list_off</i>
-            <span>清除筛选</span>
-          </button>
-        </template>
-      </div>
-
-      <!-- Storage Volumes Section (admin only) -->
-      <div
-        v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
-        class="volumes-section sidebar-module"
-      >
-        <SidebarSectionHeader
-          icon="storage"
-          label="存储卷"
-          :expanded="!collapsedSections.volumes"
-          @toggle="toggleSection('volumes')"
-        />
-        <template v-if="!collapsedSections.volumes">
-          <button
-            v-for="vol in volumesStore.systemVolumes"
-            :key="vol.path"
-            class="action volume-item"
-            @click="navigateVolume(vol.path)"
-          >
-            <i class="material-icons" :style="{ color: vol.color }">{{
-              vol.icon
-            }}</i>
-            <div class="volume-info">
-              <span class="volume-name">{{ vol.displayName }}</span>
-              <div class="volume-bar-wrap">
-                <div class="volume-bar">
-                  <div
-                    class="volume-bar-fill"
-                    :style="{
-                      width: vol.usedPercentage + '%',
-                      background: volumeBarColor(vol.usedPercentage),
-                    }"
-                  ></div>
-                </div>
-                <span class="volume-usage"
-                  >{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span
-                >
-              </div>
-            </div>
-          </button>
-          <button
-            v-for="vol in volumesStore.otherVolumes"
-            :key="vol.path"
-            class="action volume-item"
-            @click="navigateVolume(vol.path)"
-          >
-            <i class="material-icons" :style="{ color: vol.color }">{{
-              vol.icon
-            }}</i>
-            <div class="volume-info">
-              <span class="volume-name">{{ vol.displayName }}</span>
-              <div class="volume-bar-wrap">
-                <div class="volume-bar">
-                  <div
-                    class="volume-bar-fill"
-                    :style="{
-                      width: vol.usedPercentage + '%',
-                      background: volumeBarColor(vol.usedPercentage),
-                    }"
-                  ></div>
-                </div>
-                <span class="volume-usage"
-                  >{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span
-                >
-              </div>
-            </div>
-          </button>
-        </template>
-      </div>
-
-      <!-- Category Quick Navigation (admin only) -->
-      <div
-        v-if="user?.perm?.admin && categoryGroups.length > 0"
-        class="categories-section sidebar-module"
-      >
-        <SidebarSectionHeader
-          icon="category"
-          label="目录分类"
-          :expanded="!collapsedSections.categories"
-          @toggle="toggleSection('categories')"
-        />
-        <template v-if="!collapsedSections.categories">
-          <div
-            v-for="group in categoryGroups"
-            :key="group.id"
-            class="category-group"
-          >
-            <SidebarGroupHeader
-              class="category-group-header"
-              :icon="group.icon"
-              :label="group.name"
-              :count="group.paths.length"
-              :expanded="Boolean(expandedCategories[group.id])"
-              :color="group.color"
-              @toggle="toggleCategory(group.id)"
-            />
-            <div v-if="expandedCategories[group.id]" class="category-paths">
-              <button
-                v-for="p in group.paths"
-                :key="p.path"
-                class="action category-path-item"
-                @click="navigateVolume(p.path)"
-                :title="p.path"
-              >
-                <i class="material-icons" :class="'risk-' + p.risk">{{
-                  riskIcon(p.risk)
-                }}</i>
-                <div class="category-path-info">
-                  <span class="category-path-name">{{ p.name }}</span>
-                  <span
-                    v-if="isDuplicateName(p.name, group.id)"
-                    class="category-path-volume"
-                    >{{ getVolumeLabel(p.path) }}</span
-                  >
-                  <span
-                    v-else-if="p.volumeType && p.volumeType !== 'system'"
-                    class="category-path-type"
-                    >{{ p.volumeType }}</span
+              <i class="material-icons" :style="{ color: vol.color }">{{
+                vol.icon
+              }}</i>
+              <div class="volume-info">
+                <span class="volume-name">{{ vol.displayName }}</span>
+                <div class="volume-bar-wrap">
+                  <div class="volume-bar">
+                    <div
+                      class="volume-bar-fill"
+                      :style="{
+                        width: vol.usedPercentage + '%',
+                        background: volumeBarColor(vol.usedPercentage),
+                      }"
+                    ></div>
+                  </div>
+                  <span class="volume-usage"
+                    >{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span
                   >
                 </div>
-              </button>
+              </div>
+            </button>
+          </template>
+        </div>
+
+        <!-- Category Quick Navigation (admin only) -->
+        <div
+          v-if="user?.perm?.admin && categoryGroups.length > 0"
+          class="categories-section sidebar-module sidebar-sortable-module"
+          :style="moduleStyle('categories')"
+          @dragover.prevent
+          @drop="onModuleDrop('categories')"
+        >
+          <SidebarSectionHeader
+            icon="category"
+            label="目录分类"
+            :expanded="!collapsedSections.categories"
+            draggable="true"
+            @dragstart="onModuleDragStart($event, 'categories')"
+            @dragend="clearSidebarDrag"
+            @toggle="toggleSection('categories')"
+          />
+          <template v-if="!collapsedSections.categories">
+            <div
+              v-for="group in orderedCategoryGroups"
+              :key="group.id"
+              class="category-group"
+            >
+              <SidebarGroupHeader
+                class="category-group-header"
+                :icon="group.icon"
+                :label="group.name"
+                :count="group.paths.length"
+                :expanded="Boolean(expandedCategories[group.id])"
+                :color="group.color"
+                draggable="true"
+                @dragstart.stop="
+                  onPreferenceDragStart($event, 'categoryOrder', group.id)
+                "
+                @dragover.prevent
+                @drop.stop="onPreferenceDrop('categoryOrder', group.id)"
+                @dragend="clearSidebarDrag"
+                @toggle="toggleCategory(group.id)"
+              />
+              <div v-if="expandedCategories[group.id]" class="category-paths">
+                <button
+                  v-for="p in orderedCategoryPaths(group)"
+                  :key="p.path"
+                  class="action category-path-item sidebar-sortable-item"
+                  draggable="true"
+                  @click="navigateVolume(p.path)"
+                  :title="p.path"
+                  @dragstart.stop="
+                    onCategoryPathDragStart($event, group.id, p.path)
+                  "
+                  @dragover.prevent
+                  @drop.stop="onCategoryPathDrop(group, p.path)"
+                  @dragend="clearSidebarDrag"
+                >
+                  <i class="material-icons" :class="'risk-' + p.risk">{{
+                    riskIcon(p.risk)
+                  }}</i>
+                  <div class="category-path-info">
+                    <span class="category-path-name">{{ p.name }}</span>
+                    <span
+                      v-if="isDuplicateName(p.name, group.id)"
+                      class="category-path-volume"
+                      >{{ getVolumeLabel(p.path) }}</span
+                    >
+                    <span
+                      v-else-if="p.volumeType && p.volumeType !== 'system'"
+                      class="category-path-type"
+                      >{{ p.volumeType }}</span
+                    >
+                  </div>
+                </button>
+              </div>
             </div>
-          </div>
-        </template>
-      </div>
-
-      <div v-if="user?.perm?.create" class="sidebar-secondary-actions">
-        <button
-          @click="showHover('newDir')"
-          class="action sidebar-command"
-          aria-label="新建文件夹"
-          title="新建文件夹"
-        >
-          <i class="material-icons">create_new_folder</i>
-          <span>新建文件夹</span>
-        </button>
+          </template>
+        </div>
 
         <button
-          @click="showHover('newFile')"
-          class="action sidebar-command"
-          aria-label="新建文件"
-          title="新建文件"
+          v-if="canLogout"
+          @click="logout"
+          class="action sidebar-command sidebar-sortable-module"
+          id="logout"
+          :style="moduleStyle('logout')"
+          draggable="true"
+          @dragstart="onModuleDragStart($event, 'logout')"
+          @dragover.prevent
+          @drop="onModuleDrop('logout')"
+          @dragend="clearSidebarDrag"
+          aria-label="退出"
+          title="登出"
         >
-          <i class="material-icons">note_add</i>
-          <span>新建文件</span>
+          <i class="material-icons">exit_to_app</i>
+          <span>登出</span>
         </button>
       </div>
-
-      <div v-if="user?.perm?.admin" class="sidebar-secondary-actions">
-        <button
-          class="action sidebar-command"
-          @click="toGlobalSettings"
-          aria-label="设置"
-          title="设置"
-        >
-          <i class="material-icons">settings_applications</i>
-          <span>设置</span>
-        </button>
-      </div>
-      <button
-        v-if="canLogout"
-        @click="logout"
-        class="action sidebar-command"
-        id="logout"
-        aria-label="退出"
-        title="登出"
-      >
-        <i class="material-icons">exit_to_app</i>
-        <span>登出</span>
-      </button>
     </template>
     <template v-else>
       <router-link
@@ -515,6 +548,7 @@ import { useCategoriesStore } from "@/stores/categories";
 import type { CategoryGroup } from "@/api/categories";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
+import { useSidebarPreferencesStore } from "@/stores/sidebarPreferences";
 import SidebarSectionHeader from "@/components/sidebar/SidebarSectionHeader.vue";
 import SidebarGroupHeader from "@/components/sidebar/SidebarGroupHeader.vue";
 
@@ -524,6 +558,11 @@ import {
   getFavoriteDropPosition,
   type FavoriteDropPosition,
 } from "@/utils/sidebarFavorites";
+import type {
+  SidebarModuleId,
+  SidebarPreferences,
+  SystemOptionId,
+} from "@/utils/sidebarPreferences";
 import {
   version,
   signup,
@@ -543,6 +582,7 @@ const volumesStore = useVolumesStore();
 const categoriesStore = useCategoriesStore();
 const favoritesStore = useFavoritesStore();
 const tagsStore = useTagsStore();
+const sidebarPreferencesStore = useSidebarPreferencesStore();
 
 const { closeHovers, showHover } = layoutStore;
 const { user, isLoggedIn } = storeToRefs(authStore);
@@ -552,6 +592,7 @@ const { currentPromptName } = storeToRefs(layoutStore);
 
 const expandedCategories = reactive<Record<string, boolean>>({});
 const collapsedSections = reactive({
+  systemOptions: false,
   favorites: false,
   tags: true,
   volumes: false,
@@ -580,6 +621,13 @@ const dragOverGroupId = ref("");
 const draggedFavId = ref("");
 const dragOverFavoriteId = ref("");
 const dragOverFavoritePosition = ref<FavoriteDropPosition>("before");
+const draggedFavoriteGroupId = ref("");
+const draggedModuleId = ref<SidebarModuleId | "">("");
+const draggedPreference = ref<{
+  key: Exclude<keyof SidebarPreferences, "categoryPathOrder">;
+  id: string;
+} | null>(null);
+const draggedCategoryPath = ref<{ groupId: string; path: string } | null>(null);
 const sidebarWidth = ref(
   parseInt(localStorage.getItem("nas-file-browser-sidebar-width") || "256")
 );
@@ -598,6 +646,47 @@ const groupInputRef = ref<HTMLInputElement | null>(null);
 const active = computed(() => currentPromptName.value === "sidebar");
 const canLogout = computed(
   () => !noAuth && (loginPage || logoutPage !== "/login")
+);
+
+const systemOptions = computed<
+  Array<{ id: SystemOptionId; icon: string; label: string }>
+>(() => [
+  { id: "files", icon: "folder", label: "我的文件" },
+  { id: "search", icon: "search", label: "搜索" },
+  ...(user.value?.perm?.create
+    ? ([
+        { id: "new-directory", icon: "create_new_folder", label: "新建文件夹" },
+        { id: "new-file", icon: "note_add", label: "新建文件" },
+      ] satisfies Array<{
+        id: SystemOptionId;
+        icon: string;
+        label: string;
+      }>)
+    : []),
+]);
+
+const orderedSystemOptions = computed(() =>
+  sidebarPreferencesStore.ordered(
+    systemOptions.value,
+    "systemOptionOrder",
+    (option) => option.id
+  )
+);
+
+const orderedTags = computed(() =>
+  sidebarPreferencesStore.ordered(
+    tagsStore.sortedTags,
+    "tagOrder",
+    (tag) => tag.id
+  )
+);
+
+const orderedVolumes = computed(() =>
+  sidebarPreferencesStore.ordered(
+    volumesStore.displayVolumes,
+    "volumeOrder",
+    (volume) => volume.path
+  )
 );
 
 const categoryGroups = computed(() => {
@@ -637,7 +726,152 @@ const categoryGroups = computed(() => {
     .map((id) => groups[id]);
 });
 
+const orderedCategoryGroups = computed(() =>
+  sidebarPreferencesStore.ordered(
+    categoryGroups.value,
+    "categoryOrder",
+    (group) => group.id
+  )
+);
+
+const visibleModuleIds = computed<SidebarModuleId[]>(() => {
+  const ids: SidebarModuleId[] = [
+    "user",
+    "system-options",
+    "favorites",
+    "tags",
+  ];
+  if (user.value?.perm?.admin && categoryGroups.value.length > 0) {
+    ids.push("categories");
+  }
+  if (user.value?.perm?.admin && volumesStore.displayVolumes.length > 0) {
+    ids.push("volumes");
+  }
+  if (canLogout.value) ids.push("logout");
+  return ids;
+});
+
 // Methods
+const moduleStyle = (id: SidebarModuleId) => ({
+  order: sidebarPreferencesStore.moduleOrder.indexOf(id),
+});
+
+const orderedCategoryPaths = (group: CategoryGroup) =>
+  sidebarPreferencesStore.orderedCategoryPaths(
+    group.id,
+    group.paths,
+    (path) => path.path
+  );
+
+const onModuleDragStart = (event: DragEvent, id: SidebarModuleId) => {
+  clearSidebarDrag();
+  draggedModuleId.value = id;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", `sidebar-module:${id}`);
+  }
+};
+
+const onModuleDrop = async (targetId: SidebarModuleId) => {
+  if (!draggedModuleId.value || draggedModuleId.value === targetId) return;
+  await sidebarPreferencesStore.reorder(
+    "moduleOrder",
+    visibleModuleIds.value,
+    draggedModuleId.value,
+    targetId
+  );
+  clearSidebarDrag();
+};
+
+const onPreferenceDragStart = (
+  event: DragEvent,
+  key: Exclude<keyof SidebarPreferences, "categoryPathOrder">,
+  id: string
+) => {
+  clearSidebarDrag();
+  draggedPreference.value = { key, id };
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", `sidebar-item:${key}:${id}`);
+  }
+};
+
+const preferenceIds = (
+  key: Exclude<keyof SidebarPreferences, "categoryPathOrder">
+) => {
+  if (key === "systemOptionOrder") {
+    return orderedSystemOptions.value.map((option) => option.id);
+  }
+  if (key === "tagOrder") return orderedTags.value.map((tag) => tag.id);
+  if (key === "categoryOrder") {
+    return orderedCategoryGroups.value.map((group) => group.id);
+  }
+  if (key === "volumeOrder") {
+    return orderedVolumes.value.map((volume) => volume.path);
+  }
+  return visibleModuleIds.value;
+};
+
+const onPreferenceDrop = async (
+  key: Exclude<keyof SidebarPreferences, "categoryPathOrder">,
+  targetId: string
+) => {
+  const dragged = draggedPreference.value;
+  if (!dragged || dragged.key !== key || dragged.id === targetId) return;
+  await sidebarPreferencesStore.reorder(
+    key,
+    preferenceIds(key),
+    dragged.id,
+    targetId
+  );
+  clearSidebarDrag();
+};
+
+const onCategoryPathDragStart = (
+  event: DragEvent,
+  groupId: string,
+  path: string
+) => {
+  clearSidebarDrag();
+  draggedCategoryPath.value = { groupId, path };
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData(
+      "text/plain",
+      `sidebar-category-path:${groupId}:${path}`
+    );
+  }
+};
+
+const onCategoryPathDrop = async (group: CategoryGroup, targetPath: string) => {
+  const dragged = draggedCategoryPath.value;
+  if (!dragged || dragged.groupId !== group.id || dragged.path === targetPath) {
+    return;
+  }
+  await sidebarPreferencesStore.reorderCategoryPath(
+    group.id,
+    orderedCategoryPaths(group).map((path) => path.path),
+    dragged.path,
+    targetPath
+  );
+  clearSidebarDrag();
+};
+
+const clearSidebarDrag = () => {
+  draggedModuleId.value = "";
+  draggedPreference.value = null;
+  draggedCategoryPath.value = null;
+  draggedFavoriteGroupId.value = "";
+  onFavDragEnd();
+};
+
+const runSystemOption = (id: SystemOptionId) => {
+  if (id === "files") toRoot();
+  else if (id === "search") openSearch();
+  else if (id === "new-directory") showHover("newDir");
+  else showHover("newFile");
+};
+
 const startResize = (event: MouseEvent | TouchEvent) => {
   const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
   isResizing.value = true;
@@ -780,6 +1014,7 @@ const toggleGroupCollapse = (id: string) => {
 };
 
 const onFavDragStart = (event: DragEvent, favId: string) => {
+  clearSidebarDrag();
   draggedFavId.value = favId;
   event.dataTransfer!.effectAllowed = "move";
   event.dataTransfer!.setData("text/plain", favId);
@@ -843,9 +1078,31 @@ const onFavDragLeaveGroup = (event: DragEvent) => {
 const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
   event.preventDefault();
   dragOverGroupId.value = "";
+  if (draggedFavoriteGroupId.value) {
+    const fromIndex = favoritesStore.sortedGroups.findIndex(
+      (group) => group.id === draggedFavoriteGroupId.value
+    );
+    const toIndex = favoritesStore.sortedGroups.findIndex(
+      (group) => group.id === groupId
+    );
+    if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+      await favoritesStore.reorderGroups(fromIndex, toIndex);
+    }
+    clearSidebarDrag();
+    return;
+  }
   if (draggedFavId.value) {
     await favoritesStore.moveFavoriteToGroup(draggedFavId.value, groupId);
     draggedFavId.value = "";
+  }
+};
+
+const onFavoriteGroupDragStart = (event: DragEvent, groupId: string) => {
+  clearSidebarDrag();
+  draggedFavoriteGroupId.value = groupId;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", `favorite-group:${groupId}`);
   }
 };
 
@@ -923,11 +1180,6 @@ const toAccountSettings = () => {
   closeHovers();
 };
 
-const toGlobalSettings = () => {
-  router.push({ path: "/settings/global" });
-  closeHovers();
-};
-
 const help = () => {
   showHover("help");
 };
@@ -951,7 +1203,11 @@ watch(
     if (loadedUserId === userId) return;
 
     loadedUserId = userId;
-    await Promise.all([favoritesStore.loadFavorites(), tagsStore.loadTags()]);
+    await Promise.all([
+      favoritesStore.loadFavorites(),
+      tagsStore.loadTags(),
+      sidebarPreferencesStore.load(),
+    ]);
     if (user.value?.id !== userId) return;
     if (user.value?.perm?.admin) {
       volumesStore.fetchVolumes();

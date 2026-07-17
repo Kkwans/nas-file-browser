@@ -176,23 +176,17 @@
               <i class="material-icons">star_border</i>
               <span>暂无收藏目录</span>
             </div>
-            <div
-              v-if="isDraggingGroupedFavorite"
-              class="favorites-ungrouped-drop-target"
-              :class="{ active: ungroupedDropActive }"
-              @dragover.prevent="onUngroupedDragOver"
-              @dragleave="ungroupedDropActive = false"
-              @drop.stop="onUngroupedDrop"
-            >
-              <i class="material-icons">move_up</i>
-              <span>{{
-                ungroupedDropActive ? "松开移出分组" : "拖到这里移出分组"
-              }}</span>
-            </div>
             <!-- Ungrouped favorites -->
             <div
               class="favorites-ungrouped-drop-zone"
-              @dragover.prevent="onUngroupedDragOver"
+              :class="{
+                'favorites-ungrouped-drop-zone--empty':
+                  isDraggingGroupedFavorite &&
+                  favoritesStore.favoritesByGroup[''].length === 0,
+                'sidebar-drop-before': ungroupedDropActive,
+              }"
+              @dragover.stop.prevent="onUngroupedDragOver"
+              @dragleave="ungroupedDropActive = false"
               @drop.stop="onUngroupedDrop"
             >
               <template
@@ -205,17 +199,14 @@
                   v-for="fav in favoritesStore.favoritesByGroup['']"
                   :key="fav.id"
                   class="action favorite-item"
-                  :class="[
-                    favoriteDropClass(fav.id),
-                    { dragging: draggedFavId === fav.id },
-                  ]"
+                  :class="favoriteDropClass(fav.id)"
                   draggable="true"
                   @click="navigateVolume(fav.path)"
                   :title="fav.path"
                   @dragstart="onFavDragStart($event, fav.id)"
-                  @dragover.prevent="onFavDragOverItem($event, fav.id)"
+                  @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
                   @dragleave="onFavDragLeaveItem"
-                  @drop="onFavDropOnItem($event, fav.id)"
+                  @drop.stop="onFavDropOnItem($event, fav.id)"
                   @dragend="onFavDragEnd"
                 >
                   <i class="material-icons favorite-icon favorite-drag-handle"
@@ -258,8 +249,8 @@
                 @dragstart.stop="onFavoriteGroupDragStart($event, group.id)"
                 @dragend="clearSidebarDrag"
                 @toggle="toggleGroupCollapse(group.id)"
-                @dragover.prevent="onFavDragOverGroup($event, group.id)"
-                @drop="onFavDropOnGroup($event, group.id)"
+                @dragover.stop.prevent="onFavDragOverGroup($event, group.id)"
+                @drop.stop="onFavDropOnGroup($event, group.id)"
                 @dragleave="onFavDragLeaveGroup"
                 :class="{
                   'drag-over-group':
@@ -290,17 +281,14 @@
                   v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
                   :key="fav.id"
                   class="action favorite-item category-path-item"
-                  :class="[
-                    favoriteDropClass(fav.id),
-                    { dragging: draggedFavId === fav.id },
-                  ]"
+                  :class="favoriteDropClass(fav.id)"
                   draggable="true"
                   @click="navigateVolume(fav.path)"
                   :title="fav.path"
                   @dragstart="onFavDragStart($event, fav.id)"
-                  @dragover.prevent="onFavDragOverItem($event, fav.id)"
+                  @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
                   @dragleave="onFavDragLeaveItem"
-                  @drop="onFavDropOnItem($event, fav.id)"
+                  @drop.stop="onFavDropOnItem($event, fav.id)"
                   @dragend="onFavDragEnd"
                 >
                   <i class="material-icons favorite-icon favorite-drag-handle"
@@ -890,6 +878,7 @@ const onSidebarDragOver = (
     (kind === "preference" && draggedPreference.value?.key === key) ||
     (kind === "category-path" && draggedCategoryPath.value?.groupId === key);
   if (!valid) {
+    sidebarDropTarget.value = null;
     if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
     return;
   }
@@ -1172,7 +1161,13 @@ const isDraggingGroupedFavorite = computed(() => {
 });
 
 const onFavDragOverItem = (event: DragEvent, favoriteId: string) => {
-  event.dataTransfer!.dropEffect = "move";
+  event.stopPropagation();
+  if (!draggedFavId.value) {
+    dragOverFavoriteId.value = "";
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+    return;
+  }
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
   const element = event.currentTarget as HTMLElement;
   const rect = element.getBoundingClientRect();
   dragOverFavoriteId.value = favoriteId;
@@ -1192,6 +1187,7 @@ const onFavDragLeaveItem = (event: DragEvent) => {
 
 const onFavDropOnItem = async (event: DragEvent, targetId: string) => {
   event.preventDefault();
+  event.stopPropagation();
   try {
     if (draggedFavId.value && draggedFavId.value !== targetId) {
       await favoritesStore.moveAndReorderFavorite(
@@ -1215,7 +1211,14 @@ const favoriteDropClass = (favoriteId: string) => ({
 });
 
 const onFavDragOverGroup = (event: DragEvent, groupId: string) => {
-  event.dataTransfer!.dropEffect = "move";
+  event.stopPropagation();
+  if (!draggedFavoriteGroupId.value && !draggedFavId.value) {
+    dragOverGroupId.value = "";
+    favoriteGroupDropId.value = "";
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+    return;
+  }
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
   if (draggedFavoriteGroupId.value) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     favoriteGroupDropId.value = groupId;
@@ -1239,6 +1242,7 @@ const onFavDragLeaveGroup = (event: DragEvent) => {
 
 const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
   event.preventDefault();
+  event.stopPropagation();
   try {
     if (draggedFavoriteGroupId.value) {
       const fromIndex = favoritesStore.sortedGroups.findIndex(
@@ -1273,20 +1277,27 @@ const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
 };
 
 const onUngroupedDragOver = (event: DragEvent) => {
+  event.stopPropagation();
   if (!draggedFavId.value) {
+    ungroupedDropActive.value = false;
     if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
     return;
   }
   const favorite = favoritesStore.favorites.find(
     (item) => item.id === draggedFavId.value
   );
-  if (!favorite?.groupId) return;
+  if (!favorite?.groupId) {
+    ungroupedDropActive.value = false;
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+    return;
+  }
   ungroupedDropActive.value = true;
   if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
 };
 
 const onUngroupedDrop = async (event: DragEvent) => {
   event.preventDefault();
+  event.stopPropagation();
   try {
     if (draggedFavId.value) {
       await favoritesStore.moveFavoriteToGroup(draggedFavId.value, "");

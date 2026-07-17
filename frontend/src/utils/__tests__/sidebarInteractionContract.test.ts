@@ -60,7 +60,7 @@ describe("侧边栏分组交互契约", () => {
     expect(cssSource).toContain(".sidebar-drop-after::after");
   });
 
-  it("收藏项可以拖回未分组区域", () => {
+  it("收藏项通过普通落点提示拖回未分组区域", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSource("css/sidebar-refinement.css");
 
@@ -69,9 +69,38 @@ describe("侧边栏分组交互契约", () => {
       'moveFavoriteToGroup(draggedFavId.value, "")'
     );
     expect(sidebarSource).toContain("isDraggingGroupedFavorite");
-    expect(sidebarSource).toContain("favorites-ungrouped-drop-target");
-    expect(cssSource).toContain(".favorites-ungrouped-drop-target");
-    expect(cssSource).toContain(".favorites-ungrouped-drop-target.active");
+    expect(sidebarSource).not.toContain("favorites-ungrouped-drop-target");
+    expect(sidebarSource).not.toContain("拖到这里移出分组");
+    expect(sidebarSource).toContain("favorites-ungrouped-drop-zone--empty");
+    expect(cssSource).toContain(".favorites-ungrouped-drop-zone--empty");
+  });
+
+  it("收藏拖放事件不会冒泡到模块排序，且会校验拖拽来源", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+
+    expect(sidebarSource).toContain(
+      '@dragover.stop.prevent="onFavDragOverItem($event, fav.id)"'
+    );
+    expect(sidebarSource).toContain(
+      '@drop.stop="onFavDropOnItem($event, fav.id)"'
+    );
+    expect(sidebarSource).toContain(
+      '@dragover.stop.prevent="onFavDragOverGroup($event, group.id)"'
+    );
+    expect(sidebarSource).toContain(
+      '@drop.stop="onFavDropOnGroup($event, group.id)"'
+    );
+    expect(sidebarSource).toMatch(
+      /const onFavDragOverItem = [\s\S]*if \(!draggedFavId\.value\) \{[\s\S]*dropEffect = "none";[\s\S]*return;/
+    );
+  });
+
+  it("跨类型或跨层级目标会清除旧落点提示", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+
+    expect(sidebarSource).toMatch(
+      /if \(!valid\) \{[\s\S]*sidebarDropTarget\.value = null;[\s\S]*dropEffect = "none";/
+    );
   });
 
   it("收藏拖拽结束统一清理全部临时状态", () => {
@@ -88,11 +117,22 @@ describe("侧边栏分组交互契约", () => {
     );
   });
 
-  it("收藏拖动反馈不降低整项透明度", () => {
+  it("收藏拖动不改变原列表项视觉状态", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(sidebarSource).not.toContain("dragging: draggedFavId === fav.id");
+    expect(cssSource).not.toContain(".favorite-item.dragging");
+  });
+
+  it("落点提示使用克制的纯色细线", () => {
     const cssSource = readSource("css/sidebar-refinement.css");
 
     expect(cssSource).toMatch(
-      /\.favorite-item\.dragging\s*\{[^}]*opacity:\s*1\s*!important;/s
+      /\.sidebar-drop-after::after\s*\{[\s\S]*height:\s*2px;[\s\S]*background:\s*var\(--blue, #1677ff\);/
+    );
+    expect(cssSource).not.toMatch(
+      /\.sidebar-drop-after::after\s*\{[\s\S]*linear-gradient/
     );
   });
 });

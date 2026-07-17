@@ -789,6 +789,7 @@ import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
 import { normalizeSearchBase } from "@/utils/searchPath";
+import { isExternalFileDrag } from "@/utils/fileDrag";
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -1265,9 +1266,10 @@ const keyEvent = (event: KeyboardEvent) => {
   }
 };
 
-const preventDefault = (event: Event) => {
-  // Wrapper around prevent default.
-  event.preventDefault();
+const preventDefault = (event: DragEvent) => {
+  if (isExternalFileDrag(event.dataTransfer?.types)) {
+    event.preventDefault();
+  }
 };
 
 const copyCut = (event: Event | KeyboardEvent): void => {
@@ -1402,7 +1404,8 @@ const scrollEvent = throttle(() => {
   }
 }, 100);
 
-const dragEnter = () => {
+const dragEnter = (event: DragEvent) => {
+  if (!isExternalFileDrag(event.dataTransfer?.types)) return;
   dragCounter.value++;
 
   // When the user starts dragging an item, put every
@@ -1414,7 +1417,8 @@ const dragEnter = () => {
   });
 };
 
-const dragLeave = () => {
+const dragLeave = (event: DragEvent) => {
+  if (!isExternalFileDrag(event.dataTransfer?.types)) return;
   dragCounter.value--;
 
   if (dragCounter.value == 0) {
@@ -1423,11 +1427,12 @@ const dragLeave = () => {
 };
 
 const drop = async (event: DragEvent) => {
+  const dt = event.dataTransfer;
+  if (!isExternalFileDrag(dt?.types)) return;
   event.preventDefault();
   dragCounter.value = 0;
   resetOpacity();
 
-  const dt = event.dataTransfer;
   let el: HTMLElement | null = event.target as HTMLElement;
 
   if (fileStore.req === null || dt === null || dt.files.length <= 0) return;

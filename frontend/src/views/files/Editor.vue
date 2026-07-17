@@ -43,14 +43,8 @@
         <!-- Markdown 模式切换 -->
         <template v-if="isMarkdownFile">
           <action
-            icon="edit"
-            label="所见即所得"
-            @action="switchMode('wysiwyg')"
-            :class="{ active: currentMode === 'wysiwyg' }"
-          />
-          <action
             icon="auto_awesome"
-            label="即时渲染"
+            label="即时渲染（类似 Typora）"
             @action="switchMode('ir')"
             :class="{ active: currentMode === 'ir' }"
           />
@@ -221,10 +215,10 @@ const filteredCodeLanguageOptions = computed(() =>
   filterMarkdownCodeLanguages(codeLanguageQuery.value)
 );
 
-type MarkdownMode = "wysiwyg" | "ir" | "sv" | "preview";
+type MarkdownMode = "ir" | "sv" | "preview";
 type MarkdownEditMode = Exclude<MarkdownMode, "preview">;
 
-const currentMode = ref<MarkdownMode>("wysiwyg");
+const currentMode = ref<MarkdownMode>("ir");
 const showOutline = ref(true);
 let vditorInstance: VditorInstance | null = null;
 let aceEditor: Ace.Editor | null = null;
@@ -387,7 +381,7 @@ const initVditor = async (content: string) => {
   markdownBaselineReady = false;
   mdInitialized = false;
   userEdited = false;
-  await initVditorWithMode(content, "wysiwyg");
+  await initVditorWithMode(content, "ir");
 };
 
 const loadVditorResources = async () => {
@@ -445,8 +439,6 @@ const initVditorWithMode = async (
       "undo",
       "redo",
       "|",
-      "edit-mode",
-      "preview",
       "fullscreen",
       "|",
       {
@@ -1033,26 +1025,31 @@ const finishClose = () => {
   inset: 0;
   z-index: 2200;
   display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgb(15 23 42 / 28%);
+  place-items: start end;
+  padding: 4.25rem 1rem 1rem;
+  background: transparent;
 }
 
 .markdown-language-picker {
-  width: min(26rem, 100%);
+  display: flex;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 5.25rem);
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--borderSecondary);
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
-  box-shadow: 0 20px 50px rgb(15 23 42 / 20%);
+  box-shadow:
+    0 16px 36px rgb(15 23 42 / 16%),
+    0 2px 8px rgb(15 23 42 / 8%);
 }
 
 .markdown-language-picker-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 3.25rem;
-  padding: 0 1rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
   border-bottom: 1px solid var(--borderSecondary);
   color: var(--textPrimary);
 }
@@ -1086,16 +1083,18 @@ const finishClose = () => {
 
 .markdown-language-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-  padding: 1rem;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+  max-height: min(24rem, calc(100vh - 13rem));
+  overflow: auto;
+  padding: 0.5rem;
 }
 
 .markdown-language-search {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  margin: 0 1rem;
+  margin: 0.5rem 0.75rem 0;
   padding: 0 0.7rem;
   border: 1px solid var(--borderSecondary);
   border-radius: 8px;
@@ -1126,10 +1125,10 @@ const finishClose = () => {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  min-height: 2.75rem;
+  min-height: 2.5rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--borderSecondary);
-  border-radius: 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
   color: var(--textPrimary);
   background: var(--surfacePrimary);
   cursor: pointer;
@@ -1148,8 +1147,8 @@ const finishClose = () => {
 }
 
 @media (max-width: 480px) {
-  .markdown-language-options {
-    grid-template-columns: 1fr;
+  .markdown-language-picker-backdrop {
+    padding-top: 4rem;
   }
 }
 </style>

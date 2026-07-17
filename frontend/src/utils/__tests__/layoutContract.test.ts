@@ -67,7 +67,8 @@ describe("file listing layout contract", () => {
   });
 
   it("reserves a stable tag row only for detailed grids", () => {
-    expect(shouldRenderListingTagSlot("mosaic", 0)).toBe(true);
+    expect(shouldRenderListingTagSlot("mosaic", 0)).toBe(false);
+    expect(shouldRenderListingTagSlot("mosaic", 2)).toBe(true);
     expect(shouldRenderListingTagSlot("details", 0)).toBe(false);
     expect(shouldRenderListingTagSlot("details", 2)).toBe(true);
     expect(shouldRenderListingTagSlot("compact-grid", 2)).toBe(false);

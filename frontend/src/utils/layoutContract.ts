@@ -48,7 +48,7 @@ export function shouldRenderListingTagSlot(
   tagCount: number
 ): boolean {
   if (!getListingFieldVisibility(mode).tags) return false;
-  return mode === "mosaic" || tagCount > 0;
+  return tagCount > 0;
 }
 
 export function shouldRenderListingSize(

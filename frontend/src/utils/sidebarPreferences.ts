@@ -112,12 +112,13 @@ export function reorderByPreference<T>(
 export function reorderPreference(
   order: readonly string[],
   draggedId: string,
-  targetId: string
+  targetId: string,
+  position: "before" | "after" = "before"
 ): string[] {
   if (draggedId === targetId) return [...order];
   const next = order.filter((id) => id !== draggedId);
   const targetIndex = next.indexOf(targetId);
   if (targetIndex < 0) return [...next, draggedId];
-  next.splice(targetIndex, 0, draggedId);
+  next.splice(targetIndex + (position === "after" ? 1 : 0), 0, draggedId);
   return next;
 }

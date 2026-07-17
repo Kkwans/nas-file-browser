@@ -42,6 +42,14 @@ describe("sidebar preferences", () => {
     ]);
   });
 
+  it("supports placing an item after the target", () => {
+    expect(reorderPreference(["a", "b", "c"], "a", "b", "after")).toEqual([
+      "b",
+      "a",
+      "c",
+    ]);
+  });
+
   it("normalizes malformed persisted JSON to safe defaults", () => {
     expect(normalizeSidebarPreferences("{bad json").moduleOrder).toEqual(
       DEFAULT_SIDEBAR_MODULE_ORDER

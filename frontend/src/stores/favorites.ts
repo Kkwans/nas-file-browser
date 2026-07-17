@@ -339,10 +339,15 @@ export const useFavoritesStore = defineStore("favorites", () => {
   async function moveFavoriteToGroup(favId: string, groupId: string) {
     const fav = favorites.value.find((f) => f.id === favId);
     if (!fav) return;
+    const previousGroupId = fav.groupId || "";
     fav.groupId = groupId;
     saveToLocalStorage();
     const result = await apiUpdate(favId, { groupId });
-    if (!result.ok && result.status === 404) await refreshAfterMutation();
+    if (!result.ok) {
+      fav.groupId = previousGroupId;
+      saveToLocalStorage();
+      await refreshAfterMutation();
+    }
   }
 
   async function reorderFavorite(fromIndex: number, toIndex: number) {
@@ -385,9 +390,14 @@ export const useFavoritesStore = defineStore("favorites", () => {
       const result = await apiUpdate(draggedId, {
         groupId: moved.groupId || "",
       });
-      if (!result.ok && result.status === 404) await refreshAfterMutation();
+      if (!result.ok) {
+        await refreshAfterMutation();
+        return;
+      }
     }
-    await apiReorder(next.map((favorite) => favorite.id));
+    if (!(await apiReorder(next.map((favorite) => favorite.id)))) {
+      await refreshAfterMutation();
+    }
   }
 
   async function syncFavorites() {
@@ -488,11 +498,16 @@ export const useFavoritesStore = defineStore("favorites", () => {
     )
       return;
 
+    const previous = [...groups.value];
     const [item] = groups.value.splice(fromIndex, 1);
     groups.value.splice(toIndex, 0, item);
     groups.value.forEach((g, i) => (g.order = i));
     saveGroupsToLocalStorage();
-    await apiReorderGroups(groups.value.map((g) => g.id));
+    if (!(await apiReorderGroups(groups.value.map((g) => g.id)))) {
+      groups.value = previous;
+      saveGroupsToLocalStorage();
+      await refreshAfterMutation();
+    }
   }
 
   // Sorted favorites

@@ -20,8 +20,11 @@
       <div class="sidebar-personalized-stack">
         <div
           class="sidebar-primary-nav sidebar-sortable-module"
+          :class="sidebarDropClass('module', 'moduleOrder', 'user')"
           :style="moduleStyle('user')"
-          @dragover.prevent
+          @dragover.prevent="
+            onSidebarDragOver($event, 'module', 'moduleOrder', 'user')
+          "
           @drop="onModuleDrop('user')"
         >
           <button
@@ -39,8 +42,11 @@
 
         <div
           class="system-options-section sidebar-module sidebar-sortable-module"
+          :class="sidebarDropClass('module', 'moduleOrder', 'system-options')"
           :style="moduleStyle('system-options')"
-          @dragover.prevent
+          @dragover.prevent="
+            onSidebarDragOver($event, 'module', 'moduleOrder', 'system-options')
+          "
           @drop="onModuleDrop('system-options')"
         >
           <SidebarSectionHeader
@@ -58,12 +64,22 @@
               :key="option.id"
               type="button"
               class="action sidebar-command sidebar-sortable-item"
+              :class="
+                sidebarDropClass('preference', 'systemOptionOrder', option.id)
+              "
               draggable="true"
               @click="runSystemOption(option.id)"
               @dragstart.stop="
                 onPreferenceDragStart($event, 'systemOptionOrder', option.id)
               "
-              @dragover.prevent
+              @dragover.prevent="
+                onSidebarDragOver(
+                  $event,
+                  'preference',
+                  'systemOptionOrder',
+                  option.id
+                )
+              "
               @drop.stop="onPreferenceDrop('systemOptionOrder', option.id)"
               @dragend="clearSidebarDrag"
             >
@@ -76,8 +92,11 @@
         <!-- Favorites Section -->
         <div
           class="favorites-section sidebar-module sidebar-sortable-module"
+          :class="sidebarDropClass('module', 'moduleOrder', 'favorites')"
           :style="moduleStyle('favorites')"
-          @dragover.prevent
+          @dragover.prevent="
+            onSidebarDragOver($event, 'module', 'moduleOrder', 'favorites')
+          "
           @drop="onModuleDrop('favorites')"
         >
           <SidebarSectionHeader
@@ -158,46 +177,59 @@
               <span>暂无收藏目录</span>
             </div>
             <!-- Ungrouped favorites -->
-            <template
-              v-if="
-                favoritesStore.favoritesByGroup[''] &&
-                favoritesStore.favoritesByGroup[''].length > 0
-              "
+            <div
+              class="favorites-ungrouped-drop-zone"
+              :class="{ active: ungroupedDropActive }"
+              @dragover.prevent="onUngroupedDragOver"
+              @dragleave="ungroupedDropActive = false"
+              @drop.stop="onUngroupedDrop"
             >
-              <button
-                v-for="fav in favoritesStore.favoritesByGroup['']"
-                :key="fav.id"
-                class="action favorite-item"
-                :class="favoriteDropClass(fav.id)"
-                draggable="true"
-                @click="navigateVolume(fav.path)"
-                :title="fav.path"
-                @dragstart="onFavDragStart($event, fav.id)"
-                @dragover.prevent="onFavDragOverItem($event, fav.id)"
-                @dragleave="onFavDragLeaveItem"
-                @drop="onFavDropOnItem($event, fav.id)"
-                @dragend="onFavDragEnd"
+              <template
+                v-if="
+                  favoritesStore.favoritesByGroup[''] &&
+                  favoritesStore.favoritesByGroup[''].length > 0
+                "
               >
-                <i class="material-icons favorite-icon favorite-drag-handle"
-                  >drag_indicator</i
+                <button
+                  v-for="fav in favoritesStore.favoritesByGroup['']"
+                  :key="fav.id"
+                  class="action favorite-item"
+                  :class="favoriteDropClass(fav.id)"
+                  draggable="true"
+                  @click="navigateVolume(fav.path)"
+                  :title="fav.path"
+                  @dragstart="onFavDragStart($event, fav.id)"
+                  @dragover.prevent="onFavDragOverItem($event, fav.id)"
+                  @dragleave="onFavDragLeaveItem"
+                  @drop="onFavDropOnItem($event, fav.id)"
+                  @dragend="onFavDragEnd"
                 >
-                <i class="material-icons favorite-icon">{{
-                  favoriteIcon(fav.name)
-                }}</i>
-                <div class="favorite-info">
-                  <span class="favorite-name">{{ fav.name }}</span>
-                  <span class="favorite-path" v-if="fav.path !== fav.name">{{
-                    fav.path
-                  }}</span>
-                </div>
-                <i
-                  class="material-icons favorite-remove"
-                  title="取消收藏"
-                  @click.stop.prevent="removeFavorite(fav.id)"
-                  >close</i
-                >
-              </button>
-            </template>
+                  <i class="material-icons favorite-icon favorite-drag-handle"
+                    >drag_indicator</i
+                  >
+                  <i class="material-icons favorite-icon">{{
+                    favoriteIcon(fav.name)
+                  }}</i>
+                  <div class="favorite-info">
+                    <span class="favorite-name">{{ fav.name }}</span>
+                    <span class="favorite-path" v-if="fav.path !== fav.name">{{
+                      fav.path
+                    }}</span>
+                  </div>
+                  <i
+                    class="material-icons favorite-remove"
+                    title="取消收藏"
+                    @click.stop.prevent="removeFavorite(fav.id)"
+                    >close</i
+                  >
+                </button>
+              </template>
+              <span
+                v-if="ungroupedDropActive"
+                class="favorites-ungrouped-drop-hint"
+                >移出分组</span
+              >
+            </div>
             <!-- Groups -->
             <div
               v-for="group in favoritesStore.sortedGroups"
@@ -220,7 +252,18 @@
                 @dragover.prevent="onFavDragOverGroup($event, group.id)"
                 @drop="onFavDropOnGroup($event, group.id)"
                 @dragleave="onFavDragLeaveGroup"
-                :class="{ 'drag-over-group': dragOverGroupId === group.id }"
+                :class="{
+                  'drag-over-group':
+                    dragOverGroupId === group.id && !draggedFavoriteGroupId,
+                  'sidebar-drop-before':
+                    draggedFavoriteGroupId &&
+                    favoriteGroupDropId === group.id &&
+                    favoriteGroupDropPosition === 'before',
+                  'sidebar-drop-after':
+                    draggedFavoriteGroupId &&
+                    favoriteGroupDropId === group.id &&
+                    favoriteGroupDropPosition === 'after',
+                }"
               >
                 <template #actions>
                   <button
@@ -284,8 +327,11 @@
         <!-- Tags Filter Section -->
         <div
           class="tags-section sidebar-module sidebar-sortable-module"
+          :class="sidebarDropClass('module', 'moduleOrder', 'tags')"
           :style="moduleStyle('tags')"
-          @dragover.prevent
+          @dragover.prevent="
+            onSidebarDragOver($event, 'module', 'moduleOrder', 'tags')
+          "
           @drop="onModuleDrop('tags')"
         >
           <SidebarSectionHeader
@@ -317,13 +363,18 @@
               v-for="tag in orderedTags"
               :key="tag.id"
               class="action tag-filter-item sidebar-sortable-item"
-              :class="{ active: tagsStore.activeFilter === tag.id }"
+              :class="[
+                { active: tagsStore.activeFilter === tag.id },
+                sidebarDropClass('preference', 'tagOrder', tag.id),
+              ]"
               draggable="true"
               @click="filterByTag(tag.id)"
               @dragstart.stop="
                 onPreferenceDragStart($event, 'tagOrder', tag.id)
               "
-              @dragover.prevent
+              @dragover.prevent="
+                onSidebarDragOver($event, 'preference', 'tagOrder', tag.id)
+              "
               @drop.stop="onPreferenceDrop('tagOrder', tag.id)"
               @dragend="clearSidebarDrag"
             >
@@ -350,8 +401,11 @@
         <div
           v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
           class="volumes-section sidebar-module sidebar-sortable-module"
+          :class="sidebarDropClass('module', 'moduleOrder', 'volumes')"
           :style="moduleStyle('volumes')"
-          @dragover.prevent
+          @dragover.prevent="
+            onSidebarDragOver($event, 'module', 'moduleOrder', 'volumes')
+          "
           @drop="onModuleDrop('volumes')"
         >
           <SidebarSectionHeader
@@ -368,12 +422,15 @@
               v-for="vol in orderedVolumes"
               :key="vol.path"
               class="action volume-item sidebar-sortable-item"
+              :class="sidebarDropClass('preference', 'volumeOrder', vol.path)"
               draggable="true"
               @click="navigateVolume(vol.path)"
               @dragstart.stop="
                 onPreferenceDragStart($event, 'volumeOrder', vol.path)
               "
-              @dragover.prevent
+              @dragover.prevent="
+                onSidebarDragOver($event, 'preference', 'volumeOrder', vol.path)
+              "
               @drop.stop="onPreferenceDrop('volumeOrder', vol.path)"
               @dragend="clearSidebarDrag"
             >
@@ -405,8 +462,11 @@
         <div
           v-if="user?.perm?.admin && categoryGroups.length > 0"
           class="categories-section sidebar-module sidebar-sortable-module"
+          :class="sidebarDropClass('module', 'moduleOrder', 'categories')"
           :style="moduleStyle('categories')"
-          @dragover.prevent
+          @dragover.prevent="
+            onSidebarDragOver($event, 'module', 'moduleOrder', 'categories')
+          "
           @drop="onModuleDrop('categories')"
         >
           <SidebarSectionHeader
@@ -432,10 +492,20 @@
                 :expanded="Boolean(expandedCategories[group.id])"
                 :color="group.color"
                 draggable="true"
+                :class="
+                  sidebarDropClass('preference', 'categoryOrder', group.id)
+                "
                 @dragstart.stop="
                   onPreferenceDragStart($event, 'categoryOrder', group.id)
                 "
-                @dragover.prevent
+                @dragover.prevent="
+                  onSidebarDragOver(
+                    $event,
+                    'preference',
+                    'categoryOrder',
+                    group.id
+                  )
+                "
                 @drop.stop="onPreferenceDrop('categoryOrder', group.id)"
                 @dragend="clearSidebarDrag"
                 @toggle="toggleCategory(group.id)"
@@ -445,13 +515,16 @@
                   v-for="p in orderedCategoryPaths(group)"
                   :key="p.path"
                   class="action category-path-item sidebar-sortable-item"
+                  :class="sidebarDropClass('category-path', group.id, p.path)"
                   draggable="true"
                   @click="navigateVolume(p.path)"
                   :title="p.path"
                   @dragstart.stop="
                     onCategoryPathDragStart($event, group.id, p.path)
                   "
-                  @dragover.prevent
+                  @dragover.prevent="
+                    onSidebarDragOver($event, 'category-path', group.id, p.path)
+                  "
                   @drop.stop="onCategoryPathDrop(group, p.path)"
                   @dragend="clearSidebarDrag"
                 >
@@ -481,11 +554,14 @@
           v-if="canLogout"
           @click="logout"
           class="action sidebar-command sidebar-sortable-module"
+          :class="sidebarDropClass('module', 'moduleOrder', 'logout')"
           id="logout"
           :style="moduleStyle('logout')"
           draggable="true"
           @dragstart="onModuleDragStart($event, 'logout')"
-          @dragover.prevent
+          @dragover.prevent="
+            onSidebarDragOver($event, 'module', 'moduleOrder', 'logout')
+          "
           @drop="onModuleDrop('logout')"
           @dragend="clearSidebarDrag"
           aria-label="退出"
@@ -528,7 +604,6 @@
           href="https://github.com/Kkwans/nas-file-browser"
           >NAS File Browser</a
         >
-        <span> {{ " " }} {{ version }}</span>
       </span>
       <span>
         <a @click="help">帮助</a>
@@ -564,7 +639,6 @@ import type {
   SystemOptionId,
 } from "@/utils/sidebarPreferences";
 import {
-  version,
   signup,
   hideLoginButton,
   noAuth,
@@ -592,15 +666,15 @@ const { currentPromptName } = storeToRefs(layoutStore);
 
 const expandedCategories = reactive<Record<string, boolean>>({});
 const collapsedSections = reactive({
-  systemOptions: false,
+  systemOptions: true,
   favorites: false,
   tags: true,
   volumes: false,
-  categories: false,
+  categories: true,
 });
 // Load collapsed state from localStorage
 try {
-  const saved = localStorage.getItem("nas-file-browser-collapsed-sections");
+  const saved = localStorage.getItem("nas-file-browser-collapsed-sections-v2");
   if (saved) {
     const parsed = JSON.parse(saved);
     Object.assign(collapsedSections, parsed);
@@ -622,6 +696,15 @@ const draggedFavId = ref("");
 const dragOverFavoriteId = ref("");
 const dragOverFavoritePosition = ref<FavoriteDropPosition>("before");
 const draggedFavoriteGroupId = ref("");
+const favoriteGroupDropId = ref("");
+const favoriteGroupDropPosition = ref<FavoriteDropPosition>("before");
+const ungroupedDropActive = ref(false);
+const sidebarDropTarget = ref<{
+  kind: "module" | "preference" | "category-path";
+  key: string;
+  id: string;
+  position: FavoriteDropPosition;
+} | null>(null);
 const draggedModuleId = ref<SidebarModuleId | "">("");
 const draggedPreference = ref<{
   key: Exclude<keyof SidebarPreferences, "categoryPathOrder">;
@@ -778,10 +861,53 @@ const onModuleDrop = async (targetId: SidebarModuleId) => {
     "moduleOrder",
     visibleModuleIds.value,
     draggedModuleId.value,
-    targetId
+    targetId,
+    sidebarDropTarget.value?.position ?? "before"
   );
   clearSidebarDrag();
 };
+
+const onSidebarDragOver = (
+  event: DragEvent,
+  kind: "module" | "preference" | "category-path",
+  key: string,
+  id: string
+) => {
+  const valid =
+    (kind === "module" && Boolean(draggedModuleId.value)) ||
+    (kind === "preference" && draggedPreference.value?.key === key) ||
+    (kind === "category-path" && draggedCategoryPath.value?.groupId === key);
+  if (!valid) {
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+    return;
+  }
+  event.stopPropagation();
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  sidebarDropTarget.value = {
+    kind,
+    key,
+    id,
+    position: getFavoriteDropPosition(event.clientY, rect.top, rect.height),
+  };
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+};
+
+const sidebarDropClass = (
+  kind: "module" | "preference" | "category-path",
+  key: string,
+  id: string
+) => ({
+  "sidebar-drop-before":
+    sidebarDropTarget.value?.kind === kind &&
+    sidebarDropTarget.value.key === key &&
+    sidebarDropTarget.value.id === id &&
+    sidebarDropTarget.value.position === "before",
+  "sidebar-drop-after":
+    sidebarDropTarget.value?.kind === kind &&
+    sidebarDropTarget.value.key === key &&
+    sidebarDropTarget.value.id === id &&
+    sidebarDropTarget.value.position === "after",
+});
 
 const onPreferenceDragStart = (
   event: DragEvent,
@@ -822,7 +948,8 @@ const onPreferenceDrop = async (
     key,
     preferenceIds(key),
     dragged.id,
-    targetId
+    targetId,
+    sidebarDropTarget.value?.position ?? "before"
   );
   clearSidebarDrag();
 };
@@ -852,7 +979,8 @@ const onCategoryPathDrop = async (group: CategoryGroup, targetPath: string) => {
     group.id,
     orderedCategoryPaths(group).map((path) => path.path),
     dragged.path,
-    targetPath
+    targetPath,
+    sidebarDropTarget.value?.position ?? "before"
   );
   clearSidebarDrag();
 };
@@ -862,6 +990,9 @@ const clearSidebarDrag = () => {
   draggedPreference.value = null;
   draggedCategoryPath.value = null;
   draggedFavoriteGroupId.value = "";
+  favoriteGroupDropId.value = "";
+  ungroupedDropActive.value = false;
+  sidebarDropTarget.value = null;
   onFavDragEnd();
 };
 
@@ -952,7 +1083,7 @@ const toggleSection = (id: keyof typeof collapsedSections) => {
   collapsedSections[id] = !collapsedSections[id];
   try {
     localStorage.setItem(
-      "nas-file-browser-collapsed-sections",
+      "nas-file-browser-collapsed-sections-v2",
       JSON.stringify(collapsedSections)
     );
   } catch {}
@@ -1064,6 +1195,16 @@ const favoriteDropClass = (favoriteId: string) => ({
 
 const onFavDragOverGroup = (event: DragEvent, groupId: string) => {
   event.dataTransfer!.dropEffect = "move";
+  if (draggedFavoriteGroupId.value) {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    favoriteGroupDropId.value = groupId;
+    favoriteGroupDropPosition.value = getFavoriteDropPosition(
+      event.clientY,
+      rect.top,
+      rect.height
+    );
+    return;
+  }
   dragOverGroupId.value = groupId;
 };
 
@@ -1086,7 +1227,16 @@ const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
       (group) => group.id === groupId
     );
     if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
-      await favoritesStore.reorderGroups(fromIndex, toIndex);
+      let destination = toIndex;
+      if (favoriteGroupDropPosition.value === "after" && fromIndex > toIndex) {
+        destination++;
+      } else if (
+        favoriteGroupDropPosition.value === "before" &&
+        fromIndex < toIndex
+      ) {
+        destination--;
+      }
+      await favoritesStore.reorderGroups(fromIndex, destination);
     }
     clearSidebarDrag();
     return;
@@ -1095,6 +1245,28 @@ const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
     await favoritesStore.moveFavoriteToGroup(draggedFavId.value, groupId);
     draggedFavId.value = "";
   }
+};
+
+const onUngroupedDragOver = (event: DragEvent) => {
+  if (!draggedFavId.value) {
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+    return;
+  }
+  const favorite = favoritesStore.favorites.find(
+    (item) => item.id === draggedFavId.value
+  );
+  if (!favorite?.groupId) return;
+  ungroupedDropActive.value = true;
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+};
+
+const onUngroupedDrop = async (event: DragEvent) => {
+  event.preventDefault();
+  ungroupedDropActive.value = false;
+  if (draggedFavId.value) {
+    await favoritesStore.moveFavoriteToGroup(draggedFavId.value, "");
+  }
+  clearSidebarDrag();
 };
 
 const onFavoriteGroupDragStart = (event: DragEvent, groupId: string) => {

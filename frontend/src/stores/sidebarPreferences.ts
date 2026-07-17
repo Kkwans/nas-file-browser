@@ -73,7 +73,8 @@ export const useSidebarPreferencesStore = defineStore(
       key: PreferenceOrderKey,
       visibleIds: readonly string[],
       draggedId: string,
-      targetId: string
+      targetId: string,
+      position: "before" | "after" = "before"
     ) {
       const current = reorderByPreference(
         visibleIds,
@@ -82,7 +83,7 @@ export const useSidebarPreferencesStore = defineStore(
       );
       preferences.value = {
         ...preferences.value,
-        [key]: reorderPreference(current, draggedId, targetId),
+        [key]: reorderPreference(current, draggedId, targetId, position),
       };
       await queueSave();
     }
@@ -91,7 +92,8 @@ export const useSidebarPreferencesStore = defineStore(
       categoryId: string,
       visibleIds: readonly string[],
       draggedId: string,
-      targetId: string
+      targetId: string,
+      position: "before" | "after" = "before"
     ) {
       const current = reorderByPreference(
         visibleIds,
@@ -102,7 +104,12 @@ export const useSidebarPreferencesStore = defineStore(
         ...preferences.value,
         categoryPathOrder: {
           ...preferences.value.categoryPathOrder,
-          [categoryId]: reorderPreference(current, draggedId, targetId),
+          [categoryId]: reorderPreference(
+            current,
+            draggedId,
+            targetId,
+            position
+          ),
         },
       };
       await queueSave();

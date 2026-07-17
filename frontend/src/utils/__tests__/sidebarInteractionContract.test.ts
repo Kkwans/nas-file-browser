@@ -42,4 +42,30 @@ describe("侧边栏分组交互契约", () => {
       /\.sidebar-resize-handle::after\s*\{[^}]*content:\s*none\s*!important;/s
     );
   });
+
+  it("默认只展开收藏夹和存储卷", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+
+    expect(sidebarSource).toMatch(
+      /const collapsedSections = reactive\(\{\s*systemOptions: true,\s*favorites: false,\s*tags: true,\s*volumes: false,\s*categories: true,/s
+    );
+  });
+
+  it("侧边栏排序提供统一的前后落点提示", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(sidebarSource).toContain("sidebarDropClass");
+    expect(cssSource).toContain(".sidebar-drop-before::before");
+    expect(cssSource).toContain(".sidebar-drop-after::after");
+  });
+
+  it("收藏项可以拖回未分组区域", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+
+    expect(sidebarSource).toContain("onUngroupedDrop");
+    expect(sidebarSource).toContain(
+      'moveFavoriteToGroup(draggedFavId.value, "")'
+    );
+  });
 });

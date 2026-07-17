@@ -508,6 +508,9 @@ onUnmounted(() => {
 .search-shortcuts button {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
   min-height: 2rem;
   gap: 0.25rem;
   padding: 0 0.625rem;
@@ -530,6 +533,9 @@ onUnmounted(() => {
 }
 
 .search-shortcuts .material-icons {
+  display: inline-grid;
+  width: 1rem;
+  place-items: center;
   font-size: 1rem;
 }
 

@@ -23,7 +23,7 @@ export const SEARCH_TYPE_OPTIONS = {
   },
   markdown: {
     label: "Markdown 文档",
-    icon: "markdown",
+    icon: "description",
     extensions: ["md", "markdown", "mdown", "mkd"],
   },
   config: {

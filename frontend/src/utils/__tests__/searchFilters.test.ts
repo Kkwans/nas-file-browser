@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SearchResult } from "@/types/file";
 import {
+  SEARCH_TYPE_OPTIONS,
   applySearchType,
   detectSearchType,
   filterSearchResults,
@@ -16,6 +17,10 @@ const result = (path: string): SearchResult => ({
 });
 
 describe("search type filters", () => {
+  it("Markdown 筛选使用可用的 Material Icons 图标", () => {
+    expect(SEARCH_TYPE_OPTIONS.markdown.icon).toBe("description");
+  });
+
   it("recognizes composite search types", () => {
     expect(detectSearchType("type:markdown readme")).toBe("markdown");
     expect(detectSearchType("type:config nas")).toBe("config");

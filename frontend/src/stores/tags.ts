@@ -8,7 +8,13 @@ import {
   userStorageKey,
 } from "@/utils/favoritePersistence";
 import { isDescendantPath, normalizeTagPath } from "@/utils/tagPath";
-import { isTagColorAvailable, normalizeTagColor } from "@/utils/tagColors";
+import {
+  isTagColorAvailable,
+  normalizeTagColor,
+  TAG_COLORS,
+} from "@/utils/tagColors";
+
+export { TAG_COLORS } from "@/utils/tagColors";
 
 export interface Tag {
   id: string;
@@ -30,27 +36,6 @@ function normalizeTag(tag: Tag): Tag {
     paths: (tag.paths || []).map(normalizeTagPath),
   };
 }
-
-// Predefined color palette for tags
-export const TAG_COLORS = [
-  "#F04438",
-  "#E31B54",
-  "#BA24D5",
-  "#7F56D9",
-  "#444CE7",
-  "#2E90FA",
-  "#06AED4",
-  "#15B79E",
-  "#12B76A",
-  "#66C61C",
-  "#CA8504",
-  "#F79009",
-  "#EF6820",
-  "#EE46BC",
-  "#875BF7",
-  "#8E4B10",
-  "#667085",
-];
 
 export const useTagsStore = defineStore("tags", () => {
   const authStore = useAuthStore();

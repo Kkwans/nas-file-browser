@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Tag } from "@/stores/tags";
 import {
+  TAG_COLORS,
   getUsedTagColors,
   isTagColorAvailable,
   normalizeTagColor,
@@ -24,6 +25,29 @@ const tags: Tag[] = [
 ];
 
 describe("tag color uniqueness", () => {
+  it("uses a distinct rainbow-ordered preset palette", () => {
+    expect(TAG_COLORS).toEqual([
+      "#E5484D",
+      "#D95876",
+      "#F06A5B",
+      "#F28C28",
+      "#DDAA1D",
+      "#D6BE21",
+      "#86B83E",
+      "#35A867",
+      "#2AA889",
+      "#28AFC0",
+      "#3A9BD9",
+      "#3F72D8",
+      "#5B62D9",
+      "#7656C9",
+      "#9B4DB5",
+      "#C34F90",
+      "#758195",
+    ]);
+    expect(new Set(TAG_COLORS).size).toBe(TAG_COLORS.length);
+  });
+
   it("normalizes equivalent hexadecimal colors before comparison", () => {
     expect(normalizeTagColor("#f04438")).toBe("#F04438");
     expect(normalizeTagColor(" f04438 ")).toBe("#F04438");

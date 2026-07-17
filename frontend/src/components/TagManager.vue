@@ -70,7 +70,9 @@
           title="自定义颜色"
           aria-label="自定义颜色"
         >
-          <i class="material-icons" aria-hidden="true">palette</i>
+          <span class="custom-swatch-center" aria-hidden="true">
+            <i class="material-icons">colorize</i>
+          </span>
           <input
             v-model="newTagColor"
             type="color"
@@ -179,7 +181,9 @@
               title="自定义颜色"
               aria-label="自定义颜色"
             >
-              <i class="material-icons" aria-hidden="true">palette</i>
+              <span class="custom-swatch-center" aria-hidden="true">
+                <i class="material-icons">colorize</i>
+              </span>
               <input
                 v-model="editColor"
                 type="color"
@@ -500,18 +504,50 @@ function close() {
 }
 
 .custom-swatch {
-  overflow: hidden;
-  color: #fff;
+  position: relative;
+  overflow: visible;
+  color: var(--textSecondary, #64748b);
   background: conic-gradient(
-    #ef4444,
-    #f59e0b,
-    #84cc16,
-    #14b8a6,
-    #3b82f6,
-    #8b5cf6,
-    #ec4899,
-    #ef4444
+    #e5484d,
+    #f28c28,
+    #d6be21,
+    #35a867,
+    #28afc0,
+    #3f72d8,
+    #7656c9,
+    #c34f90,
+    #e5484d
   );
+  border: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+.custom-swatch-center {
+  position: absolute;
+  inset: 4px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surfacePrimary, #fff);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.16);
+  pointer-events: none;
+}
+
+.custom-swatch-center .material-icons {
+  color: var(--textSecondary, #64748b);
+  font-size: 0.875rem;
+  text-shadow: none;
+}
+
+.custom-swatch.small .custom-swatch-center {
+  inset: 3px;
+}
+
+.custom-swatch.small .custom-swatch-center .material-icons {
+  font-size: 0.75rem;
 }
 
 .custom-swatch > input {

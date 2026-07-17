@@ -176,12 +176,23 @@
               <i class="material-icons">star_border</i>
               <span>暂无收藏目录</span>
             </div>
-            <!-- Ungrouped favorites -->
             <div
-              class="favorites-ungrouped-drop-zone"
+              v-if="isDraggingGroupedFavorite"
+              class="favorites-ungrouped-drop-target"
               :class="{ active: ungroupedDropActive }"
               @dragover.prevent="onUngroupedDragOver"
               @dragleave="ungroupedDropActive = false"
+              @drop.stop="onUngroupedDrop"
+            >
+              <i class="material-icons">move_up</i>
+              <span>{{
+                ungroupedDropActive ? "松开移出分组" : "拖到这里移出分组"
+              }}</span>
+            </div>
+            <!-- Ungrouped favorites -->
+            <div
+              class="favorites-ungrouped-drop-zone"
+              @dragover.prevent="onUngroupedDragOver"
               @drop.stop="onUngroupedDrop"
             >
               <template
@@ -194,7 +205,10 @@
                   v-for="fav in favoritesStore.favoritesByGroup['']"
                   :key="fav.id"
                   class="action favorite-item"
-                  :class="favoriteDropClass(fav.id)"
+                  :class="[
+                    favoriteDropClass(fav.id),
+                    { dragging: draggedFavId === fav.id },
+                  ]"
                   draggable="true"
                   @click="navigateVolume(fav.path)"
                   :title="fav.path"
@@ -224,11 +238,6 @@
                   >
                 </button>
               </template>
-              <span
-                v-if="ungroupedDropActive"
-                class="favorites-ungrouped-drop-hint"
-                >移出分组</span
-              >
             </div>
             <!-- Groups -->
             <div
@@ -281,7 +290,10 @@
                   v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
                   :key="fav.id"
                   class="action favorite-item category-path-item"
-                  :class="favoriteDropClass(fav.id)"
+                  :class="[
+                    favoriteDropClass(fav.id),
+                    { dragging: draggedFavId === fav.id },
+                  ]"
                   draggable="true"
                   @click="navigateVolume(fav.path)"
                   :title="fav.path"
@@ -1151,6 +1163,14 @@ const onFavDragStart = (event: DragEvent, favId: string) => {
   event.dataTransfer!.setData("text/plain", favId);
 };
 
+const isDraggingGroupedFavorite = computed(() => {
+  if (!draggedFavId.value) return false;
+  const favorite = favoritesStore.favorites.find(
+    (item) => item.id === draggedFavId.value
+  );
+  return Boolean(favorite?.groupId);
+});
+
 const onFavDragOverItem = (event: DragEvent, favoriteId: string) => {
   event.dataTransfer!.dropEffect = "move";
   const element = event.currentTarget as HTMLElement;
@@ -1172,23 +1192,24 @@ const onFavDragLeaveItem = (event: DragEvent) => {
 
 const onFavDropOnItem = async (event: DragEvent, targetId: string) => {
   event.preventDefault();
-  dragOverGroupId.value = "";
-  if (draggedFavId.value && draggedFavId.value !== targetId) {
-    await favoritesStore.moveAndReorderFavorite(
-      draggedFavId.value,
-      targetId,
-      dragOverFavoritePosition.value
-    );
+  try {
+    if (draggedFavId.value && draggedFavId.value !== targetId) {
+      await favoritesStore.moveAndReorderFavorite(
+        draggedFavId.value,
+        targetId,
+        dragOverFavoritePosition.value
+      );
+    }
+  } finally {
+    clearSidebarDrag();
   }
-  dragOverFavoriteId.value = "";
-  draggedFavId.value = "";
 };
 
 const favoriteDropClass = (favoriteId: string) => ({
-  "drag-over-top":
+  "sidebar-drop-before":
     dragOverFavoriteId.value === favoriteId &&
     dragOverFavoritePosition.value === "before",
-  "drag-over-bottom":
+  "sidebar-drop-after":
     dragOverFavoriteId.value === favoriteId &&
     dragOverFavoritePosition.value === "after",
 });
@@ -1218,32 +1239,36 @@ const onFavDragLeaveGroup = (event: DragEvent) => {
 
 const onFavDropOnGroup = async (event: DragEvent, groupId: string) => {
   event.preventDefault();
-  dragOverGroupId.value = "";
-  if (draggedFavoriteGroupId.value) {
-    const fromIndex = favoritesStore.sortedGroups.findIndex(
-      (group) => group.id === draggedFavoriteGroupId.value
-    );
-    const toIndex = favoritesStore.sortedGroups.findIndex(
-      (group) => group.id === groupId
-    );
-    if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
-      let destination = toIndex;
-      if (favoriteGroupDropPosition.value === "after" && fromIndex > toIndex) {
-        destination++;
-      } else if (
-        favoriteGroupDropPosition.value === "before" &&
-        fromIndex < toIndex
-      ) {
-        destination--;
+  try {
+    if (draggedFavoriteGroupId.value) {
+      const fromIndex = favoritesStore.sortedGroups.findIndex(
+        (group) => group.id === draggedFavoriteGroupId.value
+      );
+      const toIndex = favoritesStore.sortedGroups.findIndex(
+        (group) => group.id === groupId
+      );
+      if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+        let destination = toIndex;
+        if (
+          favoriteGroupDropPosition.value === "after" &&
+          fromIndex > toIndex
+        ) {
+          destination++;
+        } else if (
+          favoriteGroupDropPosition.value === "before" &&
+          fromIndex < toIndex
+        ) {
+          destination--;
+        }
+        await favoritesStore.reorderGroups(fromIndex, destination);
       }
-      await favoritesStore.reorderGroups(fromIndex, destination);
+      return;
     }
+    if (draggedFavId.value) {
+      await favoritesStore.moveFavoriteToGroup(draggedFavId.value, groupId);
+    }
+  } finally {
     clearSidebarDrag();
-    return;
-  }
-  if (draggedFavId.value) {
-    await favoritesStore.moveFavoriteToGroup(draggedFavId.value, groupId);
-    draggedFavId.value = "";
   }
 };
 
@@ -1262,11 +1287,13 @@ const onUngroupedDragOver = (event: DragEvent) => {
 
 const onUngroupedDrop = async (event: DragEvent) => {
   event.preventDefault();
-  ungroupedDropActive.value = false;
-  if (draggedFavId.value) {
-    await favoritesStore.moveFavoriteToGroup(draggedFavId.value, "");
+  try {
+    if (draggedFavId.value) {
+      await favoritesStore.moveFavoriteToGroup(draggedFavId.value, "");
+    }
+  } finally {
+    clearSidebarDrag();
   }
-  clearSidebarDrag();
 };
 
 const onFavoriteGroupDragStart = (event: DragEvent, groupId: string) => {
@@ -1282,6 +1309,7 @@ const onFavDragEnd = () => {
   dragOverGroupId.value = "";
   dragOverFavoriteId.value = "";
   draggedFavId.value = "";
+  ungroupedDropActive.value = false;
 };
 
 const openTagManager = () => {

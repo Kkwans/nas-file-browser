@@ -62,10 +62,37 @@ describe("侧边栏分组交互契约", () => {
 
   it("收藏项可以拖回未分组区域", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
+    const cssSource = readSource("css/sidebar-refinement.css");
 
     expect(sidebarSource).toContain("onUngroupedDrop");
     expect(sidebarSource).toContain(
       'moveFavoriteToGroup(draggedFavId.value, "")'
+    );
+    expect(sidebarSource).toContain("isDraggingGroupedFavorite");
+    expect(sidebarSource).toContain("favorites-ungrouped-drop-target");
+    expect(cssSource).toContain(".favorites-ungrouped-drop-target");
+    expect(cssSource).toContain(".favorites-ungrouped-drop-target.active");
+  });
+
+  it("收藏拖拽结束统一清理全部临时状态", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+
+    expect(sidebarSource).toMatch(
+      /const onFavDragEnd = \(\) => \{[\s\S]*dragOverGroupId\.value = "";[\s\S]*dragOverFavoriteId\.value = "";[\s\S]*draggedFavId\.value = "";[\s\S]*ungroupedDropActive\.value = false;[\s\S]*\};/
+    );
+    expect(sidebarSource).toMatch(
+      /const onFavDropOnItem = async[\s\S]*finally \{\s*clearSidebarDrag\(\);\s*\}/
+    );
+    expect(sidebarSource).toMatch(
+      /const onFavDropOnGroup = async[\s\S]*finally \{\s*clearSidebarDrag\(\);\s*\}/
+    );
+  });
+
+  it("收藏拖动反馈不降低整项透明度", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toMatch(
+      /\.favorite-item\.dragging\s*\{[^}]*opacity:\s*1\s*!important;/s
     );
   });
 });

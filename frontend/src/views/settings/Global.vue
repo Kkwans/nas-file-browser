@@ -42,6 +42,23 @@
             />
           </p>
 
+          <div class="setting-field">
+            <label for="tokenExpirationMinutes">不活跃自动退出</label>
+            <div class="duration-input">
+              <vue-number-input
+                controls
+                v-model.number="tokenExpirationMinutes"
+                id="tokenExpirationMinutes"
+                :min="MIN_TOKEN_EXPIRATION_MINUTES"
+                :max="MAX_TOKEN_EXPIRATION_MINUTES"
+              />
+              <span>分钟</span>
+            </div>
+            <p class="small setting-help">
+              连续不活跃达到该时长后需要重新登录，可设置 10 分钟到 1 天。
+            </p>
+          </div>
+
           <h3>规则</h3>
           <p class="small">全局规则</p>
           <rules v-model:rules="settings.rules" />
@@ -231,6 +248,12 @@ import type {
 import { useLayoutStore } from "@/stores/layout";
 import { enableExec } from "@/utils/constants";
 import { getTheme, setTheme } from "@/utils/theme";
+import {
+  durationToMinutes,
+  MAX_TOKEN_EXPIRATION_MINUTES,
+  MIN_TOKEN_EXPIRATION_MINUTES,
+  minutesToDuration,
+} from "@/utils/tokenExpiration";
 import Errors from "@/views/Errors.vue";
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 const error = ref<StatusError | null>(null);
@@ -242,6 +265,7 @@ const commandObject = ref<{
   [key: string]: string[] | string;
 }>({});
 const shellValue = ref<string>("");
+const tokenExpirationMinutes = ref(120);
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
@@ -286,6 +310,7 @@ const save = async () => {
   if (settings.value === null) return false;
   const newSettings: ISettings = {
     ...settings.value,
+    tokenExpirationTime: minutesToDuration(tokenExpirationMinutes.value),
     shell:
       settings.value?.shell
         .join(" ")
@@ -380,6 +405,9 @@ onMounted(async () => {
     originalSettings.value = original;
     settings.value = newSettings;
     shellValue.value = newSettings.shell.join(" ");
+    tokenExpirationMinutes.value = durationToMinutes(
+      newSettings.tokenExpirationTime
+    );
   } catch (err) {
     if (err instanceof Error) {
       error.value = err;
@@ -396,3 +424,25 @@ onBeforeUnmount(() => {
   }
 });
 </script>
+
+<style scoped>
+.setting-field {
+  margin: 1rem 0;
+}
+
+.duration-input {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.375rem;
+}
+
+.duration-input > span {
+  color: var(--textSecondary, #64748b);
+  white-space: nowrap;
+}
+
+.setting-help {
+  margin: 0.375rem 0 0;
+}
+</style>

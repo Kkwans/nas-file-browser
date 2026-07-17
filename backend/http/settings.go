@@ -21,6 +21,7 @@ type settingsData struct {
 	Tus                   settings.Tus          `json:"tus"`
 	Shell                 []string              `json:"shell"`
 	Commands              map[string][]string   `json:"commands"`
+	TokenExpirationTime   string                `json:"tokenExpirationTime"`
 }
 
 var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -37,6 +38,13 @@ var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 		Tus:                   d.settings.Tus,
 		Shell:                 d.settings.Shell,
 		Commands:              d.settings.Commands,
+		TokenExpirationTime:   d.settings.TokenExpirationTime,
+	}
+	if data.TokenExpirationTime == "" {
+		data.TokenExpirationTime = d.server.TokenExpirationTime
+	}
+	if data.TokenExpirationTime == "" {
+		data.TokenExpirationTime = DefaultTokenExpirationTime.String()
 	}
 
 	return renderJSON(w, r, data)
@@ -46,6 +54,9 @@ var settingsPutHandler = withAdmin(func(_ http.ResponseWriter, r *http.Request, 
 	req := &settingsData{}
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	if _, err = parseTokenExpirationTime(req.TokenExpirationTime); err != nil {
 		return http.StatusBadRequest, err
 	}
 
@@ -60,6 +71,7 @@ var settingsPutHandler = withAdmin(func(_ http.ResponseWriter, r *http.Request, 
 	d.settings.Shell = req.Shell
 	d.settings.Commands = req.Commands
 	d.settings.HideLoginButton = req.HideLoginButton
+	d.settings.TokenExpirationTime = req.TokenExpirationTime
 
 	err = d.store.Settings.Save(d.settings)
 	return errToStatus(err), err

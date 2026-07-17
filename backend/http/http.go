@@ -45,10 +45,9 @@ func NewHandler(
 
 	api := r.PathPrefix("/api").Subrouter()
 
-	tokenExpirationTime := server.GetTokenExpirationTime(DefaultTokenExpirationTime)
-	api.Handle("/login", monkey(loginHandler(tokenExpirationTime), ""))
+	api.Handle("/login", monkey(loginHandler(), ""))
 	api.Handle("/signup", monkey(signupHandler, ""))
-	api.Handle("/renew", monkey(renewHandler(tokenExpirationTime), ""))
+	api.Handle("/renew", monkey(renewHandler(), ""))
 
 	users := api.PathPrefix("/users").Subrouter()
 	users.Handle("", monkey(usersGetHandler, "")).Methods("GET")

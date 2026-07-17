@@ -2,8 +2,8 @@ package fbhttp
 
 import (
 	"encoding/json"
-	"fmt"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -21,6 +21,8 @@ import (
 
 const (
 	DefaultTokenExpirationTime = time.Hour * 2
+	MinimumTokenExpirationTime = 10 * time.Minute
+	MaximumTokenExpirationTime = 24 * time.Hour
 )
 
 type userInfo struct {
@@ -119,7 +121,34 @@ func withAdmin(fn handleFunc) handleFunc {
 	})
 }
 
-func loginHandler(tokenExpireTime time.Duration) handleFunc {
+func parseTokenExpirationTime(value string) (time.Duration, error) {
+	duration, err := time.ParseDuration(value)
+	if err != nil {
+		return 0, fmt.Errorf("会话超时时间格式无效")
+	}
+	if duration < MinimumTokenExpirationTime || duration > MaximumTokenExpirationTime {
+		return 0, fmt.Errorf("会话超时时间必须在 10 分钟到 1 天之间")
+	}
+	return duration, nil
+}
+
+func tokenExpirationTime(d *data) time.Duration {
+	value := d.settings.TokenExpirationTime
+	if value == "" {
+		value = d.server.TokenExpirationTime
+	}
+	if value == "" {
+		return DefaultTokenExpirationTime
+	}
+	duration, err := parseTokenExpirationTime(value)
+	if err != nil {
+		log.Printf("[WARN] %v，已使用默认值 %s", err, DefaultTokenExpirationTime)
+		return DefaultTokenExpirationTime
+	}
+	return duration
+}
+
+func loginHandler() handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		auther, err := d.store.Auth.Get(d.settings.AuthMethod)
 		if err != nil {
@@ -134,7 +163,7 @@ func loginHandler(tokenExpireTime time.Duration) handleFunc {
 			return http.StatusInternalServerError, err
 		}
 
-		return printToken(w, r, d, user, tokenExpireTime)
+		return printToken(w, r, d, user, tokenExpirationTime(d))
 	}
 }
 
@@ -206,10 +235,10 @@ var signupHandler = func(_ http.ResponseWriter, r *http.Request, d *data) (int, 
 	return http.StatusOK, nil
 }
 
-func renewHandler(tokenExpireTime time.Duration) handleFunc {
+func renewHandler() handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		w.Header().Set("X-Renew-Token", "false")
-		return printToken(w, r, d, d.user, tokenExpireTime)
+		return printToken(w, r, d, d.user, tokenExpirationTime(d))
 	})
 }
 

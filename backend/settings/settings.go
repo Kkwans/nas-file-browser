@@ -38,6 +38,7 @@ type Settings struct {
 	FileMode              fs.FileMode         `json:"fileMode"`
 	DirMode               fs.FileMode         `json:"dirMode"`
 	HideDotfiles          bool                `json:"hideDotfiles"`
+	TokenExpirationTime   string              `json:"tokenExpirationTime"`
 }
 
 // GetRules implements rules.Provider.

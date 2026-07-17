@@ -15,6 +15,7 @@ export interface ISettings {
   tus: SettingsTus;
   shell: string[];
   commands: SettingsCommand;
+  tokenExpirationTime: string;
 }
 
 interface SettingsDefaults {

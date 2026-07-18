@@ -94,6 +94,10 @@ func (f favoritesBackend) Update(fav *favorites.Favorite) error {
 	return f.db.Update(fav)
 }
 
+func (f favoritesBackend) UpdateGroupID(id string, groupID string) error {
+	return f.db.UpdateField(&favorites.Favorite{ID: id}, "GroupID", groupID)
+}
+
 func (f favoritesBackend) Delete(id string) error {
 	return f.db.DeleteStruct(&favorites.Favorite{ID: id})
 }

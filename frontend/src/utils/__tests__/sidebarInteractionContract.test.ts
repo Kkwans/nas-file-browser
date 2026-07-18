@@ -135,4 +135,26 @@ describe("侧边栏分组交互契约", () => {
       /\.sidebar-drop-after::after\s*\{[\s\S]*linear-gradient/
     );
   });
+
+  it("同层收藏项与分组图标共用一致的水平起点，悬停不改变宽度", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toMatch(
+      /\.sidebar-module \.favorites-ungrouped-drop-zone > \.favorite-item,[\s\S]*\.sidebar-module \.favorite-group-header,[\s\S]*\.sidebar-module \.category-group-header\s*\{[^}]*width:\s*calc\(100% - 1rem\)\s*!important;[^}]*margin-inline:\s*0\.5rem\s*!important;/s
+    );
+    expect(cssSource).not.toMatch(
+      /\.sidebar-sortable-item\[draggable="true"\]:hover\s*\{[^}]*transform:/s
+    );
+  });
+
+  it("收藏与标签的落点线绘制在条目内部，避免被圆角容器裁掉", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toMatch(
+      /\.sidebar-drop-before::before\s*\{[^}]*top:\s*0;/s
+    );
+    expect(cssSource).toMatch(
+      /\.sidebar-drop-after::after\s*\{[^}]*bottom:\s*0;/s
+    );
+  });
 });

@@ -51,6 +51,7 @@ type StorageBackend interface {
 	GetByPath(userID uint, path string) (*Favorite, error)
 	Save(fav *Favorite) error
 	Update(fav *Favorite) error
+	UpdateGroupID(id string, groupID string) error
 	Delete(id string) error
 	DeleteByPath(path string) error
 	GroupStorageBackend
@@ -137,6 +138,12 @@ func (s *Storage) UpdateFieldsEx(userID uint, id string, name *string, order *in
 
 	if err := s.back.Update(fav); err != nil {
 		return nil, err
+	}
+	// Storm 的 Update 会忽略零值字段，因此移出分组时必须显式写入空字符串。
+	if groupID != nil {
+		if err := s.back.UpdateGroupID(fav.ID, *groupID); err != nil {
+			return nil, err
+		}
 	}
 	return fav, nil
 }

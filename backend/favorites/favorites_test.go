@@ -49,6 +49,15 @@ func (m *memoryBackend) GetByPath(userID uint, path string) (*Favorite, error) {
 }
 func (m *memoryBackend) Save(*Favorite) error                              { return nil }
 func (m *memoryBackend) Update(*Favorite) error                            { return nil }
+func (m *memoryBackend) UpdateGroupID(id string, groupID string) error {
+	for _, favorite := range m.favorites {
+		if favorite.ID == id {
+			favorite.GroupID = groupID
+			return nil
+		}
+	}
+	return ErrNotExist
+}
 func (m *memoryBackend) Delete(string) error                               { return nil }
 func (m *memoryBackend) DeleteByPath(string) error                         { return nil }
 func (m *memoryBackend) GetAllGroups(uint) ([]*FavoriteGroup, error)       { return nil, nil }

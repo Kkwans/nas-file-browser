@@ -239,6 +239,13 @@ export function getMarkdownOutlineStorageKey(
   return `nas-file-browser:markdown-outline:${namespace}`;
 }
 
+/** 预览正文只有在大纲实际可见时才保留右侧栏。 */
+export function getMarkdownPreviewShellClass(showOutline: boolean): string {
+  return showOutline
+    ? "markdown-preview-shell has-outline"
+    : "markdown-preview-shell";
+}
+
 /** Keep Vditor's editable renderer and the custom reading renderer in sync. */
 export function getMarkdownHighlightOptions(showLineNumbers: boolean) {
   return {

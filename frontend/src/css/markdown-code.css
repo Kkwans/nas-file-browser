@@ -21,14 +21,14 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  margin: 1.1em 0 1.4em;
-  padding: 2.35rem 0 0.85rem;
+  margin: 1.15em 0 1.5em;
+  padding: 2.15rem 0 0.7rem;
   overflow: auto;
   border: 1px solid #d8dee6;
-  border-radius: 9px;
+  border-radius: 8px;
   color: #24292f;
   background: #f6f8fa;
-  box-shadow: 0 1px 2px rgb(27 31 36 / 6%);
+  box-shadow: 0 1px 2px rgb(27 31 36 / 5%);
   font-family:
     "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
   font-size: 0.875em;
@@ -50,7 +50,7 @@
 :where(.md_preview, .vditor-reset.vditor-preview--content)
   pre
   code:not(.has-line-numbers) {
-  padding-inline: 1rem;
+  padding-inline: 0.75rem;
 }
 
 .markdown-code-toolbar {
@@ -62,14 +62,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 2.1rem;
-  padding: 0 0.45rem 0 0.8rem;
+  height: 1.9rem;
+  padding: 0 0.35rem 0 0.7rem;
   border-bottom: 1px solid #d8dee6;
-  border-radius: 9px 9px 0 0;
+  border-radius: 8px 8px 0 0;
   color: #57606a;
-  background: #eef2f6;
+  background: #f0f3f6;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .markdown-code-language {
@@ -83,12 +83,12 @@
 
 .markdown-code-copy {
   display: inline-grid;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.55rem;
+  height: 1.55rem;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: 5px;
   color: #57606a;
   background: transparent;
   cursor: pointer;
@@ -133,8 +133,8 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  flex: 0 0 2.75rem;
-  padding-right: 0.7rem;
+  flex: 0 0 2.15rem;
+  padding-right: 0.45rem;
   border-right: 1px solid #e1e6ec;
   color: #8c959f;
   background: #f6f8fa;
@@ -149,7 +149,7 @@
   code.has-line-numbers
   .code-line-content {
   flex: 0 0 auto;
-  padding: 0 1rem;
+  padding: 0 0.75rem;
 }
 
 :where(.md_preview, .vditor-reset.vditor-preview--content)

@@ -6,6 +6,7 @@ import {
   createMarkdownCodeFence,
   getMarkdownLineNumberStorageKey,
   getMarkdownOutlineStorageKey,
+  getMarkdownPreviewShellClass,
   inferMarkdownCodeLanguage,
   MARKDOWN_CODE_LANGUAGES,
   normalizeMarkdownCodeLanguage,
@@ -116,5 +117,12 @@ describe("Markdown 代码块契约", () => {
       style: "github",
     });
     expect(getMarkdownHighlightOptions(false).lineNumber).toBe(false);
+  });
+
+  it("阅读预览仅在显示大纲时启用双列布局", () => {
+    expect(getMarkdownPreviewShellClass(false)).toBe("markdown-preview-shell");
+    expect(getMarkdownPreviewShellClass(true)).toBe(
+      "markdown-preview-shell has-outline"
+    );
   });
 });

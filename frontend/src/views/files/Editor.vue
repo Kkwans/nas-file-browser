@@ -180,6 +180,7 @@ import {
   getMarkdownHighlightOptions,
   getMarkdownLineNumberStorageKey,
   getMarkdownOutlineStorageKey,
+  getMarkdownPreviewShellClass,
   MARKDOWN_CODE_LANGUAGES,
 } from "@/utils/markdownCode";
 import ace, { Ace, version as ace_version } from "ace-builds";
@@ -594,7 +595,7 @@ const initVditorPreview = async (content: string) => {
   }
 
   const previewShell = document.createElement("div");
-  previewShell.className = "markdown-preview-shell";
+  previewShell.className = getMarkdownPreviewShellClass(showOutline.value);
 
   const previewElement = document.createElement("div");
   previewElement.className = "vditor-reset vditor-preview--content";

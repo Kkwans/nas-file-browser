@@ -7,6 +7,14 @@ const editorSource = readFileSync(
   resolve(process.cwd(), "frontend/src/views/files/Editor.vue"),
   "utf8"
 );
+const vditorStyles = readFileSync(
+  resolve(process.cwd(), "frontend/src/css/vditor-overrides.css"),
+  "utf8"
+);
+const codeStyles = readFileSync(
+  resolve(process.cwd(), "frontend/src/css/markdown-code.css"),
+  "utf8"
+);
 
 describe("Markdown 编辑器交互契约", () => {
   it("默认使用类似 Typora 的即时渲染模式", () => {
@@ -24,5 +32,22 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toMatch(
       /\.markdown-language-picker\s*\{[\s\S]*max-height:[\s\S]*box-shadow:/
     );
+  });
+
+  it("预览模式隐藏大纲后不保留右侧空白列", () => {
+    expect(editorSource).toContain(
+      "previewShell.className = getMarkdownPreviewShellClass(showOutline.value)"
+    );
+    expect(vditorStyles).toMatch(
+      /\.markdown-preview-shell\.has-outline\s*\{[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)\s+17rem;/
+    );
+    expect(vditorStyles).toMatch(
+      /\.markdown-preview-shell\s*\{[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\);/
+    );
+  });
+
+  it("代码行号使用紧凑 gutter，避免左侧出现大块空白", () => {
+    expect(codeStyles).toMatch(/flex:\s*0 0 2\.15rem;/);
+    expect(codeStyles).toMatch(/\.code-line-content\s*\{[\s\S]*padding:\s*0 0\.75rem;/);
   });
 });

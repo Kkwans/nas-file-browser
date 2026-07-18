@@ -31,7 +31,7 @@ describe("file listing layout contract", () => {
 
   it("does not render an empty mobile selection bar", () => {
     expect(shouldRenderMobileSelection(true, false, 0)).toBe(false);
-    expect(shouldRenderMobileSelection(true, true, 0)).toBe(true);
+    expect(shouldRenderMobileSelection(true, true, 0)).toBe(false);
     expect(shouldRenderMobileSelection(true, false, 2)).toBe(true);
     expect(shouldRenderMobileSelection(false, true, 2)).toBe(false);
   });
@@ -127,10 +127,10 @@ describe("file listing layout contract", () => {
     ).toBe("open");
   });
 
-  it("opens the bottom action menu only after a stationary long press", () => {
+  it("enters selection without opening a second action menu after a stationary long press", () => {
     expect(
       getMobileTouchAction({ tapCount: 1, longPress: true, moved: false })
-    ).toBe("select-and-menu");
+    ).toBe("select");
     expect(
       getMobileTouchAction({ tapCount: 2, longPress: true, moved: true })
     ).toBe("none");

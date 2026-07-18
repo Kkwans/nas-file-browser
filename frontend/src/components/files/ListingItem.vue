@@ -688,6 +688,9 @@ const click = (
       selectionBehavior.preserveExisting
     ) {
       fileStore.removeSelected(props.index);
+      if (fileStore.selectedCount === 0) {
+        fileStore.multiple = false;
+      }
     } else {
       fileStore.selected = [props.index];
     }
@@ -777,14 +780,13 @@ const handleLongPress = () => {
     longPress: touchGestureActive.value,
     moved: touchMoved.value,
   });
-  if (action === "select-and-menu") {
+  if (action === "select") {
     longPressTriggered.value = true;
     clearMobileTapCandidate();
     fileStore.multiple = true;
     if (!fileStore.selected.includes(props.index)) {
       fileStore.selected.push(props.index);
     }
-    openMobileActionSheet();
   } else if (singleClick.value) {
     longPressTriggered.value = true;
     click(new Event("longpress"));

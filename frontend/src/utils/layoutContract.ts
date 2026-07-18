@@ -70,10 +70,10 @@ export function chooseListingLayout(containerWidth: number): ListingLayout {
 /** The mobile selection bar only exists while selection is actionable. */
 export function shouldRenderMobileSelection(
   isMobile: boolean,
-  multiple: boolean,
+  _multiple: boolean,
   selectedCount: number
 ): boolean {
-  return isMobile && (multiple || selectedCount > 0);
+  return isMobile && selectedCount > 0;
 }
 
 /** A double click on row content opens it; embedded action controls never do. */
@@ -98,7 +98,7 @@ export interface TapSelectionInput {
 export type MobileTouchAction =
   | "none"
   | "open"
-  | "select-and-menu"
+  | "select"
   | "toggle-selection";
 
 export interface MobileTouchInput {
@@ -143,7 +143,7 @@ export function getTapSelectionBehavior({
 /**
  * Touch gestures intentionally do not reuse the desktop click contract:
  * a single tap is inert, a double tap opens, and a stationary long press
- * enters selection and opens the mobile action sheet.
+ * enters selection without opening a second action layer.
  */
 export function getMobileTouchAction({
   tapCount,
@@ -152,7 +152,7 @@ export function getMobileTouchAction({
   multiple = false,
 }: MobileTouchInput): MobileTouchAction {
   if (moved) return "none";
-  if (longPress) return "select-and-menu";
+  if (longPress) return "select";
   if (multiple) return "toggle-selection";
   if (tapCount >= 2) return "open";
   return "none";

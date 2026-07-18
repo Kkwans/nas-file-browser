@@ -1813,6 +1813,11 @@
 }
 
 @media (max-width: 736px) {
+  #listing #multiple-selection,
+  #listing #multiple-selection.active {
+    display: none !important;
+  }
+
   #listing {
     min-height: calc(100dvh - 6rem);
     padding: 8px 12px 96px;

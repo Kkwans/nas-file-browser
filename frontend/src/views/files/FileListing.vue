@@ -660,7 +660,11 @@
           multiple
         />
 
-        <div :class="{ active: fileStore.multiple }" id="multiple-selection">
+        <div
+          v-if="!isMobile"
+          :class="{ active: fileStore.multiple }"
+          id="multiple-selection"
+        >
           <div class="selection-info">
             <i class="material-icons">check_circle</i>
             <span v-if="fileStore.selectedCount > 0"> 已选择 </span>

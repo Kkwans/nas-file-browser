@@ -136,6 +136,17 @@ describe("file listing layout contract", () => {
     ).toBe("none");
   });
 
+  it("toggles an item with one tap after mobile multi-select is active", () => {
+    expect(
+      getMobileTouchAction({
+        tapCount: 1,
+        longPress: false,
+        moved: false,
+        multiple: true,
+      })
+    ).toBe("toggle-selection");
+  });
+
   it("suppresses the desktop context menu on mobile only", () => {
     expect(shouldSuppressDesktopContextMenu(true)).toBe(true);
     expect(shouldSuppressDesktopContextMenu(false)).toBe(false);

@@ -845,9 +845,20 @@ const handleTouchEnd = () => {
       tapCount: mobileTapCount.value,
       longPress: false,
       moved: false,
+      multiple: fileStore.multiple,
     });
 
-    if (action === "open") {
+    if (action === "toggle-selection") {
+      clearMobileTapCandidate();
+      click(
+        new Event("touchselection"),
+        getTapSelectionBehavior({
+          isTouch: true,
+          multiple: true,
+          selectedCount: fileStore.selectedCount,
+        })
+      );
+    } else if (action === "open") {
       clearMobileTapCandidate();
       open();
     } else {

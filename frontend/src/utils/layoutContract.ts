@@ -95,12 +95,17 @@ export interface TapSelectionInput {
   selectedCount: number;
 }
 
-export type MobileTouchAction = "none" | "open" | "select-and-menu";
+export type MobileTouchAction =
+  | "none"
+  | "open"
+  | "select-and-menu"
+  | "toggle-selection";
 
 export interface MobileTouchInput {
   tapCount: number;
   longPress: boolean;
   moved: boolean;
+  multiple?: boolean;
 }
 
 type EditableKeyboardTarget = {
@@ -144,9 +149,11 @@ export function getMobileTouchAction({
   tapCount,
   longPress,
   moved,
+  multiple = false,
 }: MobileTouchInput): MobileTouchAction {
   if (moved) return "none";
   if (longPress) return "select-and-menu";
+  if (multiple) return "toggle-selection";
   if (tapCount >= 2) return "open";
   return "none";
 }

@@ -45,8 +45,8 @@
           <action
             icon="auto_awesome"
             label="即时渲染（类似 Typora）"
-            @action="switchMode('ir')"
-            :class="{ active: currentMode === 'ir' }"
+            @action="switchMode('wysiwyg')"
+            :class="{ active: currentMode === 'wysiwyg' }"
           />
           <action
             icon="vertical_split"
@@ -109,9 +109,7 @@
       >
         <div class="markdown-language-picker-header">
           <strong id="markdown-language-picker-title">{{
-            codeLanguageTargetIndex === null
-              ? "插入代码块"
-              : "修改代码语言"
+            codeLanguageTargetIndex === null ? "插入代码块" : "修改代码语言"
           }}</strong>
           <span class="markdown-language-count"
             >支持 {{ MARKDOWN_CODE_LANGUAGES.length }} 种</span
@@ -241,7 +239,8 @@ const filteredCodeLanguageOptions = computed(() =>
   filterMarkdownCodeLanguages(codeLanguageQuery.value)
 );
 const activeCodeLanguageOptionId = computed(() => {
-  const option = filteredCodeLanguageOptions.value[codeLanguageActiveIndex.value];
+  const option =
+    filteredCodeLanguageOptions.value[codeLanguageActiveIndex.value];
   return option ? `markdown-language-option-${option.value}` : undefined;
 });
 
@@ -249,10 +248,10 @@ watch(codeLanguageQuery, () => {
   codeLanguageActiveIndex.value = 0;
 });
 
-type MarkdownMode = "ir" | "sv" | "preview";
+type MarkdownMode = "wysiwyg" | "sv" | "preview";
 type MarkdownEditMode = Exclude<MarkdownMode, "preview">;
 
-const currentMode = ref<MarkdownMode>("ir");
+const currentMode = ref<MarkdownMode>("wysiwyg");
 const showOutline = ref(true);
 let vditorInstance: VditorInstance | null = null;
 let aceEditor: Ace.Editor | null = null;
@@ -415,7 +414,7 @@ const initVditor = async (content: string) => {
   markdownBaselineReady = false;
   mdInitialized = false;
   userEdited = false;
-  await initVditorWithMode(content, "ir");
+  await initVditorWithMode(content, "wysiwyg");
 };
 
 const loadVditorResources = async () => {
@@ -753,14 +752,14 @@ const openCodeLanguagePicker = () => {
 };
 
 const getActiveMarkdownCodeBlockIndex = (): number | null => {
-  if (currentMode.value !== "ir") return null;
+  if (currentMode.value !== "wysiwyg") return null;
   const selection = window.getSelection();
   const anchor = selection?.anchorNode;
   const anchorElement =
     anchor?.nodeType === Node.ELEMENT_NODE
       ? (anchor as Element)
       : anchor?.parentElement;
-  const editor = document.querySelector("#vditor-mount .vditor-ir");
+  const editor = document.querySelector("#vditor-mount .vditor-wysiwyg");
   const activeBlock = anchorElement?.closest('[data-type="code-block"]');
   if (!editor || !activeBlock || !editor.contains(activeBlock)) return null;
 
@@ -784,7 +783,8 @@ const moveCodeLanguageSelection = (direction: number) => {
 };
 
 const selectActiveCodeLanguage = () => {
-  const option = filteredCodeLanguageOptions.value[codeLanguageActiveIndex.value];
+  const option =
+    filteredCodeLanguageOptions.value[codeLanguageActiveIndex.value];
   if (option) applyMarkdownCodeLanguage(option.value);
 };
 
@@ -1117,30 +1117,30 @@ const finishClose = () => {
   z-index: 2200;
   display: grid;
   place-items: start end;
-  padding: 4.25rem 1rem 1rem;
+  padding: 3.9rem 0.75rem 0.75rem;
   background: transparent;
 }
 
 .markdown-language-picker {
   display: flex;
-  width: min(22rem, calc(100vw - 2rem));
-  max-height: calc(100vh - 5.25rem);
+  width: min(20rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 4.65rem);
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--borderSecondary);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--surfacePrimary);
   box-shadow:
-    0 16px 36px rgb(15 23 42 / 16%),
-    0 2px 8px rgb(15 23 42 / 8%);
+    0 12px 28px rgb(15 23 42 / 14%),
+    0 2px 6px rgb(15 23 42 / 7%);
 }
 
 .markdown-language-picker-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 2.75rem;
-  padding: 0 0.75rem;
+  min-height: 2.45rem;
+  padding: 0 0.6rem 0 0.75rem;
   border-bottom: 1px solid var(--borderSecondary);
   color: var(--textPrimary);
 }
@@ -1149,13 +1149,13 @@ const finishClose = () => {
   margin-left: auto;
   margin-right: 0.5rem;
   color: var(--textSecondary);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .markdown-language-picker-close {
   display: inline-grid;
-  width: 2rem;
-  height: 2rem;
+  width: 1.8rem;
+  height: 1.8rem;
   place-items: center;
   padding: 0;
   border: 0;
@@ -1175,8 +1175,9 @@ const finishClose = () => {
 .markdown-language-options {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.25rem;
-  max-height: min(24rem, calc(100vh - 13rem));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.2rem;
+  max-height: min(22rem, calc(100vh - 12rem));
   overflow: auto;
   padding: 0.5rem;
 }
@@ -1185,18 +1186,18 @@ const finishClose = () => {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  margin: 0.5rem 0.75rem 0;
-  padding: 0 0.7rem;
+  margin: 0.5rem 0.6rem 0.15rem;
+  padding: 0 0.6rem;
   border: 1px solid var(--borderSecondary);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--textSecondary);
-  background: var(--surfaceSecondary);
+  background: var(--surfacePrimary);
 }
 
 .markdown-language-search input {
   flex: 1;
   min-width: 0;
-  height: 2.5rem;
+  height: 2.25rem;
   padding: 0;
   border: 0;
   outline: 0;
@@ -1215,11 +1216,11 @@ const finishClose = () => {
 .markdown-language-options button {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  min-height: 2.5rem;
-  padding: 0 0.75rem;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0 0.55rem;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 5px;
   color: var(--textPrimary);
   background: var(--surfacePrimary);
   cursor: pointer;
@@ -1228,9 +1229,9 @@ const finishClose = () => {
 .markdown-language-options button:hover,
 .markdown-language-options button:focus-visible,
 .markdown-language-options button.active {
-  border-color: var(--blue);
+  border-color: color-mix(in srgb, var(--blue) 35%, transparent);
   color: var(--blue);
-  background: var(--surfaceSecondary);
+  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
   outline: none;
 }
 
@@ -1241,6 +1242,10 @@ const finishClose = () => {
 @media (max-width: 480px) {
   .markdown-language-picker-backdrop {
     padding-top: 4rem;
+  }
+
+  .markdown-language-options {
+    grid-template-columns: 1fr;
   }
 }
 </style>

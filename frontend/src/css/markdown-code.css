@@ -2,11 +2,11 @@
 
 :where(.md_preview, .vditor-reset.vditor-preview--content) code:not(pre code) {
   display: inline;
-  padding: 0.1em 0.38em;
+  padding: 0.08em 0.34em;
   border: 1px solid var(--markdown-border, #d8dee6);
-  border-radius: 5px;
-  color: #7c3aed;
-  background: #f3f5f7;
+  border-radius: 4px;
+  color: #8250df;
+  background: #f6f3fa;
   box-decoration-break: clone;
   font-family:
     "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
@@ -21,11 +21,11 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  margin: 1.15em 0 1.5em;
-  padding: 2.15rem 0 0.7rem;
+  margin: 1em 0 1.3em;
+  padding: 2rem 0 0.65rem;
   overflow: auto;
   border: 1px solid #d8dee6;
-  border-radius: 8px;
+  border-radius: 7px;
   color: #24292f;
   background: #f6f8fa;
   box-shadow: 0 1px 2px rgb(27 31 36 / 5%);
@@ -50,7 +50,7 @@
 :where(.md_preview, .vditor-reset.vditor-preview--content)
   pre
   code:not(.has-line-numbers) {
-  padding-inline: 0.75rem;
+  padding-inline: 0.65rem;
 }
 
 .markdown-code-toolbar {
@@ -62,10 +62,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 1.9rem;
-  padding: 0 0.35rem 0 0.7rem;
+  height: 1.8rem;
+  padding: 0 0.3rem 0 0.65rem;
   border-bottom: 1px solid #d8dee6;
-  border-radius: 8px 8px 0 0;
+  border-radius: 7px 7px 0 0;
   color: #57606a;
   background: #f0f3f6;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -133,8 +133,8 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  flex: 0 0 2.15rem;
-  padding-right: 0.45rem;
+  flex: 0 0 1.85rem;
+  padding-right: 0.35rem;
   border-right: 1px solid #e1e6ec;
   color: #8c959f;
   background: #f6f8fa;
@@ -149,7 +149,7 @@
   code.has-line-numbers
   .code-line-content {
   flex: 0 0 auto;
-  padding: 0 0.75rem;
+  padding: 0 0.65rem;
 }
 
 :where(.md_preview, .vditor-reset.vditor-preview--content)
@@ -164,7 +164,7 @@
 #vditor-mount .vditor-ir pre,
 #vditor-mount .vditor-sv pre {
   border-color: var(--markdown-border, #d8dee6) !important;
-  border-radius: 8px !important;
+  border-radius: 7px !important;
   color: var(--markdown-code-text, #24292f) !important;
   background: var(--markdown-code-surface, #f6f8fa) !important;
 }
@@ -174,11 +174,11 @@
 #vditor-mount .vditor-sv code:not(pre code) {
   display: inline !important;
   width: auto !important;
-  padding: 0.1em 0.38em !important;
+  padding: 0.08em 0.34em !important;
   border: 1px solid var(--markdown-border, #d8dee6) !important;
-  border-radius: 5px !important;
-  color: #7c3aed !important;
-  background: var(--markdown-inline-surface, #f3f5f7) !important;
+  border-radius: 4px !important;
+  color: #8250df !important;
+  background: var(--markdown-inline-surface, #f6f3fa) !important;
   white-space: normal !important;
 }
 

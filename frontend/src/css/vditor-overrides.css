@@ -46,11 +46,11 @@
 }
 
 .markdown-preview-shell.has-outline {
-  grid-template-columns: minmax(0, 1fr) 17rem;
+  grid-template-columns: minmax(0, 1fr) 15rem;
 }
 
 .markdown-preview-shell > .vditor-preview--content {
-  width: min(100%, 1120px);
+  width: min(100%, 980px);
   height: 100%;
   margin-inline: auto;
   overflow: auto;
@@ -60,9 +60,9 @@
 .markdown-preview-outline {
   min-width: 0;
   overflow: auto;
-  padding: 0.85rem 0.75rem 1.5rem;
+  padding: 0.75rem 0.65rem 1.25rem;
   border-left: 1px solid var(--borderSecondary, #d0d7de);
-  background: var(--surfacePrimary, #ffffff);
+  background: var(--surfaceSecondary, #f8fafc);
 }
 
 .markdown-preview-outline-title {
@@ -84,8 +84,8 @@
   display: block;
   min-width: 0;
   overflow: hidden;
-  padding: 0.42rem 0.5rem;
-  border-radius: 7px;
+  padding: 0.38rem 0.45rem;
+  border-radius: 6px;
   color: var(--textSecondary, #475569);
   font-size: 0.82rem;
   line-height: 1.35;

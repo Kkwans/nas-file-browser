@@ -12,6 +12,7 @@ import {
   normalizeMarkdownCodeLanguage,
   resolveMarkdownCodeLanguage,
   renderMarkdownCodeLines,
+  updateMarkdownCodeFenceLanguage,
   wrapMarkdownCodeLines,
 } from "../markdownCode";
 
@@ -123,6 +124,27 @@ describe("Markdown 代码块契约", () => {
     expect(getMarkdownPreviewShellClass(false)).toBe("markdown-preview-shell");
     expect(getMarkdownPreviewShellClass(true)).toBe(
       "markdown-preview-shell has-outline"
+    );
+  });
+  it("只修改目标代码块的语言，不破坏代码内容或其他围栏", () => {
+    const markdown = [
+      "```js",
+      "const first = 1;",
+      "```",
+      "",
+      "~~~python",
+      "print('second')",
+      "~~~",
+    ].join("\n");
+
+    expect(updateMarkdownCodeFenceLanguage(markdown, 0, "typescript")).toBe(
+      markdown.replace("```js", "```typescript")
+    );
+    expect(updateMarkdownCodeFenceLanguage(markdown, 1, "bash")).toBe(
+      markdown.replace("~~~python", "~~~bash")
+    );
+    expect(updateMarkdownCodeFenceLanguage(markdown, 9, "java")).toBe(
+      markdown
     );
   });
 });

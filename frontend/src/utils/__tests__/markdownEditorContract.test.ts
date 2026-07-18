@@ -50,4 +50,15 @@ describe("Markdown 编辑器交互契约", () => {
     expect(codeStyles).toMatch(/flex:\s*0 0 2\.15rem;/);
     expect(codeStyles).toMatch(/\.code-line-content\s*\{[\s\S]*padding:\s*0 0\.75rem;/);
   });
+  it("语言选择器支持搜索、键盘导航并可修改当前代码块", () => {
+    expect(editorSource).toContain('role="combobox"');
+    expect(editorSource).toContain(
+      '@keydown.down.prevent="moveCodeLanguageSelection(1)"'
+    );
+    expect(editorSource).toContain(
+      '@keydown.up.prevent="moveCodeLanguageSelection(-1)"'
+    );
+    expect(editorSource).toContain("updateMarkdownCodeFenceLanguage(");
+    expect(editorSource).toContain("getActiveMarkdownCodeBlockIndex()");
+  });
 });

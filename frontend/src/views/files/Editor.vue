@@ -99,7 +99,7 @@
     <div
       v-if="showCodeLanguagePicker"
       class="markdown-language-picker-backdrop"
-      @click.self="showCodeLanguagePicker = false"
+      @click.self="closeCodeLanguagePicker"
     >
       <div
         class="markdown-language-picker"
@@ -108,7 +108,11 @@
         aria-labelledby="markdown-language-picker-title"
       >
         <div class="markdown-language-picker-header">
-          <strong id="markdown-language-picker-title">选择代码语言</strong>
+          <strong id="markdown-language-picker-title">{{
+            codeLanguageTargetIndex === null
+              ? "插入代码块"
+              : "修改代码语言"
+          }}</strong>
           <span class="markdown-language-count"
             >支持 {{ MARKDOWN_CODE_LANGUAGES.length }} 种</span
           >
@@ -116,7 +120,7 @@
             type="button"
             class="markdown-language-picker-close"
             aria-label="关闭"
-            @click="showCodeLanguagePicker = false"
+            @click="closeCodeLanguagePicker"
           >
             <i class="material-icons" aria-hidden="true">close</i>
           </button>
@@ -124,6 +128,7 @@
         <div class="markdown-language-search">
           <i class="material-icons" aria-hidden="true">search</i>
           <input
+            ref="codeLanguageSearchInput"
             v-model.trim="codeLanguageQuery"
             type="search"
             placeholder="搜索语言"
@@ -131,8 +136,12 @@
             role="combobox"
             aria-controls="markdown-language-options"
             :aria-expanded="showCodeLanguagePicker"
+            :aria-activedescendant="activeCodeLanguageOptionId"
             autocomplete="off"
-            @keydown.enter.prevent="insertFirstFilteredLanguage"
+            @keydown.down.prevent="moveCodeLanguageSelection(1)"
+            @keydown.up.prevent="moveCodeLanguageSelection(-1)"
+            @keydown.enter.prevent="selectActiveCodeLanguage"
+            @keydown.esc.prevent="closeCodeLanguagePicker"
           />
         </div>
         <div
@@ -141,11 +150,15 @@
           role="listbox"
         >
           <button
-            v-for="option in filteredCodeLanguageOptions"
+            v-for="(option, index) in filteredCodeLanguageOptions"
             :key="option.value"
             type="button"
             role="option"
-            @click="insertMarkdownCodeBlock(option.value)"
+            :id="`markdown-language-option-${option.value}`"
+            :aria-selected="codeLanguageActiveIndex === index"
+            :class="{ active: codeLanguageActiveIndex === index }"
+            @mouseenter="codeLanguageActiveIndex = index"
+            @click="applyMarkdownCodeLanguage(option.value)"
           >
             <i class="material-icons" aria-hidden="true">code</i>
             <span>{{ option.label }}</span>
@@ -182,6 +195,7 @@ import {
   getMarkdownOutlineStorageKey,
   getMarkdownPreviewShellClass,
   MARKDOWN_CODE_LANGUAGES,
+  updateMarkdownCodeFenceLanguage,
 } from "@/utils/markdownCode";
 import ace, { Ace, version as ace_version } from "ace-builds";
 import "ace-builds/src-noconflict/ext-language_tools";
@@ -193,7 +207,15 @@ import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { getEditorTheme, getTheme } from "@/utils/theme";
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 const $showError = inject<IToastError>("$showError")!;
 
@@ -212,9 +234,20 @@ const showLineNumbers = ref(!isMarkdownFile);
 const langCaption = ref("");
 const showCodeLanguagePicker = ref(false);
 const codeLanguageQuery = ref("");
+const codeLanguageSearchInput = ref<HTMLInputElement | null>(null);
+const codeLanguageActiveIndex = ref(0);
+const codeLanguageTargetIndex = ref<number | null>(null);
 const filteredCodeLanguageOptions = computed(() =>
   filterMarkdownCodeLanguages(codeLanguageQuery.value)
 );
+const activeCodeLanguageOptionId = computed(() => {
+  const option = filteredCodeLanguageOptions.value[codeLanguageActiveIndex.value];
+  return option ? `markdown-language-option-${option.value}` : undefined;
+});
+
+watch(codeLanguageQuery, () => {
+  codeLanguageActiveIndex.value = 0;
+});
 
 type MarkdownMode = "ir" | "sv" | "preview";
 type MarkdownEditMode = Exclude<MarkdownMode, "preview">;
@@ -712,17 +745,74 @@ const initAceEditor = (content: string) => {
 
 const openCodeLanguagePicker = () => {
   if (!isMarkdownFile || !vditorInstance) return;
+  codeLanguageTargetIndex.value = getActiveMarkdownCodeBlockIndex();
   codeLanguageQuery.value = "";
+  codeLanguageActiveIndex.value = 0;
   showCodeLanguagePicker.value = true;
+  nextTick(() => codeLanguageSearchInput.value?.focus());
 };
 
-const insertFirstFilteredLanguage = () => {
-  const first = filteredCodeLanguageOptions.value[0];
-  if (first) insertMarkdownCodeBlock(first.value);
+const getActiveMarkdownCodeBlockIndex = (): number | null => {
+  if (currentMode.value !== "ir") return null;
+  const selection = window.getSelection();
+  const anchor = selection?.anchorNode;
+  const anchorElement =
+    anchor?.nodeType === Node.ELEMENT_NODE
+      ? (anchor as Element)
+      : anchor?.parentElement;
+  const editor = document.querySelector("#vditor-mount .vditor-ir");
+  const activeBlock = anchorElement?.closest('[data-type="code-block"]');
+  if (!editor || !activeBlock || !editor.contains(activeBlock)) return null;
+
+  const blocks = Array.from(
+    editor.querySelectorAll('[data-type="code-block"]')
+  );
+  const index = blocks.indexOf(activeBlock);
+  return index >= 0 ? index : null;
 };
 
-const insertMarkdownCodeBlock = (language: string) => {
+const moveCodeLanguageSelection = (direction: number) => {
+  const count = filteredCodeLanguageOptions.value.length;
+  if (count === 0) return;
+  codeLanguageActiveIndex.value =
+    (codeLanguageActiveIndex.value + direction + count) % count;
+  nextTick(() => {
+    document
+      .getElementById(activeCodeLanguageOptionId.value ?? "")
+      ?.scrollIntoView({ block: "nearest" });
+  });
+};
+
+const selectActiveCodeLanguage = () => {
+  const option = filteredCodeLanguageOptions.value[codeLanguageActiveIndex.value];
+  if (option) applyMarkdownCodeLanguage(option.value);
+};
+
+const closeCodeLanguagePicker = () => {
   showCodeLanguagePicker.value = false;
+  codeLanguageTargetIndex.value = null;
+  vditorInstance?.focus?.();
+};
+
+const applyMarkdownCodeLanguage = (language: string) => {
+  const targetIndex = codeLanguageTargetIndex.value;
+  closeCodeLanguagePicker();
+
+  if (targetIndex !== null && vditorInstance?.setValue) {
+    const current = vditorInstance.getValue();
+    const updated = updateMarkdownCodeFenceLanguage(
+      current,
+      targetIndex,
+      language
+    );
+    if (updated !== current) {
+      vditorInstance.setValue(updated);
+      markdownBuffer = updated;
+      userEdited = true;
+    }
+    return;
+  }
+
   if (!vditorInstance?.insertValue) return;
   vditorInstance.insertValue(createMarkdownCodeFence(language));
   try {
@@ -1136,7 +1226,8 @@ const finishClose = () => {
 }
 
 .markdown-language-options button:hover,
-.markdown-language-options button:focus-visible {
+.markdown-language-options button:focus-visible,
+.markdown-language-options button.active {
   border-color: var(--blue);
   color: var(--blue);
   background: var(--surfaceSecondary);

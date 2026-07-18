@@ -118,6 +118,50 @@ export function createMarkdownCodeFence(language: string): string {
   return `\`\`\`${normalized}\n\n\`\`\`\n`;
 }
 
+/**
+ * Update one fenced code block without rebuilding or reformatting the rest of
+ * the document. Both backtick and tilde fences are supported.
+ */
+export function updateMarkdownCodeFenceLanguage(
+  markdown: string,
+  targetIndex: number,
+  language: string
+): string {
+  if (targetIndex < 0) return markdown;
+
+  const normalizedLanguage = normalizeMarkdownCodeLanguage(language) ?? "";
+  const lines = markdown.split(/(\r?\n)/);
+  let blockIndex = -1;
+  let activeFence: { marker: string; length: number } | null = null;
+
+  for (let index = 0; index < lines.length; index += 2) {
+    const line = lines[index];
+    const match = line.match(/^(\s*)(`{3,}|~{3,})([^\r\n]*)$/);
+    if (!match) continue;
+
+    const marker = match[2][0];
+    if (activeFence) {
+      if (
+        marker === activeFence.marker &&
+        match[2].length >= activeFence.length &&
+        match[3].trim() === ""
+      ) {
+        activeFence = null;
+      }
+      continue;
+    }
+
+    blockIndex += 1;
+    if (blockIndex === targetIndex) {
+      lines[index] = `${match[1]}${match[2]}${normalizedLanguage}`;
+      return lines.join("");
+    }
+    activeFence = { marker, length: match[2].length };
+  }
+
+  return markdown;
+}
+
 /** Resolve an explicitly declared fence language. Unknown declarations return null. */
 export function resolveMarkdownCodeLanguage(
   className: string,

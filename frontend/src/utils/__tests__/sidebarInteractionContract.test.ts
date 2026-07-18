@@ -147,6 +147,19 @@ describe("侧边栏分组交互契约", () => {
     );
   });
 
+  it("未分组收藏项与收藏分组使用相同的图标列和图标尺寸", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toContain("--sidebar-level-two-icon-column: 1.75rem");
+    expect(cssSource).toContain("--sidebar-level-two-icon-size: 1.375rem");
+    expect(cssSource).toMatch(
+      /\.favorites-ungrouped-drop-zone > \.favorite-item\s*\{[^}]*grid-template-columns:\s*var\(--sidebar-level-two-icon-column\) minmax\(0, 1fr\) 1\.75rem;/s
+    );
+    expect(cssSource).toMatch(
+      /\.favorites-ungrouped-drop-zone > \.favorite-item > \.favorite-icon:not\(\.favorite-drag-handle\),[\s\S]*\.favorite-group-header > \.favorite-group-icon\s*\{[^}]*width:\s*var\(--sidebar-level-two-icon-column\);[^}]*height:\s*var\(--sidebar-level-two-icon-column\);[^}]*font-size:\s*var\(--sidebar-level-two-icon-size\)\s*!important;/s
+    );
+  });
+
   it("收藏与标签的落点线绘制在条目内部，避免被圆角容器裁掉", () => {
     const cssSource = readSource("css/sidebar-refinement.css");
 

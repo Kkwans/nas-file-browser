@@ -1,6 +1,6 @@
 module github.com/Kkwans/nas-file-browser/backend
 
-go 1.24
+go 1.25.0
 
 require (
 	github.com/asdine/storm/v3 v3.2.1

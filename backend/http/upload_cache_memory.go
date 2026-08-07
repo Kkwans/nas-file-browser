@@ -2,6 +2,7 @@ package fbhttp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -41,7 +42,9 @@ func newMemoryUploadCache() *memoryUploadCache {
 	cache.OnEviction(func(_ context.Context, reason ttlcache.EvictionReason, item *ttlcache.Item[string, int64]) {
 		if reason == ttlcache.EvictionReasonExpired {
 			fmt.Printf("deleting incomplete upload file: \"%s\"\n", item.Key())
-			os.Remove(item.Key())
+			if err := os.Remove(item.Key()); err != nil && !errors.Is(err, os.ErrNotExist) {
+				fmt.Printf("failed to delete incomplete upload file %q: %v\n", item.Key(), err)
+			}
 		}
 	})
 	go cache.Start()

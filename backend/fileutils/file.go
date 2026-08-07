@@ -31,13 +31,17 @@ func MoveFile(afs afero.Fs, src, dst string, fileMode, dirMode fs.FileMode) erro
 
 // CopyFile copies a file from source to dest and returns
 // an error if any.
-func CopyFile(afs afero.Fs, source, dest string, fileMode, dirMode fs.FileMode) error {
+func CopyFile(afs afero.Fs, source, dest string, fileMode, dirMode fs.FileMode) (err error) {
 	// Open the source file.
 	src, err := afs.Open(source)
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() {
+		if closeErr := src.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// Makes the directory needed to create the dst
 	// file.
@@ -51,7 +55,11 @@ func CopyFile(afs afero.Fs, source, dest string, fileMode, dirMode fs.FileMode) 
 	if err != nil {
 		return err
 	}
-	defer dst.Close()
+	defer func() {
+		if closeErr := dst.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// Copy the contents of the file.
 	_, err = io.Copy(dst, src)

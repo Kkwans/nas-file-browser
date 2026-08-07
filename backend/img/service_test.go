@@ -278,7 +278,7 @@ func TestService_Resize(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			svc := New(1)
 			source := test.source(t)
-			defer source.Close()
+			t.Cleanup(func() { require.NoError(t, source.Close()) })
 
 			buf := &bytes.Buffer{}
 			err := svc.Resize(context.Background(), source, test.width, test.height, buf, test.options...)

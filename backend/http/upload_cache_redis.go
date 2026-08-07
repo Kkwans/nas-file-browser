@@ -17,7 +17,7 @@ type redisUploadCache struct {
 
 func newRedisUploadCache(redisURL string) (*redisUploadCache, error) {
 	if redisURL == "" {
-		return nil, fmt.Errorf("Redis URL 不能为空")
+		return nil, fmt.Errorf("redis URL 不能为空")
 	}
 
 	opts, err := redis.ParseURL(redisURL)
@@ -59,7 +59,7 @@ func (c *redisUploadCache) GetLength(filePath string) (int64, error) {
 		if errors.Is(err, redis.Nil) {
 			return 0, fmt.Errorf("未找到该路径的活跃上传")
 		}
-		return 0, fmt.Errorf("Redis 错误: %w", err)
+		return 0, fmt.Errorf("redis 错误: %w", err)
 	}
 
 	size, err := strconv.ParseInt(result, 10, 64)
@@ -80,5 +80,7 @@ func (c *redisUploadCache) Touch(filePath string) {
 }
 
 func (c *redisUploadCache) Close() {
-	c.client.Close()
+	if err := c.client.Close(); err != nil {
+		log.Printf("failed to close redis upload cache: %v", err)
+	}
 }

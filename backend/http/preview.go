@@ -243,7 +243,7 @@ func createPreview(ctx context.Context, imgSvc ImgService, fileCache FileCache,
 	if err != nil {
 		return nil, err
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 
 	var (
 		width   int

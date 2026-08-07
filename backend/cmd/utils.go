@@ -148,7 +148,7 @@ type cobraFunc func(cmd *cobra.Command, args []string) error
 // This function should only be used by [withStore] and the root command. No other command should call
 // this function directly.
 func withViperAndStore(fn func(cmd *cobra.Command, args []string, v *viper.Viper, store *store) error, options storeOptions) cobraFunc {
-	return func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) (err error) {
 		v, err := initViper(cmd)
 		if err != nil {
 			return err
@@ -177,7 +177,11 @@ func withViperAndStore(fn func(cmd *cobra.Command, args []string, v *viper.Viper
 		if err != nil {
 			return err
 		}
-		defer db.Close()
+		defer func() {
+			if closeErr := db.Close(); err == nil {
+				err = closeErr
+			}
+		}()
 
 		storage, err := bolt.NewStorage(db)
 		if err != nil {
@@ -199,12 +203,16 @@ func withStore(fn func(cmd *cobra.Command, args []string, store *store) error, o
 	}, options)
 }
 
-func marshal(filename string, data interface{}) error {
+func marshal(filename string, data interface{}) (err error) {
 	fd, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
-	defer fd.Close()
+	defer func() {
+		if closeErr := fd.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	switch ext := filepath.Ext(filename); ext {
 	case ".json":
@@ -219,12 +227,16 @@ func marshal(filename string, data interface{}) error {
 	}
 }
 
-func unmarshal(filename string, data interface{}) error {
+func unmarshal(filename string, data interface{}) (err error) {
 	fd, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
-	defer fd.Close()
+	defer func() {
+		if closeErr := fd.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	switch ext := filepath.Ext(filename); ext {
 	case ".json":

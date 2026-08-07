@@ -195,7 +195,7 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 			if err != nil {
 				continue
 			}
-			defer compressed.Close()
+			defer func() { _ = compressed.Close() }()
 			w.Header().Set("Content-Encoding", candidate.encoding)
 			contentType := mime.TypeByExtension(filepath.Ext(r.URL.Path))
 			if contentType != "" {

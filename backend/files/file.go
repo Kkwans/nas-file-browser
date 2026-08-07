@@ -167,7 +167,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 
 // Checksum checksums a given File for a given User, using a specific
 // algorithm. The checksums data is saved on File object.
-func (i *FileInfo) Checksum(algo string) error {
+func (i *FileInfo) Checksum(algo string) (err error) {
 	if i.IsDir {
 		return fberrors.ErrIsDirectory
 	}
@@ -180,7 +180,11 @@ func (i *FileInfo) Checksum(algo string) error {
 	if err != nil {
 		return err
 	}
-	defer reader.Close()
+	defer func() {
+		if closeErr := reader.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	var h hash.Hash
 
@@ -315,7 +319,7 @@ func (i *FileInfo) readFirstBytes() []byte {
 		i.Type = "blob"
 		return nil
 	}
-	defer reader.Close()
+	defer func() { _ = reader.Close() }()
 
 	buffer := make([]byte, 512)
 	n, err := reader.Read(buffer)

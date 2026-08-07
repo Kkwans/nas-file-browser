@@ -13,7 +13,11 @@ func TestFavoritesBackendClaimsLegacyRecordOnMutation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 
 	backend := favoritesBackend{db: db}
 	if err := backend.Save(&favorites.Favorite{ID: "legacy", Path: "/资料", Name: "资料"}); err != nil {
@@ -34,7 +38,11 @@ func TestFavoritesBackendPersistsMovingFavoriteOutOfGroup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 
 	backend := favoritesBackend{db: db}
 	storage := favorites.NewStorage(backend)

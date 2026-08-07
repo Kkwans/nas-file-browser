@@ -31,7 +31,7 @@ list or set it to 0.`,
 		if err != nil {
 			return err
 		}
-		defer fd.Close()
+		defer func() { _ = fd.Close() }()
 
 		list := []*users.User{}
 		err = unmarshal(args[0], &list)

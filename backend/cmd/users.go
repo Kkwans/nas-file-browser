@@ -25,12 +25,14 @@ var usersCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 }
 
-func printUsers(usrs []*users.User) {
+func printUsers(usrs []*users.User) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ID\tUsername\tScope\tLocale\tV. Mode\tS.Click\tRed. After C/M\tAdmin\tExecute\tCreate\tRename\tModify\tDelete\tShare\tDownload\tPwd Lock")
+	if _, err := fmt.Fprintln(w, "ID\tUsername\tScope\tLocale\tV. Mode\tS.Click\tRed. After C/M\tAdmin\tExecute\tCreate\tRename\tModify\tDelete\tShare\tDownload\tPwd Lock"); err != nil {
+		return err
+	}
 
 	for _, u := range usrs {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t\n",
+		if _, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t\n",
 			u.ID,
 			u.Username,
 			u.Scope,
@@ -47,10 +49,12 @@ func printUsers(usrs []*users.User) {
 			u.Perm.Share,
 			u.Perm.Download,
 			u.LockPassword,
-		)
+		); err != nil {
+			return err
+		}
 	}
 
-	w.Flush()
+	return w.Flush()
 }
 
 func parseUsernameOrID(arg string) (username string, id uint) {

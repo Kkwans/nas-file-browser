@@ -89,7 +89,7 @@ func tusPostHandler(cache UploadCache) handleFunc {
 		if err != nil {
 			return errToStatus(err), err
 		}
-		defer openFile.Close()
+		defer func() { _ = openFile.Close() }()
 
 		file, err = files.NewFileInfo(&files.FileOptions{
 			Fs:         d.user.Fs,
@@ -207,14 +207,14 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("无法打开文件: %w", err)
 		}
-		defer openFile.Close()
+		defer func() { _ = openFile.Close() }()
 
 		_, err = openFile.Seek(uploadOffset, 0)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("无法定位文件: %w", err)
 		}
 
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 		bytesWritten, err := io.Copy(openFile, r.Body)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("无法写入文件: %w", err)

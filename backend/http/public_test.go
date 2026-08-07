@@ -134,7 +134,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 				handler.ServeHTTP(recorder, tc.req)
 				result := recorder.Result()
-				defer result.Body.Close()
+				defer func() { _ = result.Body.Close() }()
 				if result.StatusCode != tc.expectedStatusCode {
 					t.Errorf("expected status code %d, got status code %d", tc.expectedStatusCode, result.StatusCode)
 				}

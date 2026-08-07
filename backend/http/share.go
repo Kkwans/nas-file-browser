@@ -105,7 +105,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			return http.StatusBadRequest, fmt.Errorf("请求体解析失败: %w", err)
 		}
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 	}
 
 	bytes := make([]byte, 6)

@@ -43,7 +43,7 @@ var commandsHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	var raw string
 

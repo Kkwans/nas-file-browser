@@ -245,7 +245,7 @@ user created with the credentials from options "username" and "password".`,
 			return err
 		}
 
-		defer listener.Close()
+		defer func() { _ = listener.Close() }()
 
 		log.Println("Listening on", listener.Addr().String())
 		srv := &http.Server{

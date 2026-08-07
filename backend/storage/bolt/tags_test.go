@@ -13,7 +13,11 @@ func TestTagsBackendClaimsLegacyRecordOnMutation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 
 	backend := tagsBackend{db: db}
 	if err := backend.Save(&tags.Tag{ID: "legacy", Name: "工作", Color: "#1677ff"}); err != nil {

@@ -45,7 +45,7 @@ func subtitleFileHandler(w http.ResponseWriter, r *http.Request, file *files.Fil
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 
 	// load subtitle for conversion to vtt
 	var sub *astisub.Subtitles

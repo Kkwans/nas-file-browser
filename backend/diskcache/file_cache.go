@@ -89,7 +89,11 @@ func (f *FileCache) Load(ctx context.Context, key string) (value []byte, exist b
 	if err != nil || !ok {
 		return nil, ok, err
 	}
-	defer r.Close()
+	defer func() {
+		if closeErr := r.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	value, err = io.ReadAll(r)
 	if err != nil {

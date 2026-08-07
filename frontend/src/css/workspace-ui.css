@@ -80,7 +80,12 @@ header > .header-center {
 .listing-search-submit:focus-visible,
 .listing-search-clear:focus-visible {
   background: color-mix(in srgb, var(--blue, #1677ff) 10%, transparent);
-  outline: none;
+}
+
+.listing-search-submit:focus-visible,
+.listing-search-clear:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--blue, #1677ff));
+  outline-offset: 1px;
 }
 
 .listing-search-submit .material-icons,
@@ -295,11 +300,15 @@ header > .header-center {
   box-shadow: inset 3px 0 0 var(--blue, #1677ff);
 }
 
-#listing.details .details-table-row:focus,
-#listing.details .details-table-row:focus-visible,
-#listing.details .details-table-row:focus td,
-#listing.details .details-table-row:focus-visible td {
+#listing.details .details-table-row:focus:not(:focus-visible),
+#listing.details .details-table-row:focus:not(:focus-visible) td,
+#listing.details .details-table-row:focus-visible {
   outline: none;
+}
+
+#listing.details .details-table-row:focus-visible td {
+  outline: 2px solid var(--focus-ring, var(--blue, #1677ff));
+  outline-offset: -2px;
 }
 
 #listing.details .details-identity {

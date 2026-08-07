@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const emit = defineEmits(["closed"]);
 
 const modalContainer = ref(null);

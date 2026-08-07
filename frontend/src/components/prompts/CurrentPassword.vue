@@ -19,7 +19,7 @@
       <button
         class="button button--flat button--grey"
         @click="cancel"
-        aria-label='取消'
+        aria-label="取消"
         title="取消"
       >
         取消
@@ -28,7 +28,7 @@
         @click="submit"
         class="button button--flat"
         type="submit"
-        aria-label='确定'
+        aria-label="确定"
         title="确定"
       >
         确认

@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onUnmounted } from "vue";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const emit = defineEmits(["hide"]);
 const props = defineProps<{ show: boolean; pos: { x: number; y: number } }>();
 const contextMenu = ref<HTMLElement | null>(null);

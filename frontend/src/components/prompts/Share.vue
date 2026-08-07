@@ -161,7 +161,7 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const { closeHovers } = layoutStore;
 
-const { req, selected, selectedCount, isListing } = storeToRefs(fileStore);
+const { selectedItems, selectedCount, isListing } = storeToRefs(fileStore);
 
 const time = ref(0);
 const unit = ref("hours");
@@ -176,7 +176,7 @@ const url = computed(() => {
   if (selectedCount.value === 0 || selectedCount.value > 1) {
     return undefined;
   }
-  return req.value!.items[selected.value[0]].url;
+  return selectedItems.value[0].url;
 });
 
 onBeforeMount(async () => {

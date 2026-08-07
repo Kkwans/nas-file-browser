@@ -16,6 +16,11 @@ body {
   outline: 0;
 }
 
+*:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 a {
   text-decoration: none;
 }
@@ -44,7 +49,22 @@ i.spin {
 }
 
 #app {
-  transition: 0.2s ease padding;
+  transition: var(--motion-standard) ease padding;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 #app.multiple {
@@ -62,7 +82,9 @@ main {
   margin: 0 1em 1em auto;
   margin-left: var(--sidebar-width, 256px);
   width: calc(100% - var(--sidebar-width, 256px) - 1em);
-  transition: margin-left 0.15s ease, width 0.15s ease;
+  transition:
+    margin-left 0.15s ease,
+    width 0.15s ease;
 }
 
 .breadcrumbs {

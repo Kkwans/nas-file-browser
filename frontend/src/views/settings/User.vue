@@ -4,8 +4,8 @@
     <div class="column">
       <form @submit="save" class="card">
         <div class="card-title">
-          <h2 v-if="user?.id === 0">{{ '新建用户' }}</h2>
-          <h2 v-else>{{ '编辑用户' }}</h2>
+          <h2 v-if="user?.id === 0">{{ "新建用户" }}</h2>
+          <h2 v-else>{{ "编辑用户" }}</h2>
         </div>
 
         <div class="card-content" v-if="user">
@@ -37,11 +37,7 @@
               取消
             </button>
           </router-link>
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="'保存'"
-          />
+          <input class="button button--flat" type="submit" :value="'保存'" />
         </div>
       </form>
     </div>
@@ -149,7 +145,7 @@ const deleteUser = async (currentPassword: string) => {
     } else {
       router.push({ path: "/settings/users" });
     }
-    $showSuccess('用户已删除');
+    $showSuccess("用户已删除");
   } catch (err) {
     if (err instanceof StatusError) {
       err.status === 403 ? $showError("无权访问") : $showError(err);
@@ -193,7 +189,7 @@ const send = async (currentPassword: string) => {
 
       const loc = await api.create(newUser, currentPassword);
       router.push({ path: loc || "/settings/users" });
-      $showSuccess('用户已创建');
+      $showSuccess("用户已创建");
     } else {
       await api.update(user.value, ["all"], currentPassword);
 
@@ -201,7 +197,7 @@ const send = async (currentPassword: string) => {
         authStore.updateUser(user.value);
       }
 
-      $showSuccess('用户已更新');
+      $showSuccess("用户已更新");
     }
   } catch (e: any) {
     $showError(e);

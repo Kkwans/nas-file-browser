@@ -21,7 +21,7 @@
       <button
         class="button button--flat button--grey"
         @click="layoutStore.closeHovers"
-        aria-label='取消'
+        aria-label="取消"
         title="取消"
         tabindex="3"
       >
@@ -29,7 +29,7 @@
       </button>
       <button
         class="button button--flat"
-        aria-label='创建'
+        aria-label="创建"
         title="创建"
         @click="submit"
         tabindex="2"

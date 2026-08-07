@@ -45,8 +45,7 @@ const sentPercent = computed(() =>
 );
 
 watch(route, () => {
-  fileStore.selected = [];
-  fileStore.multiple = false;
+  fileStore.clearSelection();
   if (layoutStore.currentPromptName !== "success") {
     layoutStore.closeHovers();
   }

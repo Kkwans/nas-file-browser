@@ -7,7 +7,7 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        aria-label='取消'
+        aria-label="取消"
         title="取消"
         tabindex="3"
       >
@@ -16,7 +16,7 @@
       <button
         class="button button--flat button--blue"
         @click="currentPrompt?.saveAction"
-        aria-label='保存更改'
+        aria-label="保存更改"
         title="保存更改"
         tabindex="1"
       >
@@ -26,7 +26,7 @@
         id="focus-prompt"
         @click="currentPrompt?.confirm"
         class="button button--flat button--red"
-        aria-label='放弃更改'
+        aria-label="放弃更改"
         title="放弃更改"
         tabindex="2"
       >

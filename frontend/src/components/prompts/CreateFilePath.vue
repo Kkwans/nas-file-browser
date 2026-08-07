@@ -22,7 +22,7 @@ import { ref, computed, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { useFileStore } from "@/stores/file";
 import url from "@/utils/url";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const fileStore = useFileStore();
 const route = useRoute();
 

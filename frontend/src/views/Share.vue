@@ -148,25 +148,21 @@
               v-if="
                 !fileStore.multiple &&
                 fileStore.selectedCount === 1 &&
-                req.items[fileStore.selected[0]].type === 'image'
+                selectedItem?.type === 'image'
               "
               style="height: 12em; padding: 0; margin: 0"
             >
               <img
                 style="height: 12em"
                 :src="raw"
-                :alt="
-                  fileStore.selectedCount === 1
-                    ? req.items[fileStore.selected[0]].name
-                    : ''
-                "
+                :alt="fileStore.selectedCount === 1 ? selectedItem?.name : ''"
               />
             </a>
             <div
               v-else-if="
                 fileStore.multiple &&
                 fileStore.selectedCount === 1 &&
-                req.items[fileStore.selected[0]].type === 'audio'
+                selectedItem?.type === 'audio'
               "
               style="height: 12em; padding-top: 1em; margin: 0"
             >
@@ -208,7 +204,7 @@
               v-else-if="
                 !fileStore.multiple &&
                 fileStore.selectedCount === 1 &&
-                req.items[fileStore.selected[0]].type === 'video'
+                selectedItem?.type === 'video'
               "
               style="height: 12em; padding: 0; margin: 0"
               :src="raw"
@@ -221,7 +217,7 @@
               v-else-if="
                 !fileStore.multiple &&
                 fileStore.selectedCount === 1 &&
-                req.items[fileStore.selected[0]].isDir
+                selectedItem?.isDir
               "
               class="material-icons"
               >folder
@@ -246,6 +242,7 @@
               v-bind:modified="item.modified"
               v-bind:type="item.type"
               v-bind:size="item.size"
+              v-bind:path="item.path"
               readOnly
             >
             </item>
@@ -333,6 +330,7 @@ watch(route, () => {
 });
 
 const req = computed(() => fileStore.req);
+const selectedItem = computed(() => fileStore.selectedItems[0]);
 
 // Define computes
 
@@ -347,11 +345,10 @@ const icon = computed(() => {
 
 const link = computed(() => (req.value ? api.getDownloadURL(req.value) : ""));
 const raw = computed(() => {
-  if (!req.value || !req.value.items[fileStore.selected[0]]) return "";
-  return createURL(
-    `api/public/dl/${hash.value}${req.value.items[fileStore.selected[0]].path}`,
-    { token: token.value }
-  );
+  if (!req.value || !selectedItem.value) return "";
+  return createURL(`api/public/dl/${hash.value}${selectedItem.value.path}`, {
+    token: token.value,
+  });
 });
 const inlineLink = computed(() =>
   req.value ? api.getDownloadURL(req.value, true) : ""
@@ -386,8 +383,7 @@ const play = () => {
 };
 const fetchData = async () => {
   fileStore.reload = false;
-  fileStore.selected = [];
-  fileStore.multiple = false;
+  fileStore.clearSelection();
   layoutStore.closeHovers();
 
   // Set loading to true and reset the error.
@@ -423,7 +419,7 @@ const keyEvent = (event: KeyboardEvent) => {
     // If we're on a listing, unselect all
     // files and folders.
     if (fileStore.selectedCount > 0) {
-      fileStore.selected = [];
+      fileStore.clearSelection();
     }
   }
 };
@@ -433,19 +429,13 @@ const toggleMultipleSelection = () => {
 };
 
 const isSingleFile = () =>
-  fileStore.selectedCount === 1 &&
-  !req.value?.items[fileStore.selected[0]].isDir;
+  fileStore.selectedCount === 1 && !selectedItem.value?.isDir;
 
 const download = () => {
   if (!req.value) return false;
 
   if (isSingleFile()) {
-    api.download(
-      null,
-      hash.value,
-      token.value,
-      req.value.items[fileStore.selected[0]].path
-    );
+    api.download(null, hash.value, token.value, selectedItem.value!.path);
     return true;
   }
 
@@ -457,8 +447,8 @@ const download = () => {
 
       const files: string[] = [];
 
-      for (const i of fileStore.selected) {
-        files.push(req.value.items[i].path);
+      for (const item of fileStore.selectedItems) {
+        files.push(item.path);
       }
 
       api.download(format, hash.value, token.value, ...files);
@@ -474,7 +464,7 @@ const linkSelected = () => {
     ? api.getDownloadURL({
         ...req.value,
         hash: hash.value,
-        path: req.value.items[fileStore.selected[0]].path,
+        path: selectedItem.value!.path,
       })
     : "";
 };

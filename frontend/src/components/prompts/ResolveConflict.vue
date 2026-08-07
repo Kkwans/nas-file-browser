@@ -151,7 +151,6 @@ import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import type { ConflictingResource } from "@/types/file";
-// eslint-disable-line @typescript-eslint/no-unused-vars
 
 const layoutStore = useLayoutStore();
 const { currentPrompt } = layoutStore;

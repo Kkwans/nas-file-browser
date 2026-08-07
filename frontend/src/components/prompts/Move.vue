@@ -78,7 +78,7 @@ const layoutStore = useLayoutStore();
 const authStore = useAuthStore();
 const { showHover, closeHovers } = layoutStore;
 
-const { req, selected } = storeToRefs(fileStore);
+const { selectedItems } = storeToRefs(fileStore);
 const { reload, preselect } = storeToRefs(fileStore);
 const { user } = storeToRefs(authStore);
 
@@ -86,9 +86,7 @@ const fileListRef = ref<InstanceType<typeof FileList> | null>(null);
 const dest = ref<string | null>(null);
 
 const excludedFolders = computed(() =>
-  selected.value
-    .filter((idx) => req.value!.items[idx].isDir)
-    .map((idx) => req.value!.items[idx].url)
+  selectedItems.value.filter((item) => item.isDir).map((item) => item.url)
 );
 
 const move = async (event: Event) => {
@@ -96,8 +94,7 @@ const move = async (event: Event) => {
 
   // Check risk level before moving
   const categoriesStore = useCategoriesStore();
-  for (const itemIdx of selected.value) {
-    const item = req.value!.items[itemIdx];
+  for (const item of selectedItems.value) {
     if (item.isDir && item.path) {
       const risk = categoriesStore.getRiskLevel(item.path);
       if (risk === "high" || risk === "medium") {
@@ -123,14 +120,14 @@ const move = async (event: Event) => {
 const executeMove = async () => {
   const items: MoveCopyItem[] = [];
 
-  for (const item of selected.value) {
+  for (const item of selectedItems.value) {
     items.push({
-      from: req.value!.items[item].url,
-      to: dest.value + encodeURIComponent(req.value!.items[item].name),
-      name: req.value!.items[item].name,
-      size: req.value!.items[item].size,
-      modified: req.value!.items[item].modified,
-      isDir: req.value!.items[item].isDir,
+      from: item.url,
+      to: dest.value + encodeURIComponent(item.name),
+      name: item.name,
+      size: item.size,
+      modified: item.modified,
+      isDir: item.isDir,
       overwrite: false,
       rename: false,
     });

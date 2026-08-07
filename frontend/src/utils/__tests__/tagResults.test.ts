@@ -13,8 +13,9 @@ describe("tag result paths", () => {
     );
   });
 
-  it("decodes the final path segment for display", () => {
+  it("uses the final raw path segment for display", () => {
     expect(getTaggedPathName("/volume2/%E7%94%B5%E5%BD%B1/精选")).toBe("精选");
+    expect(getTaggedPathName("/volume2/%2Fname")).toBe("%2Fname");
   });
 
   it("shows only the parent path without repeating the result name", () => {
@@ -26,6 +27,9 @@ describe("tag result paths", () => {
     ).toBe("V/");
     expect(getResultParentPath("V/1 (10).mp4", "/home/Kkwans/HOME/专题/")).toBe(
       "V/"
+    );
+    expect(getResultParentPath("/docs/with\\backslash/file", "/docs/")).toBe(
+      "with\\backslash/"
     );
   });
 

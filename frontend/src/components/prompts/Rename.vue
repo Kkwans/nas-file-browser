@@ -58,7 +58,7 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const { closeHovers, showHover } = layoutStore;
 
-const { req, selected, selectedCount, isListing } = storeToRefs(fileStore);
+const { req, selectedItems, selectedCount, isListing } = storeToRefs(fileStore);
 const { reload, preselect } = storeToRefs(fileStore);
 
 const oldName = computed(() => {
@@ -68,7 +68,7 @@ const oldName = computed(() => {
   if (selectedCount.value === 0 || selectedCount.value > 1) {
     return "";
   }
-  return req.value!.items[selected.value[0]].name;
+  return selectedItems.value[0].name;
 });
 
 const name = ref(oldName.value);
@@ -79,9 +79,7 @@ const submit = async () => {
   }
 
   // Check risk level before renaming
-  const item = isListing.value
-    ? req.value!.items[selected.value[0]]
-    : req.value!;
+  const item = isListing.value ? selectedItems.value[0] : req.value!;
   if (item?.isDir && item?.path) {
     const categoriesStore = useCategoriesStore();
     const risk = categoriesStore.getRiskLevel(item.path);
@@ -114,7 +112,7 @@ const executeRename = async () => {
   if (!isListing.value) {
     oldLink = req.value!.url;
   } else {
-    oldLink = req.value!.items[selected.value[0]].url;
+    oldLink = selectedItems.value[0].url;
   }
 
   newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(name.value);

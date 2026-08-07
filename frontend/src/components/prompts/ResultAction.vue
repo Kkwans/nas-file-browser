@@ -18,7 +18,9 @@
         </div>
         <div v-if="!result.dir">
           <dt>大小</dt>
-          <dd>{{ filesize(result.size) }}</dd>
+          <dd>
+            {{ result.size === null ? "无法读取" : filesize(result.size) }}
+          </dd>
         </div>
         <div>
           <dt>修改时间</dt>
@@ -148,8 +150,8 @@ async function transfer() {
     from: props.result.url,
     to: `${destination.value}${encodeURIComponent(props.result.name)}`,
     name: props.result.name,
-    size: props.result.size,
-    modified: props.result.modified,
+    size: props.result.size ?? undefined,
+    modified: props.result.modified ?? undefined,
     isDir: props.result.dir,
     overwrite: false,
     rename: false,

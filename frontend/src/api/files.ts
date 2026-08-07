@@ -1,5 +1,7 @@
 import { useAuthStore } from "@/stores/auth";
+import { useFavoritesStore } from "@/stores/favorites";
 import { useLayoutStore } from "@/stores/layout";
+import { useTagsStore } from "@/stores/tags";
 import { baseURL } from "@/utils/constants";
 import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
@@ -9,8 +11,10 @@ import type {
   Resource,
   ResourceItem,
   RecursiveEntry,
+  BatchResourceResult,
   DownloadFormat,
 } from "@/types/file";
+import urlUtils from "@/utils/url";
 
 export async function fetch(url: string, signal?: AbortSignal) {
   const encoding = isEncodableResponse(url);
@@ -62,6 +66,26 @@ export async function fetchAll(url: string): Promise<RecursiveEntry[]> {
   return (await res.json()) as RecursiveEntry[];
 }
 
+export async function fetchBatch(
+  paths: string[],
+  signal?: AbortSignal
+): Promise<BatchResourceResult[]> {
+  const res = await fetchURL("/api/resources/batch", {
+    method: "POST",
+    signal,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paths }),
+  });
+  const results = (await res.json()) as BatchResourceResult[];
+  return results.map((result, index) => {
+    if (!result.item) return result;
+    const item = result.item;
+    item.index = index;
+    item.url = `/files${urlUtils.encodePath(item.path)}${item.isDir ? "/" : ""}`;
+    return { ...result, item };
+  });
+}
+
 async function resourceAction(
   url: string,
   method: ApiMethod,
@@ -83,7 +107,11 @@ async function resourceAction(
 }
 
 export async function remove(url: string) {
-  return resourceAction(url, "DELETE");
+  const response = await resourceAction(url, "DELETE");
+  const removedPath = removePrefix(url);
+  useFavoritesStore().applyPathRemoval(removedPath);
+  useTagsStore().applyPathRemoval(removedPath);
+  return response;
 }
 
 export async function put(url: string, content: ApiContent = "") {
@@ -188,7 +216,7 @@ async function postResources(
   });
 }
 
-function moveCopy(
+async function moveCopy(
   items: { from: string; to?: string; overwrite?: boolean; rename?: boolean }[],
   copy = false,
   overwrite = false,
@@ -210,7 +238,37 @@ function moveCopy(
     promises.push(resourceAction(url, "PATCH"));
   }
   layoutStore.closeHovers();
-  return Promise.all(promises);
+  const outcomes = await Promise.allSettled(promises);
+  if (!copy) {
+    const favoritesStore = useFavoritesStore();
+    const tagsStore = useTagsStore();
+    outcomes.forEach((outcome, index) => {
+      if (outcome.status !== "fulfilled") return;
+      const source = removePrefix(items[index].from);
+      const encodedDestination = outcome.value.headers.get(
+        "X-Resource-Destination"
+      );
+      let destination = removePrefix(items[index].to ?? "");
+      if (encodedDestination) {
+        try {
+          destination = decodeURIComponent(encodedDestination);
+        } catch {
+          // A malformed optional response header must not hide a successful
+          // filesystem operation; the requested destination remains usable.
+        }
+      }
+      favoritesStore.applyPathRewrite(source, destination);
+      tagsStore.applyPathRewrite(source, destination);
+    });
+  }
+
+  const failure = outcomes.find(
+    (outcome): outcome is PromiseRejectedResult => outcome.status === "rejected"
+  );
+  if (failure) throw failure.reason;
+  return outcomes.map(
+    (outcome) => (outcome as PromiseFulfilledResult<Response>).value
+  );
 }
 
 export function move(

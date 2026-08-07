@@ -22,16 +22,18 @@
         <button
           type="button"
           :class="{ active: scope === 'current' }"
+          :aria-pressed="scope === 'current'"
           @click="$emit('scope-change', 'current')"
         >
           当前目录
         </button>
         <button
           type="button"
-          :class="{ active: scope === 'global' }"
-          @click="$emit('scope-change', 'global')"
+          :class="{ active: scope === alternateScope }"
+          :aria-pressed="scope === alternateScope"
+          @click="$emit('scope-change', alternateScope)"
         >
-          全局
+          {{ alternateScopeLabel }}
         </button>
       </div>
 
@@ -50,36 +52,73 @@
       <i class="material-icons spin" aria-hidden="true">autorenew</i>
       <span>正在加载{{ noun }}结果…</span>
     </div>
-    <div v-else-if="results.length === 0" class="result-state">
-      <i class="material-icons" aria-hidden="true">{{ emptyIcon }}</i>
-      <span>{{ emptyText }}</span>
-    </div>
-    <div v-else class="result-explorer-list">
-      <router-link
-        v-for="result in results"
-        :key="result.path"
-        :to="result.url"
-        class="result-explorer-item"
-        @contextmenu.prevent.stop="openContextMenu($event, result)"
-      >
-        <span class="result-icon" aria-hidden="true">
-          <i class="material-icons">{{
-            getFileIcon(result.name, result.dir)
-          }}</i>
-        </span>
-        <span class="result-copy">
-          <strong :title="result.name">{{ result.name }}</strong>
-          <span :title="getResultParentPath(result.path, basePath)">
-            <i class="material-icons" aria-hidden="true">folder_open</i>
-            {{ getResultParentPath(result.path, basePath) }}
+    <template v-else>
+      <div v-if="error" class="result-error-state" role="alert">
+        <i class="material-icons" aria-hidden="true">error_outline</i>
+        <span>无法加载{{ noun }}结果：{{ error }}</span>
+        <button type="button" @click="$emit('retry')">重试</button>
+      </div>
+      <template v-else>
+        <div
+          v-if="
+            termination &&
+            ['limit', 'timeout', 'canceled'].includes(termination.reason)
+          "
+          class="result-limit-state"
+          role="status"
+        >
+          <i class="material-icons" aria-hidden="true">info</i>
+          <span v-if="termination.reason === 'limit'">
+            已达到 1,000 项上限，当前结果并不完整。
           </span>
-        </span>
-        <span class="result-meta">
-          <span v-if="!result.dir">{{ formatSize(result.size) }}</span>
-          <span>{{ formatTime(result.modified) }}</span>
-        </span>
-      </router-link>
-    </div>
+          <span v-else-if="termination.reason === 'timeout'">
+            搜索已在 30 秒后停止，以下为已找到的结果。
+          </span>
+          <span v-else>搜索已取消，以下为取消前找到的结果。</span>
+        </div>
+        <div v-if="results.length === 0" class="result-state">
+          <i class="material-icons" aria-hidden="true">{{ emptyIcon }}</i>
+          <span>{{ emptyText }}</span>
+        </div>
+        <div v-else class="result-explorer-list">
+          <component
+            v-for="result in results"
+            :key="result.path"
+            :is="result.error ? 'div' : RouterLink"
+            :to="result.error ? undefined : result.url"
+            class="result-explorer-item"
+            :class="{ 'is-error': result.error }"
+            @contextmenu.prevent.stop="
+              result.error ? undefined : openContextMenu($event, result)
+            "
+          >
+            <span class="result-icon" aria-hidden="true">
+              <i class="material-icons">{{
+                getFileIcon(result.name, result.dir)
+              }}</i>
+            </span>
+            <span class="result-copy">
+              <strong :title="result.name">{{ result.name }}</strong>
+              <span :title="getResultParentPath(result.path, basePath)">
+                <i class="material-icons" aria-hidden="true">folder_open</i>
+                {{ getResultParentPath(result.path, basePath) }}
+              </span>
+            </span>
+            <span class="result-meta">
+              <span v-if="result.error" class="result-read-error">
+                无法读取（{{ result.status || "网络错误" }}）
+              </span>
+              <template v-else>
+                <span v-if="!result.dir && result.size !== null">{{
+                  formatSize(result.size)
+                }}</span>
+                <span>{{ formatTime(result.modified) }}</span>
+              </template>
+            </span>
+          </component>
+        </div>
+      </template>
+    </template>
 
     <context-menu
       :show="contextMenuVisible"
@@ -124,6 +163,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { RouterLink } from "vue-router";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
@@ -135,9 +175,11 @@ export type ExplorerResult = {
   path: string;
   name: string;
   dir: boolean;
-  size: number;
-  modified: string;
+  size: number | null;
+  modified: string | null;
   url: string;
+  status?: number;
+  error?: string;
 };
 
 export type ExplorerResultAction =
@@ -147,26 +189,36 @@ export type ExplorerResultAction =
   | "download"
   | "info";
 
+export type ExplorerScope = "current" | "recursive" | "global";
+
 const props = withDefaults(
   defineProps<{
     kind: "search" | "tag";
-    scope: "current" | "global";
+    scope: ExplorerScope;
     title: string;
     results: ExplorerResult[];
     loading?: boolean;
     basePath?: string;
     returnRoute: string;
     iconColor?: string;
+    error?: string;
+    termination?: {
+      reason: "completed" | "limit" | "timeout" | "canceled" | "error";
+      count: number;
+    } | null;
   }>(),
   {
     loading: false,
     basePath: "/",
     iconColor: "var(--blue, #1677ff)",
+    error: "",
+    termination: null,
   }
 );
 
 const emit = defineEmits<{
-  "scope-change": [scope: "current" | "global"];
+  "scope-change": [scope: ExplorerScope];
+  retry: [];
   return: [];
   action: [action: ExplorerResultAction, result: ExplorerResult];
 }>();
@@ -181,7 +233,20 @@ const headingId = computed(() => `${props.kind}-results-title`);
 const noun = computed(() => (props.kind === "tag" ? "标签筛选" : "搜索"));
 const icon = computed(() => (props.kind === "tag" ? "label" : "search"));
 const scopeKicker = computed(
-  () => `${props.scope === "global" ? "全局" : "当前目录"}${noun.value}`
+  () =>
+    `${
+      props.scope === "current"
+        ? "当前目录"
+        : props.scope === "recursive"
+          ? "递归子目录"
+          : "全局"
+    }${noun.value}`
+);
+const alternateScope = computed<Exclude<ExplorerScope, "current">>(() =>
+  props.kind === "search" ? "recursive" : "global"
+);
+const alternateScopeLabel = computed(() =>
+  props.kind === "search" ? "递归子目录" : "全局"
 );
 const emptyIcon = computed(() =>
   props.kind === "tag" ? "label_off" : "search_off"
@@ -196,7 +261,7 @@ function formatSize(size: number) {
   return filesize(size);
 }
 
-function formatTime(time: string) {
+function formatTime(time: string | null) {
   return time ? dayjs(time).fromNow() : "时间未知";
 }
 
@@ -337,7 +402,11 @@ function emitAction(action: ExplorerResultAction) {
 .result-explorer-item:hover,
 .result-explorer-item:focus-visible {
   background: var(--hover, #f4f7fb);
-  outline: none;
+}
+
+.result-explorer-item:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--blue, #1677ff));
+  outline-offset: 1px;
 }
 
 .result-icon {
@@ -409,6 +478,46 @@ function emitAction(action: ExplorerResultAction) {
 .result-state .material-icons {
   font-size: 2rem;
   opacity: 0.6;
+}
+
+.result-limit-state,
+.result-error-state {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  color: var(--textSecondary, #64748b);
+  background: var(--surfaceSecondary, #f8fafc);
+  border: 1px solid var(--borderPrimary, #e2e8f0);
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.result-error-state {
+  color: var(--red, #b42318);
+  background: rgba(180, 35, 24, 0.06);
+  border-color: rgba(180, 35, 24, 0.22);
+}
+
+.result-error-state button {
+  min-height: 2rem;
+  margin-left: auto;
+  padding: 0 0.75rem;
+  color: inherit;
+  background: var(--surfacePrimary, #fff);
+  border: 1px solid currentColor;
+  border-radius: 0.4375rem;
+  cursor: pointer;
+}
+
+.result-explorer-item.is-error {
+  cursor: default;
+  background: rgba(180, 35, 24, 0.04);
+}
+
+.result-read-error {
+  color: var(--red, #b42318);
 }
 
 :deep(.context-menu) {

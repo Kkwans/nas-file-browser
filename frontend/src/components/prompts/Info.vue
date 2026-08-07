@@ -7,8 +7,8 @@
           dir ? "folder" : "insert_drive_file"
         }}</i>
         <div class="info-title-text">
-          <h2 v-if="selected.length > 1">
-            {{ "已选择 " + selected.length + " 个项目" }}
+          <h2 v-if="selectedCount > 1">
+            {{ "已选择 " + selectedCount + " 个项目" }}
           </h2>
           <input
             v-else
@@ -25,25 +25,25 @@
 
     <div class="card-content info-content">
       <!-- Multi-selection banner -->
-      <div v-if="selected.length > 1" class="info-banner info-banner-multi">
+      <div v-if="selectedCount > 1" class="info-banner info-banner-multi">
         <i class="material-icons">checklist</i>
-        <span>已选择 {{ selected.length }} 个文件/文件夹</span>
+        <span>已选择 {{ selectedCount }} 个文件/文件夹</span>
       </div>
 
       <!-- Basic info rows -->
-      <div class="info-row" v-if="selected.length < 2">
+      <div class="info-row" v-if="selectedCount < 2">
         <span class="info-label">类型</span>
         <span class="info-value">{{ fileTypeLabel }}</span>
       </div>
 
-      <div class="info-row" v-if="!dir || selected.length > 1">
+      <div class="info-row" v-if="!dir || selectedCount > 1">
         <span class="info-label">大小</span>
         <span class="info-value info-size">
           {{ humanSize }}（{{ rawSize.toLocaleString("zh-CN") }} 字节）
         </span>
       </div>
 
-      <div class="info-row" v-if="selected.length < 2">
+      <div class="info-row" v-if="selectedCount < 2">
         <span class="info-label">路径</span>
         <div class="info-value info-path-value">
           <code>{{ displayPath }}</code>
@@ -68,12 +68,12 @@
         >
       </div>
 
-      <div class="info-row" v-if="selected.length < 2">
+      <div class="info-row" v-if="selectedCount < 2">
         <span class="info-label">修改时间</span>
         <span class="info-value">{{ humanTime }}</span>
       </div>
 
-      <div class="info-row" v-if="selected.length < 2">
+      <div class="info-row" v-if="selectedCount < 2">
         <span class="info-label">创建时间</span>
         <span class="info-value">{{ creationTime }}</span>
       </div>
@@ -197,7 +197,7 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const { closeHovers } = layoutStore;
 
-const { req, selected, selectedCount, isListing, reload, preselect } =
+const { req, selectedItems, selectedCount, isListing, reload, preselect } =
   storeToRefs(fileStore);
 
 const editableName = ref("");
@@ -211,10 +211,7 @@ const rawSize = computed(() => {
   if (selectedCount.value === 0 || !isListing.value) {
     return req.value?.size ?? 0;
   }
-  return selected.value.reduce(
-    (sum, idx) => sum + (req.value?.items[idx]?.size ?? 0),
-    0
-  );
+  return selectedItems.value.reduce((sum, item) => sum + (item.size ?? 0), 0);
 });
 
 const humanSize = computed(() => {
@@ -242,13 +239,13 @@ const humanTime = computed(() => {
 const name = computed(() => {
   return selectedCount.value === 0
     ? req.value!.name
-    : req.value!.items[selected.value[0]].name;
+    : selectedItems.value[0].name;
 });
 
 const selectedResource = computed<any>(() => {
   if (!req.value) return null;
   if (selectedCount.value === 0 || !isListing.value) return req.value;
-  return req.value.items[selected.value[0]];
+  return selectedItems.value[0];
 });
 
 const creationTime = computed(() => {
@@ -261,9 +258,7 @@ const fullPath = computed(() => {
   if (selectedCount.value === 0) {
     return route.path;
   }
-  const item = req.value!.items[selected.value[0]];
-  const parentPath = route.path.endsWith("/") ? route.path : route.path + "/";
-  return parentPath + item.name;
+  return selectedItems.value[0].path;
 });
 
 const decodePath = (value: string) =>
@@ -313,7 +308,7 @@ const dir = computed(() => {
     selectedCount.value > 1 ||
     (selectedCount.value === 0
       ? req.value!.isDir
-      : req.value!.items[selected.value[0]].isDir)
+      : selectedItems.value[0].isDir)
   );
 });
 
@@ -329,7 +324,7 @@ const fileTypeLabel = computed(() => {
 
 const directoryPath = computed(() => {
   if (selectedCount.value === 0) return route.path;
-  return req.value!.items[selected.value[0]].url;
+  return selectedItems.value[0].url;
 });
 
 watch(
@@ -397,7 +392,7 @@ const cancelInfo = () => {
 
 const resolution = computed(() => {
   if (selectedCount.value === 1) {
-    const selectedItem = req.value!.items[selected.value[0]] as any;
+    const selectedItem = selectedItems.value[0] as any;
     if (selectedItem && selectedItem.type === "image") {
       return selectedItem.resolution;
     }
@@ -416,7 +411,7 @@ const checksum = async (
 
   let link: string;
   if (selectedCount.value) {
-    link = req.value!.items[selected.value[0]].url;
+    link = selectedItems.value[0].url;
   } else {
     link = route.path;
   }

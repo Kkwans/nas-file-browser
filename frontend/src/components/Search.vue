@@ -241,8 +241,12 @@ const submit = async (event: Event) => {
     abortLastSearch();
     searchAbortController = new AbortController();
     results.value = [];
-    await search(path, prompt.value, searchAbortController.signal, (item) =>
-      results.value.push(item)
+    await search(
+      path,
+      prompt.value,
+      "current",
+      searchAbortController.signal,
+      (item) => results.value.push(item)
     );
   } catch (error: any) {
     if (error instanceof StatusError && error.is_canceled) {

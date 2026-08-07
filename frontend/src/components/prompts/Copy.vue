@@ -75,7 +75,7 @@ const layoutStore = useLayoutStore();
 const authStore = useAuthStore();
 const { showHover, closeHovers } = layoutStore;
 
-const { req, selected } = storeToRefs(fileStore);
+const { selectedItems } = storeToRefs(fileStore);
 const { reload, preselect } = storeToRefs(fileStore);
 const { user } = storeToRefs(authStore);
 
@@ -86,14 +86,14 @@ const copy = async (event: Event) => {
   event.preventDefault();
   const items: MoveCopyItem[] = [];
 
-  for (const item of selected.value) {
+  for (const item of selectedItems.value) {
     items.push({
-      from: req.value!.items[item].url,
-      to: dest.value + encodeURIComponent(req.value!.items[item].name),
-      name: req.value!.items[item].name,
-      size: req.value!.items[item].size,
-      modified: req.value!.items[item].modified,
-      isDir: req.value!.items[item].isDir,
+      from: item.url,
+      to: dest.value + encodeURIComponent(item.name),
+      name: item.name,
+      size: item.size,
+      modified: item.modified,
+      isDir: item.isDir,
       overwrite: false,
       rename: route.path === dest.value,
     });

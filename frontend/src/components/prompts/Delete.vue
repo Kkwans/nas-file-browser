@@ -4,9 +4,7 @@
       <p v-if="!isListing || selectedCount === 1">
         你确定要删除这个文件/文件夹吗？
       </p>
-      <p v-else>
-        你确定要删除这 
-      </p>
+      <p v-else>你确定要删除这</p>
     </div>
     <div class="card-action">
       <button
@@ -48,7 +46,7 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const { closeHovers, showHover } = layoutStore;
 
-const { isListing, selectedCount, req, selected } = storeToRefs(fileStore);
+const { isListing, selectedCount, req, selectedItems } = storeToRefs(fileStore);
 const { reload, preselect } = storeToRefs(fileStore);
 
 const submit = async () => {
@@ -57,8 +55,7 @@ const submit = async () => {
   // Check risk level for selected items before deleting
   if (isListing.value && selectedCount.value > 0) {
     const categoriesStore = useCategoriesStore();
-    for (const index of selected.value) {
-      const item = req.value!.items[index];
+    for (const item of selectedItems.value) {
       if (item.isDir && item.path) {
         const risk = categoriesStore.getRiskLevel(item.path);
         if (risk === "high" || risk === "medium") {
@@ -101,15 +98,17 @@ const executeDelete = async () => {
     }
 
     const promises = [];
-    for (const index of selected.value) {
-      promises.push(api.remove(req.value!.items[index].url));
+    for (const item of selectedItems.value) {
+      promises.push(api.remove(item.url));
     }
 
     await Promise.all(promises);
     buttons.success("delete");
 
-    const nearbyItem =
-      req.value!.items[Math.max(0, Math.min(...selected.value) - 1)];
+    const firstSelectedIndex = Math.min(
+      ...selectedItems.value.map((item) => item.index)
+    );
+    const nearbyItem = req.value!.items[Math.max(0, firstSelectedIndex - 1)];
 
     preselect.value = nearbyItem?.path;
 

@@ -11,25 +11,7 @@ export function buildTaggedPathUrl(path: string, isDir: boolean): string {
 /** 取标签路径最后一段作为结果标题，同时兼容历史编码路径。 */
 export function getTaggedPathName(path: string): string {
   const normalized = normalizeTagPath(path);
-  const segment = normalized.split("/").filter(Boolean).pop() || "/";
-  try {
-    return decodeURIComponent(segment);
-  } catch {
-    return segment;
-  }
-}
-
-function decodePath(path: string): string {
-  return path
-    .split("/")
-    .map((segment) => {
-      try {
-        return decodeURIComponent(segment);
-      } catch {
-        return segment;
-      }
-    })
-    .join("/");
+  return normalized.split("/").filter(Boolean).pop() || "/";
 }
 
 /**
@@ -37,17 +19,15 @@ function decodePath(path: string): string {
  * 同时始终移除结果本身的文件名，避免标题和路径重复。
  */
 export function getResultParentPath(path: string, base = "/"): string {
-  const decodedPath = decodePath(path).replace(/\\/g, "/");
-  const decodedBase = decodePath(base).replace(/\\/g, "/");
-  const normalizedBase = decodedBase.endsWith("/")
-    ? decodedBase
-    : `${decodedBase}/`;
+  const normalizedPath = normalizeTagPath(path);
+  const basePath = normalizeTagPath(base);
+  const normalizedBase = basePath.endsWith("/") ? basePath : `${basePath}/`;
 
-  let relativePath = decodedPath;
-  if (decodedPath.startsWith(normalizedBase)) {
-    relativePath = decodedPath.slice(normalizedBase.length);
-  } else if (decodedPath.startsWith("/")) {
-    relativePath = decodedPath.slice(1);
+  let relativePath = normalizedPath;
+  if (normalizedPath.startsWith(normalizedBase)) {
+    relativePath = normalizedPath.slice(normalizedBase.length);
+  } else if (normalizedPath.startsWith("/")) {
+    relativePath = normalizedPath.slice(1);
   }
 
   const segments = relativePath.split("/").filter(Boolean);

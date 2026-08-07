@@ -645,6 +645,10 @@ import {
   logoutPage,
   loginPage,
 } from "@/utils/constants";
+import {
+  buildFilesRouteFromSearchBase,
+  normalizeFilesRouteBase,
+} from "@/utils/searchPath";
 
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();
@@ -1334,9 +1338,7 @@ const filterByTag = (tagId: string) => {
   }
   tagsStore.setFilterMode("current");
   tagsStore.setFilter(tagId);
-  const base = route.path.startsWith("/files")
-    ? route.path.slice("/files".length) || "/"
-    : "/";
+  const base = normalizeFilesRouteBase(route.path);
   router.push({
     path: "/search",
     query: {
@@ -1352,14 +1354,12 @@ const clearTagFilter = () => {
   tagsStore.setFilter(null);
   if (typeof route.query.tag === "string") {
     const base = typeof route.query.base === "string" ? route.query.base : "/";
-    router.push({ path: "/files" + base });
+    router.push({ path: buildFilesRouteFromSearchBase(base) });
   }
 };
 
 const openSearch = () => {
-  const base = route.path.startsWith("/files")
-    ? route.path.slice("/files".length) || "/"
-    : "/";
+  const base = normalizeFilesRouteBase(route.path);
   router.push({
     path: "/search",
     query: { base: base.endsWith("/") ? base : `${base}/`, scope: "current" },

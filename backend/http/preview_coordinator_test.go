@@ -18,7 +18,9 @@ import (
 func TestPreviewCoordinatorMergesConcurrentWork(t *testing.T) {
 	coordinator := newPreviewCoordinator()
 	gate := make(chan struct{})
+	workStarted := make(chan struct{})
 	var calls atomic.Int32
+	var signalWorkStarted sync.Once
 
 	const waiters = 12
 	results := make(chan []byte, waiters)
@@ -30,6 +32,7 @@ func TestPreviewCoordinatorMergesConcurrentWork(t *testing.T) {
 			defer group.Done()
 			result, err := coordinator.Do(context.Background(), "same-key", func(context.Context) ([]byte, error) {
 				calls.Add(1)
+				signalWorkStarted.Do(func() { close(workStarted) })
 				<-gate
 				return []byte("preview"), nil
 			})
@@ -38,7 +41,28 @@ func TestPreviewCoordinatorMergesConcurrentWork(t *testing.T) {
 		}()
 	}
 
-	for calls.Load() == 0 {
+	select {
+	case <-workStarted:
+	case <-time.After(time.Second):
+		close(gate)
+		group.Wait()
+		t.Fatal("shared work did not start")
+	}
+
+	deadline := time.Now().Add(time.Second)
+	for {
+		coordinator.Lock()
+		flight := coordinator.flights["same-key"]
+		allWaitersRegistered := flight != nil && flight.waiters == waiters
+		coordinator.Unlock()
+		if allWaitersRegistered {
+			break
+		}
+		if time.Now().After(deadline) {
+			close(gate)
+			group.Wait()
+			t.Fatalf("registered waiters did not reach %d", waiters)
+		}
 		time.Sleep(time.Millisecond)
 	}
 	close(gate)

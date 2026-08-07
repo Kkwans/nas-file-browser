@@ -1,0 +1,172 @@
+package fbhttp
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"image"
+	"image/png"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"github.com/Kkwans/nas-file-browser/backend/files"
+)
+
+func TestPreviewCoordinatorMergesConcurrentWork(t *testing.T) {
+	coordinator := newPreviewCoordinator()
+	gate := make(chan struct{})
+	var calls atomic.Int32
+
+	const waiters = 12
+	results := make(chan []byte, waiters)
+	errorsFound := make(chan error, waiters)
+	var group sync.WaitGroup
+	for range waiters {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			result, err := coordinator.Do(context.Background(), "same-key", func(context.Context) ([]byte, error) {
+				calls.Add(1)
+				<-gate
+				return []byte("preview"), nil
+			})
+			results <- result
+			errorsFound <- err
+		}()
+	}
+
+	for calls.Load() == 0 {
+		time.Sleep(time.Millisecond)
+	}
+	close(gate)
+	group.Wait()
+	close(results)
+	close(errorsFound)
+
+	if calls.Load() != 1 {
+		t.Fatalf("work called %d times, want 1", calls.Load())
+	}
+	for err := range errorsFound {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for result := range results {
+		if string(result) != "preview" {
+			t.Fatalf("result = %q", result)
+		}
+	}
+}
+
+func TestPreviewCoordinatorCancelsUnobservedWorkAndCoolsFailures(t *testing.T) {
+	coordinator := newPreviewCoordinator()
+	coordinator.cooldown = 20 * time.Millisecond
+
+	ctx, cancel := context.WithCancel(context.Background())
+	workCanceled := make(chan struct{})
+	done := make(chan error, 1)
+	go func() {
+		_, err := coordinator.Do(ctx, "cancel", func(workCtx context.Context) ([]byte, error) {
+			<-workCtx.Done()
+			close(workCanceled)
+			return nil, context.Cause(workCtx)
+		})
+		done <- err
+	}()
+	cancel()
+	if err := <-done; !errors.Is(err, context.Canceled) {
+		t.Fatalf("waiter error = %v", err)
+	}
+	select {
+	case <-workCanceled:
+	case <-time.After(time.Second):
+		t.Fatal("shared work was not canceled after its last waiter left")
+	}
+
+	boom := errors.New("boom")
+	if _, err := coordinator.Do(context.Background(), "failure", func(context.Context) ([]byte, error) {
+		return nil, boom
+	}); !errors.Is(err, boom) {
+		t.Fatalf("first error = %v", err)
+	}
+	if _, err := coordinator.Do(context.Background(), "failure", func(context.Context) ([]byte, error) {
+		return []byte("unexpected"), nil
+	}); !errors.Is(err, errPreviewCoolingDown) {
+		t.Fatalf("cooldown error = %v", err)
+	}
+	time.Sleep(25 * time.Millisecond)
+	result, err := coordinator.Do(context.Background(), "failure", func(context.Context) ([]byte, error) {
+		return []byte("recovered"), nil
+	})
+	if err != nil || string(result) != "recovered" {
+		t.Fatalf("recovery result = %q, error = %v", result, err)
+	}
+}
+
+func TestFFmpegPreviewWorkerBounds(t *testing.T) {
+	if got := cap(newFFmpegPreviewService(0).workers); got != 1 {
+		t.Fatalf("default worker count = %d, want 1", got)
+	}
+	if got := cap(newFFmpegPreviewService(99).workers); got != 2 {
+		t.Fatalf("maximum worker count = %d, want 2", got)
+	}
+}
+
+func TestPreviewCoordinatorBoundsFailureCooldownEntries(t *testing.T) {
+	coordinator := newPreviewCoordinator()
+	coordinator.Lock()
+	for index := 0; index < previewFailureEntries+10; index++ {
+		coordinator.failures[fmt.Sprintf("failed-%d", index)] = time.Now().Add(time.Minute)
+		if len(coordinator.failures) > previewFailureEntries {
+			coordinator.evictEarliestFailure()
+		}
+	}
+	count := len(coordinator.failures)
+	coordinator.Unlock()
+	if count != previewFailureEntries {
+		t.Fatalf("failure cooldown entries = %d, want %d", count, previewFailureEntries)
+	}
+}
+
+func TestPreviewCacheKeyIncludesFileIdentityAndSpecification(t *testing.T) {
+	base := &files.FileInfo{Path: "/photos/image.jpg", Size: 100, ModTime: time.Unix(10, 20)}
+	original := previewCacheKey(base, PreviewSizeThumb)
+
+	changedSize := *base
+	changedSize.Size++
+	changedTime := *base
+	changedTime.ModTime = changedTime.ModTime.Add(time.Nanosecond)
+	if original == previewCacheKey(&changedSize, PreviewSizeThumb) {
+		t.Fatal("file size must invalidate a cached preview")
+	}
+	if original == previewCacheKey(&changedTime, PreviewSizeThumb) {
+		t.Fatal("mtime must invalidate a cached preview")
+	}
+	if original == previewCacheKey(base, PreviewSizeBig) {
+		t.Fatal("preview specification must be part of the cache key")
+	}
+}
+
+func TestValidCachedPreviewRejectsCorruptData(t *testing.T) {
+	if validCachedPreview([]byte("not an image")) {
+		t.Fatal("corrupt cache data must be rejected")
+	}
+	var encoded bytes.Buffer
+	if err := png.Encode(&encoded, image.NewRGBA(image.Rect(0, 0, 1, 1))); err != nil {
+		t.Fatal(err)
+	}
+	if !validCachedPreview(encoded.Bytes()) {
+		t.Fatal("valid image data should be reusable")
+	}
+}
+
+func TestFFmpegPreviewFailsSafelyWhenBinaryIsMissing(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+	_, err := newFFmpegPreviewService(1).create(context.Background(), &files.FileInfo{})
+	if err == nil {
+		t.Fatal("missing FFmpeg should return a safe error")
+	}
+}

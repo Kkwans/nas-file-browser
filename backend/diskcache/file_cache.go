@@ -17,12 +17,15 @@ import (
 type FileCache struct {
 	fs afero.Fs
 
-	// granular locks
 	scopedLocks struct {
 		sync.Mutex
-		sync.Once
-		locks map[string]sync.Locker
+		locks map[string]*scopedLock
 	}
+}
+
+type scopedLock struct {
+	sync.Mutex
+	references int
 }
 
 func New(fs afero.Fs, root string) *FileCache {
@@ -31,24 +34,57 @@ func New(fs afero.Fs, root string) *FileCache {
 	}
 }
 
-func (f *FileCache) Store(_ context.Context, key string, value []byte) error {
-	mu := f.getScopedLocks(key)
-	mu.Lock()
-	defer mu.Unlock()
+func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	unlock := f.lockKey(key)
+	defer unlock()
 
 	fileName := f.getFileName(key)
 	if err := f.fs.MkdirAll(filepath.Dir(fileName), 0700); err != nil {
 		return err
 	}
 
-	if err := afero.WriteFile(f.fs, fileName, value, 0700); err != nil {
+	temporary, err := afero.TempFile(f.fs, filepath.Dir(fileName), ".cache-*")
+	if err != nil {
 		return err
 	}
+	temporaryName := temporary.Name()
+	committed := false
+	defer func() {
+		_ = temporary.Close()
+		if !committed {
+			_ = f.fs.Remove(temporaryName)
+		}
+	}()
 
+	if err := f.fs.Chmod(temporaryName, 0600); err != nil {
+		return err
+	}
+	if _, err := temporary.Write(value); err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if err := temporary.Sync(); err != nil {
+		return err
+	}
+	if err := temporary.Close(); err != nil {
+		return err
+	}
+	if err := f.fs.Rename(temporaryName, fileName); err != nil {
+		return err
+	}
+	committed = true
 	return nil
 }
 
-func (f *FileCache) Load(_ context.Context, key string) (value []byte, exist bool, err error) {
+func (f *FileCache) Load(ctx context.Context, key string) (value []byte, exist bool, err error) {
+	if err := ctx.Err(); err != nil {
+		return nil, false, err
+	}
 	r, ok, err := f.open(key)
 	if err != nil || !ok {
 		return nil, ok, err
@@ -62,10 +98,15 @@ func (f *FileCache) Load(_ context.Context, key string) (value []byte, exist boo
 	return value, true, nil
 }
 
-func (f *FileCache) Delete(_ context.Context, key string) error {
-	mu := f.getScopedLocks(key)
-	mu.Lock()
-	defer mu.Unlock()
+func (f *FileCache) Delete(ctx context.Context, key string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	unlock := f.lockKey(key)
+	defer unlock()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 
 	fileName := f.getFileName(key)
 	if err := f.fs.Remove(fileName); err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -87,19 +128,32 @@ func (f *FileCache) open(key string) (afero.File, bool, error) {
 	return file, true, nil
 }
 
-// getScopedLocks pull lock from the map if found or create a new one
-func (f *FileCache) getScopedLocks(key string) (lock sync.Locker) {
-	f.scopedLocks.Do(func() { f.scopedLocks.locks = map[string]sync.Locker{} })
-
+// lockKey serializes writes for one cache key and removes the lock entry after
+// the last user leaves, preventing long-running servers from retaining one
+// mutex for every preview ever requested.
+func (f *FileCache) lockKey(key string) func() {
 	f.scopedLocks.Lock()
-	lock, ok := f.scopedLocks.locks[key]
-	if !ok {
-		lock = &sync.Mutex{}
+	if f.scopedLocks.locks == nil {
+		f.scopedLocks.locks = make(map[string]*scopedLock)
+	}
+	lock := f.scopedLocks.locks[key]
+	if lock == nil {
+		lock = &scopedLock{}
 		f.scopedLocks.locks[key] = lock
 	}
+	lock.references++
 	f.scopedLocks.Unlock()
 
-	return lock
+	lock.Lock()
+	return func() {
+		lock.Unlock()
+		f.scopedLocks.Lock()
+		lock.references--
+		if lock.references == 0 {
+			delete(f.scopedLocks.locks, key)
+		}
+		f.scopedLocks.Unlock()
+	}
 }
 
 func (f *FileCache) getFileName(key string) string {

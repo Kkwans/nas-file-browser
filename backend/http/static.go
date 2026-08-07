@@ -1,7 +1,7 @@
 package fbhttp
 
 import (
-	"compress/gzip"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,10 +9,13 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/Kkwans/nas-file-browser/backend/auth"
@@ -20,6 +23,36 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/storage"
 	"github.com/Kkwans/nas-file-browser/backend/version"
 )
+
+var hashedStaticAsset = regexp.MustCompile(`-[A-Za-z0-9_-]{8,}\.[A-Za-z0-9]+$`)
+
+func acceptsContentEncoding(header, candidate string) bool {
+	wildcardQuality := -1.0
+	for _, value := range strings.Split(header, ",") {
+		parts := strings.Split(value, ";")
+		name := strings.ToLower(strings.TrimSpace(parts[0]))
+		quality := 1.0
+		for _, parameter := range parts[1:] {
+			key, raw, found := strings.Cut(strings.TrimSpace(parameter), "=")
+			if !found || !strings.EqualFold(key, "q") {
+				continue
+			}
+			parsed, err := strconv.ParseFloat(raw, 64)
+			if err != nil {
+				quality = 0
+			} else {
+				quality = parsed
+			}
+		}
+		if name == strings.ToLower(candidate) {
+			return quality > 0
+		}
+		if name == "*" {
+			wildcardQuality = quality
+		}
+	}
+	return wildcardQuality > 0
+}
 
 func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys fs.FS, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
@@ -110,6 +143,7 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 		}
 
 		w.Header().Set("x-xss-protection", "1; mode=block")
+		w.Header().Set("Cache-Control", "no-cache")
 		return handleWithStaticData(w, r, d, assetsFs, "public/index.html", "text/html; charset=utf-8")
 	}, "", store, server)
 
@@ -122,8 +156,12 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 			return http.StatusNotFound, fmt.Errorf("resource not found")
 		}
 
-		const maxAge = 86400 // 1 day
-		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+		w.Header().Add("Vary", "Accept-Encoding")
+		if hashedStaticAsset.MatchString(r.URL.Path) {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=86400")
+		}
 
 		if d.settings.Branding.Files != "" {
 			if strings.HasPrefix(r.URL.Path, "img/") {
@@ -141,39 +179,45 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 			}
 		}
 
-		if !strings.HasSuffix(r.URL.Path, ".js") {
-			http.FileServer(http.FS(assetsFs)).ServeHTTP(w, r)
+		acceptEncoding := r.Header.Get("Accept-Encoding")
+		for _, candidate := range []struct {
+			name     string
+			suffix   string
+			encoding string
+		}{
+			{name: "br", suffix: ".br", encoding: "br"},
+			{name: "gzip", suffix: ".gz", encoding: "gzip"},
+		} {
+			if !acceptsContentEncoding(acceptEncoding, candidate.name) {
+				continue
+			}
+			compressed, err := assetsFs.Open(r.URL.Path + candidate.suffix)
+			if err != nil {
+				continue
+			}
+			defer compressed.Close()
+			w.Header().Set("Content-Encoding", candidate.encoding)
+			contentType := mime.TypeByExtension(filepath.Ext(r.URL.Path))
+			if contentType != "" {
+				w.Header().Set("Content-Type", contentType)
+			}
+			info, statErr := compressed.Stat()
+			if statErr != nil {
+				return http.StatusInternalServerError, statErr
+			}
+			content, seekable := compressed.(io.ReadSeeker)
+			if !seekable {
+				payload, readErr := io.ReadAll(compressed)
+				if readErr != nil {
+					return http.StatusInternalServerError, readErr
+				}
+				content = bytes.NewReader(payload)
+			}
+			http.ServeContent(w, r, r.URL.Path, info.ModTime(), content)
 			return 0, nil
 		}
 
-		f, err := assetsFs.Open(r.URL.Path + ".gz")
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-		defer f.Close()
-
-		acceptEncoding := r.Header.Get("Accept-Encoding")
-		if strings.Contains(acceptEncoding, "gzip") {
-			w.Header().Set("Content-Encoding", "gzip")
-			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
-
-			if _, err := io.Copy(w, f); err != nil {
-				return http.StatusInternalServerError, err
-			}
-		} else {
-			gzReader, err := gzip.NewReader(f)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			defer gzReader.Close()
-
-			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
-
-			if _, err := io.Copy(w, gzReader); err != nil {
-				return http.StatusInternalServerError, err
-			}
-		}
-
+		http.FileServer(http.FS(assetsFs)).ServeHTTP(w, r)
 		return 0, nil
 	}, "/static/", store, server)
 

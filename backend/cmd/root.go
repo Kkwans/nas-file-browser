@@ -90,7 +90,8 @@ func init() {
 	flags.Uint32("socketPerm", 0666, "unix socket file permissions")
 	flags.String("cacheDir", "", "file cache directory (disabled if empty)")
 	flags.String("redisCacheUrl", "", "redis cache URL (for multi-instance deployments), e.g. redis://user:pass@host:port")
-	flags.Int("imageProcessors", 4, "image processors count")
+	flags.Int("imageProcessors", 1, "image processors count")
+	flags.Int("videoPreviewProcessors", 1, "FFmpeg video cover processors count (1-2)")
 	addServerFlags(flags)
 }
 
@@ -168,6 +169,10 @@ user created with the credentials from options "username" and "password".`,
 			return errors.New("image resize workers count could not be < 1")
 		}
 		imageService := img.New(imgWorkersCount)
+		videoPreviewWorkers := v.GetInt("videoPreviewProcessors")
+		if videoPreviewWorkers < 1 || videoPreviewWorkers > 2 {
+			return errors.New("FFmpeg video cover processors count must be between 1 and 2")
+		}
 
 		var fileCache diskcache.Interface = diskcache.NewNoOp()
 		cacheDir := v.GetString("cacheDir")
@@ -235,7 +240,7 @@ user created with the credentials from options "username" and "password".`,
 			panic(err)
 		}
 
-		handler, err := fbhttp.NewHandler(imageService, fileCache, uploadCache, st.Storage, server, assetsFs)
+		handler, err := fbhttp.NewHandler(imageService, fileCache, uploadCache, st.Storage, server, assetsFs, videoPreviewWorkers)
 		if err != nil {
 			return err
 		}

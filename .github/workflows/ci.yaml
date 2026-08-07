@@ -53,9 +53,10 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
+          cache-dependency-path: "backend/go.sum"
       - uses: golangci/golangci-lint-action@v9
         with:
-          version: "latest"
+          version: "v2.12.2"
           working-directory: backend
 
   test:
@@ -66,6 +67,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
+          cache-dependency-path: "backend/go.sum"
       - working-directory: backend
         run: go test -race ./...
 
@@ -79,6 +81,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
+          cache-dependency-path: "backend/go.sum"
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "frontend/package.json"
@@ -110,6 +113,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
+          cache-dependency-path: "backend/go.sum"
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "frontend/package.json"

@@ -216,7 +216,8 @@ import HeaderBar from "@/components/header/HeaderBar.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
-import { getEditorTheme, getTheme } from "@/utils/theme";
+import { getEditorTheme } from "@/utils/editorTheme";
+import { getTheme } from "@/utils/theme";
 import {
   computed,
   inject,

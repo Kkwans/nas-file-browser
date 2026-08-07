@@ -50,6 +50,15 @@ func (f favoritesBackend) GetAll(userID uint) ([]*favorites.Favorite, error) {
 	return all, err
 }
 
+func (f favoritesBackend) GetAllForPathMutation() ([]*favorites.Favorite, error) {
+	var all []*favorites.Favorite
+	err := f.db.All(&all)
+	if errors.Is(err, storm.ErrNotFound) {
+		return []*favorites.Favorite{}, nil
+	}
+	return all, err
+}
+
 func (f favoritesBackend) GetByID(userID uint, id string) (*favorites.Favorite, error) {
 	var fav favorites.Favorite
 	err := f.db.One("ID", id, &fav)
@@ -92,6 +101,10 @@ func (f favoritesBackend) Save(fav *favorites.Favorite) error {
 
 func (f favoritesBackend) Update(fav *favorites.Favorite) error {
 	return f.db.Update(fav)
+}
+
+func (f favoritesBackend) UpdatePath(id string, path string) error {
+	return f.db.UpdateField(&favorites.Favorite{ID: id}, "Path", path)
 }
 
 func (f favoritesBackend) UpdateGroupID(id string, groupID string) error {

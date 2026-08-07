@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync/atomic"
 	"time"
+
+	"github.com/Kkwans/nas-file-browser/backend/pathmeta"
 )
 
 var (
@@ -24,11 +26,19 @@ type Tag struct {
 // StorageBackend is the interface to implement for a tags storage.
 type StorageBackend interface {
 	GetAll(userID uint) ([]*Tag, error)
+	GetAllForPathMutation() ([]*Tag, error)
 	GetByID(userID uint, id string) (*Tag, error)
 	Save(tag *Tag) error
 	Update(tag *Tag) error
+	UpdatePaths(id string, paths []string) error
 	Delete(id string) error
 	ClaimLegacy(userID uint) error
+}
+
+// PathMutation captures the complete path lists changed by a filesystem path
+// operation so cross-system compensation restores exact prior state.
+type PathMutation struct {
+	updated []Tag
 }
 
 // Storage is the high-level storage for tags.
@@ -141,6 +151,89 @@ func (s *Storage) RemovePath(userID uint, id, path string) (*Tag, error) {
 		return nil, err
 	}
 	return tag, nil
+}
+
+// RewritePathPrefix updates matching paths in every user's tags. Duplicate
+// destinations are collapsed while retaining the original path order.
+func (s *Storage) RewritePathPrefix(from, to string) (*PathMutation, error) {
+	all, err := s.back.GetAllForPathMutation()
+	if err != nil {
+		return nil, err
+	}
+
+	mutation := &PathMutation{}
+	for _, tag := range all {
+		changed := false
+		seen := make(map[string]struct{}, len(tag.Paths))
+		next := make([]string, 0, len(tag.Paths))
+		for _, savedPath := range tag.Paths {
+			rewritten, matched := pathmeta.Rewrite(savedPath, from, to)
+			changed = changed || matched && rewritten != savedPath
+			if _, exists := seen[rewritten]; exists {
+				changed = true
+				continue
+			}
+			seen[rewritten] = struct{}{}
+			next = append(next, rewritten)
+		}
+		if !changed {
+			continue
+		}
+
+		original := cloneTag(*tag)
+		if err := s.back.UpdatePaths(tag.ID, next); err != nil {
+			return nil, errors.Join(err, s.RestorePathMutation(mutation))
+		}
+		mutation.updated = append(mutation.updated, original)
+	}
+	return mutation, nil
+}
+
+// RemovePathPrefix removes matching paths from every user's tags. Empty tags
+// remain valid and are not deleted.
+func (s *Storage) RemovePathPrefix(prefix string) (*PathMutation, error) {
+	all, err := s.back.GetAllForPathMutation()
+	if err != nil {
+		return nil, err
+	}
+
+	mutation := &PathMutation{}
+	for _, tag := range all {
+		next := make([]string, 0, len(tag.Paths))
+		for _, savedPath := range tag.Paths {
+			if !pathmeta.Contains(savedPath, prefix) {
+				next = append(next, pathmeta.Clean(savedPath))
+			}
+		}
+		if len(next) == len(tag.Paths) {
+			continue
+		}
+
+		original := cloneTag(*tag)
+		if err := s.back.UpdatePaths(tag.ID, next); err != nil {
+			return nil, errors.Join(err, s.RestorePathMutation(mutation))
+		}
+		mutation.updated = append(mutation.updated, original)
+	}
+	return mutation, nil
+}
+
+// RestorePathMutation restores only path lists captured by a prior mutation.
+func (s *Storage) RestorePathMutation(mutation *PathMutation) error {
+	if mutation == nil {
+		return nil
+	}
+
+	var restoreErr error
+	for _, tag := range mutation.updated {
+		restoreErr = errors.Join(restoreErr, s.back.UpdatePaths(tag.ID, tag.Paths))
+	}
+	return restoreErr
+}
+
+func cloneTag(tag Tag) Tag {
+	tag.Paths = append([]string(nil), tag.Paths...)
+	return tag
 }
 
 // generateID creates a unique ID based on timestamp + counter.

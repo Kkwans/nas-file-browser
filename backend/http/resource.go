@@ -19,8 +19,10 @@ import (
 	"github.com/spf13/afero"
 
 	fberrors "github.com/Kkwans/nas-file-browser/backend/errors"
+	"github.com/Kkwans/nas-file-browser/backend/favorites"
 	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/Kkwans/nas-file-browser/backend/fileutils"
+	"github.com/Kkwans/nas-file-browser/backend/tags"
 )
 
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -97,6 +99,11 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 			return errToStatus(err), err
 		}
 
+		favoriteMutation, tagMutation, err := removePathMetadata(d, file.Path)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("清理关联收藏和标签失败，文件未删除: %w", err)
+		}
+
 		err = d.store.Share.DeleteWithPathPrefix(file.Path)
 		if err != nil {
 			log.Printf("WARNING: Error(s) occurred while deleting associated shares with file: %s", err)
@@ -105,7 +112,8 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		// delete thumbnails
 		err = delThumbs(r.Context(), fileCache, file)
 		if err != nil {
-			return errToStatus(err), err
+			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation)
+			return errToStatus(err), fmt.Errorf("清理缩略图失败，文件未删除: %w", errors.Join(err, restoreErr))
 		}
 
 		err = d.RunHook(func() error {
@@ -113,7 +121,8 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		}, "delete", r.URL.Path, "", d.user)
 
 		if err != nil {
-			return errToStatus(err), err
+			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation)
+			return errToStatus(err), fmt.Errorf("删除文件失败，关联元数据已回滚: %w", errors.Join(err, restoreErr))
 		}
 
 		return http.StatusNoContent, nil
@@ -208,31 +217,27 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 })
 
 func resourcePatchHandler(fileCache FileCache) handleFunc {
-	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		src := r.URL.Path
 		dst := r.URL.Query().Get("destination")
 		action := r.URL.Query().Get("action")
-		dst, err := url.QueryUnescape(dst)
-		dst = path.Clean("/" + dst)
-		src = path.Clean("/" + src)
+		dst = normalizeResourcePath(dst)
+		src = normalizeResourcePath(src)
 		if !d.Check(src) || !d.Check(dst) {
 			return http.StatusForbidden, fmt.Errorf("没有权限执行此操作")
-		}
-		if err != nil {
-			return errToStatus(err), err
 		}
 		if dst == "/" || src == "/" {
 			return http.StatusForbidden, fmt.Errorf("没有权限执行此操作")
 		}
 
-		err = checkParent(src, dst)
+		err := checkParent(src, dst)
 		if err != nil {
 			return http.StatusBadRequest, err
 		}
 
 		srcInfo, _ := d.user.Fs.Stat(src)
 		dstInfo, _ := d.user.Fs.Stat(dst)
-		same := os.SameFile(srcInfo, dstInfo)
+		same := sameExistingFile(srcInfo, dstInfo)
 
 		if action != "rename" || !same {
 			override := r.URL.Query().Get("override") == "true"
@@ -254,9 +259,23 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 		err = d.RunHook(func() error {
 			return patchAction(r.Context(), action, src, dst, d, fileCache)
 		}, action, src, dst, d.user)
+		if err == nil && action == "rename" {
+			w.Header().Set("X-Resource-Destination", url.PathEscape(dst))
+		}
 
 		return errToStatus(err), err
 	})
+}
+
+// URL.Query().Get already performs percent-decoding. Cleaning that decoded
+// value exactly once preserves literal names such as "%2F-not-a-directory"
+// instead of turning them into a different path through a second decode.
+func normalizeResourcePath(value string) string {
+	return path.Clean("/" + value)
+}
+
+func sameExistingFile(left, right os.FileInfo) bool {
+	return left != nil && right != nil && os.SameFile(left, right)
 }
 
 func checkParent(src, dst string) error {
@@ -368,10 +387,50 @@ func patchAction(ctx context.Context, action, src, dst string, d *data, fileCach
 			return err
 		}
 
-		return fileutils.MoveFile(d.user.Fs, src, dst, d.settings.FileMode, d.settings.DirMode)
+		if err := fileutils.MoveFile(d.user.Fs, src, dst, d.settings.FileMode, d.settings.DirMode); err != nil {
+			return err
+		}
+
+		if err := rewritePathMetadata(d, src, dst); err != nil {
+			rollbackErr := fileutils.MoveFile(d.user.Fs, dst, src, d.settings.FileMode, d.settings.DirMode)
+			return fmt.Errorf("文件已移动但关联元数据更新失败，已尝试回滚: %w", errors.Join(err, rollbackErr))
+		}
+		return nil
 	default:
 		return fmt.Errorf("不支持的操作 %s: %w", action, fberrors.ErrInvalidRequestParams)
 	}
+}
+
+func rewritePathMetadata(d *data, from, to string) error {
+	favoriteMutation, err := d.store.Favorites.RewritePathPrefix(from, to)
+	if err != nil {
+		return err
+	}
+
+	if _, err := d.store.Tags.RewritePathPrefix(from, to); err != nil {
+		return errors.Join(err, d.store.Favorites.RestorePathMutation(favoriteMutation))
+	}
+	return nil
+}
+
+func removePathMetadata(d *data, prefix string) (*favorites.PathMutation, *tags.PathMutation, error) {
+	favoriteMutation, err := d.store.Favorites.RemovePathPrefix(prefix)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tagMutation, err := d.store.Tags.RemovePathPrefix(prefix)
+	if err != nil {
+		return nil, nil, errors.Join(err, d.store.Favorites.RestorePathMutation(favoriteMutation))
+	}
+	return favoriteMutation, tagMutation, nil
+}
+
+func restorePathMetadata(d *data, favoriteMutation *favorites.PathMutation, tagMutation *tags.PathMutation) error {
+	return errors.Join(
+		d.store.Favorites.RestorePathMutation(favoriteMutation),
+		d.store.Tags.RestorePathMutation(tagMutation),
+	)
 }
 
 // RecursiveEntry is a single file/directory entry returned by the recursive listing endpoint.

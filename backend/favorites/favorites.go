@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync/atomic"
 	"time"
+
+	"github.com/Kkwans/nas-file-browser/backend/pathmeta"
 )
 
 var (
@@ -47,14 +49,24 @@ type GroupStorageBackend interface {
 // StorageBackend is the interface to implement for a favorites storage.
 type StorageBackend interface {
 	GetAll(userID uint) ([]*Favorite, error)
+	GetAllForPathMutation() ([]*Favorite, error)
 	GetByID(userID uint, id string) (*Favorite, error)
 	GetByPath(userID uint, path string) (*Favorite, error)
 	Save(fav *Favorite) error
 	Update(fav *Favorite) error
+	UpdatePath(id string, path string) error
 	UpdateGroupID(id string, groupID string) error
 	Delete(id string) error
 	DeleteByPath(path string) error
 	GroupStorageBackend
+}
+
+// PathMutation records the exact metadata rows changed by a filesystem path
+// operation so a later cross-system failure can restore them without touching
+// unrelated favorites that already existed at the destination.
+type PathMutation struct {
+	updated []Favorite
+	deleted []Favorite
 }
 
 // Storage is the high-level storage for favorites.
@@ -163,6 +175,70 @@ func (s *Storage) DeleteByPath(userID uint, path string) error {
 		return err
 	}
 	return s.back.Delete(fav.ID)
+}
+
+// RewritePathPrefix updates matching favorites for every user. The operation
+// is internally compensating: a partial backend failure restores earlier rows.
+func (s *Storage) RewritePathPrefix(from, to string) (*PathMutation, error) {
+	all, err := s.back.GetAllForPathMutation()
+	if err != nil {
+		return nil, err
+	}
+
+	mutation := &PathMutation{}
+	for _, favorite := range all {
+		rewritten, matched := pathmeta.Rewrite(favorite.Path, from, to)
+		if !matched || rewritten == favorite.Path {
+			continue
+		}
+
+		original := *favorite
+		if err := s.back.UpdatePath(favorite.ID, rewritten); err != nil {
+			return nil, errors.Join(err, s.RestorePathMutation(mutation))
+		}
+		mutation.updated = append(mutation.updated, original)
+	}
+	return mutation, nil
+}
+
+// RemovePathPrefix deletes matching favorites for every user and returns a
+// restorable mutation for coordination with the filesystem operation.
+func (s *Storage) RemovePathPrefix(prefix string) (*PathMutation, error) {
+	all, err := s.back.GetAllForPathMutation()
+	if err != nil {
+		return nil, err
+	}
+
+	mutation := &PathMutation{}
+	for _, favorite := range all {
+		if !pathmeta.Contains(favorite.Path, prefix) {
+			continue
+		}
+
+		original := *favorite
+		if err := s.back.Delete(favorite.ID); err != nil {
+			return nil, errors.Join(err, s.RestorePathMutation(mutation))
+		}
+		mutation.deleted = append(mutation.deleted, original)
+	}
+	return mutation, nil
+}
+
+// RestorePathMutation restores only the rows captured by a prior mutation.
+func (s *Storage) RestorePathMutation(mutation *PathMutation) error {
+	if mutation == nil {
+		return nil
+	}
+
+	var restoreErr error
+	for _, favorite := range mutation.updated {
+		restoreErr = errors.Join(restoreErr, s.back.UpdatePath(favorite.ID, favorite.Path))
+	}
+	for _, favorite := range mutation.deleted {
+		copy := favorite
+		restoreErr = errors.Join(restoreErr, s.back.Save(&copy))
+	}
+	return restoreErr
 }
 
 // Reorder replaces the entire order of favorites.

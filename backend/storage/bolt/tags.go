@@ -37,6 +37,15 @@ func (t tagsBackend) GetAll(userID uint) ([]*tags.Tag, error) {
 	return all, err
 }
 
+func (t tagsBackend) GetAllForPathMutation() ([]*tags.Tag, error) {
+	var all []*tags.Tag
+	err := t.db.All(&all)
+	if errors.Is(err, storm.ErrNotFound) {
+		return []*tags.Tag{}, nil
+	}
+	return all, err
+}
+
 func (t tagsBackend) GetByID(userID uint, id string) (*tags.Tag, error) {
 	var tag tags.Tag
 	err := t.db.One("ID", id, &tag)
@@ -66,6 +75,10 @@ func (t tagsBackend) Save(tag *tags.Tag) error {
 
 func (t tagsBackend) Update(tag *tags.Tag) error {
 	return t.db.Update(tag)
+}
+
+func (t tagsBackend) UpdatePaths(id string, paths []string) error {
+	return t.db.UpdateField(&tags.Tag{ID: id}, "Paths", paths)
 }
 
 func (t tagsBackend) Delete(id string) error {

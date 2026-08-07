@@ -447,7 +447,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 				// Use extension-only type detection for directory listing.
 				// Header-based detection is deferred to individual file preview.
 				// This avoids opening every file just to list the directory.
-				file.detectTypeFromExt()
+				file.DetectTypeFromExt()
 			}
 		}
 
@@ -461,7 +461,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 // detectTypeFromExt determines file type using only the extension.
 // Much faster than detectType which reads file headers.
 // Used for directory listings where only basic type info is needed.
-func (i *FileInfo) detectTypeFromExt() {
+func (i *FileInfo) DetectTypeFromExt() {
 	mimetype := mime.TypeByExtension(i.Extension)
 	switch {
 	case strings.HasPrefix(mimetype, "video"):

@@ -187,16 +187,35 @@ import url from "@/utils/url";
 import { throttle } from "lodash-es";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
-import ExtendedImage from "@/components/files/ExtendedImage.vue";
-import VideoPlayer from "@/components/files/VideoPlayer.vue";
-import CsvViewer from "@/components/files/CsvViewer.vue";
-import PdfViewer from "@/components/files/PdfViewer.vue";
-import { VueReader } from "vue-reader";
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { Rendition } from "epubjs";
 import type { ResourceItem, ResourceType } from "@/types/file";
 import { getTheme } from "@/utils/theme";
+
+const ExtendedImage = defineAsyncComponent(
+  () => import("@/components/files/ExtendedImage.vue")
+);
+const VideoPlayer = defineAsyncComponent(
+  () => import("@/components/files/VideoPlayer.vue")
+);
+const CsvViewer = defineAsyncComponent(
+  () => import("@/components/files/CsvViewer.vue")
+);
+const PdfViewer = defineAsyncComponent(
+  () => import("@/components/files/PdfViewer.vue")
+);
+const VueReader = defineAsyncComponent(() =>
+  import("vue-reader").then((module) => module.VueReader)
+);
 // CSV file size limit for preview (5MB)
 // Prevents browser memory issues with large files
 const CSV_MAX_SIZE = 5 * 1024 * 1024;

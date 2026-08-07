@@ -98,7 +98,11 @@
 .markdown-preview-outline-list a:focus-visible {
   color: var(--blue, #1677ff);
   background: var(--surfaceSecondary, #f6f8fa);
-  outline: none;
+}
+
+.markdown-preview-outline-list a:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--blue, #1677ff));
+  outline-offset: 1px;
 }
 
 .markdown-preview-outline-list .outline-level-2 {
@@ -119,7 +123,11 @@
 #vditor-mount .vditor-toolbar__item button:focus-visible {
   border-radius: 6px;
   background: var(--surfaceSecondary, #f6f8fa);
-  outline: none;
+}
+
+#vditor-mount .vditor-toolbar__item button:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--blue, #1677ff));
+  outline-offset: 1px;
 }
 
 :root.dark #vditor-mount .vditor,

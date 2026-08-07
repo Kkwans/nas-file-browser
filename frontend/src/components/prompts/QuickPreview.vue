@@ -13,26 +13,48 @@
       <div class="quick-preview-actions">
         <button
           class="quick-preview-btn"
+          type="button"
           @click="navigateFile(-1)"
           title="上一个"
+          aria-label="上一个"
         >
-          <i class="material-icons">chevron_left</i>
+          <i class="material-icons" aria-hidden="true">chevron_left</i>
         </button>
         <button
           class="quick-preview-btn"
+          type="button"
           @click="navigateFile(1)"
           title="下一个"
+          aria-label="下一个"
         >
-          <i class="material-icons">chevron_right</i>
+          <i class="material-icons" aria-hidden="true">chevron_right</i>
         </button>
-        <button class="quick-preview-btn" @click="downloadFile" title="下载">
-          <i class="material-icons">file_download</i>
+        <button
+          class="quick-preview-btn"
+          type="button"
+          @click="downloadFile"
+          title="下载"
+          aria-label="下载"
+        >
+          <i class="material-icons" aria-hidden="true">file_download</i>
         </button>
-        <button class="quick-preview-btn" @click="openFull" title="打开文件">
-          <i class="material-icons">open_in_new</i>
+        <button
+          class="quick-preview-btn"
+          type="button"
+          @click="openFull"
+          title="打开文件"
+          aria-label="打开文件"
+        >
+          <i class="material-icons" aria-hidden="true">open_in_new</i>
         </button>
-        <button class="quick-preview-btn close-btn" @click="close" title="关闭">
-          <i class="material-icons">close</i>
+        <button
+          class="quick-preview-btn close-btn"
+          type="button"
+          @click="close"
+          title="关闭"
+          aria-label="关闭"
+        >
+          <i class="material-icons" aria-hidden="true">close</i>
         </button>
       </div>
     </div>
@@ -43,6 +65,8 @@
         :src="previewUrl"
         :alt="item.name"
         class="quick-preview-image"
+        @load="finishLoading"
+        @error="finishLoading"
       />
       <!-- Video -->
       <video
@@ -51,14 +75,31 @@
         controls
         autoplay
         class="quick-preview-video"
+        :aria-label="`${item.name} 视频预览`"
+        @loadeddata="finishLoading"
+        @error="finishLoading"
       />
       <!-- Audio -->
       <div v-else-if="item.type === 'audio'" class="quick-preview-audio-wrap">
-        <i class="material-icons audio-icon">audiotrack</i>
-        <audio :src="directUrl" controls autoplay class="quick-preview-audio" />
+        <i class="material-icons audio-icon" aria-hidden="true">audiotrack</i>
+        <audio
+          :src="directUrl"
+          controls
+          autoplay
+          class="quick-preview-audio"
+          :aria-label="`${item.name} 音频预览`"
+          @loadeddata="finishLoading"
+          @error="finishLoading"
+        />
       </div>
       <!-- PDF -->
-      <iframe v-else-if="isPdf" :src="directUrl" class="quick-preview-pdf" />
+      <iframe
+        v-else-if="isPdf"
+        :src="directUrl"
+        class="quick-preview-pdf"
+        :title="`${item.name} PDF 预览`"
+        @load="finishLoading"
+      />
       <!-- Markdown (rendered) -->
       <div
         v-else-if="isMarkdown"
@@ -99,6 +140,7 @@ import { getFileIcon, isTextFile, isPreviewable } from "@/utils/fileIcons";
 import {
   loadMarkdownResources,
   highlightAndAnnotateCodeBlocks,
+  getVditorAssetRoot,
 } from "@/utils/externalResources";
 import dayjs from "@/utils/date";
 const router = useRouter();
@@ -160,6 +202,9 @@ const previewUrl = computed(() => {
 });
 
 const directUrl = computed(() => api.getDownloadURL(item.value, true));
+const finishLoading = () => {
+  loading.value = false;
+};
 
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
@@ -228,13 +273,15 @@ const openFull = () => window.open(directUrl.value, "_blank");
 const loadTextContent = async () => {
   try {
     const resp = await fetch(directUrl.value, { credentials: "include" });
+    if (!resp.ok) throw new Error(`无法加载预览（HTTP ${resp.status}）`);
     const text = await resp.text();
     textContent.value =
       text.length > 51200
         ? text.substring(0, 51200) + "\n\n... " + "文件过大"
         : text;
-  } catch {
-    textContent.value = "无法加载内容";
+  } catch (error) {
+    textContent.value =
+      error instanceof Error ? error.message : "无法加载预览内容";
   } finally {
     loading.value = false;
   }
@@ -243,14 +290,16 @@ const loadTextContent = async () => {
 const loadMarkdownContent = async () => {
   try {
     const resp = await fetch(directUrl.value, { credentials: "include" });
+    if (!resp.ok) throw new Error(`无法加载预览（HTTP ${resp.status}）`);
     const text = await resp.text();
     const truncated =
       text.length > 51200
         ? text.substring(0, 51200) + "\n\n... " + "文件过大"
         : text;
     await renderMarkdown(truncated);
-  } catch {
-    textContent.value = "无法加载内容";
+  } catch (error) {
+    textContent.value =
+      error instanceof Error ? error.message : "无法加载预览内容";
     nextTick(() => {
       if (markdownBody.value) {
         markdownBody.value.textContent = textContent.value;
@@ -267,7 +316,8 @@ const renderMarkdown = async (content: string) => {
   const VditorClass = (window as any).Vditor;
   const isDark = document.documentElement.className === "dark";
   const htmlResult = VditorClass.md2html(content, {
-    theme: isDark ? "dark" : "light",
+    cdn: getVditorAssetRoot(),
+    mode: isDark ? "dark" : "light",
   });
   const html = await Promise.resolve(htmlResult);
 

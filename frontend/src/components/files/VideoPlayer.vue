@@ -77,7 +77,7 @@ const initVideoPlayer = async () => {
     player.value = videojs(videoPlayer.value!, options, () => {});
 
     // TODO: need to test on mobile
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (player.value as any).mobileUi();
   } catch (error) {
     console.error("Error initializing video player:", error);

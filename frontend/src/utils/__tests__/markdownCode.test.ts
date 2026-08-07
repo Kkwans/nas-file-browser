@@ -143,8 +143,6 @@ describe("Markdown 代码块契约", () => {
     expect(updateMarkdownCodeFenceLanguage(markdown, 1, "bash")).toBe(
       markdown.replace("~~~python", "~~~bash")
     );
-    expect(updateMarkdownCodeFenceLanguage(markdown, 9, "java")).toBe(
-      markdown
-    );
+    expect(updateMarkdownCodeFenceLanguage(markdown, 9, "java")).toBe(markdown);
   });
 });

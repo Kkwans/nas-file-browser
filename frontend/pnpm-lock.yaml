@@ -35,6 +35,9 @@ importers:
       filesize:
         specifier: ^11.0.13
         version: 11.0.17
+      highlight.js:
+        specifier: 11.9.0
+        version: 11.9.0
       js-base64:
         specifier: ^3.7.7
         version: 3.7.8
@@ -71,6 +74,9 @@ importers:
       utif:
         specifier: ^3.1.0
         version: 3.1.0
+      vditor:
+        specifier: 3.10.9
+        version: 3.10.9
       video.js:
         specifier: ^8.23.3
         version: 8.23.7
@@ -1242,6 +1248,9 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
+  diff-match-patch@1.0.5:
+    resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
+
   dom-walk@0.1.2:
     resolution: {integrity: sha512-6QvTW9mrGeIegrFXdtQi9pk7O/nSK6lSdXW2eqUspN5LWD7UTji2Fqw5V2YLjBpHEoU9Xl/eUWNpDeZvoyOv2w==}
 
@@ -1459,6 +1468,10 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  highlight.js@11.9.0:
+    resolution: {integrity: sha512-fJ7cW7fQGCYAkgv4CPfwFHrfd/cLS4Hau96JuJ+ZTOWhjnhoeN1ub1tFmALm/+lW5z4WCAuAV9bm05AP0mS6Gw==}
+    engines: {node: '>=12.0.0'}
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
@@ -2077,6 +2090,9 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  vditor@3.10.9:
+    resolution: {integrity: sha512-cJE/pMv/kg3dW9TIoAe2VBM4CI1JuTEjsD8YhveqYZm8h4pjcXSmYtu/0QVqH6/KA2BeUXvZilryOXlwho2QZg==}
 
   video.js@8.23.7:
     resolution: {integrity: sha512-cG4HOygYt+Z8j6Sf5DuK6OgEOoM+g9oGP6vpqoZRaD13aHE4PMITbyjJUXZcIQbgB0wJEadBRaVm5lJIzo2jAA==}
@@ -3223,6 +3239,8 @@ snapshots:
 
   detect-libc@2.1.2: {}
 
+  diff-match-patch@1.0.5: {}
+
   dom-walk@0.1.2: {}
 
   dompurify@3.4.4:
@@ -3485,6 +3503,8 @@ snapshots:
       process: 0.11.10
 
   graceful-fs@4.2.11: {}
+
+  highlight.js@11.9.0: {}
 
   hookable@5.5.3: {}
 
@@ -4065,6 +4085,10 @@ snapshots:
       pako: 1.0.11
 
   util-deprecate@1.0.2: {}
+
+  vditor@3.10.9:
+    dependencies:
+      diff-match-patch: 1.0.5
 
   video.js@8.23.7:
     dependencies:

@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { type SelectHTMLAttributes } from "vue";
 import { themes } from "ace-builds/src-noconflict/ext-themelist";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 defineProps<{
   aceEditorTheme: string;
 }>();

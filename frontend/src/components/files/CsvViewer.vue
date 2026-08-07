@@ -134,7 +134,7 @@ watchEffect(() => {
         if (error) {
           console.error("Failed to parse CSV:", error);
           parsed.value = { headers: [], rows: [] };
-          displayError.value = 'CSV 加载失败';
+          displayError.value = "CSV 加载失败";
         } else {
           parsed.value = {
             headers: output[0],

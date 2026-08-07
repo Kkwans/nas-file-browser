@@ -23,6 +23,7 @@ declare global {
       TusSettings: object;
       HideLoginButton: boolean;
     };
+    __prependStaticUrl: (url: string) => string;
     grecaptcha: {
       ready: (cb: () => void) => void;
       render: (id: string, options: object) => string;

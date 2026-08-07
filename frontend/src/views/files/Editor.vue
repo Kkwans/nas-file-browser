@@ -25,7 +25,7 @@
         />
 
         <!-- 代码语言标识 + 行号切换（非 Markdown 文件） -->
-        <template v-if="!isMarkdownFile && aceEditorReady">
+        <template v-if="!usesVditor && aceEditorReady">
           <span class="editor-lang-badge" :title="langCaption">
             <i class="material-icons">code</i>
             {{ langCaption }}
@@ -41,7 +41,7 @@
         </template>
 
         <!-- Markdown 模式切换 -->
-        <template v-if="isMarkdownFile">
+        <template v-if="usesVditor">
           <action
             icon="auto_awesome"
             label="即时渲染（类似 Typora）"
@@ -89,12 +89,22 @@
     <template v-else>
       <!-- Vditor 容器（Markdown 文件） -->
       <div
-        v-if="isMarkdownFile"
+        v-if="usesVditor"
         id="vditor-mount"
         class="vditor-mount markdown-editor-active"
       ></div>
       <!-- Ace 编辑器（非 Markdown 文件） -->
-      <form v-else id="editor"></form>
+      <div v-else class="editor-lightweight-shell">
+        <div
+          v-if="isLargeMarkdown"
+          class="editor-degraded-notice"
+          role="status"
+        >
+          此 Markdown 文件超过 2
+          MiB，已切换到轻量源码模式；内容仍只会在手动保存后写回 NAS。
+        </div>
+        <form id="editor"></form>
+      </div>
     </template>
     <div
       v-if="showCodeLanguagePicker"
@@ -184,6 +194,8 @@ import {
   isDarkTheme,
   highlightAndAnnotateCodeBlocks,
   observeMarkdownThemeChanges,
+  getAceAssetRoot,
+  getVditorAssetRoot,
 } from "@/utils/externalResources";
 import {
   createMarkdownCodeFence,
@@ -195,7 +207,7 @@ import {
   MARKDOWN_CODE_LANGUAGES,
   updateMarkdownCodeFenceLanguage,
 } from "@/utils/markdownCode";
-import ace, { Ace, version as ace_version } from "ace-builds";
+import ace, { Ace } from "ace-builds";
 import "ace-builds/src-noconflict/ext-language_tools";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
 
@@ -227,8 +239,14 @@ const router = useRouter();
 const isMarkdownFile =
   fileStore.req?.name.endsWith(".md") ||
   fileStore.req?.name.endsWith(".markdown");
+const MARKDOWN_RICH_EDITOR_MAX_BYTES = 2 * 1024 * 1024;
+const isLargeMarkdown =
+  isMarkdownFile &&
+  Math.max(fileStore.req?.size ?? 0, fileStore.req?.content?.length ?? 0) >
+    MARKDOWN_RICH_EDITOR_MAX_BYTES;
+const usesVditor = isMarkdownFile && !isLargeMarkdown;
 const aceEditorReady = ref(false);
-const showLineNumbers = ref(!isMarkdownFile);
+const showLineNumbers = ref(!usesVditor);
 const langCaption = ref("");
 const showCodeLanguagePicker = ref(false);
 const codeLanguageQuery = ref("");
@@ -311,7 +329,7 @@ onMounted(() => {
 
   const initEditor = () => {
     setTimeout(() => {
-      if (isMarkdownFile) {
+      if (usesVditor) {
         initVditor(fileContent);
       } else {
         initAceEditor(fileContent);
@@ -363,7 +381,7 @@ onBeforeRouteUpdate((to, from, next) => {
     return;
   }
 
-  const isDirty = isMarkdownFile
+  const isDirty = usesVditor
     ? vditorInstance && userEdited && mdInitialized
     : !aceEditor?.session.getUndoManager().isClean();
 
@@ -373,7 +391,7 @@ onBeforeRouteUpdate((to, from, next) => {
   }
 
   // 双重校验：flag 可能有误，用实际内容比对兜底
-  if (isMarkdownFile && vditorInstance && mdInitialized) {
+  if (usesVditor && vditorInstance && mdInitialized) {
     try {
       const currentContent = vditorInstance.getValue();
       if (currentContent === initialContent) {
@@ -433,11 +451,12 @@ const initVditorWithMode = async (
 
   const VditorClass = window.Vditor;
   const mountEl = document.getElementById("vditor-mount");
-  if (!mountEl) return;
+  if (!VditorClass || !mountEl) return;
 
   const isDark = isDarkTheme();
 
   vditorInstance = new VditorClass("vditor-mount", {
+    cdn: getVditorAssetRoot(),
     value: content,
     lang: "zh_CN",
     theme: isDark ? "dark" : "classic",
@@ -611,14 +630,15 @@ const initVditorPreview = async (content: string) => {
 
   const VditorClass = window.Vditor;
   const mountEl = document.getElementById("vditor-mount");
-  if (!mountEl) return;
+  if (!VditorClass || !mountEl) return;
 
   const isDark = isDarkTheme();
 
   // 阅读模式：用 Vditor 的预览方法渲染为纯 HTML
   // md2html 可能返回 Promise 或 string，统一用 Promise.resolve 包裹确保 await
   const htmlResult = VditorClass.md2html(content, {
-    theme: isDark ? "dark" : "light",
+    cdn: getVditorAssetRoot(),
+    mode: isDark ? "dark" : "light",
   });
   const html = await Promise.resolve(htmlResult);
   if (typeof html !== "string") {
@@ -684,10 +704,11 @@ const initVditorPreview = async (content: string) => {
 
 const initAceEditor = (content: string) => {
   initialContent = content;
-  ace.config.set(
-    "basePath",
-    `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
-  );
+  const aceAssetRoot = getAceAssetRoot();
+  ace.config.set("basePath", aceAssetRoot);
+  ace.config.set("modePath", aceAssetRoot);
+  ace.config.set("themePath", aceAssetRoot);
+  ace.config.set("workerPath", aceAssetRoot);
 
   const isDark = getTheme() === "dark";
 
@@ -743,7 +764,7 @@ const initAceEditor = (content: string) => {
 };
 
 const openCodeLanguagePicker = () => {
-  if (!isMarkdownFile || !vditorInstance) return;
+  if (!usesVditor || !vditorInstance) return;
   codeLanguageTargetIndex.value = getActiveMarkdownCodeBlockIndex();
   codeLanguageQuery.value = "";
   codeLanguageActiveIndex.value = 0;
@@ -852,7 +873,7 @@ const rebuildMarkdownMode = async (mode: MarkdownMode) => {
 };
 
 const toggleLineNumbers = async () => {
-  if (isMarkdownFile && currentMode.value === "sv") return;
+  if (usesVditor && currentMode.value === "sv") return;
   showLineNumbers.value = !showLineNumbers.value;
   persistLineNumberPreference();
   if (aceEditor) {
@@ -861,7 +882,7 @@ const toggleLineNumbers = async () => {
       showLineNumbers: showLineNumbers.value,
     });
   }
-  if (isMarkdownFile && currentMode.value !== "preview") {
+  if (usesVditor && currentMode.value !== "preview") {
     await rebuildMarkdownMode(currentMode.value);
     return;
   }
@@ -869,7 +890,7 @@ const toggleLineNumbers = async () => {
 };
 
 const toggleOutline = async () => {
-  if (!isMarkdownFile) return;
+  if (!usesVditor) return;
   showOutline.value = !showOutline.value;
   persistOutlinePreference();
   await rebuildMarkdownMode(currentMode.value);
@@ -877,7 +898,7 @@ const toggleOutline = async () => {
 
 const refreshMarkdownCodeBlocks = () => {
   const mountEl = document.getElementById("vditor-mount");
-  if (!mountEl || !isMarkdownFile || currentMode.value !== "preview") return;
+  if (!mountEl || !usesVditor || currentMode.value !== "preview") return;
   highlightAndAnnotateCodeBlocks(mountEl, {
     showLineNumbers: showLineNumbers.value,
   });
@@ -945,7 +966,7 @@ const handlePageChange = (event: BeforeUnloadEvent) => {
   // 编辑器未初始化完成时，不提示
   if (layoutStore.loading) return;
 
-  if (isMarkdownFile && vditorInstance) {
+  if (usesVditor && vditorInstance) {
     // Vditor dirty 检测：用 userEdited 标记 + 内容比对双重判断
     if (userEdited && mdInitialized) {
       try {
@@ -971,7 +992,7 @@ const save = async (throwError?: boolean) => {
 
   try {
     let content = "";
-    if (isMarkdownFile && vditorInstance) {
+    if (usesVditor && vditorInstance) {
       content = vditorInstance.getValue();
       markdownBuffer = content;
     } else if (aceEditor) {
@@ -1000,7 +1021,7 @@ const close = () => {
     return;
   }
 
-  const isDirty = isMarkdownFile
+  const isDirty = usesVditor
     ? vditorInstance && userEdited && mdInitialized
     : !aceEditor?.session.getUndoManager().isClean();
 
@@ -1010,7 +1031,7 @@ const close = () => {
   }
 
   // 双重校验：flag 可能有误，用实际内容比对兜底
-  if (isMarkdownFile && vditorInstance && mdInitialized) {
+  if (usesVditor && vditorInstance && mdInitialized) {
     try {
       const currentContent = vditorInstance.getValue();
       if (currentContent === initialContent) {
@@ -1055,6 +1076,27 @@ const finishClose = () => {
 .vditor-mount {
   flex: 1;
   overflow: auto;
+}
+
+.editor-lightweight-shell {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.editor-lightweight-shell #editor {
+  min-height: 0;
+  flex: 1;
+}
+
+.editor-degraded-notice {
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid var(--borderSecondary);
+  color: var(--textSecondary);
+  background: color-mix(in srgb, var(--icon-yellow) 16%, var(--surfacePrimary));
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 /* 编辑器标题与操作占满整条工具栏，避免桌面端两侧出现无意义空白。 */

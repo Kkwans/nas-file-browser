@@ -1,22 +1,32 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 const editorSource = readFileSync(
-  resolve(process.cwd(), "frontend/src/views/files/Editor.vue"),
+  fileURLToPath(new URL("../../views/files/Editor.vue", import.meta.url)),
   "utf8"
 );
 const vditorStyles = readFileSync(
-  resolve(process.cwd(), "frontend/src/css/vditor-overrides.css"),
+  fileURLToPath(new URL("../../css/vditor-overrides.css", import.meta.url)),
   "utf8"
 );
 const codeStyles = readFileSync(
-  resolve(process.cwd(), "frontend/src/css/markdown-code.css"),
+  fileURLToPath(new URL("../../css/markdown-code.css", import.meta.url)),
   "utf8"
 );
 const contentStyles = readFileSync(
-  resolve(process.cwd(), "frontend/src/css/markdown-content.css"),
+  fileURLToPath(new URL("../../css/markdown-content.css", import.meta.url)),
+  "utf8"
+);
+const resourceLoaderSource = readFileSync(
+  fileURLToPath(new URL("../externalResources.ts", import.meta.url)),
+  "utf8"
+);
+const quickPreviewSource = readFileSync(
+  fileURLToPath(
+    new URL("../../components/prompts/QuickPreview.vue", import.meta.url)
+  ),
   "utf8"
 );
 
@@ -72,5 +82,30 @@ describe("Markdown 编辑器交互契约", () => {
     );
     expect(editorSource).toContain("updateMarkdownCodeFenceLanguage(");
     expect(editorSource).toContain("getActiveMarkdownCodeBlockIndex()");
+  });
+
+  it("Vditor、highlight.js 和 Ace 只从应用同源静态资源加载", () => {
+    expect(resourceLoaderSource).toContain('import("vditor")');
+    expect(resourceLoaderSource).toContain('import("highlight.js")');
+    expect(resourceLoaderSource).toContain('staticAssetURL("ace")');
+    expect(editorSource).toContain("getAceAssetRoot()");
+    expect(editorSource).toContain("cdn: getVditorAssetRoot()");
+    expect(quickPreviewSource).toContain("cdn: getVditorAssetRoot()");
+    expect(`${resourceLoaderSource}\n${editorSource}`).not.toMatch(
+      /cdn\.jsdelivr|unpkg\.com/
+    );
+  });
+
+  it("大 Markdown 降级为轻量源码编辑但仍只手动保存", () => {
+    expect(editorSource).toContain(
+      "const MARKDOWN_RICH_EDITOR_MAX_BYTES = 2 * 1024 * 1024"
+    );
+    expect(editorSource).toContain("const usesVditor =");
+    expect(editorSource).toContain('class="editor-degraded-notice"');
+    expect(editorSource).toContain(
+      "await api.put(route.path, content as ApiContent)"
+    );
+    expect(editorSource).toContain('window.addEventListener("beforeunload"');
+    expect(editorSource).not.toMatch(/autoSave|autosave|draft|草稿/);
   });
 });

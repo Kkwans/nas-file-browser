@@ -1,121 +1,76 @@
-/** Shared external resource loader for Vditor (Markdown) and highlight.js. */
+/** Locally bundled Markdown resources shared by Editor and Quick Preview. */
 
+import { staticURL } from "@/utils/constants";
 import {
   getMarkdownCodeSource,
   renderMarkdownCodeLines,
   resolveMarkdownCodeLanguage,
 } from "@/utils/markdownCode";
 
-let vditorCSSLoaded = false;
-let vditorJSLoaded = false;
-let hljsJSLoaded = false;
+let vditorCSSPromise: Promise<unknown> | null = null;
+let vditorJSPromise: Promise<void> | null = null;
+let hljsJSPromise: Promise<void> | null = null;
+let highlightThemeGeneration = 0;
 
-/**
- * Load Vditor CSS from CDN (once).
- */
+const staticAssetURL = (path: string): string => {
+  const root = staticURL.replace(/\/$/, "");
+  return `${root}/${path.replace(/^\//, "")}`;
+};
+
+/** Root copied from the installed Vditor package by the Vite asset plugin. */
+export const getVditorAssetRoot = (): string => staticAssetURL("vditor");
+
+/** Root copied from the installed Ace package by the Vite asset plugin. */
+export const getAceAssetRoot = (): string => staticAssetURL("ace");
+
 export async function loadVditorCSS(): Promise<void> {
-  if (vditorCSSLoaded || document.querySelector('link[href*="vditor"]')) {
-    vditorCSSLoaded = true;
-    return;
-  }
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = "https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.css";
-  document.head.appendChild(link);
-  vditorCSSLoaded = true;
+  vditorCSSPromise ??= import("vditor/dist/index.css");
+  await vditorCSSPromise;
 }
 
-/**
- * Load Vditor JS from CDN (once).
- */
 export async function loadVditorJS(): Promise<void> {
-  if (vditorJSLoaded || window.Vditor) {
-    vditorJSLoaded = true;
-    return;
-  }
-  await new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.min.js";
-    script.onload = () => {
-      vditorJSLoaded = true;
-      resolve();
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
+  vditorJSPromise ??= import("vditor").then(({ default: Vditor }) => {
+    window.Vditor = Vditor;
   });
+  await vditorJSPromise;
 }
 
-/**
- * Load both Vditor CSS and JS.
- */
 export async function loadVditor(): Promise<void> {
   await Promise.all([loadVditorCSS(), loadVditorJS()]);
 }
 
-/**
- * Check if current theme is dark.
- */
 export function isDarkTheme(): boolean {
   return document.documentElement.classList.contains("dark");
 }
 
-/**
- * Load highlight.js CSS from CDN (once).
- * Automatically selects dark/light theme based on current app theme.
- */
 export async function loadHighlightCSS(): Promise<void> {
-  const isDark = isDarkTheme();
-  const themeCSS = isDark ? "github-dark" : "github";
-  const expectedHref = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
+  const generation = ++highlightThemeGeneration;
+  const css = isDarkTheme()
+    ? (await import("highlight.js/styles/github-dark.css?inline")).default
+    : (await import("highlight.js/styles/github.css?inline")).default;
+  if (generation !== highlightThemeGeneration) return;
 
-  const existing = document.getElementById(
-    "hljs-theme"
-  ) as HTMLLinkElement | null;
-  if (existing) {
-    if (!existing.href.endsWith(`/${themeCSS}.min.css`)) {
-      existing.href = expectedHref;
-    }
-    return;
+  let style = document.getElementById("hljs-theme") as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "hljs-theme";
+    document.head.appendChild(style);
   }
-
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/${themeCSS}.min.css`;
-  link.id = "hljs-theme";
-  document.head.appendChild(link);
+  style.textContent = css;
+  style.dataset.theme = isDarkTheme() ? "dark" : "light";
 }
 
-/**
- * Load highlight.js JS from CDN (once).
- */
 export async function loadHighlightJS(): Promise<void> {
-  if (hljsJSLoaded || window.hljs) {
-    hljsJSLoaded = true;
-    return;
-  }
-  await new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src =
-      "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js";
-    script.onload = () => {
-      hljsJSLoaded = true;
-      resolve();
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
+  hljsJSPromise ??= import("highlight.js").then(({ default: hljs }) => {
+    window.hljs = hljs as unknown as Window["hljs"];
   });
+  await hljsJSPromise;
 }
 
-/**
- * Load both highlight.js CSS and JS.
- */
 export async function loadHighlight(): Promise<void> {
   await Promise.all([loadHighlightCSS(), loadHighlightJS()]);
 }
 
-/**
- * Load all resources needed for Markdown rendering (Vditor + highlight.js).
- */
 export async function loadMarkdownResources(): Promise<void> {
   await Promise.all([loadVditor(), loadHighlight()]);
 }
@@ -124,10 +79,6 @@ export type HighlightCodeOptions = {
   showLineNumbers?: boolean;
 };
 
-/**
- * Keep the CDN theme in sync when the application theme changes.
- * The observer is deliberately scoped to one caller and must be disposed.
- */
 export function observeMarkdownThemeChanges(
   onChange?: (isDark: boolean) => void
 ): () => void {
@@ -153,10 +104,6 @@ export function highlightAndAnnotateCodeBlocks(
     const codeEl = element as HTMLElement;
     const pre = codeEl.parentElement;
     const textContent = codeEl.textContent || "";
-    // Vditor may briefly clear a code node while switching IR/SV/preview.
-    // Keep the last raw source in data-* so a transient empty DOM does not
-    // erase the block on the next decoration pass. If fresh text exists it
-    // always wins, which keeps edits and re-renders authoritative.
     const rawText = getMarkdownCodeSource(
       textContent,
       codeEl.dataset.rawSource,

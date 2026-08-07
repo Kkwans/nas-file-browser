@@ -1,21 +1,22 @@
 import type { RouteLocation } from "vue-router";
 import { createRouter, createWebHistory } from "vue-router";
-import Login from "@/views/Login.vue";
-import Layout from "@/views/Layout.vue";
-import Files from "@/views/Files.vue";
-import Share from "@/views/Share.vue";
-import Users from "@/views/settings/Users.vue";
-import User from "@/views/settings/User.vue";
-import Settings from "@/views/Settings.vue";
-import GlobalSettings from "@/views/settings/Global.vue";
-import ProfileSettings from "@/views/settings/Profile.vue";
-import Shares from "@/views/settings/Shares.vue";
-import Errors from "@/views/Errors.vue";
-import SearchPage from "@/views/SearchPage.vue";
 import { useAuthStore } from "@/stores/auth";
 import { baseURL, name } from "@/utils/constants";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
+
+const Login = () => import("@/views/Login.vue");
+const Layout = () => import("@/views/Layout.vue");
+const Files = () => import("@/views/Files.vue");
+const Share = () => import("@/views/Share.vue");
+const SearchPage = () => import("@/views/SearchPage.vue");
+const Settings = () => import("@/views/Settings.vue");
+const ProfileSettings = () => import("@/views/settings/Profile.vue");
+const Shares = () => import("@/views/settings/Shares.vue");
+const GlobalSettings = () => import("@/views/settings/Global.vue");
+const Users = () => import("@/views/settings/Users.vue");
+const User = () => import("@/views/settings/User.vue");
+const Errors = () => import("@/views/Errors.vue");
 
 const titles: Record<string, string> = {
   Login: "登录",

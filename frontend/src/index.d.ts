@@ -1,15 +1,19 @@
 declare module "*.vue";
+declare module "*.css";
+declare module "*.css?inline" {
+  const css: string;
+  export default css;
+}
 
 // Global t function provided by main.ts (replaces vue-i18n)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 // Make this file a module (required for `declare global`)
 export {};
 declare global {
   interface Window {
-    /** VideoJS instance (loaded from CDN) */
+    /** Vditor instance loaded from the local application bundle. */
     Vditor?: typeof import("vditor").default;
-    /** highlight.js instance (loaded from CDN) */
+    /** highlight.js instance loaded from the local application bundle. */
     hljs?: typeof import("highlight.js").default;
   }
 }

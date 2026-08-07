@@ -1,3 +1,6 @@
+import { normalizeFileKey } from "./fileListing";
+import { encodePath } from "./url";
+
 /**
  * 将搜索页路由中的路径转换成后端搜索接口使用的绝对目录。
  *
@@ -5,14 +8,15 @@
  * 不能对两者都使用旧的 removePrefix，否则真实路径会被误删前两级目录。
  */
 export function normalizeSearchBase(rawBase: string): string {
-  let base = rawBase.trim();
-  if (!base || base === "/files") return "/";
+  const base = normalizeFileKey(rawBase.trim());
+  return base === "/" ? "/" : `${base}/`;
+}
 
-  if (base === "/files" || base.startsWith("/files/")) {
-    base = base.slice("/files".length) || "/";
-  }
-
-  // 路由查询参数可能已经被编码，先逐段解码再由 API 层统一编码。
+/** Decode an explicitly identified `/files` UI route exactly once. */
+export function normalizeFilesRouteBase(routePath: string): string {
+  let base = routePath.trim();
+  if (base !== "/files" && !base.startsWith("/files/")) return "/";
+  base = base.slice("/files".length) || "/";
   base = base
     .split("/")
     .map((segment) => {
@@ -23,18 +27,13 @@ export function normalizeSearchBase(rawBase: string): string {
       }
     })
     .join("/");
-
-  if (!base.startsWith("/")) base = `/${base}`;
-  base = base.replace(/\/+/g, "/");
-  if (base.length > 1) base = base.replace(/\/+$/, "");
-  if (base === "/") return "/";
-  return `${base}/`;
+  return normalizeSearchBase(base);
 }
 
 /** 将搜索上下文稳定映射回文件列表路由。 */
 export function buildFilesRouteFromSearchBase(rawBase: string): string {
   const base = normalizeSearchBase(rawBase);
-  return base === "/" ? "/files/" : `/files${base}`;
+  return base === "/" ? "/files/" : `/files${encodePath(base)}`;
 }
 
 /** 切换搜索范围时保留进入搜索页前的目录，供“返回文件列表”使用。 */

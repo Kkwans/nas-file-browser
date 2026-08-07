@@ -1,13 +1,16 @@
 <template>
   <div
+    ref="itemElement"
     class="item"
-    role="button"
+    role="option"
     tabindex="0"
     :draggable="isDraggable"
     @dragstart="dragStart"
     @dragover="dragOver"
     @drop="drop"
     @click="itemClick"
+    @keydown.enter.stop.prevent="open"
+    @keydown.space.stop.prevent="itemClick"
     @mousedown="handleMouseDown"
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseLeave"
@@ -19,42 +22,23 @@
     :data-type="type"
     :data-url="url"
     :data-index="index"
+    :data-key="itemKey"
+    :class="{ 'is-touch-pressed': touchPressed }"
     :aria-label="name"
     :aria-selected="isSelected"
     :data-ext="getExtension(name).toLowerCase()"
     @contextmenu="contextMenu"
   >
     <div class="item-visual">
-      <video
-        v-if="
-          !readOnly &&
-          type === 'video' &&
-          isThumbsEnabled &&
-          !videoPreviewFailed
-        "
-        :src="videoPreviewUrl"
-        :aria-label="`${name} 视频预览`"
-        muted
-        playsinline
-        preload="metadata"
-        @loadedmetadata="showVideoPreviewFrame"
-        @error="videoPreviewFailed = true"
-      ></video>
-      <img
-        v-if="!readOnly && type === 'image' && isThumbsEnabled"
-        v-lazy="thumbnailUrl"
-        :alt="name"
+      <FileThumbnail
+        :name="name"
+        :path="path"
+        :type="type"
+        :modified="modified"
+        :size="size"
+        :enabled="enableThumbs"
+        :read-only="readOnly"
       />
-      <i
-        v-if="
-          readOnly ||
-          !isThumbsEnabled ||
-          (type !== 'image' && type !== 'video') ||
-          videoPreviewFailed
-        "
-        class="material-icons file-type-icon"
-        aria-hidden="true"
-      ></i>
       <span
         v-if="isDir && riskLevel !== 'low'"
         class="risk-badge"
@@ -201,7 +185,13 @@
       class="tag-dialog-backdrop"
       @click.self="closeTagPicker"
     >
-      <div class="tag-dialog" @click.stop>
+      <div
+        class="tag-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="分配标签"
+        @click.stop
+      >
         <TagPicker
           :path="path || ''"
           @manage="openTagManager"
@@ -290,17 +280,18 @@ import {
   getListingFieldVisibility,
   getListingTagPresentation,
   getTapSelectionBehavior,
-  shouldSuppressDesktopContextMenu,
+  shouldSuppressTouchContextMenu,
   shouldRenderListingSize,
   shouldRenderListingTagSlot,
 } from "@/utils/layoutContract";
-import { getFileTypeLabel } from "@/utils/fileListing";
+import { getFileTypeLabel, normalizeFileKey } from "@/utils/fileListing";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
-import { computed, inject, onBeforeUnmount, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
-import type { Resource, ConflictingResource, MoveCopyItem } from "@/types/file";
+import FileThumbnail from "@/components/files/FileThumbnail.vue";
+import type { ConflictingResource, MoveCopyItem } from "@/types/file";
 
 const touches = ref<number>(0);
 
@@ -309,6 +300,7 @@ const longPressTriggered = ref<boolean>(false);
 const touchInteraction = ref<boolean>(false);
 const touchGestureActive = ref<boolean>(false);
 const touchMoved = ref<boolean>(false);
+const touchPressed = ref<boolean>(false);
 const mobileTapCount = ref<number>(0);
 const mobileTapTimer = ref<number | null>(null);
 const touchResetTimer = ref<number | null>(null);
@@ -331,7 +323,9 @@ const props = defineProps<{
   modified: string;
   index: number;
   readOnly?: boolean;
-  path?: string;
+  path: string;
+  visibleKeys?: string[];
+  registerItem?: (key: string, element: HTMLElement | null) => void;
 }>();
 
 const authStore = useAuthStore();
@@ -350,50 +344,25 @@ const tagPresentation = computed(() =>
 const singleClick = computed(
   () => !props.readOnly && authStore.user?.singleClick
 );
-const isSelected = computed(
-  () => fileStore.selected.indexOf(props.index) !== -1
-);
+const itemKey = computed(() => normalizeFileKey(props.path));
+const itemElement = ref<HTMLElement | null>(null);
+const isSelected = computed(() => fileStore.selected.includes(itemKey.value));
 const isDraggable = computed(
   () => !props.readOnly && authStore.user?.perm.rename
 );
 
+onMounted(() => props.registerItem?.(itemKey.value, itemElement.value));
+
 const canDrop = computed(() => {
   if (!props.isDir || props.readOnly) return false;
 
-  for (const i of fileStore.selected) {
-    if (fileStore.req?.items[i].url === props.url) {
+  for (const item of fileStore.selectedItems) {
+    if (item.url === props.url) {
       return false;
     }
   }
 
   return true;
-});
-
-const thumbnailUrl = computed(() => {
-  const file = {
-    path: props.path,
-    modified: props.modified,
-  };
-
-  return api.getPreviewURL(file as Resource, "thumb");
-});
-const videoPreviewFailed = ref(false);
-const videoPreviewUrl = computed(() => {
-  const file = {
-    path: props.path,
-    modified: props.modified,
-  } as Resource;
-  return `${api.getDownloadURL(file, true)}#t=0.1`;
-});
-const showVideoPreviewFrame = (event: Event) => {
-  const video = event.currentTarget as HTMLVideoElement;
-  if (Number.isFinite(video.duration) && video.duration > 0) {
-    video.currentTime = Math.min(0.1, video.duration / 2);
-  }
-};
-
-const isThumbsEnabled = computed(() => {
-  return enableThumbs;
 });
 
 const riskLevel = computed(() => {
@@ -419,7 +388,7 @@ const toggleFav = () => {
 
 const selectForAction = () => {
   fileStore.multiple = false;
-  fileStore.selected = [props.index];
+  fileStore.selectOnly(itemKey.value);
 };
 
 const showItemAction = (prompt: string) => {
@@ -505,13 +474,12 @@ const fileTypeLabel = computed(() =>
 
 const dragStart = () => {
   if (fileStore.selectedCount === 0) {
-    fileStore.selected.push(props.index);
+    fileStore.addSelected(itemKey.value);
     return;
   }
 
   if (!isSelected.value) {
-    fileStore.selected = [];
-    fileStore.selected.push(props.index);
+    fileStore.selectOnly(itemKey.value);
   }
 };
 
@@ -546,19 +514,17 @@ const drop = async (event: Event) => {
 
   const items: MoveCopyItem[] = [];
 
-  for (const i of fileStore.selected) {
-    if (fileStore.req) {
-      items.push({
-        from: fileStore.req?.items[i].url,
-        to: props.url + encodeURIComponent(fileStore.req?.items[i].name),
-        name: fileStore.req?.items[i].name,
-        size: fileStore.req?.items[i].size,
-        modified: fileStore.req?.items[i].modified,
-        isDir: fileStore.req?.items[i].isDir,
-        overwrite: false,
-        rename: false,
-      });
-    }
+  for (const selectedItem of fileStore.selectedItems) {
+    items.push({
+      from: selectedItem.url,
+      to: props.url + encodeURIComponent(selectedItem.name),
+      name: selectedItem.name,
+      size: selectedItem.size,
+      modified: selectedItem.modified,
+      isDir: selectedItem.isDir,
+      overwrite: false,
+      rename: false,
+    });
   }
 
   // Get url from data attribute
@@ -644,14 +610,14 @@ const itemClick = (event: Event | KeyboardEvent) => {
 
 const contextMenu = (event: MouseEvent) => {
   event.preventDefault();
-  if (shouldSuppressDesktopContextMenu(touchInteraction.value)) {
+  if (shouldSuppressTouchContextMenu(touchInteraction.value)) {
     event.stopPropagation();
     return;
   }
   if (
     fileStore.selected.length === 0 ||
     event.ctrlKey ||
-    fileStore.selected.indexOf(props.index) === -1
+    !fileStore.selected.includes(itemKey.value)
   ) {
     click(event);
   }
@@ -681,40 +647,29 @@ const click = (
     touches.value = 0;
   }
 
-  if (fileStore.selected.indexOf(props.index) !== -1) {
+  if (fileStore.selected.includes(itemKey.value)) {
     if (
       (event as KeyboardEvent).ctrlKey ||
       (event as KeyboardEvent).metaKey ||
       selectionBehavior.preserveExisting
     ) {
-      fileStore.removeSelected(props.index);
+      fileStore.removeSelected(itemKey.value);
       if (fileStore.selectedCount === 0) {
         fileStore.multiple = false;
       }
     } else {
-      fileStore.selected = [props.index];
+      fileStore.selectOnly(itemKey.value);
     }
     return;
   }
 
   if ((event as KeyboardEvent).shiftKey && fileStore.selected.length > 0) {
-    let fi = 0;
-    let la = 0;
-
-    if (props.index > fileStore.selected[0]) {
-      fi = fileStore.selected[0] + 1;
-      la = props.index;
-    } else {
-      fi = props.index;
-      la = fileStore.selected[0] - 1;
-    }
-
-    for (; fi <= la; fi++) {
-      if (fileStore.selected.indexOf(fi) == -1) {
-        fileStore.selected.push(fi);
-      }
-    }
-
+    const visibleKeys = props.visibleKeys || [];
+    fileStore.selectRange(
+      visibleKeys,
+      itemKey.value,
+      (event as KeyboardEvent).ctrlKey || (event as KeyboardEvent).metaKey
+    );
     return;
   }
 
@@ -723,9 +678,9 @@ const click = (
     !(event as KeyboardEvent).metaKey &&
     !selectionBehavior.preserveExisting
   ) {
-    fileStore.selected = [];
+    fileStore.clearSelection();
   }
-  fileStore.selected.push(props.index);
+  fileStore.addSelected(itemKey.value);
 };
 
 const open = () => {
@@ -784,8 +739,8 @@ const handleLongPress = () => {
     longPressTriggered.value = true;
     clearMobileTapCandidate();
     fileStore.multiple = true;
-    if (!fileStore.selected.includes(props.index)) {
-      fileStore.selected.push(props.index);
+    if (!fileStore.selected.includes(itemKey.value)) {
+      fileStore.addSelected(itemKey.value);
     }
   } else if (singleClick.value) {
     longPressTriggered.value = true;
@@ -829,15 +784,22 @@ const handleTouchStart = (event: TouchEvent) => {
   touchInteraction.value = true;
   touchGestureActive.value = true;
   touchMoved.value = false;
+  touchPressed.value = true;
   longPressTriggered.value = false;
-  if (event.touches.length === 1) {
-    const touch = event.touches[0];
-    startLongPress(touch.clientX, touch.clientY);
+  if (event.touches.length !== 1) {
+    touchMoved.value = true;
+    touchPressed.value = false;
+    clearMobileTapCandidate();
+    cancelLongPress();
+    return;
   }
+  const touch = event.touches[0];
+  startLongPress(touch.clientX, touch.clientY);
 };
 
 const handleTouchEnd = () => {
   if (!touchGestureActive.value) return;
+  touchPressed.value = false;
   cancelLongPress();
 
   const wasLongPress = longPressTriggered.value;
@@ -882,6 +844,7 @@ const handleTouchEnd = () => {
 };
 
 const handleTouchCancel = () => {
+  touchPressed.value = false;
   touchGestureActive.value = false;
   touchMoved.value = true;
   longPressTriggered.value = false;
@@ -891,17 +854,25 @@ const handleTouchCancel = () => {
 };
 
 const handleTouchMove = (event: TouchEvent) => {
-  if (event.touches.length === 1 && startPosition.value) {
-    const touch = event.touches[0];
-    if (checkMovement(touch.clientX, touch.clientY)) {
-      touchMoved.value = true;
-      clearMobileTapCandidate();
-      cancelLongPress();
-    }
+  if (event.touches.length !== 1) {
+    touchMoved.value = true;
+    touchPressed.value = false;
+    clearMobileTapCandidate();
+    cancelLongPress();
+    return;
+  }
+  if (!startPosition.value) return;
+  const touch = event.touches[0];
+  if (checkMovement(touch.clientX, touch.clientY)) {
+    touchMoved.value = true;
+    touchPressed.value = false;
+    clearMobileTapCandidate();
+    cancelLongPress();
   }
 };
 
 onBeforeUnmount(() => {
+  props.registerItem?.(itemKey.value, null);
   cancelLongPress();
   clearMobileTapCandidate();
   if (touchResetTimer.value !== null) {

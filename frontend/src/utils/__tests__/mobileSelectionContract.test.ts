@@ -27,4 +27,26 @@ describe("移动端多选界面契约", () => {
       /@media \(max-width: 736px\)\s*\{[\s\S]*?#listing #multiple-selection,[\s\S]*?#listing #multiple-selection\.active\s*\{[^}]*display:\s*none\s*!important;/s
     );
   });
+
+  it("宽表格行也使用单击不打开、双击打开、长按选择的触摸契约", () => {
+    const source = readSource("components/files/DetailedTableRow.vue");
+
+    expect(source).toContain('@touchstart="handleTouchStart"');
+    expect(source).toContain('@touchmove="handleTouchMove"');
+    expect(source).toContain("if (touchInteraction.value) return;");
+    expect(source).toContain("longPress: touchGestureActive.value");
+    expect(source).toContain('action === "open"');
+    expect(source).toContain('action === "toggle-selection"');
+  });
+
+  it("触摸按压态在滚动移动后立即取消，并受 Reduced Motion 约束", () => {
+    const itemSource = readSource("components/files/ListingItem.vue");
+    const cssSource = readSource("css/listing.css");
+
+    expect(itemSource).toContain("touchPressed.value = false;");
+    expect(cssSource).toContain("#listing .item.is-touch-pressed");
+    expect(cssSource).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[\s\S]*?#listing \.item\.is-touch-pressed\s*\{[^}]*transform:\s*none;/s
+    );
+  });
 });

@@ -1,19 +1,26 @@
 <template>
   <tr
+    ref="itemElement"
     class="item details-table-row"
-    role="button"
+    role="row"
     tabindex="0"
     :data-dir="isDir"
     :data-type="type"
     :data-url="url"
     :data-index="index"
+    :data-key="itemKey"
+    :class="{ 'is-touch-pressed': touchPressed }"
     :aria-label="name"
     :aria-selected="isSelected"
     @click="itemClick"
     @dblclick.stop.prevent="open"
-    @keydown.enter.prevent="itemClick"
-    @keydown.space.prevent="itemClick"
+    @keydown.enter.stop.prevent="open"
+    @keydown.space.stop.prevent="itemClick"
     @contextmenu="contextMenu"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
+    @touchcancel="handleTouchCancel"
+    @touchmove="handleTouchMove"
   >
     <td
       class="details-name-cell"
@@ -22,42 +29,15 @@
     >
       <div class="details-identity">
         <div class="details-row-visual item-visual">
-          <video
-            v-if="
-              !videoPreviewFailed &&
-              !readOnly &&
-              type === 'video' &&
-              isThumbsEnabled
-            "
-            :src="videoPreviewUrl"
-            :aria-label="`${name} 视频预览`"
-            muted
-            playsinline
-            preload="metadata"
-            @loadedmetadata="showVideoPreviewFrame"
-            @error="videoPreviewFailed = true"
-          ></video>
-          <img
-            v-if="
-              !previewFailed && !readOnly && type === 'image' && isThumbsEnabled
-            "
-            :src="thumbnailUrl"
-            :alt="name"
-            loading="lazy"
-            decoding="async"
-            @error="previewFailed = true"
+          <FileThumbnail
+            :name="name"
+            :path="path"
+            :type="type"
+            :modified="modified"
+            :size="size"
+            :enabled="enableThumbs"
+            :read-only="readOnly"
           />
-          <i
-            v-if="
-              readOnly ||
-              !isThumbsEnabled ||
-              (type !== 'image' && type !== 'video') ||
-              previewFailed ||
-              videoPreviewFailed
-            "
-            class="material-icons file-type-icon"
-            aria-hidden="true"
-          ></i>
           <span
             v-if="isDir && riskLevel !== 'low'"
             class="risk-badge"
@@ -181,7 +161,13 @@
       class="tag-dialog-backdrop"
       @click.self="closeTagPicker"
     >
-      <div class="tag-dialog" @click.stop>
+      <div
+        class="tag-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="分配标签"
+        @click.stop
+      >
         <TagPicker
           :path="path || ''"
           @manage="openTagManager"
@@ -193,9 +179,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
+import FileThumbnail from "@/components/files/FileThumbnail.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useCategoriesStore } from "@/stores/categories";
 import { useFavoritesStore } from "@/stores/favorites";
@@ -206,10 +193,12 @@ import { files as api } from "@/api";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
-import { getFileTypeLabel } from "@/utils/fileListing";
+import { getFileTypeLabel, normalizeFileKey } from "@/utils/fileListing";
 import {
+  getMobileTouchAction,
   shouldOpenDetailedRow,
   shouldOpenDetailedRowFromClick,
+  shouldSuppressTouchContextMenu,
 } from "@/utils/layoutContract";
 
 const $showError = inject<IToastError>("$showError")!;
@@ -231,34 +220,31 @@ const props = defineProps<{
   modified: string;
   index: number;
   readOnly?: boolean;
-  path?: string;
+  path: string;
+  visibleKeys?: string[];
+  registerItem?: (key: string, element: HTMLElement | null) => void;
 }>();
 
-const isSelected = computed(() => fileStore.selected.includes(props.index));
-const isThumbsEnabled = enableThumbs;
-const thumbnailUrl = computed(() =>
-  api.getPreviewURL(
-    { path: props.path, modified: props.modified } as Parameters<
-      typeof api.getPreviewURL
-    >[0],
-    "thumb"
-  )
-);
-const videoPreviewUrl = computed(
-  () =>
-    `${api.getDownloadURL(
-      { path: props.path, modified: props.modified } as Parameters<
-        typeof api.getDownloadURL
-      >[0],
-      true
-    )}#t=0.1`
-);
-const showVideoPreviewFrame = (event: Event) => {
-  const video = event.currentTarget as HTMLVideoElement;
-  if (Number.isFinite(video.duration) && video.duration > 0) {
-    video.currentTime = Math.min(0.1, video.duration / 2);
-  }
-};
+const itemKey = computed(() => normalizeFileKey(props.path));
+const itemElement = ref<HTMLElement | null>(null);
+const isSelected = computed(() => fileStore.selected.includes(itemKey.value));
+const touchInteraction = ref(false);
+const touchGestureActive = ref(false);
+const touchMoved = ref(false);
+const touchPressed = ref(false);
+const longPressTriggered = ref(false);
+const mobileTapCount = ref(0);
+const startPosition = ref<{ x: number; y: number } | null>(null);
+let longPressTimer: number | null = null;
+let mobileTapTimer: number | null = null;
+let touchResetTimer: number | null = null;
+onMounted(() => props.registerItem?.(itemKey.value, itemElement.value));
+onBeforeUnmount(() => {
+  props.registerItem?.(itemKey.value, null);
+  if (longPressTimer !== null) window.clearTimeout(longPressTimer);
+  if (mobileTapTimer !== null) window.clearTimeout(mobileTapTimer);
+  if (touchResetTimer !== null) window.clearTimeout(touchResetTimer);
+});
 const riskLevel = computed(() => {
   if (!props.isDir || !props.path) return "low";
   return categoriesStore.getRiskLevel(props.path);
@@ -294,6 +280,7 @@ const toggleFav = () => {
   if (props.path) favoritesStore.toggleFavorite(props.path, props.name);
 };
 const open = (event?: MouseEvent) => {
+  if (event && touchInteraction.value) return;
   const isActionControl = Boolean(
     (event?.target as HTMLElement | null)?.closest(".details-actions-cell")
   );
@@ -304,8 +291,6 @@ const toggleTagPicker = () => {
   showTagPicker.value = !showTagPicker.value;
 };
 const showTagPicker = ref(false);
-const previewFailed = ref(false);
-const videoPreviewFailed = ref(false);
 const closeTagPicker = () => {
   showTagPicker.value = false;
 };
@@ -315,7 +300,7 @@ const openTagManager = () => {
 };
 const selectForAction = () => {
   fileStore.multiple = false;
-  fileStore.selected = [props.index];
+  fileStore.selectOnly(itemKey.value);
 };
 const showItemAction = (prompt: string) => {
   selectForAction();
@@ -333,6 +318,7 @@ const downloadItem = () => {
   }
 };
 const itemClick = (event: Event | KeyboardEvent) => {
+  if (touchInteraction.value) return;
   if ((event.target as HTMLElement).closest("button")) return;
   if (
     shouldOpenDetailedRowFromClick(
@@ -344,15 +330,15 @@ const itemClick = (event: Event | KeyboardEvent) => {
     router.push({ path: props.url });
     return;
   }
-  if (fileStore.selected.includes(props.index)) {
+  if (fileStore.selected.includes(itemKey.value)) {
     if (
       (event as KeyboardEvent).ctrlKey ||
       (event as KeyboardEvent).metaKey ||
       fileStore.multiple
     ) {
-      fileStore.removeSelected(props.index);
+      fileStore.removeSelected(itemKey.value);
     } else {
-      fileStore.selected = [props.index];
+      fileStore.selectOnly(itemKey.value);
     }
     return;
   }
@@ -362,14 +348,155 @@ const itemClick = (event: Event | KeyboardEvent) => {
     !(event as KeyboardEvent).metaKey &&
     !fileStore.multiple
   ) {
-    fileStore.selected = [];
+    fileStore.clearSelection();
   }
-  fileStore.selected.push(props.index);
+  if ((event as KeyboardEvent).shiftKey && fileStore.selected.length > 0) {
+    const visibleKeys = props.visibleKeys || [];
+    fileStore.selectRange(
+      visibleKeys,
+      itemKey.value,
+      (event as KeyboardEvent).ctrlKey || (event as KeyboardEvent).metaKey
+    );
+    return;
+  }
+  fileStore.addSelected(itemKey.value);
 };
 const contextMenu = (event: MouseEvent) => {
   event.preventDefault();
-  if (!fileStore.selected.includes(props.index) || event.ctrlKey) {
-    fileStore.selected = [props.index];
+  if (shouldSuppressTouchContextMenu(touchInteraction.value)) {
+    event.stopPropagation();
+    return;
   }
+  if (!fileStore.selected.includes(itemKey.value) || event.ctrlKey) {
+    fileStore.selectOnly(itemKey.value);
+  }
+};
+
+const clearLongPress = () => {
+  if (longPressTimer !== null) {
+    window.clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  startPosition.value = null;
+};
+
+const clearMobileTapCandidate = () => {
+  mobileTapCount.value = 0;
+  if (mobileTapTimer !== null) {
+    window.clearTimeout(mobileTapTimer);
+    mobileTapTimer = null;
+  }
+};
+
+const finishTouchInteraction = () => {
+  if (touchResetTimer !== null) window.clearTimeout(touchResetTimer);
+  touchResetTimer = window.setTimeout(() => {
+    touchInteraction.value = false;
+    touchResetTimer = null;
+  }, 400);
+};
+
+const handleTouchStart = (event: TouchEvent) => {
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("button, input, select, textarea, a")) return;
+
+  if (touchResetTimer !== null) {
+    window.clearTimeout(touchResetTimer);
+    touchResetTimer = null;
+  }
+  touchInteraction.value = true;
+  touchGestureActive.value = true;
+  touchMoved.value = false;
+  touchPressed.value = true;
+  longPressTriggered.value = false;
+  if (event.touches.length !== 1) {
+    touchMoved.value = true;
+    touchPressed.value = false;
+    clearMobileTapCandidate();
+    clearLongPress();
+    return;
+  }
+
+  const touch = event.touches[0];
+  startPosition.value = { x: touch.clientX, y: touch.clientY };
+  longPressTimer = window.setTimeout(() => {
+    const action = getMobileTouchAction({
+      tapCount: mobileTapCount.value,
+      longPress: touchGestureActive.value,
+      moved: touchMoved.value,
+    });
+    if (action === "select") {
+      longPressTriggered.value = true;
+      clearMobileTapCandidate();
+      fileStore.multiple = true;
+      fileStore.addSelected(itemKey.value);
+    }
+    clearLongPress();
+  }, 500);
+};
+
+const handleTouchMove = (event: TouchEvent) => {
+  if (event.touches.length !== 1) {
+    touchMoved.value = true;
+    touchPressed.value = false;
+    clearMobileTapCandidate();
+    clearLongPress();
+    return;
+  }
+  if (!startPosition.value) return;
+  const touch = event.touches[0];
+  const moved =
+    Math.abs(touch.clientX - startPosition.value.x) > 10 ||
+    Math.abs(touch.clientY - startPosition.value.y) > 10;
+  if (!moved) return;
+
+  touchMoved.value = true;
+  touchPressed.value = false;
+  clearMobileTapCandidate();
+  clearLongPress();
+};
+
+const handleTouchEnd = () => {
+  if (!touchGestureActive.value) return;
+  touchPressed.value = false;
+  clearLongPress();
+
+  if (!longPressTriggered.value && !touchMoved.value) {
+    mobileTapCount.value += 1;
+    const action = getMobileTouchAction({
+      tapCount: mobileTapCount.value,
+      longPress: false,
+      moved: false,
+      multiple: fileStore.multiple,
+    });
+    if (action === "toggle-selection") {
+      clearMobileTapCandidate();
+      fileStore.toggleSelected(itemKey.value);
+      if (fileStore.selectedCount === 0) fileStore.multiple = false;
+    } else if (action === "open") {
+      clearMobileTapCandidate();
+      open();
+    } else {
+      if (mobileTapTimer !== null) window.clearTimeout(mobileTapTimer);
+      mobileTapTimer = window.setTimeout(clearMobileTapCandidate, 320);
+    }
+  } else if (touchMoved.value) {
+    clearMobileTapCandidate();
+  }
+
+  touchGestureActive.value = false;
+  touchMoved.value = false;
+  longPressTriggered.value = false;
+  finishTouchInteraction();
+};
+
+const handleTouchCancel = () => {
+  touchPressed.value = false;
+  touchGestureActive.value = false;
+  touchMoved.value = true;
+  longPressTriggered.value = false;
+  clearMobileTapCandidate();
+  clearLongPress();
+  finishTouchInteraction();
 };
 </script>

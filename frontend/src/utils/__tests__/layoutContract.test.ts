@@ -13,7 +13,7 @@ import {
   shouldRenderListingSize,
   shouldRenderListingTagSlot,
   shouldRenderMobileSelection,
-  shouldSuppressDesktopContextMenu,
+  shouldSuppressTouchContextMenu,
 } from "../layoutContract";
 
 describe("file listing layout contract", () => {
@@ -147,9 +147,9 @@ describe("file listing layout contract", () => {
     ).toBe("toggle-selection");
   });
 
-  it("suppresses the desktop context menu on mobile only", () => {
-    expect(shouldSuppressDesktopContextMenu(true)).toBe(true);
-    expect(shouldSuppressDesktopContextMenu(false)).toBe(false);
+  it("suppresses a synthetic context menu only during a touch interaction", () => {
+    expect(shouldSuppressTouchContextMenu(true)).toBe(true);
+    expect(shouldSuppressTouchContextMenu(false)).toBe(false);
   });
 
   it("does not let file shortcuts capture keyboard input from editable controls", () => {

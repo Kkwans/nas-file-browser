@@ -96,6 +96,16 @@
   );
 }
 
+#listing .item.is-touch-pressed {
+  background: color-mix(
+    in srgb,
+    var(--listing-accent) 8%,
+    var(--listing-surface)
+  );
+  transform: scale(0.99);
+  transition-duration: 100ms;
+}
+
 #listing .item > div:first-child {
   display: flex;
   align-items: center;
@@ -116,6 +126,82 @@
 #listing .item > div:first-child > img {
   overflow: hidden;
   border-radius: 12px;
+}
+
+#listing .file-thumbnail {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 64px;
+}
+
+#listing .file-thumbnail > img,
+#listing .file-thumbnail > .file-type-icon,
+#listing .file-thumbnail > .thumbnail-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#listing .file-thumbnail > img {
+  overflow: hidden;
+  border-radius: 12px;
+  object-fit: cover;
+  animation: thumbnail-fade-in 120ms ease-out;
+}
+
+#listing .file-thumbnail > .file-type-icon {
+  font-size: inherit;
+  line-height: 1;
+}
+
+#listing .thumbnail-placeholder {
+  border-radius: 12px;
+  background: linear-gradient(
+    110deg,
+    var(--listing-subtle) 30%,
+    color-mix(in srgb, var(--listing-border) 65%, transparent) 45%,
+    var(--listing-subtle) 60%
+  );
+  background-size: 220% 100%;
+  animation: thumbnail-skeleton 1.2s linear infinite;
+}
+
+#listing .file-thumbnail[data-status="error"] {
+  color: var(--listing-muted);
+}
+
+#listing .thumbnail-retry {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--listing-border);
+  border-radius: 50%;
+  color: var(--listing-muted);
+  background: var(--listing-surface);
+  cursor: pointer;
+}
+
+#listing .thumbnail-retry:hover,
+#listing .thumbnail-retry:focus-visible {
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+@keyframes thumbnail-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes thumbnail-skeleton {
+  to {
+    background-position-x: -220%;
+  }
 }
 
 #listing .item > div:last-child {
@@ -380,6 +466,12 @@
   font-size: 92px;
 }
 
+#listing.mosaic .file-thumbnail {
+  width: 92px;
+  height: 92px;
+  font-size: 92px;
+}
+
 #listing.mosaic .item > div:last-child {
   display: flex;
   flex: 1;
@@ -486,6 +578,12 @@
   border-radius: 12px;
 }
 
+#listing.compact-grid .file-thumbnail {
+  width: 72px;
+  height: 72px;
+  font-size: 72px;
+}
+
 #listing.compact-grid .item > div:last-child {
   width: 100%;
 }
@@ -525,6 +623,12 @@
   gap: 6px;
 }
 
+#listing.compact-grid.compact-grid-size-small .file-thumbnail {
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+}
+
 #listing.compact-grid.compact-grid-size-small .item {
   min-height: 108px;
   padding: 7px 5px 8px;
@@ -550,6 +654,12 @@
   gap: 12px;
 }
 
+#listing.compact-grid.compact-grid-size-large .file-thumbnail {
+  width: 104px;
+  height: 104px;
+  font-size: 104px;
+}
+
 #listing.compact-grid.compact-grid-size-large .item {
   min-height: 184px;
   padding: 12px 10px 14px;
@@ -573,6 +683,12 @@
   > div[data-clear-on-click="true"] {
   grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
   gap: 14px;
+}
+
+#listing.compact-grid.compact-grid-size-xlarge .file-thumbnail {
+  width: 156px;
+  height: 156px;
+  font-size: 156px;
 }
 
 #listing.compact-grid.compact-grid-size-xlarge .item {
@@ -734,6 +850,12 @@
   font-size: 48px;
 }
 
+#listing.details .details-row-visual > .file-thumbnail {
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+}
+
 #listing.details .details-row-visual > img,
 #listing.details .details-row-visual > video {
   overflow: hidden;
@@ -835,6 +957,12 @@
 
 #listing.compact-list .item > div:first-child > img,
 #listing.compact-list .item > div:first-child > .file-type-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 32px;
+}
+
+#listing.compact-list .file-thumbnail {
   width: 32px;
   height: 32px;
   font-size: 32px;
@@ -1881,5 +2009,14 @@
   #listing .mobile-item-more,
   .listing-search {
     transition: none;
+  }
+
+  #listing .item.is-touch-pressed {
+    transform: none;
+  }
+
+  #listing .file-thumbnail > img,
+  #listing .thumbnail-placeholder {
+    animation: none;
   }
 }

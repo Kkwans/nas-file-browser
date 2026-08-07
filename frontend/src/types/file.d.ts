@@ -3,6 +3,8 @@
 
 export {};
 
+export type FileKey = string;
+
 interface ResourceBase {
   path: string;
   name: string;
@@ -32,6 +34,13 @@ export interface Resource extends ResourceBase {
 export interface ResourceItem extends ResourceBase {
   index: number;
   subtitles?: string[];
+}
+
+export interface BatchResourceResult {
+  path: string;
+  status: number;
+  item?: ResourceItem;
+  error?: string;
 }
 
 export type ResourceType =

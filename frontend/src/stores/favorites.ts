@@ -11,6 +11,7 @@ import {
   reorderFavoriteItems,
   type FavoriteDropPosition,
 } from "@/utils/sidebarFavorites";
+import { normalizeTagPath, rewriteTagPathPrefix } from "@/utils/tagPath";
 
 export interface FavoriteGroup {
   id: string;
@@ -38,6 +39,19 @@ export const useFavoritesStore = defineStore("favorites", () => {
   const favorites = ref<Favorite[]>([]);
   const groups = ref<FavoriteGroup[]>([]);
   const loaded = ref(false);
+
+  const snapshotFavorites = () => favorites.value.map((item) => ({ ...item }));
+  const snapshotGroups = () => groups.value.map((item) => ({ ...item }));
+
+  function restoreFavorites(snapshot: Favorite[]) {
+    favorites.value = snapshot.map((item) => ({ ...item }));
+    saveToLocalStorage();
+  }
+
+  function restoreGroups(snapshot: FavoriteGroup[]) {
+    groups.value = snapshot.map((item) => ({ ...item }));
+    saveGroupsToLocalStorage();
+  }
 
   // --- API helpers ---
 
@@ -285,6 +299,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
     const cleaned = path.replace(/\/+$/, "");
     if (favorites.value.some((f) => f.path === cleaned)) return;
 
+    const snapshot = snapshotFavorites();
+
     const newFav: Favorite = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       path: cleaned,
@@ -300,30 +316,67 @@ export const useFavoritesStore = defineStore("favorites", () => {
       favorites.value = replaceFavoriteByPath(favorites.value, created);
       saveToLocalStorage();
     } else {
-      await refreshAfterMutation();
+      restoreFavorites(snapshot);
     }
   }
 
   async function removeFavorite(id: string) {
+    const snapshot = snapshotFavorites();
     favorites.value = favorites.value.filter((f) => f.id !== id);
     favorites.value.forEach((f, i) => (f.order = i));
     saveToLocalStorage();
     const result = await apiDelete(id);
-    if (!result.ok && result.status === 404) await refreshAfterMutation();
+    if (!result.ok) {
+      restoreFavorites(snapshot);
+      if (result.status === 404) await refreshAfterMutation();
+    }
   }
 
   async function removeByPath(path: string) {
     const cleaned = path.replace(/\/+$/, "");
     const target = favorites.value.find((f) => f.path === cleaned);
+    if (!target) return;
+
+    const snapshot = snapshotFavorites();
     favorites.value = favorites.value.filter((f) => f.path !== cleaned);
     favorites.value.forEach((f, i) => (f.order = i));
     saveToLocalStorage();
-    if (target) await apiDelete(target.id);
+    const result = await apiDelete(target.id);
+    if (!result.ok) {
+      restoreFavorites(snapshot);
+      if (result.status === 404) await refreshAfterMutation();
+    }
   }
 
   function isFavorite(path: string): boolean {
     const cleaned = path.replace(/\/+$/, "");
     return favorites.value.some((f) => f.path === cleaned);
+  }
+
+  function applyPathRewrite(from: string, to: string) {
+    let changed = false;
+    favorites.value = favorites.value.map((favorite) => {
+      const rewritten = rewriteTagPathPrefix(favorite.path, from, to);
+      if (rewritten === null || rewritten === favorite.path) return favorite;
+      changed = true;
+      return { ...favorite, path: rewritten };
+    });
+    if (changed) saveToLocalStorage();
+  }
+
+  function applyPathRemoval(prefix: string) {
+    const normalizedPrefix = normalizeTagPath(prefix);
+    const previousLength = favorites.value.length;
+    favorites.value = favorites.value.filter((favorite) => {
+      const normalized = normalizeTagPath(favorite.path);
+      return (
+        normalized !== normalizedPrefix &&
+        rewriteTagPathPrefix(normalized, normalizedPrefix, "/") === null
+      );
+    });
+    if (favorites.value.length === previousLength) return;
+    favorites.value.forEach((favorite, index) => (favorite.order = index));
+    saveToLocalStorage();
   }
 
   async function toggleFavorite(path: string, name: string, groupId?: string) {
@@ -339,14 +392,13 @@ export const useFavoritesStore = defineStore("favorites", () => {
   async function moveFavoriteToGroup(favId: string, groupId: string) {
     const fav = favorites.value.find((f) => f.id === favId);
     if (!fav) return;
-    const previousGroupId = fav.groupId || "";
+    const snapshot = snapshotFavorites();
     fav.groupId = groupId;
     saveToLocalStorage();
     const result = await apiUpdate(favId, { groupId });
     if (!result.ok) {
-      fav.groupId = previousGroupId;
-      saveToLocalStorage();
-      await refreshAfterMutation();
+      restoreFavorites(snapshot);
+      if (result.status === 404) await refreshAfterMutation();
     }
   }
 
@@ -359,11 +411,14 @@ export const useFavoritesStore = defineStore("favorites", () => {
     )
       return;
 
+    const snapshot = snapshotFavorites();
     const [item] = favorites.value.splice(fromIndex, 1);
     favorites.value.splice(toIndex, 0, item);
     favorites.value.forEach((f, i) => (f.order = i));
     saveToLocalStorage();
-    await apiReorder(favorites.value.map((f) => f.id));
+    if (!(await apiReorder(favorites.value.map((f) => f.id)))) {
+      restoreFavorites(snapshot);
+    }
   }
 
   async function moveAndReorderFavorite(
@@ -371,6 +426,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
     targetId: string,
     position: FavoriteDropPosition
   ) {
+    const snapshot = snapshotFavorites();
     const next = reorderFavoriteItems(
       favorites.value,
       draggedId,
@@ -391,12 +447,16 @@ export const useFavoritesStore = defineStore("favorites", () => {
         groupId: moved.groupId || "",
       });
       if (!result.ok) {
-        await refreshAfterMutation();
+        restoreFavorites(snapshot);
+        if (result.status === 404) await refreshAfterMutation();
         return;
       }
     }
     if (!(await apiReorder(next.map((favorite) => favorite.id)))) {
-      await refreshAfterMutation();
+      if (groupChanged) {
+        await apiUpdate(draggedId, { groupId: previous.groupId || "" });
+      }
+      restoreFavorites(snapshot);
     }
   }
 
@@ -450,26 +510,21 @@ export const useFavoritesStore = defineStore("favorites", () => {
       saveGroupsToLocalStorage();
       return created;
     }
-    // Fallback: create locally
-    const localGroup: FavoriteGroup = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      name,
-      order: groups.value.length,
-      color: color || "",
-    };
-    groups.value.push(localGroup);
-    saveGroupsToLocalStorage();
-    return localGroup;
+    return null;
   }
 
   async function updateGroup(id: string, updates: Partial<FavoriteGroup>) {
     const group = groups.value.find((g) => g.id === id);
     if (!group) return;
+    const snapshot = snapshotGroups();
     if (updates.name !== undefined) group.name = updates.name;
     if (updates.color !== undefined) group.color = updates.color;
     saveGroupsToLocalStorage();
     const result = await apiUpdateGroup(id, updates);
-    if (!result.ok && result.status === 404) await refreshAfterMutation();
+    if (!result.ok) {
+      restoreGroups(snapshot);
+      if (result.status === 404) await refreshAfterMutation();
+    }
   }
 
   async function deleteGroup(
@@ -498,15 +553,13 @@ export const useFavoritesStore = defineStore("favorites", () => {
     )
       return;
 
-    const previous = [...groups.value];
+    const previous = snapshotGroups();
     const [item] = groups.value.splice(fromIndex, 1);
     groups.value.splice(toIndex, 0, item);
     groups.value.forEach((g, i) => (g.order = i));
     saveGroupsToLocalStorage();
     if (!(await apiReorderGroups(groups.value.map((g) => g.id)))) {
-      groups.value = previous;
-      saveGroupsToLocalStorage();
-      await refreshAfterMutation();
+      restoreGroups(previous);
     }
   }
 
@@ -548,6 +601,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
     removeFavorite,
     removeByPath,
     isFavorite,
+    applyPathRewrite,
+    applyPathRemoval,
     toggleFavorite,
     moveFavoriteToGroup,
     reorderFavorite,

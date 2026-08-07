@@ -1,12 +1,26 @@
 import { describe, expect, it } from "vitest";
 import {
   getFileTypeLabel,
+  normalizeFileKey,
   normalizeViewMode,
   selectForContextMenu,
+  sortListingItems,
   sortItemsByType,
 } from "../fileListing";
 
 describe("file listing preferences", () => {
+  it("normalizes URL separators without changing Linux filename semantics", () => {
+    expect(normalizeFileKey("docs//Report.TXT/")).toBe("/docs/Report.TXT");
+    expect(normalizeFileKey("/docs/report.txt")).toBe("/docs/report.txt");
+    expect(normalizeFileKey("/docs/with\\backslash.txt")).toBe(
+      "/docs/with\\backslash.txt"
+    );
+    expect(normalizeFileKey("/docs/./drafts/../Report.TXT")).toBe(
+      "/docs/Report.TXT"
+    );
+    expect(normalizeFileKey("../../docs/report.txt")).toBe("/docs/report.txt");
+    expect(normalizeFileKey("/")).toBe("/");
+  });
   it("keeps directory type explicit in the detailed list", () => {
     expect(getFileTypeLabel({ isDir: true })).toBe("文件夹");
     expect(getFileTypeLabel({ isDir: false, extension: ".md" })).toBe(
@@ -63,5 +77,31 @@ describe("file listing preferences", () => {
       "notes-a.txt",
       "photos.png",
     ]);
+  });
+
+  it("sorts an already loaded listing without changing its input", () => {
+    const items = [
+      {
+        name: "file-10.txt",
+        type: "text",
+        isDir: false,
+        size: 10,
+        modified: "2026-01-02T00:00:00Z",
+      },
+      {
+        name: "file-2.txt",
+        type: "text",
+        isDir: false,
+        size: 2,
+        modified: "2026-01-01T00:00:00Z",
+      },
+    ];
+
+    expect(sortListingItems(items, "name", true)[0].name).toBe("file-2.txt");
+    expect(sortListingItems(items, "size", false)[0].size).toBe(10);
+    expect(sortListingItems(items, "modified", true)[0].name).toBe(
+      "file-2.txt"
+    );
+    expect(items[0].name).toBe("file-10.txt");
   });
 });

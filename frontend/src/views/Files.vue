@@ -7,7 +7,12 @@
     />
 
     <breadcrumbs base="/files" />
-    <errors v-if="error" :errorCode="error.status" />
+    <errors
+      v-if="error"
+      :errorCode="error.status"
+      showRetry
+      @retry="fetchData"
+    />
     <component
       v-else-if="currentView"
       :is="currentView"
@@ -137,14 +142,12 @@ const applyPreSelection = () => {
   }
 
   if (index === -1) return;
-  fileStore.selected.push(index);
+  fileStore.selectOnly(fileStore.req.items[index].path);
 };
 
 const fetchData = async () => {
   // Reset view information.
   fileStore.reload = false;
-  fileStore.selected = [];
-  fileStore.multiple = false;
   layoutStore.closeHovers();
 
   // Set loading to true and reset the error.

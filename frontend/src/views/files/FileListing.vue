@@ -278,56 +278,55 @@
         class="file-icons"
         data-clear-on-click="true"
         :class="listingClass"
+        :role="
+          currentViewMode === 'details' && !isMobile ? undefined : 'listbox'
+        "
+        :aria-multiselectable="
+          currentViewMode === 'details' && !isMobile
+            ? undefined
+            : fileStore.multiple
+        "
         @click="handleEmptyAreaClick"
       >
-        <!-- Detailed list always uses the semantic table. Its mobile CSS
-             converts the same rows into cards, so interaction and ordering do
-             not diverge between desktop and phone layouts. -->
+        <!-- Detailed mode uses a semantic table at desktop widths and the
+             shared FileKey/touch contract when the listing container narrows. -->
         <template v-if="currentViewMode !== 'details'">
           <div>
             <div class="listing-table-header">
               <div>
-                <p
+                <button
+                  type="button"
                   class="name"
-                  role="button"
-                  tabindex="0"
-                  :aria-sort="headerSortState('name')"
+                  :aria-pressed="currentSortBy === 'name'"
                   @click="sortByHeader('name')"
-                  @keyup.enter="sortByHeader('name')"
                 >
                   <span>名称</span>
-                </p>
-                <p
+                </button>
+                <button
+                  type="button"
                   class="type"
-                  role="button"
-                  tabindex="0"
-                  :aria-sort="headerSortState('type')"
+                  :aria-pressed="currentSortBy === 'type'"
                   @click="sortByHeader('type')"
-                  @keyup.enter="sortByHeader('type')"
                 >
                   <span>类型</span>
-                </p>
-                <p
+                </button>
+                <button
+                  type="button"
                   class="size"
-                  role="button"
-                  tabindex="0"
-                  :aria-sort="headerSortState('size')"
+                  :aria-pressed="currentSortBy === 'size'"
                   @click="sortByHeader('size')"
-                  @keyup.enter="sortByHeader('size')"
                 >
                   <span>大小</span>
-                </p>
-                <p
+                </button>
+                <button
+                  type="button"
                   class="modified"
-                  role="button"
-                  tabindex="0"
-                  :aria-sort="headerSortState('modified')"
+                  :aria-pressed="currentSortBy === 'modified'"
                   @click="sortByHeader('modified')"
-                  @keyup.enter="sortByHeader('modified')"
                 >
                   <span>修改时间</span>
-                </p>
-                <p class="actions"><span>操作</span></p>
+                </button>
+                <span class="actions">操作</span>
               </div>
             </div>
           </div>
@@ -336,6 +335,7 @@
             <i
               class="material-icons"
               :style="{ color: tagsStore.activeFilterTag.color }"
+              aria-hidden="true"
               >label</i
             >
             <span
@@ -351,6 +351,7 @@
               <button
                 type="button"
                 :class="{ active: tagsStore.filterMode === 'current' }"
+                :aria-pressed="tagsStore.filterMode === 'current'"
                 @click="tagsStore.setFilterMode('current')"
               >
                 当前目录
@@ -358,6 +359,7 @@
               <button
                 type="button"
                 :class="{ active: tagsStore.filterMode === 'global' }"
+                :aria-pressed="tagsStore.filterMode === 'global'"
                 @click="tagsStore.setFilterMode('global')"
               >
                 全局
@@ -366,9 +368,10 @@
             <button
               class="tag-filter-clear-btn"
               type="button"
+              aria-label="清除筛选"
               @click="tagsStore.setFilter(null)"
             >
-              <i class="material-icons">close</i>
+              <i class="material-icons" aria-hidden="true">close</i>
             </button>
           </div>
 
@@ -376,7 +379,7 @@
             v-if="items.dirs.length + items.files.length === 0"
             class="message filtered-empty"
           >
-            <i class="material-icons">filter_alt_off</i>
+            <i class="material-icons" aria-hidden="true">filter_alt_off</i>
             <span>当前目录没有匹配项，可切换为全局筛选或清除筛选</span>
           </div>
 
@@ -385,10 +388,12 @@
             <button
               v-if="hasSystemDirs"
               class="system-dirs-toggle"
+              type="button"
+              :aria-expanded="showSystemDirs"
               @click="toggleSystemDirs"
               :title="showSystemDirs ? '隐藏系统文件夹' : '显示系统文件夹'"
             >
-              <i class="material-icons">{{
+              <i class="material-icons" aria-hidden="true">{{
                 showSystemDirs ? "expand_less" : "expand_more"
               }}</i>
               <span>{{ systemDirs.length }} 项</span>
@@ -412,6 +417,8 @@
               v-bind:view-mode="currentViewMode"
               v-bind:size="item.size"
               v-bind:path="item.path"
+              :visible-keys="visibleItemKeys"
+              :register-item="registerItem"
             >
             </item>
           </div>
@@ -435,6 +442,8 @@
               v-bind:view-mode="currentViewMode"
               v-bind:size="item.size"
               v-bind:path="item.path"
+              :visible-keys="visibleItemKeys"
+              :register-item="registerItem"
             >
             </item>
           </div>
@@ -445,6 +454,7 @@
             <i
               class="material-icons"
               :style="{ color: tagsStore.activeFilterTag.color }"
+              aria-hidden="true"
               >label</i
             >
             <span
@@ -460,6 +470,7 @@
               <button
                 type="button"
                 :class="{ active: tagsStore.filterMode === 'current' }"
+                :aria-pressed="tagsStore.filterMode === 'current'"
                 @click="tagsStore.setFilterMode('current')"
               >
                 当前目录
@@ -467,6 +478,7 @@
               <button
                 type="button"
                 :class="{ active: tagsStore.filterMode === 'global' }"
+                :aria-pressed="tagsStore.filterMode === 'global'"
                 @click="tagsStore.setFilterMode('global')"
               >
                 全局
@@ -478,7 +490,7 @@
               aria-label="清除筛选"
               @click="tagsStore.setFilter(null)"
             >
-              <i class="material-icons">close</i>
+              <i class="material-icons" aria-hidden="true">close</i>
             </button>
           </div>
           <div v-if="isMobile" class="details-mobile-list">
@@ -487,12 +499,16 @@
               :key="base64(item.name)"
               v-bind="item"
               view-mode="details"
+              :visible-keys="visibleItemKeys"
+              :register-item="registerItem"
             />
             <Item
               v-for="item in files"
               :key="base64(item.name)"
               v-bind="item"
               view-mode="details"
+              :visible-keys="visibleItemKeys"
+              :register-item="registerItem"
             />
           </div>
           <div v-else class="details-table-shell">
@@ -506,11 +522,10 @@
               </colgroup>
               <thead>
                 <tr>
-                  <th scope="col">
+                  <th scope="col" :aria-sort="headerSortState('name')">
                     <button
                       type="button"
                       class="details-sort-button"
-                      :aria-sort="headerSortState('name')"
                       @click="sortByHeader('name')"
                     >
                       名称
@@ -524,11 +539,10 @@
                       >
                     </button>
                   </th>
-                  <th scope="col">
+                  <th scope="col" :aria-sort="headerSortState('type')">
                     <button
                       type="button"
                       class="details-sort-button"
-                      :aria-sort="headerSortState('type')"
                       @click="sortByHeader('type')"
                     >
                       类型
@@ -542,11 +556,10 @@
                       >
                     </button>
                   </th>
-                  <th scope="col">
+                  <th scope="col" :aria-sort="headerSortState('size')">
                     <button
                       type="button"
                       class="details-sort-button"
-                      :aria-sort="headerSortState('size')"
                       @click="sortByHeader('size')"
                     >
                       大小
@@ -560,11 +573,10 @@
                       >
                     </button>
                   </th>
-                  <th scope="col">
+                  <th scope="col" :aria-sort="headerSortState('modified')">
                     <button
                       type="button"
                       class="details-sort-button"
-                      :aria-sort="headerSortState('modified')"
                       @click="sortByHeader('modified')"
                     >
                       修改时间
@@ -586,11 +598,15 @@
                   v-for="item in dirs"
                   :key="base64(item.name)"
                   v-bind="item"
+                  :visible-keys="visibleItemKeys"
+                  :register-item="registerItem"
                 />
                 <DetailedTableRow
                   v-for="item in files"
                   :key="base64(item.name)"
                   v-bind="item"
+                  :visible-keys="visibleItemKeys"
+                  :register-item="registerItem"
                 />
               </tbody>
             </table>
@@ -728,8 +744,7 @@
               class="selection-btn close-btn"
               @click="
                 () => {
-                  fileStore.multiple = false;
-                  fileStore.selected = [];
+                  fileStore.clearSelection();
                 }
               "
               title="关闭"
@@ -755,14 +770,14 @@ import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
 import * as upload from "@/utils/upload";
 import {
+  normalizeFileKey,
   normalizeViewMode,
   selectForContextMenu,
-  sortItemsByType,
+  sortListingItems,
 } from "@/utils/fileListing";
 import {
   isEditableKeyboardTarget,
   shouldRenderMobileSelection,
-  shouldSuppressDesktopContextMenu,
 } from "@/utils/layoutContract";
 import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
@@ -792,13 +807,16 @@ import {
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
-import { normalizeSearchBase } from "@/utils/searchPath";
+import {
+  normalizeFilesRouteBase,
+  normalizeSearchBase,
+} from "@/utils/searchPath";
 import { isExternalFileDrag } from "@/utils/fileDrag";
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
 const dragCounter = ref<number>(0);
-const width = ref<number>(window.innerWidth);
+const width = ref<number>(0);
 const itemWeight = ref<number>(0);
 const isContextMenuVisible = ref<boolean>(false);
 const contextMenuPos = ref<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -886,6 +904,16 @@ onBeforeRouteUpdate(() => {
 });
 
 const listing = ref<HTMLElement | null>(null);
+let listingResizeObserver: ResizeObserver | null = null;
+const itemElements = new Map<string, HTMLElement>();
+const registerItem = (key: string, element: HTMLElement | null) => {
+  const normalized = normalizeFileKey(key);
+  if (element) itemElements.set(normalized, element);
+  else itemElements.delete(normalized);
+};
+const scrollItemIntoView = (key: string, block: ScrollLogicalPosition) => {
+  itemElements.get(normalizeFileKey(key))?.scrollIntoView({ block });
+};
 
 const normalDirs = computed(() =>
   items.value.dirs
@@ -939,23 +967,23 @@ const items = computed(() => {
     }
   });
 
-  if (currentSortBy.value === "type") {
-    return {
-      dirs: sortItemsByType(dirs, currentSortAsc.value),
-      files: sortItemsByType(files, currentSortAsc.value),
-    };
-  }
-
-  return { dirs, files };
+  return {
+    dirs: sortListingItems(dirs, currentSortBy.value, currentSortAsc.value),
+    files: sortListingItems(files, currentSortBy.value, currentSortAsc.value),
+  };
 });
 
 const files = computed((): ResourceItem[] => {
-  let _showLimit = showLimit.value - items.value.dirs.length;
+  let _showLimit = showLimit.value - dirs.value.length;
 
   if (_showLimit < 0) _showLimit = 0;
 
   return items.value.files.slice(0, _showLimit);
 });
+
+const visibleItemKeys = computed(() =>
+  [...dirs.value, ...files.value].map((item) => normalizeFileKey(item.path))
+);
 
 const skeletonViewMode = computed(() => {
   const mode = currentViewMode.value;
@@ -1045,8 +1073,14 @@ onMounted(() => {
   // Add the needed event listeners to the window and document.
   window.addEventListener("keydown", keyEvent);
   window.addEventListener("scroll", scrollEvent);
-  window.addEventListener("resize", windowsResize);
   document.addEventListener("click", handleOutsideClick);
+
+  if (typeof ResizeObserver !== "undefined") {
+    listingResizeObserver = new ResizeObserver(resizeListing);
+    if (listing.value) listingResizeObserver.observe(listing.value);
+  } else if (listing.value) {
+    width.value = listing.value.clientWidth;
+  }
 
   if (!authStore.user?.perm.create) return;
   document.addEventListener("dragover", preventDefault);
@@ -1059,14 +1093,22 @@ onBeforeUnmount(() => {
   // Remove event listeners before destroying this page.
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("scroll", scrollEvent);
-  window.removeEventListener("resize", windowsResize);
   document.removeEventListener("click", handleOutsideClick);
+  listingResizeObserver?.disconnect();
+  listingResizeObserver = null;
 
   if (authStore.user && !authStore.user?.perm.create) return;
   document.removeEventListener("dragover", preventDefault);
   document.removeEventListener("dragenter", dragEnter);
   document.removeEventListener("dragleave", dragLeave);
   document.removeEventListener("drop", drop);
+});
+
+watch(listing, (next, previous) => {
+  if (previous) listingResizeObserver?.unobserve(previous);
+  if (!next) return;
+  width.value = next.clientWidth;
+  listingResizeObserver?.observe(next);
 });
 
 const base64 = (name: string) => Base64.encodeURI(name);
@@ -1081,7 +1123,7 @@ const keyEvent = (event: KeyboardEvent) => {
 
   if (event.key === "Escape") {
     // Reset files selection.
-    fileStore.selected = [];
+    fileStore.clearSelection();
   }
 
   // Arrow key navigation
@@ -1090,40 +1132,35 @@ const keyEvent = (event: KeyboardEvent) => {
     const allItems = [...items.value.dirs, ...items.value.files];
     if (allItems.length === 0) return;
 
-    const currentIndex =
-      fileStore.selected.length > 0
-        ? fileStore.selected[fileStore.selected.length - 1]
-        : -1;
-
-    let newIndex: number;
-    if (event.key === "ArrowDown") {
-      newIndex =
-        currentIndex < 0
-          ? allItems[0].index
-          : Math.min(currentIndex + 1, allItems[allItems.length - 1].index);
-    } else {
-      newIndex =
-        currentIndex < 0
-          ? allItems[allItems.length - 1].index
-          : Math.max(currentIndex - 1, allItems[0].index);
-    }
+    const currentKey = fileStore.focused ?? fileStore.selected.at(-1);
+    const currentPosition = currentKey
+      ? allItems.findIndex((item) => normalizeFileKey(item.path) === currentKey)
+      : -1;
+    const newPosition =
+      event.key === "ArrowDown"
+        ? Math.min(currentPosition + 1, allItems.length - 1)
+        : currentPosition < 0
+          ? allItems.length - 1
+          : Math.max(currentPosition - 1, 0);
+    const newKey = normalizeFileKey(allItems[newPosition].path);
 
     // Shift+Arrow for range selection
     if (event.shiftKey) {
-      if (fileStore.selected.indexOf(newIndex) === -1) {
-        fileStore.selected.push(newIndex);
-      }
+      const orderedKeys = allItems.map((item) => normalizeFileKey(item.path));
+      fileStore.selectRange(
+        orderedKeys,
+        newKey,
+        event.ctrlKey || event.metaKey
+      );
     } else {
-      fileStore.selected = [newIndex];
+      fileStore.selectOnly(newKey);
     }
+
+    showLimit.value = Math.max(showLimit.value, newPosition + 1);
 
     // Scroll selected item into view
     nextTick(() => {
-      const items = document.querySelectorAll("#listing .item");
-      const targetItem = items[newIndex];
-      if (targetItem) {
-        targetItem.scrollIntoView({ block: "nearest" });
-      }
+      scrollItemIntoView(newKey, "nearest");
     });
     return;
   }
@@ -1131,7 +1168,7 @@ const keyEvent = (event: KeyboardEvent) => {
   // Enter key - open selected item
   if (event.key === "Enter") {
     if (fileStore.selectedCount === 1) {
-      const item = fileStore.req?.items[fileStore.selected[0]];
+      const item = fileStore.selectedItems[0];
       if (item) {
         router.push({ path: item.url });
       }
@@ -1144,7 +1181,11 @@ const keyEvent = (event: KeyboardEvent) => {
     event.preventDefault();
     const allItems = [...items.value.dirs, ...items.value.files];
     if (allItems.length > 0) {
-      fileStore.selected = [allItems[0].index];
+      const targetKey = normalizeFileKey(allItems[0].path);
+      const orderedKeys = allItems.map((item) => normalizeFileKey(item.path));
+      if (event.shiftKey) fileStore.selectRange(orderedKeys, targetKey);
+      else fileStore.selectOnly(targetKey);
+      nextTick(() => scrollItemIntoView(targetKey, "nearest"));
     }
     return;
   }
@@ -1154,7 +1195,12 @@ const keyEvent = (event: KeyboardEvent) => {
     event.preventDefault();
     const allItems = [...items.value.dirs, ...items.value.files];
     if (allItems.length > 0) {
-      fileStore.selected = [allItems[allItems.length - 1].index];
+      const targetKey = normalizeFileKey(allItems[allItems.length - 1].path);
+      const orderedKeys = allItems.map((item) => normalizeFileKey(item.path));
+      if (event.shiftKey) fileStore.selectRange(orderedKeys, targetKey);
+      else fileStore.selectOnly(targetKey);
+      showLimit.value = allItems.length;
+      nextTick(() => scrollItemIntoView(targetKey, "nearest"));
     }
     return;
   }
@@ -1167,13 +1213,12 @@ const keyEvent = (event: KeyboardEvent) => {
 
     // Estimate visible items from viewport height
     const pageSize = Math.max(5, Math.floor((window.innerHeight - 200) / 60));
-    const currentIndex =
-      fileStore.selected.length > 0
-        ? fileStore.selected[fileStore.selected.length - 1]
-        : -1;
+    const currentKey = fileStore.focused ?? fileStore.selected.at(-1);
 
     // Find position in allItems array
-    const pos = allItems.findIndex((it) => it.index === currentIndex);
+    const pos = currentKey
+      ? allItems.findIndex((item) => normalizeFileKey(item.path) === currentKey)
+      : -1;
     let newPos: number;
     if (event.key === "PageDown") {
       newPos =
@@ -1184,10 +1229,19 @@ const keyEvent = (event: KeyboardEvent) => {
 
     const target = allItems[newPos];
     if (target) {
-      fileStore.selected = [target.index];
+      const targetKey = normalizeFileKey(target.path);
+      if (event.shiftKey) {
+        fileStore.selectRange(
+          allItems.map((item) => normalizeFileKey(item.path)),
+          targetKey,
+          event.ctrlKey || event.metaKey
+        );
+      } else {
+        fileStore.selectOnly(targetKey);
+      }
+      showLimit.value = Math.max(showLimit.value, newPos + 1);
       nextTick(() => {
-        const el = document.querySelectorAll("#listing .item")[target.index];
-        if (el) el.scrollIntoView({ block: "nearest" });
+        scrollItemIntoView(targetKey, "nearest");
       });
     }
     return;
@@ -1211,7 +1265,7 @@ const keyEvent = (event: KeyboardEvent) => {
   if (event.key === " " || event.code === "Space") {
     if (fileStore.selectedCount !== 1) return;
     event.preventDefault();
-    const item = fileStore.req?.items[fileStore.selected[0]];
+    const item = fileStore.selectedItems[0];
     if (item && !item.isDir) {
       layoutStore.showHover({
         prompt: "quick-preview",
@@ -1253,14 +1307,10 @@ const keyEvent = (event: KeyboardEvent) => {
     case "a":
       event.preventDefault();
       for (const file of items.value.files) {
-        if (fileStore.selected.indexOf(file.index) === -1) {
-          fileStore.selected.push(file.index);
-        }
+        fileStore.addSelected(normalizeFileKey(file.path));
       }
       for (const dir of items.value.dirs) {
-        if (fileStore.selected.indexOf(dir.index) === -1) {
-          fileStore.selected.push(dir.index);
-        }
+        fileStore.addSelected(normalizeFileKey(dir.path));
       }
       break;
     case "s":
@@ -1283,12 +1333,12 @@ const copyCut = (event: Event | KeyboardEvent): void => {
 
   const items = [];
 
-  for (const i of fileStore.selected) {
+  for (const item of fileStore.selectedItems) {
     items.push({
-      from: fileStore.req.items[i].url,
-      name: fileStore.req.items[i].name,
-      size: fileStore.req.items[i].size,
-      modified: fileStore.req.items[i].modified,
+      from: item.url,
+      name: item.name,
+      size: item.size,
+      modified: item.modified,
     });
   }
 
@@ -1517,7 +1567,9 @@ const resetOpacity = () => {
 };
 
 const searchBasePath = computed(() => {
-  return normalizeSearchBase(fileStore.req?.path || route.path || "/");
+  return fileStore.req?.path
+    ? normalizeSearchBase(fileStore.req.path)
+    : normalizeFilesRouteBase(route.path || "/files/");
 });
 
 const submitInlineSearch = () => {
@@ -1543,33 +1595,30 @@ const toggleMultipleSelection = () => {
 };
 
 const clearSelection = () => {
-  fileStore.multiple = false;
-  fileStore.selected = [];
+  fileStore.clearSelection();
 };
 
 const selectAll = () => {
-  fileStore.selected = [];
-  for (const dir of items.value.dirs) {
-    fileStore.selected.push(dir.index);
-  }
-  for (const file of items.value.files) {
-    fileStore.selected.push(file.index);
-  }
+  fileStore.setSelected(
+    [...items.value.dirs, ...items.value.files].map((item) =>
+      normalizeFileKey(item.path)
+    )
+  );
 };
 
 const invertSelection = () => {
-  const allIndices = new Set<number>();
-  for (const dir of items.value.dirs) allIndices.add(dir.index);
-  for (const file of items.value.files) allIndices.add(file.index);
+  const allKeys = new Set<string>();
+  for (const dir of items.value.dirs) allKeys.add(normalizeFileKey(dir.path));
+  for (const file of items.value.files)
+    allKeys.add(normalizeFileKey(file.path));
   const selectedSet = new Set(fileStore.selected);
-  fileStore.selected = [...allIndices].filter((i) => !selectedSet.has(i));
+  fileStore.setSelected([...allKeys].filter((key) => !selectedSet.has(key)));
 };
 
-const windowsResize = throttle(() => {
-  width.value = window.innerWidth;
-
-  // Listing element is not displayed
-  if (listing.value == null) return;
+const resizeListing = throttle((entries: ResizeObserverEntry[]) => {
+  const entry = entries.at(-1);
+  if (!entry || listing.value == null) return;
+  width.value = entry.contentRect.width;
 
   // How much every listing item affects the window height
   setItemWeight();
@@ -1581,11 +1630,8 @@ const windowsResize = throttle(() => {
 const download = () => {
   if (fileStore.req === null) return;
 
-  if (
-    fileStore.selectedCount === 1 &&
-    !fileStore.req.items[fileStore.selected[0]].isDir
-  ) {
-    api.download(null, fileStore.req.items[fileStore.selected[0]].url);
+  if (fileStore.selectedCount === 1 && !fileStore.selectedItems[0].isDir) {
+    api.download(null, fileStore.selectedItems[0].url);
     return;
   }
 
@@ -1597,8 +1643,8 @@ const download = () => {
       const files = [];
 
       if (fileStore.selectedCount > 0 && fileStore.req !== null) {
-        for (const i of fileStore.selected) {
-          files.push(fileStore.req.items[i].url);
+        for (const item of fileStore.selectedItems) {
+          files.push(item.url);
         }
       } else {
         files.push(route.path);
@@ -1642,6 +1688,7 @@ const selectCompactGridSize = (size: CompactGridSize) => {
 };
 
 const selectSort = async (by: string) => {
+  const previousSortBy = currentSortBy.value;
   currentSortBy.value = by;
   showSortDropdown.value = false;
 
@@ -1653,10 +1700,9 @@ const selectSort = async (by: string) => {
       );
     }
   } catch (e: any) {
+    currentSortBy.value = previousSortBy;
     $showError(e);
   }
-
-  fileStore.reload = true;
 };
 
 const sortByHeader = async (by: string) => {
@@ -1673,6 +1719,7 @@ const headerSortState = (by: string) => {
 };
 
 const toggleSortDirection = async () => {
+  const previousSortAsc = currentSortAsc.value;
   currentSortAsc.value = !currentSortAsc.value;
   showSortDropdown.value = false;
 
@@ -1687,10 +1734,9 @@ const toggleSortDirection = async () => {
       );
     }
   } catch (e: any) {
+    currentSortAsc.value = previousSortAsc;
     $showError(e);
   }
-
-  fileStore.reload = true;
 };
 
 // Close dropdowns on outside click
@@ -1759,15 +1805,16 @@ const fillWindow = (fit = false) => {
 const revealPreviousItem = () => {
   if (!fileStore.req || !fileStore.oldReq) return;
 
-  const index = fileStore.selected[0];
-  if (index === undefined) return;
+  const selectedKey = fileStore.selected[0];
+  if (selectedKey === undefined) return;
+  const index = visibleItemKeys.value.indexOf(selectedKey);
+  if (index < 0) return;
 
   showLimit.value =
     index + Math.ceil((window.innerHeight * 2) / itemWeight.value);
 
   nextTick(() => {
-    const items = document.querySelectorAll("#listing .item");
-    items[index].scrollIntoView({ block: "center" });
+    scrollItemIntoView(selectedKey, "center");
   });
 
   return true;
@@ -1775,20 +1822,15 @@ const revealPreviousItem = () => {
 
 const showContextMenu = (event: MouseEvent) => {
   event.preventDefault();
-  if (shouldSuppressDesktopContextMenu(isMobile.value)) {
-    event.stopPropagation();
-    hideContextMenu();
-    return;
-  }
 
   const target = event.target;
   if (target instanceof HTMLElement) {
     const item = target.closest<HTMLElement>(".item");
-    const targetIndex = Number(item?.dataset.index);
-    if (Number.isInteger(targetIndex)) {
-      fileStore.selected = selectForContextMenu(
-        fileStore.selected,
-        targetIndex
+    const targetKey = item?.dataset.key;
+    if (targetKey) {
+      fileStore.setSelected(
+        selectForContextMenu(fileStore.selected, normalizeFileKey(targetKey)),
+        normalizeFileKey(targetKey)
       );
     }
   }
@@ -1809,7 +1851,7 @@ const handleEmptyAreaClick = (e: MouseEvent) => {
   if (!(target instanceof HTMLElement)) return;
 
   if (target.dataset.clearOnClick === "true") {
-    fileStore.selected = [];
+    fileStore.clearSelection();
   }
 };
 </script>

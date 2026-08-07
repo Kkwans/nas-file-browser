@@ -7,12 +7,12 @@ import {
   resolvePersistenceState,
   userStorageKey,
 } from "@/utils/favoritePersistence";
-import { isDescendantPath, normalizeTagPath } from "@/utils/tagPath";
 import {
-  isTagColorAvailable,
-  normalizeTagColor,
-  TAG_COLORS,
-} from "@/utils/tagColors";
+  isDescendantPath,
+  normalizeTagPath,
+  rewriteTagPathPrefix,
+} from "@/utils/tagPath";
+import { isTagColorAvailable, normalizeTagColor } from "@/utils/tagColors";
 
 export { TAG_COLORS } from "@/utils/tagColors";
 
@@ -43,6 +43,14 @@ export const useTagsStore = defineStore("tags", () => {
   const loaded = ref(false);
   const activeFilter = ref<string | null>(null); // tag id for filtering
   const filterMode = ref<TagFilterMode>("global");
+
+  const snapshotTags = () =>
+    tags.value.map((tag) => ({ ...tag, paths: [...tag.paths] }));
+
+  function restoreTags(snapshot: Tag[]) {
+    tags.value = snapshot.map((tag) => ({ ...tag, paths: [...tag.paths] }));
+    saveToLocalStorage();
+  }
 
   // --- API helpers ---
 
@@ -202,6 +210,7 @@ export const useTagsStore = defineStore("tags", () => {
   async function createTag(name: string, color: string): Promise<Tag | null> {
     const normalizedColor = normalizeTagColor(color);
     if (!isTagColorAvailable(tags.value, normalizedColor)) return null;
+    const snapshot = snapshotTags();
     const tag: Tag = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       name: name.trim(),
@@ -217,8 +226,8 @@ export const useTagsStore = defineStore("tags", () => {
       saveToLocalStorage();
       return savedTag;
     }
-    await refreshAfterMutation();
-    return tag;
+    restoreTags(snapshot);
+    return null;
   }
 
   // Update a tag
@@ -234,6 +243,7 @@ export const useTagsStore = defineStore("tags", () => {
     ) {
       return false;
     }
+    const snapshot = snapshotTags();
     if (updates.name !== undefined) tag.name = updates.name.trim();
     if (updates.color !== undefined) {
       updates.color = normalizeTagColor(updates.color);
@@ -241,17 +251,26 @@ export const useTagsStore = defineStore("tags", () => {
     }
     saveToLocalStorage();
     const result = await apiUpdate(id, updates);
-    if (!result.ok && result.status === 404) await refreshAfterMutation();
+    if (!result.ok) {
+      restoreTags(snapshot);
+      if (result.status === 404) await refreshAfterMutation();
+    }
     return result.ok;
   }
 
   // Delete a tag
   async function deleteTag(id: string) {
+    const snapshot = snapshotTags();
+    const previousFilter = activeFilter.value;
     tags.value = tags.value.filter((t) => t.id !== id);
     if (activeFilter.value === id) activeFilter.value = null;
     saveToLocalStorage();
     const result = await apiDelete(id);
-    if (!result.ok && result.status === 404) await refreshAfterMutation();
+    if (!result.ok) {
+      restoreTags(snapshot);
+      activeFilter.value = previousFilter;
+      if (result.status === 404) await refreshAfterMutation();
+    }
   }
 
   // Add a path to a tag
@@ -262,10 +281,14 @@ export const useTagsStore = defineStore("tags", () => {
     if (
       !tag.paths.some((savedPath) => normalizeTagPath(savedPath) === cleaned)
     ) {
+      const snapshot = snapshotTags();
       tag.paths.push(cleaned);
       saveToLocalStorage();
       const result = await apiAddPath(tagId, cleaned);
-      if (!result.ok && result.status === 404) await refreshAfterMutation();
+      if (!result.ok) {
+        restoreTags(snapshot);
+        if (result.status === 404) await refreshAfterMutation();
+      }
     }
   }
 
@@ -274,12 +297,16 @@ export const useTagsStore = defineStore("tags", () => {
     const tag = tags.value.find((t) => t.id === tagId);
     if (!tag) return;
     const cleaned = normalizeTagPath(path);
+    const snapshot = snapshotTags();
     tag.paths = tag.paths.filter(
       (savedPath) => normalizeTagPath(savedPath) !== cleaned
     );
     saveToLocalStorage();
     const result = await apiRemovePath(tagId, cleaned);
-    if (!result.ok && result.status === 404) await refreshAfterMutation();
+    if (!result.ok) {
+      restoreTags(snapshot);
+      if (result.status === 404) await refreshAfterMutation();
+    }
   }
 
   // Toggle a path in a tag (add if not present, remove if present)
@@ -290,16 +317,23 @@ export const useTagsStore = defineStore("tags", () => {
     const idx = tag.paths.findIndex(
       (savedPath) => normalizeTagPath(savedPath) === cleaned
     );
+    const snapshot = snapshotTags();
     if (idx >= 0) {
       tag.paths.splice(idx, 1);
       saveToLocalStorage();
       const result = await apiRemovePath(tagId, cleaned);
-      if (!result.ok && result.status === 404) await refreshAfterMutation();
+      if (!result.ok) {
+        restoreTags(snapshot);
+        if (result.status === 404) await refreshAfterMutation();
+      }
     } else {
       tag.paths.push(cleaned);
       saveToLocalStorage();
       const result = await apiAddPath(tagId, cleaned);
-      if (!result.ok && result.status === 404) await refreshAfterMutation();
+      if (!result.ok) {
+        restoreTags(snapshot);
+        if (result.status === 404) await refreshAfterMutation();
+      }
     }
   }
 
@@ -317,6 +351,48 @@ export const useTagsStore = defineStore("tags", () => {
     return tags.value.some((tag) =>
       tag.paths.some((savedPath) => normalizeTagPath(savedPath) === cleaned)
     );
+  }
+
+  function applyPathRewrite(from: string, to: string) {
+    let changed = false;
+    tags.value = tags.value.map((tag) => {
+      const seen = new Set<string>();
+      const paths: string[] = [];
+      let tagChanged = false;
+      for (const savedPath of tag.paths) {
+        const rewritten = rewriteTagPathPrefix(savedPath, from, to);
+        const next = rewritten ?? normalizeTagPath(savedPath);
+        if (rewritten !== null && next !== savedPath) tagChanged = true;
+        if (seen.has(next)) {
+          tagChanged = true;
+          continue;
+        }
+        seen.add(next);
+        paths.push(next);
+      }
+      if (!tagChanged) return tag;
+      changed = true;
+      return { ...tag, paths };
+    });
+    if (changed) saveToLocalStorage();
+  }
+
+  function applyPathRemoval(prefix: string) {
+    const normalizedPrefix = normalizeTagPath(prefix);
+    let changed = false;
+    tags.value = tags.value.map((tag) => {
+      const paths = tag.paths.filter((savedPath) => {
+        const normalized = normalizeTagPath(savedPath);
+        return (
+          normalized !== normalizedPrefix &&
+          rewriteTagPathPrefix(normalized, normalizedPrefix, "/") === null
+        );
+      });
+      if (paths.length === tag.paths.length) return tag;
+      changed = true;
+      return { ...tag, paths };
+    });
+    if (changed) saveToLocalStorage();
   }
 
   // Set active filter tag (null = no filter)
@@ -418,6 +494,8 @@ export const useTagsStore = defineStore("tags", () => {
     togglePathInTag,
     getTagsForPath,
     hasTags,
+    applyPathRewrite,
+    applyPathRemoval,
     setFilter,
     setFilterMode,
     matchesFilter,

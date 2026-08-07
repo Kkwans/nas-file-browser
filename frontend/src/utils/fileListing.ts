@@ -11,6 +11,22 @@ export interface FileListingSortItem {
   isDir: boolean;
   name: string;
   type: string;
+  size?: number;
+  modified?: string;
+}
+
+export function normalizeFileKey(value: string): string {
+  const segments: string[] = [];
+  for (const segment of value.split("/")) {
+    if (segment === "" || segment === ".") continue;
+    if (segment === "..") {
+      segments.pop();
+      continue;
+    }
+    segments.push(segment);
+  }
+
+  return segments.length === 0 ? "/" : `/${segments.join("/")}`;
 }
 
 const FILE_TYPE_LABELS: Record<string, string> = {
@@ -54,13 +70,8 @@ export function normalizeViewMode(value: unknown): FileViewMode {
     : "mosaic";
 }
 
-export function selectForContextMenu(
-  selectedIndices: number[],
-  targetIndex: number
-): number[] {
-  return selectedIndices.includes(targetIndex)
-    ? selectedIndices
-    : [targetIndex];
+export function selectForContextMenu<T>(selected: T[], target: T): T[] {
+  return selected.includes(target) ? selected : [target];
 }
 
 export function sortItemsByType<T extends FileListingSortItem>(
@@ -77,6 +88,39 @@ export function sortItemsByType<T extends FileListingSortItem>(
       typeComparison === 0
         ? left.name.localeCompare(right.name)
         : typeComparison;
+
+    return ascending ? comparison : -comparison;
+  });
+}
+
+export function sortListingItems<T extends FileListingSortItem>(
+  items: T[],
+  by: string,
+  ascending: boolean
+): T[] {
+  const collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+
+  return [...items].sort((left, right) => {
+    let comparison = 0;
+    switch (by) {
+      case "size":
+        comparison = (left.size || 0) - (right.size || 0);
+        break;
+      case "modified":
+        comparison =
+          Date.parse(left.modified || "") - Date.parse(right.modified || "");
+        break;
+      case "type":
+        comparison = collator.compare(left.type, right.type);
+        if (comparison === 0)
+          comparison = collator.compare(left.name, right.name);
+        break;
+      default:
+        comparison = collator.compare(left.name, right.name);
+    }
 
     return ascending ? comparison : -comparison;
   });

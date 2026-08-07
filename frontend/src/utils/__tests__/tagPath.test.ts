@@ -1,20 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { normalizeTagPath } from "../tagPath";
+import { normalizeTagPath, rewriteTagPathPrefix } from "../tagPath";
 
 describe("normalizeTagPath", () => {
-  it("removes the UI files prefix and trailing slash", () => {
+  it("normalizes raw resource paths without assigning special meaning to directory names", () => {
     expect(normalizeTagPath("/files/volume2/Project/")).toBe(
-      "/volume2/Project"
+      "/files/volume2/Project"
+    );
+    expect(normalizeTagPath("/docs/./drafts/../report.md")).toBe(
+      "/docs/report.md"
     );
   });
 
-  it("decodes URL encoded path segments", () => {
-    expect(
-      normalizeTagPath("/volume2/%E6%B5%8B%E8%AF%95/%E6%96%87%E4%BB%B6")
-    ).toBe("/volume2/测试/文件");
-  });
-
-  it("keeps malformed segments displayable", () => {
+  it("preserves percent signs and backslashes in raw Linux paths", () => {
+    expect(normalizeTagPath("/volume2/%2Fname")).toBe("/volume2/%2Fname");
+    expect(normalizeTagPath("/volume2/with\\backslash")).toBe(
+      "/volume2/with\\backslash"
+    );
     expect(normalizeTagPath("/volume2/%E6%B5%8B%")).toBe("/volume2/%E6%B5%8B%");
+  });
+});
+
+describe("rewriteTagPathPrefix", () => {
+  it("rewrites exact paths and descendants with Linux boundaries", () => {
+    expect(rewriteTagPathPrefix("/docs", "/docs", "/archive")).toBe("/archive");
+    expect(rewriteTagPathPrefix("/docs/report.md", "/docs", "/archive")).toBe(
+      "/archive/report.md"
+    );
+    expect(rewriteTagPathPrefix("/docs-old/a", "/docs", "/archive")).toBe(null);
+    expect(rewriteTagPathPrefix("/Docs/a", "/docs", "/archive")).toBe(null);
   });
 });

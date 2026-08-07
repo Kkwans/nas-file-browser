@@ -95,11 +95,7 @@ export interface TapSelectionInput {
   selectedCount: number;
 }
 
-export type MobileTouchAction =
-  | "none"
-  | "open"
-  | "select"
-  | "toggle-selection";
+export type MobileTouchAction = "none" | "open" | "select" | "toggle-selection";
 
 export interface MobileTouchInput {
   tapCount: number;
@@ -158,8 +154,10 @@ export function getMobileTouchAction({
   return "none";
 }
 
-export function shouldSuppressDesktopContextMenu(isMobile: boolean): boolean {
-  return isMobile;
+export function shouldSuppressTouchContextMenu(
+  touchInteraction: boolean
+): boolean {
+  return touchInteraction;
 }
 
 /**

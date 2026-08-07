@@ -2,6 +2,9 @@
 dist
 .idea
 .git
+.codex-go-cache
+.codex-go-mod-cache
+.codex-go-tmp
 frontend/node_modules
 # frontend/dist (needed for Dockerfile.rebuild)
 filebrowser.db

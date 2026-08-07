@@ -31,14 +31,15 @@ RUN go mod download
 
 COPY backend/ ./
 
+RUN rm -rf ./frontend/dist
 COPY --from=frontend-builder /src/frontend/dist/ ./frontend/dist/
 
-RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o filebrowser .
 
 # --- Stage 3: Runtime ---
-FROM alpine:3.21
+FROM alpine:3.23
 
-RUN apk add --no-cache ca-certificates mailcap tini
+RUN apk add --no-cache ca-certificates mailcap tini ffmpeg
 
 COPY --from=backend-builder /src/filebrowser /usr/local/bin/filebrowser
 COPY docker/common/ /
@@ -52,6 +53,6 @@ VOLUME /config /database
 
 EXPOSE 80
 
-HEALTHCHECK --start-period=2s --interval=5s --timeout=3s CMD /healthcheck.sh
+HEALTHCHECK --start-period=2m --start-interval=5s --interval=30m --timeout=3s --retries=2 CMD /healthcheck.sh
 
 ENTRYPOINT ["tini", "--", "/init.sh"]

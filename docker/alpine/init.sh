@@ -32,4 +32,13 @@ if [ -z "$config_file" ]; then
   set -- --config=/config/settings.json "$@"                                                                                                       
 fi                                                                                                                                                                                                                                                                                                                                                             
 
+# Resolve the health endpoint once during startup. Docker health checks read
+# this tiny runtime file and no longer parse the application config every time.
+health_port="${FB_PORT:-$(cat "$config_file" | sh /JSON.sh | grep '\["port"\]' | awk '{print $2}' | sed 's/"//g')}"
+health_address="${FB_ADDRESS:-$(cat "$config_file" | sh /JSON.sh | grep '\["address"\]' | awk '{print $2}' | sed 's/"//g')}"
+case "$health_address" in
+  ""|0.0.0.0|::) health_address="127.0.0.1" ;;
+esac
+printf 'http://%s:%s/health\n' "$health_address" "$health_port" > /tmp/filebrowser-health-endpoint
+
 exec filebrowser "$@"

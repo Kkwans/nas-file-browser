@@ -2,8 +2,7 @@
 
 set -e
 
-PORT=${FB_PORT:-$(cat /config/settings.json | sh /JSON.sh | grep '\["port"\]' | awk '{print $2}')}
-ADDRESS=${FB_ADDRESS:-$(cat /config/settings.json | sh /JSON.sh | grep '\["address"\]' | awk '{print $2}' | sed 's/"//g')}
-ADDRESS=${ADDRESS:-localhost}
+ENDPOINT=$(cat /tmp/filebrowser-health-endpoint 2>/dev/null || true)
+ENDPOINT=${ENDPOINT:-http://127.0.0.1:${FB_PORT:-80}/health}
 
-wget -q --spider http://$ADDRESS:$PORT/health || exit 1
+wget -q --spider "$ENDPOINT" || exit 1

@@ -19,10 +19,17 @@ type Rule struct {
 	Regexp *Regexp `json:"regexp"`
 }
 
-// MatchHidden matches paths with a basename
-// that begins with a dot.
-func MatchHidden(path string) bool {
-	return path != "" && strings.HasPrefix(filepath.Base(path), ".")
+// MatchHidden matches paths where any real path component begins with a dot.
+// Checking every component prevents direct access to descendants of a hidden
+// directory even when the final basename itself is not hidden.
+func MatchHidden(filePath string) bool {
+	cleaned := filepath.ToSlash(filepath.Clean(filePath))
+	for _, segment := range strings.Split(cleaned, "/") {
+		if segment != "" && segment != "." && segment != ".." && strings.HasPrefix(segment, ".") {
+			return true
+		}
+	}
+	return false
 }
 
 // Matches matches a path against a rule.

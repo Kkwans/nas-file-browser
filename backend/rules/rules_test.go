@@ -40,7 +40,11 @@ func TestMatchHidden(t *testing.T) {
 		"/src/":               false,
 		"/.circleci":          true,
 		"/a/b/c/.docker.json": true,
+		"/.hidden/file.txt":   true,
+		"/a/.hidden/file.txt": true,
 		".docker.json":        true,
+		".":                   false,
+		"..":                  false,
 		"Dockerfile":          false,
 		"/Dockerfile":         false,
 	}

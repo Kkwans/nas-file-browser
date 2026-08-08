@@ -19,6 +19,10 @@ const pnpmWorkspaceSource = readFileSync(
   fileURLToPath(new URL("../../../pnpm-workspace.yaml", import.meta.url)),
   "utf8"
 );
+const customDockerfileSource = readFileSync(
+  fileURLToPath(new URL("../../../../Dockerfile.custom", import.meta.url)),
+  "utf8"
+);
 
 describe("视频兼容播放依赖契约", () => {
   it("组件不调用 VHS 私有 API 或依赖延迟重选源", () => {
@@ -40,6 +44,11 @@ describe("视频兼容播放依赖契约", () => {
     );
     expect(pnpmWorkspaceSource).toContain(
       "video.js@8.23.7: patches/video.js@8.23.7.patch"
+    );
+    expect(customDockerfileSource).toContain("frontend/pnpm-workspace.yaml");
+    expect(customDockerfileSource).toContain("COPY frontend/patches/ ./patches/");
+    expect(customDockerfileSource.indexOf("COPY frontend/patches/")).toBeLessThan(
+      customDockerfileSource.indexOf("pnpm install --frozen-lockfile")
     );
   });
 });

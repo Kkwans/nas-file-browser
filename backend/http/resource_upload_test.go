@@ -3,6 +3,7 @@ package fbhttp
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -11,16 +12,20 @@ import (
 )
 
 func TestWriteFileExclusiveNeverOverwritesExistingFile(t *testing.T) {
-	filesystem := afero.NewMemMapFs()
-	if err := afero.WriteFile(filesystem, "/assets/photo.png", []byte("original"), 0o640); err != nil {
+	filesystem := afero.NewOsFs()
+	target := filepath.Join(t.TempDir(), "assets", "photo.png")
+	if err := filesystem.MkdirAll(filepath.Dir(target), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := afero.WriteFile(filesystem, target, []byte("original"), 0o640); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := writeFileExclusive(filesystem, "/assets/photo.png", strings.NewReader("replacement"), 0o640, 0o750)
+	_, err := writeFileExclusive(filesystem, target, strings.NewReader("replacement"), 0o640, 0o750)
 	if !errors.Is(err, os.ErrExist) {
 		t.Fatalf("exclusive write error = %v, want os.ErrExist", err)
 	}
-	content, err := afero.ReadFile(filesystem, "/assets/photo.png")
+	content, err := afero.ReadFile(filesystem, target)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +35,8 @@ func TestWriteFileExclusiveNeverOverwritesExistingFile(t *testing.T) {
 }
 
 func TestConcurrentExclusiveWritesCreateExactlyOneFile(t *testing.T) {
-	filesystem := afero.NewMemMapFs()
+	filesystem := afero.NewOsFs()
+	target := filepath.Join(t.TempDir(), "assets", "photo.png")
 	start := make(chan struct{})
 	errorsByWriter := make(chan error, 2)
 	var writers sync.WaitGroup
@@ -41,7 +47,7 @@ func TestConcurrentExclusiveWritesCreateExactlyOneFile(t *testing.T) {
 		go func() {
 			defer writers.Done()
 			<-start
-			_, err := writeFileExclusive(filesystem, "/assets/photo.png", strings.NewReader(content), 0o640, 0o750)
+			_, err := writeFileExclusive(filesystem, target, strings.NewReader(content), 0o640, 0o750)
 			errorsByWriter <- err
 		}()
 	}
@@ -65,7 +71,7 @@ func TestConcurrentExclusiveWritesCreateExactlyOneFile(t *testing.T) {
 		t.Fatalf("exclusive results: succeeded=%d conflicted=%d", succeeded, conflicted)
 	}
 
-	content, err := afero.ReadFile(filesystem, "/assets/photo.png")
+	content, err := afero.ReadFile(filesystem, target)
 	if err != nil {
 		t.Fatal(err)
 	}

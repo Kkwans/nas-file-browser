@@ -88,7 +88,11 @@ func enqueueTask(runtime *tasks.Runtime, d *data, owner *users.User, taskType ta
 	}
 	runner, err := taskRunner(d, task)
 	if err == nil {
-		err = runtime.Start(task, runner)
+		if task.Type == tasks.TypeTrashClear {
+			err = runtime.StartExclusive(task, runner, "trash.clear")
+		} else {
+			err = runtime.Start(task, runner)
+		}
 	}
 	if err != nil {
 		task.Status = tasks.StatusFailed

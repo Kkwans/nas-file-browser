@@ -21,9 +21,11 @@ type Runner func(ctx context.Context, report Reporter) error
 // Runtime coordinates only active in-process workers. Durable task state and
 // restart semantics remain in Storage so task history survives process exits.
 type Runtime struct {
-	storage *Storage
-	mu      sync.Mutex
-	cancels map[string]context.CancelFunc
+	storage  *Storage
+	mu       sync.Mutex
+	cancels  map[string]context.CancelFunc
+	keys     map[string]string
+	taskKeys map[string][]string
 }
 
 func NewRuntime(storage *Storage) (*Runtime, error) {
@@ -33,10 +35,24 @@ func NewRuntime(storage *Storage) (*Runtime, error) {
 	if err := storage.InterruptActive(); err != nil {
 		return nil, fmt.Errorf("mark active tasks interrupted: %w", err)
 	}
-	return &Runtime{storage: storage, cancels: make(map[string]context.CancelFunc)}, nil
+	return &Runtime{
+		storage: storage, cancels: make(map[string]context.CancelFunc),
+		keys: make(map[string]string), taskKeys: make(map[string][]string),
+	}, nil
 }
 
 func (runtime *Runtime) Start(task *Task, runner Runner) error {
+	return runtime.start(task, runner, nil)
+}
+
+// StartExclusive prevents overlapping workers that would contend for the same
+// destructive resource. Keys are process-local because every queued/running
+// task is marked interrupted before a new Runtime accepts work.
+func (runtime *Runtime) StartExclusive(task *Task, runner Runner, keys ...string) error {
+	return runtime.start(task, runner, keys)
+}
+
+func (runtime *Runtime) start(task *Task, runner Runner, keys []string) error {
 	if task == nil || task.Status != StatusQueued || runner == nil {
 		return ErrState
 	}
@@ -47,7 +63,23 @@ func (runtime *Runtime) Start(task *Task, runner Runner) error {
 		cancel()
 		return ErrState
 	}
+	for _, key := range keys {
+		if key == "" {
+			continue
+		}
+		if _, exists := runtime.keys[key]; exists {
+			runtime.mu.Unlock()
+			cancel()
+			return ErrState
+		}
+	}
 	runtime.cancels[task.ID] = cancel
+	for _, key := range keys {
+		if key != "" {
+			runtime.keys[key] = task.ID
+			runtime.taskKeys[task.ID] = append(runtime.taskKeys[task.ID], key)
+		}
+	}
 	runtime.mu.Unlock()
 
 	go runtime.run(ctx, task.Clone(), runner)
@@ -86,6 +118,12 @@ func (runtime *Runtime) run(ctx context.Context, task *Task, runner Runner) {
 	defer func() {
 		runtime.mu.Lock()
 		delete(runtime.cancels, task.ID)
+		for _, key := range runtime.taskKeys[task.ID] {
+			if runtime.keys[key] == task.ID {
+				delete(runtime.keys, key)
+			}
+		}
+		delete(runtime.taskKeys, task.ID)
 		runtime.mu.Unlock()
 	}()
 

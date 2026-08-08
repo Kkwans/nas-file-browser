@@ -94,4 +94,14 @@ describe("trash store", () => {
     await expect(store.removePermanent("first")).rejects.toThrow("failed");
     expect(store.items).toHaveLength(1);
   });
+
+  it("returns the clear task without pretending items are already gone", async () => {
+    const store = useTrashStore();
+    store.items = [item("first")];
+    const task = { id: "clear-task", status: "queued" };
+    mocks.clear.mockResolvedValue(task);
+
+    await expect(store.clear()).resolves.toBe(task);
+    expect(store.items).toHaveLength(1);
+  });
 });

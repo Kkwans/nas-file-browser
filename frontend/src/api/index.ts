@@ -7,5 +7,19 @@ import search from "./search";
 import commands from "./commands";
 import * as volumes from "./volumes";
 import * as trash from "./trash";
+import * as tasks from "./tasks";
+import * as history from "./history";
 
-export { files, share, users, settings, pub, commands, search, volumes, trash };
+export {
+  files,
+  share,
+  users,
+  settings,
+  pub,
+  commands,
+  search,
+  volumes,
+  trash,
+  tasks,
+  history,
+};

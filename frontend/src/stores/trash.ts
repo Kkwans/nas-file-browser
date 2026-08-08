@@ -73,8 +73,7 @@ export const useTrashStore = defineStore("trash", {
       this.items = this.items.filter((item) => item.id !== id);
     },
     async clear() {
-      await api.clear();
-      this.items = [];
+      return api.clear();
     },
     async reloadMetadata() {
       await Promise.allSettled([

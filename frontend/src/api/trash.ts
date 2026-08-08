@@ -1,4 +1,5 @@
 import { fetchJSON, fetchURL } from "./utils";
+import type { TaskItem } from "./tasks";
 
 export type TrashStatus = "pending" | "available" | "restoring" | "failed";
 export type TrashConflict = "fail" | "keep-both" | "replace" | "skip";
@@ -46,6 +47,7 @@ export async function removePermanent(id: string): Promise<void> {
   });
 }
 
-export async function clear(): Promise<void> {
-  await fetchURL("/api/trash", { method: "DELETE" });
+export async function clear(): Promise<TaskItem> {
+  const response = await fetchURL("/api/trash", { method: "DELETE" });
+  return (await response.json()) as TaskItem;
 }

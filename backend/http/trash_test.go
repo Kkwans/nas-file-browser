@@ -108,8 +108,15 @@ func TestTrashHTTPFlowAndLegacyPermanentDelete(t *testing.T) {
 	}
 
 	response := h.request(t, owner.ID, resourceDeleteHandler(noopTrashFileCache{}), http.MethodDelete, "/recycle.txt?mode=trash", nil, nil)
-	if response.Code != http.StatusNoContent {
+	if response.Code != http.StatusOK {
 		t.Fatalf("trash delete status = %d body=%s", response.Code, response.Body.String())
+	}
+	var moved trash.PublicItem
+	if err := json.Unmarshal(response.Body.Bytes(), &moved); err != nil {
+		t.Fatal(err)
+	}
+	if moved.ID == "" || moved.OriginalPath != "/recycle.txt" {
+		t.Fatalf("trash delete response = %#v", moved)
 	}
 	if exists, _ := afero.Exists(filesystem, "/recycle.txt"); exists {
 		t.Fatal("resource still exists after trash delete")
@@ -193,7 +200,7 @@ func TestAdminRestoresTrashIntoOwnersFilesystem(t *testing.T) {
 		t.Fatal(err)
 	}
 	response := h.request(t, member.ID, resourceDeleteHandler(noopTrashFileCache{}), http.MethodDelete, "/owned.txt?mode=trash", nil, nil)
-	if response.Code != http.StatusNoContent {
+	if response.Code != http.StatusOK {
 		t.Fatalf("member trash status = %d body=%s", response.Code, response.Body.String())
 	}
 

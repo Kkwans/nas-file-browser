@@ -83,7 +83,7 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 })
 
 func resourceDeleteHandler(fileCache FileCache) handleFunc {
-	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
 			return http.StatusForbidden, fmt.Errorf("没有删除权限")
 		}
@@ -103,7 +103,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		mode := r.URL.Query().Get("mode")
 		switch mode {
 		case "trash":
-			return moveResourceToTrash(r, d, fileCache, file)
+			return moveResourceToTrash(w, r, d, fileCache, file)
 		case "", "permanent":
 			// The empty mode intentionally preserves the historical permanent
 			// delete contract for older clients. The new UI always sends trash.
@@ -141,7 +141,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 	})
 }
 
-func moveResourceToTrash(r *http.Request, d *data, fileCache FileCache, file *files.FileInfo) (int, error) {
+func moveResourceToTrash(w http.ResponseWriter, r *http.Request, d *data, fileCache FileCache, file *files.FileInfo) (int, error) {
 	if err := delThumbs(r.Context(), fileCache, file); err != nil {
 		return errToStatus(err), fmt.Errorf("清理缩略图失败，文件未移入回收站: %w", err)
 	}
@@ -164,7 +164,7 @@ func moveResourceToTrash(r *http.Request, d *data, fileCache FileCache, file *fi
 	if err := d.store.Share.DeleteWithPathPrefix(file.Path); err != nil {
 		log.Printf("WARNING: Error(s) occurred while deleting associated shares with trashed file: %s", err)
 	}
-	return http.StatusNoContent, nil
+	return renderJSON(w, r, item.Public())
 }
 
 func resourcePostHandler(fileCache FileCache) handleFunc {

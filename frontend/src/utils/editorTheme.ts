@@ -1,9 +1,8 @@
 import { getTheme } from "./theme";
 
 export const getEditorTheme = async (themeName: string) => {
-  const { themesByName } = await import(
-    "ace-builds/src-noconflict/ext-themelist"
-  );
+  const { themesByName } =
+    await import("ace-builds/src-noconflict/ext-themelist");
   if (!themeName.startsWith("ace/theme/")) {
     themeName = `ace/theme/${themeName}`;
   }

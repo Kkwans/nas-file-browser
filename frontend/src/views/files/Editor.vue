@@ -706,9 +706,8 @@ const initAceEditor = async (content: string) => {
   const aceGlobal = globalThis as typeof globalThis & { ace: typeof ace };
   aceGlobal.ace = ace;
   await import("ace-builds/src-noconflict/ext-language_tools");
-  const { default: modelist } = await import(
-    "ace-builds/src-noconflict/ext-modelist"
-  );
+  const { default: modelist } =
+    await import("ace-builds/src-noconflict/ext-modelist");
   const editorTheme = await getEditorTheme(
     authStore.user?.aceEditorTheme ?? ""
   );

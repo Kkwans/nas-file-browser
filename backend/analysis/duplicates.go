@@ -297,7 +297,7 @@ func (scanner *duplicateScanner) hashSample(file duplicateCandidate) (string, er
 	if err != nil {
 		return "", err
 	}
-	defer handle.Close()
+	defer func() { _ = handle.Close() }()
 	hasher := sha256.New()
 	firstBytes := min(file.size, scanner.sampleBytes)
 	if _, err := io.CopyN(hasher, handle, firstBytes); err != nil {
@@ -326,7 +326,7 @@ func (scanner *duplicateScanner) hashFull(file duplicateCandidate) (string, erro
 	if err != nil {
 		return "", err
 	}
-	defer handle.Close()
+	defer func() { _ = handle.Close() }()
 	hasher := sha256.New()
 	buffer := make([]byte, 128*1024)
 	if _, err := io.CopyBuffer(hasher, &contextReader{ctx: scanner.ctx, reader: handle}, buffer); err != nil {

@@ -287,7 +287,7 @@ func writeArchive(t *testing.T, filesystem afero.Fs, name string, format archive
 		t.Fatal(err)
 	}
 	if err := format.Archive(context.Background(), output, files); err != nil {
-		output.Close()
+		_ = output.Close()
 		t.Fatal(err)
 	}
 	if err := output.Close(); err != nil {

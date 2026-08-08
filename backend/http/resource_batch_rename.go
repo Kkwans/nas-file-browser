@@ -67,7 +67,7 @@ func resourceBatchRenameHandler(fileCache FileCache) handleFunc {
 			return http.StatusBadRequest, fmt.Errorf("批量重命名项目数必须为 1–%d", maxBatchRenameItems)
 		}
 
-		response, plan := planBatchRename(d, request.Items)
+		response, _ := planBatchRename(d, request.Items)
 		if request.DryRun {
 			return renderJSON(w, r, response)
 		}
@@ -77,7 +77,7 @@ func resourceBatchRenameHandler(fileCache FileCache) handleFunc {
 
 		batchRenameMu.Lock()
 		defer batchRenameMu.Unlock()
-		response, plan = planBatchRename(d, request.Items)
+		response, plan := planBatchRename(d, request.Items)
 		if !response.Valid {
 			return renderJSONStatus(w, response, http.StatusConflict)
 		}

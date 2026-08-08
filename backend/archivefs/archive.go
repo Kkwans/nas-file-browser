@@ -161,7 +161,7 @@ func List(ctx context.Context, filesystem afero.Fs, archivePath string, limits L
 	if err != nil {
 		return nil, err
 	}
-	defer opened.Close()
+	defer func() { _ = opened.Close() }()
 
 	listing := &Listing{
 		ArchivePath: archivePath, Format: opened.format,
@@ -303,7 +303,7 @@ func Extract(
 	if err != nil {
 		return nil, err
 	}
-	defer opened.Close()
+	defer func() { _ = opened.Close() }()
 	if opened.info.Size() != listing.SourceSize || opened.info.ModTime().UnixMilli() != listing.SourceModified {
 		return nil, ErrArchiveChanged
 	}
@@ -395,7 +395,7 @@ func openArchive(ctx context.Context, filesystem afero.Fs, archivePath string) (
 	}
 	format, reader, err := archives.Identify(ctx, path.Base(archivePath), file)
 	if err != nil {
-		file.Close()
+		_ = file.Close()
 		if errors.Is(err, archives.NoMatch) {
 			return nil, ErrUnsupportedFormat
 		}
@@ -403,12 +403,12 @@ func openArchive(ctx context.Context, filesystem afero.Fs, archivePath string) (
 	}
 	extractor, ok := format.(archives.Extractor)
 	if !ok {
-		file.Close()
+		_ = file.Close()
 		return nil, ErrUnsupportedFormat
 	}
 	formatName, ok := supportedFormatName(format)
 	if !ok {
-		file.Close()
+		_ = file.Close()
 		return nil, ErrUnsupportedFormat
 	}
 	return &openedArchive{file: file, reader: reader, extractor: extractor, format: formatName, info: info}, nil
@@ -585,7 +585,7 @@ func extractFile(
 	if err != nil {
 		return 0, "", err
 	}
-	defer source.Close()
+	defer func() { _ = source.Close() }()
 	temporary, err := afero.TempFile(filesystem, path.Dir(target), temporaryExtractPrefix)
 	if err != nil {
 		return 0, "", err

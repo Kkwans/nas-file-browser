@@ -1194,8 +1194,8 @@ onBeforeUnmount(() => {
 
 .analysis-scope-list button {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border: 0;
   border-radius: 6px;

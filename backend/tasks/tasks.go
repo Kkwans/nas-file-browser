@@ -22,6 +22,7 @@ const (
 	TypeDuplicateAnalysis Type = "analysis.duplicates"
 	TypeStorageAnalysis   Type = "analysis.storage"
 	TypeArchiveExtract    Type = "archive.extract"
+	TypeMediaHLS          Type = "media.hls"
 )
 
 type Status string

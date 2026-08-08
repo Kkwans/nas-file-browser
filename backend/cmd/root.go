@@ -25,6 +25,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/auth"
 	"github.com/Kkwans/nas-file-browser/backend/diskcache"
 	"github.com/Kkwans/nas-file-browser/backend/frontend"
+	"github.com/Kkwans/nas-file-browser/backend/hls"
 	fbhttp "github.com/Kkwans/nas-file-browser/backend/http"
 	"github.com/Kkwans/nas-file-browser/backend/img"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
@@ -92,6 +93,9 @@ func init() {
 	flags.String("redisCacheUrl", "", "redis cache URL (for multi-instance deployments), e.g. redis://user:pass@host:port")
 	flags.Int("imageProcessors", 1, "image processors count")
 	flags.Int("videoPreviewProcessors", 1, "FFmpeg video cover processors count (1-2)")
+	flags.String("hlsCacheDir", filepath.Join(os.TempDir(), "nas-file-browser-hls"), "HLS compatibility playback cache directory")
+	flags.Uint64("hlsCacheMaxBytes", uint64(hls.DefaultMaxBytes), "HLS compatibility playback cache limit in bytes")
+	flags.Int("hlsProcessors", 1, "FFmpeg HLS compatibility playback processors count (1-2)")
 	addServerFlags(flags)
 }
 
@@ -173,6 +177,20 @@ user created with the credentials from options "username" and "password".`,
 		if videoPreviewWorkers < 1 || videoPreviewWorkers > 2 {
 			return errors.New("FFmpeg video cover processors count must be between 1 and 2")
 		}
+		hlsWorkers := v.GetInt("hlsProcessors")
+		if hlsWorkers < 1 || hlsWorkers > 2 {
+			return errors.New("FFmpeg HLS processors count must be between 1 and 2")
+		}
+		hlsMaxBytes := v.GetUint64("hlsCacheMaxBytes")
+		if hlsMaxBytes == 0 || hlsMaxBytes > uint64(^uint64(0)>>1) {
+			return errors.New("HLS cache limit must be a positive int64 byte count")
+		}
+		hlsService, err := hls.New(hls.Config{
+			CacheDir: v.GetString("hlsCacheDir"), MaxBytes: int64(hlsMaxBytes), Workers: hlsWorkers,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to initialize HLS compatibility playback: %w", err)
+		}
 
 		var fileCache diskcache.Interface = diskcache.NewNoOp()
 		cacheDir := v.GetString("cacheDir")
@@ -240,7 +258,7 @@ user created with the credentials from options "username" and "password".`,
 			panic(err)
 		}
 
-		handler, err := fbhttp.NewHandler(imageService, fileCache, uploadCache, st.Storage, server, assetsFs, videoPreviewWorkers)
+		handler, err := fbhttp.NewHandler(imageService, fileCache, uploadCache, st.Storage, server, assetsFs, videoPreviewWorkers, hlsService)
 		if err != nil {
 			return err
 		}

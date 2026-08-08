@@ -98,16 +98,9 @@ func TestRuntimeExclusiveKeyRejectsOverlappingDestructiveTask(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitForTaskStatus(t, backend, first.ID, StatusCanceled)
-	deadline := time.Now().Add(2 * time.Second)
-	for {
-		err = runtime.StartExclusive(second, func(context.Context, Reporter) (json.RawMessage, error) { return nil, nil }, "trash.clear")
-		if err == nil {
-			break
-		}
-		if !errors.Is(err, ErrState) || time.Now().After(deadline) {
-			t.Fatalf("exclusive key was not released: %v", err)
-		}
-		time.Sleep(time.Millisecond)
+	err = runtime.StartExclusive(second, func(context.Context, Reporter) (json.RawMessage, error) { return nil, nil }, "trash.clear")
+	if err != nil {
+		t.Fatalf("terminal task still held exclusive key: %v", err)
 	}
 	waitForTaskStatus(t, backend, second.ID, StatusCompleted)
 }

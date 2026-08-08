@@ -1,11 +1,13 @@
 package fbhttp
 
 import (
+	"fmt"
 	"io/fs"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
+	"github.com/Kkwans/nas-file-browser/backend/hls"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/storage"
 	"github.com/Kkwans/nas-file-browser/backend/tasks"
@@ -25,7 +27,11 @@ func NewHandler(
 	server *settings.Server,
 	assetsFs fs.FS,
 	videoPreviewWorkers int,
+	hlsService *hls.Service,
 ) (http.Handler, error) {
+	if hlsService == nil {
+		return nil, fmt.Errorf("HLS compatibility playback service is not configured")
+	}
 	server.Clean()
 	taskRuntime, err := tasks.NewRuntime(store.Tasks)
 	if err != nil {
@@ -79,7 +85,7 @@ func NewHandler(
 	api.Handle("/tasks", monkey(taskListHandler, "")).Methods("GET")
 	api.Handle("/tasks/{id}", monkey(taskGetHandler, "")).Methods("GET")
 	api.Handle("/tasks/{id}/cancel", monkey(taskCancelHandler(taskRuntime), "")).Methods("POST")
-	api.Handle("/tasks/{id}/retry", monkey(taskRetryHandler(taskRuntime), "")).Methods("POST")
+	api.Handle("/tasks/{id}/retry", monkey(taskRetryHandler(taskRuntime, hlsService), "")).Methods("POST")
 	api.Handle("/analysis/duplicates", monkey(duplicateAnalysisStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/storage", monkey(storageAnalysisStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/storage/{id}", monkey(storageAnalysisResultHandler, "")).Methods("GET")
@@ -94,6 +100,10 @@ func NewHandler(
 	api.Handle("/media/playback", monkey(playbackPutHandler, "")).Methods("PUT")
 	api.Handle("/media/playback", monkey(playbackDeleteHandler, "")).Methods("DELETE")
 	api.Handle("/media/info", monkey(mediaInfoHandler(defaultMediaProbe), "")).Methods("GET")
+	api.Handle("/media/hls", monkey(mediaHLSStartHandler(hlsService, taskRuntime), "")).Methods("POST")
+	api.Handle("/media/hls/{id:[a-f0-9]{64}}", monkey(mediaHLSGetHandler(hlsService), "")).Methods("GET")
+	api.Handle("/media/hls/{id:[a-f0-9]{64}}/cancel", monkey(mediaHLSCancelHandler(hlsService, taskRuntime), "")).Methods("POST")
+	api.Handle("/media/hls/{id:[a-f0-9]{64}}/{asset}", monkey(mediaHLSAssetHandler(hlsService), "")).Methods("GET")
 
 	api.PathPrefix("/tus").Handler(monkey(tusPostHandler(uploadCache), "/api/tus")).Methods("POST")
 	api.PathPrefix("/tus").Handler(monkey(tusHeadHandler(uploadCache), "/api/tus")).Methods("HEAD", "GET")

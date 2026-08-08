@@ -116,17 +116,7 @@ func (runtime *Runtime) Cancel(userID uint, id string, admin bool) (*Task, error
 }
 
 func (runtime *Runtime) run(ctx context.Context, task *Task, runner Runner) {
-	defer func() {
-		runtime.mu.Lock()
-		delete(runtime.cancels, task.ID)
-		for _, key := range runtime.taskKeys[task.ID] {
-			if runtime.keys[key] == task.ID {
-				delete(runtime.keys, key)
-			}
-		}
-		delete(runtime.taskKeys, task.ID)
-		runtime.mu.Unlock()
-	}()
+	defer runtime.release(task.ID)
 
 	task.Status = StatusRunning
 	task.StartedAt = time.Now().UnixMilli()
@@ -160,5 +150,20 @@ func (runtime *Runtime) run(ctx context.Context, task *Task, runner Runner) {
 		task.Status = StatusCompleted
 		task.Error = ""
 	}
+	// A persisted terminal state is an API promise that the task can be
+	// retried immediately. Release process-local slots before publishing it.
+	runtime.release(task.ID)
 	_ = runtime.storage.Update(task)
+}
+
+func (runtime *Runtime) release(taskID string) {
+	runtime.mu.Lock()
+	defer runtime.mu.Unlock()
+	delete(runtime.cancels, taskID)
+	for _, key := range runtime.taskKeys[taskID] {
+		if runtime.keys[key] == taskID {
+			delete(runtime.keys, key)
+		}
+	}
+	delete(runtime.taskKeys, taskID)
 }

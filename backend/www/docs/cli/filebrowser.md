@@ -62,6 +62,9 @@ filebrowser [flags]
       --disableThumbnails              disable image thumbnails
       --disableTypeDetectionByHeader   disables type detection by reading file headers
   -h, --help                           help for filebrowser
+      --hlsCacheDir string             HLS compatibility playback cache directory (default "/tmp/nas-file-browser-hls")
+      --hlsCacheMaxBytes uint          HLS compatibility playback cache limit in bytes (default 10737418240)
+      --hlsProcessors int              FFmpeg HLS compatibility playback processors count (1-2) (default 1)
       --imageProcessors int            image processors count (default 1)
   -k, --key string                     tls key
   -l, --log string                     log output (default "stdout")

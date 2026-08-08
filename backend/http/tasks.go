@@ -12,6 +12,7 @@ import (
 
 	"github.com/Kkwans/nas-file-browser/backend/archivefs"
 	"github.com/Kkwans/nas-file-browser/backend/history"
+	"github.com/Kkwans/nas-file-browser/backend/hls"
 	"github.com/Kkwans/nas-file-browser/backend/tasks"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
@@ -48,7 +49,7 @@ func taskCancelHandler(runtime *tasks.Runtime) handleFunc {
 	})
 }
 
-func taskRetryHandler(runtime *tasks.Runtime) handleFunc {
+func taskRetryHandler(runtime *tasks.Runtime, hlsServices ...*hls.Service) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		original, err := d.store.Tasks.Get(d.user.ID, mux.Vars(r)["id"], d.user.Perm.Admin)
 		if err != nil {
@@ -65,7 +66,35 @@ func taskRetryHandler(runtime *tasks.Runtime) handleFunc {
 		if err != nil {
 			return http.StatusConflict, fmt.Errorf("任务所有者已不可用: %w", err)
 		}
-		retry, err := enqueueTask(runtime, d, owner, original.Type, original.Title, original.Args, original.ID)
+		var retry *tasks.Task
+		if original.Type == tasks.TypeMediaHLS {
+			if len(hlsServices) == 0 || hlsServices[0] == nil {
+				return http.StatusConflict, fmt.Errorf("兼容播放服务不可用")
+			}
+			var args mediaHLSTaskArgs
+			if err := json.Unmarshal(original.Args, &args); err != nil {
+				return http.StatusConflict, fmt.Errorf("任务参数损坏: %w", err)
+			}
+			input, status, err := mediaHLSInput(d, owner, args.Path)
+			if err != nil {
+				return status, err
+			}
+			_, created, reserveErr := hlsServices[0].Reserve(input, func(job hls.Job) (string, error) {
+				retry, err = enqueueMediaHLSTask(runtime, d, owner, hlsServices[0], job, original.ID)
+				if err != nil {
+					return "", err
+				}
+				return retry.ID, nil
+			})
+			if reserveErr != nil {
+				return taskErrorStatus(reserveErr), reserveErr
+			}
+			if !created || retry == nil {
+				return http.StatusConflict, fmt.Errorf("该视频已有可用或正在执行的兼容播放任务")
+			}
+		} else {
+			retry, err = enqueueTask(runtime, d, owner, original.Type, original.Title, original.Args, original.ID)
+		}
 		if err != nil {
 			return taskErrorStatus(err), err
 		}
@@ -201,6 +230,8 @@ func canRunTaskType(user *users.User, taskType tasks.Type) bool {
 		return user.Perm.Download
 	case tasks.TypeArchiveExtract:
 		return user.Perm.Download && user.Perm.Create
+	case tasks.TypeMediaHLS:
+		return user.Perm.Download
 	default:
 		return false
 	}

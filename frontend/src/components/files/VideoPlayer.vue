@@ -602,9 +602,9 @@ function activateHLSPlayback(playlistURL: string) {
     }
 
     // Chromium can leave the first VHS SourceUpdater waiting after a failed
-    // direct-play source. One bounded reload after the VHS tech settles lets
-    // Video.js initialize the current HLS source without an infinite retry.
-    currentPlayer.load();
+    // direct-play source. Re-selecting the same HLS source once rebuilds that
+    // handler after the tech settles, without introducing an infinite retry.
+    currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
     playVideo(currentPlayer);
   }, 750);
   currentPlayer.one("loadedmetadata", () => {

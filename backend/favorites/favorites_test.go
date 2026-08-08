@@ -53,6 +53,31 @@ func TestStorageRewritesAndRemovesPathPrefixesForEveryUser(t *testing.T) {
 	}
 }
 
+func TestDeletedSnapshotIsIndependentAndRestorable(t *testing.T) {
+	backend := &failingFavoriteBackend{
+		memoryBackend: &memoryBackend{
+			favorites: []*Favorite{{ID: "favorite", UserID: 7, Path: "/docs/file.md"}},
+		},
+	}
+	storage := NewStorage(backend)
+	mutation, err := storage.RemovePathPrefix("/docs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot := mutation.DeletedSnapshot()
+	if len(snapshot) != 1 {
+		t.Fatalf("snapshot = %#v", snapshot)
+	}
+	snapshot[0].Path = "/changed"
+	if mutation.DeletedSnapshot()[0].Path != "/docs/file.md" {
+		t.Fatal("snapshot mutated the original path mutation")
+	}
+	if err := storage.RestoreDeletedSnapshot(mutation.DeletedSnapshot()); err != nil {
+		t.Fatal(err)
+	}
+	assertFavoritePath(t, backend.favorites, "favorite", "/docs/file.md")
+}
+
 func TestPathMutationCompensatesPartialBackendFailuresWithoutDuplicates(t *testing.T) {
 	original := []*Favorite{
 		{ID: "first", UserID: 1, Path: "/docs/first.md"},

@@ -41,6 +41,19 @@ type PathMutation struct {
 	updated []Tag
 }
 
+// UpdatedSnapshot returns a deep copy of tags changed by a path removal. The
+// recycle bin persists these complete prior path lists for exact restoration.
+func (m *PathMutation) UpdatedSnapshot() []Tag {
+	if m == nil {
+		return nil
+	}
+	snapshot := make([]Tag, len(m.updated))
+	for index, tag := range m.updated {
+		snapshot[index] = cloneTag(tag)
+	}
+	return snapshot
+}
+
 // Storage is the high-level storage for tags.
 type Storage struct {
 	back StorageBackend
@@ -229,6 +242,16 @@ func (s *Storage) RestorePathMutation(mutation *PathMutation) error {
 		restoreErr = errors.Join(restoreErr, s.back.UpdatePaths(tag.ID, tag.Paths))
 	}
 	return restoreErr
+}
+
+// RestoreUpdatedSnapshot restores only the exact tag path lists captured by
+// UpdatedSnapshot.
+func (s *Storage) RestoreUpdatedSnapshot(snapshot []Tag) error {
+	updated := make([]Tag, len(snapshot))
+	for index, tag := range snapshot {
+		updated[index] = cloneTag(tag)
+	}
+	return s.RestorePathMutation(&PathMutation{updated: updated})
 }
 
 func cloneTag(tag Tag) Tag {

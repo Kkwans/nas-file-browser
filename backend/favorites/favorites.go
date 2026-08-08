@@ -69,6 +69,16 @@ type PathMutation struct {
 	deleted []Favorite
 }
 
+// DeletedSnapshot returns an independent copy of favorites removed by a path
+// mutation. Recycle-bin records persist this snapshot until restore or
+// permanent deletion.
+func (m *PathMutation) DeletedSnapshot() []Favorite {
+	if m == nil {
+		return nil
+	}
+	return append([]Favorite(nil), m.deleted...)
+}
+
 // Storage is the high-level storage for favorites.
 type Storage struct {
 	back StorageBackend
@@ -239,6 +249,14 @@ func (s *Storage) RestorePathMutation(mutation *PathMutation) error {
 		restoreErr = errors.Join(restoreErr, s.back.Save(&copy))
 	}
 	return restoreErr
+}
+
+// RestoreDeletedSnapshot restores exact favorite rows previously returned by
+// DeletedSnapshot without touching newer favorites at unrelated paths.
+func (s *Storage) RestoreDeletedSnapshot(snapshot []Favorite) error {
+	return s.RestorePathMutation(&PathMutation{
+		deleted: append([]Favorite(nil), snapshot...),
+	})
 }
 
 // Reorder replaces the entire order of favorites.

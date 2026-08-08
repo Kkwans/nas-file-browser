@@ -47,6 +47,33 @@ func TestStorageRewritesAndRemovesPathPrefixesForEveryUser(t *testing.T) {
 	assertTagPaths(t, backend.tags, "guest", []string{"/docs-old/keep.md", "/Docs/case.md"})
 }
 
+func TestUpdatedSnapshotIsIndependentAndRestorable(t *testing.T) {
+	backend := &failingTagBackend{
+		memoryBackend: &memoryBackend{
+			tags: []*Tag{{ID: "tag", UserID: 7, Paths: []string{"/docs/file.md", "/other"}}},
+		},
+	}
+	storage := NewStorage(backend)
+	mutation, err := storage.RemovePathPrefix("/docs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot := mutation.UpdatedSnapshot()
+	if len(snapshot) != 1 {
+		t.Fatalf("snapshot = %#v", snapshot)
+	}
+	snapshot[0].Paths[0] = "/changed"
+	if mutation.UpdatedSnapshot()[0].Paths[0] != "/docs/file.md" {
+		t.Fatal("snapshot mutated the original path mutation")
+	}
+	if err := storage.RestoreUpdatedSnapshot(mutation.UpdatedSnapshot()); err != nil {
+		t.Fatal(err)
+	}
+	if got := backend.tags[0].Paths; len(got) != 2 || got[0] != "/docs/file.md" || got[1] != "/other" {
+		t.Fatalf("restored paths = %#v", got)
+	}
+}
+
 func TestPathMutationCompensatesPartialBackendFailures(t *testing.T) {
 	original := []*Tag{
 		{ID: "first", UserID: 1, Paths: []string{"/docs/first.md"}},

@@ -271,6 +271,10 @@ const markdownImageUploading = ref(false);
 const markdownImageUploadLabel = ref("");
 let markdownImagePreviewObserver: MutationObserver | null = null;
 let markdownImagePreviewScheduled = false;
+let markdownImagePreviewRecords = new WeakMap<
+  HTMLImageElement,
+  { markdownSource: string; previewSource: string }
+>();
 const showCodeLanguagePicker = ref(false);
 const codeLanguageQuery = ref("");
 const codeLanguageSearchInput = ref<HTMLInputElement | null>(null);
@@ -468,10 +472,10 @@ const rewriteMarkdownImagePreviews = () => {
 
   mountEl.querySelectorAll<HTMLImageElement>("img[src]").forEach((image) => {
     const currentSource = image.getAttribute("src") ?? "";
-    const previousPreview = image.dataset.nfbMarkdownPreview ?? "";
-    let markdownSource = image.dataset.nfbMarkdownSource ?? currentSource;
+    const record = markdownImagePreviewRecords.get(image);
+    let markdownSource = record?.markdownSource ?? currentSource;
 
-    if (previousPreview && currentSource !== previousPreview) {
+    if (record && currentSource !== record.previewSource) {
       markdownSource = currentSource;
     }
 
@@ -480,13 +484,11 @@ const rewriteMarkdownImagePreviews = () => {
       markdownSource
     );
     if (!previewSource) {
-      delete image.dataset.nfbMarkdownSource;
-      delete image.dataset.nfbMarkdownPreview;
+      markdownImagePreviewRecords.delete(image);
       return;
     }
 
-    image.dataset.nfbMarkdownSource = markdownSource;
-    image.dataset.nfbMarkdownPreview = previewSource;
+    markdownImagePreviewRecords.set(image, { markdownSource, previewSource });
     if (currentSource !== previewSource) {
       image.setAttribute("src", previewSource);
     }
@@ -522,28 +524,37 @@ function teardownMarkdownImagePreviews() {
   markdownImagePreviewObserver?.disconnect();
   markdownImagePreviewObserver = null;
   markdownImagePreviewScheduled = false;
+  markdownImagePreviewRecords = new WeakMap();
 }
 
 const getVditorMarkdown = () => {
   if (!vditorInstance) return markdownBuffer;
   const mountEl = document.getElementById("vditor-mount");
   const previews = mountEl
-    ? Array.from(
-        mountEl.querySelectorAll<HTMLImageElement>(
-          "img[data-nfb-markdown-source][data-nfb-markdown-preview]"
+    ? Array.from(mountEl.querySelectorAll<HTMLImageElement>("img[src]"))
+        .map((image) => ({
+          image,
+          record: markdownImagePreviewRecords.get(image),
+        }))
+        .filter(
+          (
+            item
+          ): item is {
+            image: HTMLImageElement;
+            record: { markdownSource: string; previewSource: string };
+          } => Boolean(item.record)
         )
-      )
     : [];
 
-  previews.forEach((image) => {
-    image.setAttribute("src", image.dataset.nfbMarkdownSource ?? "");
+  previews.forEach(({ image, record }) => {
+    image.setAttribute("src", record.markdownSource);
   });
   try {
     return vditorInstance.getValue();
   } finally {
-    previews.forEach((image) => {
+    previews.forEach(({ image, record }) => {
       if (image.isConnected) {
-        image.setAttribute("src", image.dataset.nfbMarkdownPreview ?? "");
+        image.setAttribute("src", record.previewSource);
       }
     });
   }

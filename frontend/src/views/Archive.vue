@@ -1108,6 +1108,7 @@ onBeforeUnmount(() => {
 .archive-entry-name > label {
   display: grid;
   min-width: 0;
+  min-height: 32px;
   flex: 1;
   grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;

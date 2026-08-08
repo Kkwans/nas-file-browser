@@ -23,4 +23,10 @@ describe("压缩包浏览无障碍契约", () => {
       /\.archive-browser-actions label\s*\{[\s\S]*?min-height:\s*36px;/
     );
   });
+
+  it("归档条目整行选择标签保留至少 32px 的触摸高度", () => {
+    expect(archiveSource).toMatch(
+      /\.archive-entry-name > label\s*\{[\s\S]*?min-height:\s*32px;/
+    );
+  });
 });

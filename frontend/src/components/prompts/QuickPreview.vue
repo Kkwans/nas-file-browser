@@ -14,6 +14,7 @@
         <button
           class="quick-preview-btn"
           type="button"
+          :disabled="!canNavigate"
           @click="navigateFile(-1)"
           title="上一个"
           aria-label="上一个"
@@ -23,6 +24,7 @@
         <button
           class="quick-preview-btn"
           type="button"
+          :disabled="!canNavigate"
           @click="navigateFile(1)"
           title="下一个"
           aria-label="下一个"
@@ -30,6 +32,7 @@
           <i class="material-icons" aria-hidden="true">chevron_right</i>
         </button>
         <button
+          v-if="authStore.user?.perm.download"
           class="quick-preview-btn"
           type="button"
           @click="downloadFile"
@@ -62,6 +65,7 @@
       <!-- Image -->
       <img
         v-if="item.type === 'image'"
+        :key="item.path"
         :src="previewUrl"
         :alt="item.name"
         class="quick-preview-image"
@@ -71,6 +75,7 @@
       <!-- Video -->
       <video
         v-else-if="item.type === 'video'"
+        :key="item.path"
         :src="directUrl"
         controls
         autoplay
@@ -83,6 +88,7 @@
       <div v-else-if="item.type === 'audio'" class="quick-preview-audio-wrap">
         <i class="material-icons audio-icon" aria-hidden="true">audiotrack</i>
         <audio
+          :key="item.path"
           :src="directUrl"
           controls
           autoplay
@@ -95,6 +101,7 @@
       <!-- PDF -->
       <iframe
         v-else-if="isPdf"
+        :key="item.path"
         :src="directUrl"
         class="quick-preview-pdf"
         :title="`${item.name} PDF 预览`"
@@ -134,10 +141,15 @@ import { storeToRefs } from "pinia";
 import { useLayoutStore } from "@/stores/layout";
 import { useFileStore } from "@/stores/file";
 import { useRecentStore } from "@/stores/recent";
+import { useAuthStore } from "@/stores/auth";
 import { files as api } from "@/api";
 import type { ResourceItem } from "@/types/file";
 import { filesize } from "@/utils";
-import { getFileIcon, isTextFile, isPreviewable } from "@/utils/fileIcons";
+import { getFileIcon, isTextFile } from "@/utils/fileIcons";
+import {
+  findAdjacentQuickPreviewItem,
+  getQuickPreviewItems,
+} from "@/utils/quickPreview";
 import {
   loadMarkdownResources,
   highlightAndAnnotateCodeBlocks,
@@ -149,6 +161,7 @@ const router = useRouter();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const recentStore = useRecentStore();
+const authStore = useAuthStore();
 const { closeHovers } = layoutStore;
 const { currentPrompt } = storeToRefs(layoutStore);
 
@@ -156,8 +169,15 @@ const loading = ref(true);
 const textContent = ref("");
 const markdownBody = ref<HTMLElement | null>(null);
 const recordedPath = ref("");
+let contentController: AbortController | null = null;
 
 const item = computed(() => currentPrompt.value?.props?.item || {});
+const listingItems = computed<ResourceItem[]>(
+  () => currentPrompt.value?.props?.items || fileStore.req?.items || []
+);
+const canNavigate = computed(
+  () => getQuickPreviewItems(listingItems.value).length > 1
+);
 
 const humanSize = computed(() => filesize(item.value.size || 0));
 const humanTime = computed(() => dayjs(item.value.modified).fromNow());
@@ -205,12 +225,11 @@ const previewUrl = computed(() => {
 });
 
 const directUrl = computed(() => api.getDownloadURL(item.value, true));
-const recordSuccessfulPreview = async () => {
-  const path = item.value.path || "";
+const recordSuccessfulPreview = async (path = item.value.path || "") => {
   if (!path || recordedPath.value === path) return;
-  recordedPath.value = path;
   try {
     await recentStore.record(path);
+    recordedPath.value = path;
   } catch (error) {
     console.warn("无法记录快捷预览", error);
   }
@@ -223,17 +242,12 @@ const finishLoading = (successful: boolean) => {
 
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
-  if (isMarkdown.value) {
-    loadMarkdownContent();
-  } else if (isText.value) {
-    loadTextContent();
-  } else if (item.value.type === "blob" || item.value.type === "invalid_link") {
-    loading.value = false;
-  }
+  activateCurrentItem();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", handleKeydown);
+  contentController?.abort();
 });
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -248,27 +262,16 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 };
 
-const navigateFile = (direction: number) => {
-  const listing = fileStore.oldReq?.items;
-  if (!listing || listing.length === 0) return;
-
-  const currentName = item.value.name;
-  const currentIndex = listing.findIndex(
-    (it: ResourceItem) => it.name === currentName
+const navigateFile = (direction: -1 | 1) => {
+  const target = findAdjacentQuickPreviewItem(
+    listingItems.value,
+    item.value.path || "",
+    direction
   );
-  if (currentIndex === -1) return;
-
-  let idx = currentIndex;
-  do {
-    idx += direction;
-    if (idx < 0) idx = listing.length - 1;
-    if (idx >= listing.length) idx = 0;
-    if (idx === currentIndex) return;
-  } while (!isPreviewable(listing[idx].type, listing[idx].extension));
-
-  const target = listing[idx];
-  closeHovers();
-  router.push({ path: target.url });
+  if (!target || !currentPrompt.value?.props) return;
+  currentPrompt.value.props.item = target;
+  fileStore.selectOnly(target.path);
+  activateCurrentItem();
 };
 
 const close = () => closeHovers();
@@ -283,38 +286,77 @@ const downloadFile = () => {
   document.body.removeChild(a);
 };
 
-const openFull = () => window.open(directUrl.value, "_blank");
+const openFull = async () => {
+  const target = item.value.url;
+  if (!target) return;
+  closeHovers();
+  await router.push({ path: target });
+};
 
-const loadTextContent = async () => {
-  try {
-    const resp = await fetch(directUrl.value, { credentials: "include" });
-    if (!resp.ok) throw new Error(`无法加载预览（HTTP ${resp.status}）`);
-    const text = await resp.text();
-    textContent.value =
-      text.length > 51200
-        ? text.substring(0, 51200) + "\n\n... " + "文件过大"
-        : text;
-    await recordSuccessfulPreview();
-  } catch (error) {
-    textContent.value =
-      error instanceof Error ? error.message : "无法加载预览内容";
-  } finally {
+const activateCurrentItem = () => {
+  contentController?.abort();
+  contentController = null;
+  loading.value = true;
+  textContent.value = "";
+  if (markdownBody.value) markdownBody.value.replaceChildren();
+  if (isMarkdown.value) {
+    void loadMarkdownContent();
+  } else if (isText.value) {
+    void loadTextContent();
+  } else if (item.value.type === "blob" || item.value.type === "invalid_link") {
     loading.value = false;
   }
 };
 
-const loadMarkdownContent = async () => {
+const loadTextContent = async () => {
+  const controller = new AbortController();
+  contentController = controller;
+  const source = directUrl.value;
+  const path = item.value.path || "";
   try {
-    const resp = await fetch(directUrl.value, { credentials: "include" });
+    const resp = await fetch(source, {
+      credentials: "include",
+      signal: controller.signal,
+    });
     if (!resp.ok) throw new Error(`无法加载预览（HTTP ${resp.status}）`);
     const text = await resp.text();
+    if (controller.signal.aborted) return;
+    textContent.value =
+      text.length > 51200
+        ? text.substring(0, 51200) + "\n\n... " + "文件过大"
+        : text;
+    await recordSuccessfulPreview(path);
+  } catch (error) {
+    if (controller.signal.aborted) return;
+    textContent.value =
+      error instanceof Error ? error.message : "无法加载预览内容";
+  } finally {
+    if (contentController === controller) loading.value = false;
+  }
+};
+
+const loadMarkdownContent = async () => {
+  const controller = new AbortController();
+  contentController = controller;
+  const source = directUrl.value;
+  const path = item.value.path || "";
+  try {
+    const resp = await fetch(source, {
+      credentials: "include",
+      signal: controller.signal,
+    });
+    if (!resp.ok) throw new Error(`无法加载预览（HTTP ${resp.status}）`);
+    const text = await resp.text();
+    if (controller.signal.aborted) return;
     const truncated =
       text.length > 51200
         ? text.substring(0, 51200) + "\n\n... " + "文件过大"
         : text;
-    await renderMarkdown(truncated);
-    await recordSuccessfulPreview();
+    await renderMarkdown(truncated, controller.signal);
+    if (controller.signal.aborted) return;
+    await recordSuccessfulPreview(path);
   } catch (error) {
+    if (controller.signal.aborted) return;
     textContent.value =
       error instanceof Error ? error.message : "无法加载预览内容";
     nextTick(() => {
@@ -323,12 +365,13 @@ const loadMarkdownContent = async () => {
       }
     });
   } finally {
-    loading.value = false;
+    if (contentController === controller) loading.value = false;
   }
 };
 
-const renderMarkdown = async (content: string) => {
+const renderMarkdown = async (content: string, signal: AbortSignal) => {
   await loadMarkdownResources();
+  if (signal.aborted) return;
 
   const VditorClass = (window as any).Vditor;
   const isDark = document.documentElement.className === "dark";
@@ -337,6 +380,7 @@ const renderMarkdown = async (content: string) => {
     mode: isDark ? "dark" : "light",
   });
   const html = await Promise.resolve(htmlResult);
+  if (signal.aborted) return;
 
   if (typeof html === "string" && markdownBody.value) {
     markdownBody.value.innerHTML = html;

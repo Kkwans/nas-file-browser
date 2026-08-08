@@ -1287,6 +1287,7 @@ const keyEvent = (event: KeyboardEvent) => {
             path: item.path,
             extension: item.extension || "",
           },
+          items: [...items.value.dirs, ...items.value.files],
         },
       });
     }

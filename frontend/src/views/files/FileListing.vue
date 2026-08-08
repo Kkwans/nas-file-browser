@@ -708,6 +708,14 @@
             </button>
             <template v-if="fileStore.selectedCount > 0">
               <button
+                v-if="headerButtons.rename"
+                class="selection-btn action-btn"
+                @click="layoutStore.showHover('rename')"
+              >
+                <i class="material-icons">drive_file_rename_outline</i>
+                <span>重命名</span>
+              </button>
+              <button
                 v-if="headerButtons.copy"
                 class="selection-btn action-btn"
                 @click="layoutStore.showHover('copy')"
@@ -1015,7 +1023,7 @@ const headerButtons = computed(() => {
     download: authStore.user?.perm.download,
     shell: authStore.user?.perm.execute && enableExec,
     delete: fileStore.selectedCount > 0 && authStore.user?.perm.delete,
-    rename: fileStore.selectedCount === 1 && authStore.user?.perm.rename,
+    rename: fileStore.selectedCount > 0 && authStore.user?.perm.rename,
     share:
       fileStore.selectedCount === 1 &&
       authStore.user?.perm.share &&
@@ -1255,9 +1263,9 @@ const keyEvent = (event: KeyboardEvent) => {
   }
 
   if (event.key === "F2") {
-    if (!authStore.user?.perm.rename || fileStore.selectedCount !== 1) return;
+    if (!authStore.user?.perm.rename || fileStore.selectedCount === 0) return;
 
-    // Show rename prompt.
+    event.preventDefault();
     layoutStore.showHover("rename");
   }
 

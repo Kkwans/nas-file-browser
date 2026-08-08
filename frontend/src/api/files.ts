@@ -18,6 +18,23 @@ import type {
 } from "@/types/file";
 import urlUtils from "@/utils/url";
 
+export interface BatchRenameItem {
+  from: string;
+  to: string;
+}
+
+export interface BatchRenameResultItem extends BatchRenameItem {
+  status: "ready" | "completed" | "error";
+  error?: string;
+}
+
+export interface BatchRenameResult {
+  valid: boolean;
+  executed: boolean;
+  items: BatchRenameResultItem[];
+  error?: string;
+}
+
 export async function fetch(url: string, signal?: AbortSignal) {
   const encoding = isEncodableResponse(url);
   url = removePrefix(url);
@@ -288,6 +305,44 @@ export function move(
   rename = false
 ) {
   return moveCopy(items, false, overwrite, rename);
+}
+
+function applyCompletedBatchRename(items: BatchRenameResultItem[]) {
+  const completed = items.filter((item) => item.status === "completed");
+  if (completed.length === 0) return;
+
+  const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const staged = completed.map((item, index) => ({
+    ...item,
+    temp: `/.nas-file-browser-ui-rename-${token}-${index}`,
+  }));
+  const favoritesStore = useFavoritesStore();
+  const tagsStore = useTagsStore();
+  const recentStore = useRecentStore();
+  for (const item of staged) {
+    favoritesStore.applyPathRewrite(item.from, item.temp);
+    tagsStore.applyPathRewrite(item.from, item.temp);
+    recentStore.applyPathRewrite(item.from, item.temp);
+  }
+  for (const item of staged) {
+    favoritesStore.applyPathRewrite(item.temp, item.to);
+    tagsStore.applyPathRewrite(item.temp, item.to);
+    recentStore.applyPathRewrite(item.temp, item.to);
+  }
+}
+
+export async function batchRename(
+  items: BatchRenameItem[],
+  dryRun: boolean
+): Promise<BatchRenameResult> {
+  const response = await fetchURL("/api/resources/batch-rename", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items, dryRun }),
+  });
+  const result = (await response.json()) as BatchRenameResult;
+  if (result.executed) applyCompletedBatchRename(result.items);
+  return result;
 }
 
 export function copy(

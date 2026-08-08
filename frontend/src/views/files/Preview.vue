@@ -131,6 +131,8 @@
           ref="player"
           :path="fileStore.req.path"
           :source="previewUrl"
+          :download-source="downloadUrl"
+          :direct-source="directUrl"
           :subtitles="subtitles"
           :options="videoOptions"
         >

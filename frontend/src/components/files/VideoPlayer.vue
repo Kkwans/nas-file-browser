@@ -466,7 +466,7 @@ const languageImports: LanguageImports = {
 .media-progress-message {
   position: absolute;
   z-index: 11;
-  top: 18px;
+  top: calc(3.5rem + 12px);
   left: 50%;
   display: flex;
   min-height: 38px;

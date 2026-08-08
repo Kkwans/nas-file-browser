@@ -7,6 +7,9 @@ rice-box.go
 /filebrowser.exe
 /dist
 .venv
+.codex-go-cache/
+.codex-go-mod-cache/
+.codex-go-tmp/
 
 .DS_Store
 node_modules

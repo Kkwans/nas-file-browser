@@ -201,7 +201,7 @@
                   class="action favorite-item"
                   :class="favoriteDropClass(fav.id)"
                   draggable="true"
-                  @click="navigateVolume(fav.path)"
+                  @click="navigateVolume(fav.path, fav.groupId)"
                   :title="fav.path"
                   @dragstart="onFavDragStart($event, fav.id)"
                   @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
@@ -283,7 +283,7 @@
                   class="action favorite-item category-path-item"
                   :class="favoriteDropClass(fav.id)"
                   draggable="true"
-                  @click="navigateVolume(fav.path)"
+                  @click="navigateVolume(fav.path, fav.groupId)"
                   :title="fav.path"
                   @dragstart="onFavDragStart($event, fav.id)"
                   @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
@@ -1128,10 +1128,13 @@ const riskIcon = (risk: string) => {
   return "check_circle";
 };
 
-const navigateVolume = (path: string) => {
+const navigateVolume = (path: string, favoriteGroupId = "") => {
   const isFile = isFileByExtension(path);
   const url = isFile ? "/files" + path : "/files" + path + "/";
-  router.push({ path: url });
+  router.push({
+    path: url,
+    query: isFile && favoriteGroupId ? { mediaQueue: favoriteGroupId } : {},
+  });
   closeHovers();
 };
 

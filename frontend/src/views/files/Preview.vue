@@ -110,14 +110,7 @@
           :fileName="name"
           :fileSizeBytes="fileStore.req?.size || 0"
         />
-        <audio
-          v-else-if="fileStore.req?.type == 'audio'"
-          ref="player"
-          :src="previewUrl"
-          controls
-          :autoplay="autoPlay"
-          @play="autoPlay = true"
-        ></audio>
+        <AudioPreview v-else-if="fileStore.req?.type == 'audio'" :name="name" />
         <VideoPlayer
           v-else-if="fileStore.req?.type == 'video'"
           ref="player"
@@ -180,6 +173,8 @@ import { useStorage } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useMediaStore } from "@/stores/media";
+import { useFavoritesStore } from "@/stores/favorites";
 
 import { files as api } from "@/api";
 import { createURL } from "@/api/utils";
@@ -201,12 +196,19 @@ import { useRoute, useRouter } from "vue-router";
 import type { Rendition } from "epubjs";
 import type { ResourceItem, ResourceType } from "@/types/file";
 import { getTheme } from "@/utils/theme";
+import {
+  directoryAudioQueue,
+  favoriteGroupAudioQueue,
+} from "@/utils/audioQueue";
 
 const ExtendedImage = defineAsyncComponent(
   () => import("@/components/files/ExtendedImage.vue")
 );
 const VideoPlayer = defineAsyncComponent(
   () => import("@/components/files/VideoPlayer.vue")
+);
+const AudioPreview = defineAsyncComponent(
+  () => import("@/components/files/AudioPreview.vue")
 );
 const CsvViewer = defineAsyncComponent(
   () => import("@/components/files/CsvViewer.vue")
@@ -288,6 +290,8 @@ const $showError = inject<IToastError>("$showError")!;
 const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
+const mediaStore = useMediaStore();
+const favoritesStore = useFavoritesStore();
 
 const route = useRoute();
 const router = useRouter();
@@ -450,6 +454,8 @@ const updatePreview = async () => {
     }
   }
 
+  syncAudioQueue();
+
   previousLink.value = "";
   nextLink.value = "";
   if (listing.value) {
@@ -475,6 +481,23 @@ const updatePreview = async () => {
 
       return;
     }
+  }
+};
+
+const syncAudioQueue = () => {
+  const current = fileStore.req;
+  if (current?.type !== "audio") return;
+  const favoriteGroupId =
+    typeof route.query.mediaQueue === "string" ? route.query.mediaQueue : "";
+  const favoriteQueue = favoriteGroupId
+    ? favoriteGroupAudioQueue(favoritesStore.favorites, favoriteGroupId)
+    : [];
+  const queue =
+    favoriteQueue.length > 0
+      ? favoriteQueue
+      : directoryAudioQueue(listing.value ?? []);
+  if (queue.some((item) => item.path === current.path)) {
+    mediaStore.openAudioQueue(queue, current.path, autoPlay.value);
   }
 };
 

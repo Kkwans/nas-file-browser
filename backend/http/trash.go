@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/Kkwans/nas-file-browser/backend/tasks"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
 )
@@ -70,25 +71,18 @@ var trashDeleteHandler = withUser(func(_ http.ResponseWriter, r *http.Request, d
 	return http.StatusNoContent, nil
 })
 
-var trashClearHandler = withUser(func(_ http.ResponseWriter, _ *http.Request, d *data) (int, error) {
-	if !d.user.Perm.Admin && !d.user.Perm.Delete {
-		return http.StatusForbidden, fmt.Errorf("没有清空回收站权限")
-	}
-	items, err := d.store.Trash.List(d.user.ID, d.user.Perm.Admin)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	for index, item := range items {
-		owner, err := trashOwner(d, item)
+func trashClearHandler(runtime *tasks.Runtime) handleFunc {
+	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		if !d.user.Perm.Admin && !d.user.Perm.Delete {
+			return http.StatusForbidden, fmt.Errorf("没有清空回收站权限")
+		}
+		task, err := enqueueTrashClearTask(runtime, d)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("清空回收站在第 %d 项失败: %w", index+1, err)
+			return taskErrorStatus(err), err
 		}
-		if err := newTrashService(d, owner).DeletePermanent(d.user.ID, item.ID, d.user.Perm.Admin); err != nil {
-			return trashErrorStatus(err), fmt.Errorf("清空回收站在第 %d 项失败: %w", index+1, err)
-		}
-	}
-	return http.StatusNoContent, nil
-})
+		return renderJSONStatus(w, task, http.StatusAccepted)
+	})
+}
 
 func trashItemAndOwner(d *data, id string) (*trash.Item, *users.User, int, error) {
 	item, err := d.store.Trash.Get(d.user.ID, id, d.user.Perm.Admin)

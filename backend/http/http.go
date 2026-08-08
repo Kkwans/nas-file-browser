@@ -8,6 +8,7 @@ import (
 
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/storage"
+	"github.com/Kkwans/nas-file-browser/backend/tasks"
 )
 
 type modifyRequest struct {
@@ -26,6 +27,10 @@ func NewHandler(
 	videoPreviewWorkers int,
 ) (http.Handler, error) {
 	server.Clean()
+	taskRuntime, err := tasks.NewRuntime(store.Tasks)
+	if err != nil {
+		return nil, err
+	}
 
 	r := mux.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
@@ -66,9 +71,14 @@ func NewHandler(
 	api.PathPrefix("/resources").Handler(monkey(resourcePatchHandler(fileCache), "/api/resources")).Methods("PATCH")
 
 	api.Handle("/trash", monkey(trashListHandler, "")).Methods("GET")
-	api.Handle("/trash", monkey(trashClearHandler, "")).Methods("DELETE")
+	api.Handle("/trash", monkey(trashClearHandler(taskRuntime), "")).Methods("DELETE")
 	api.Handle("/trash/{id}/restore", monkey(trashRestoreHandler, "")).Methods("POST")
 	api.Handle("/trash/{id}", monkey(trashDeleteHandler, "")).Methods("DELETE")
+
+	api.Handle("/tasks", monkey(taskListHandler, "")).Methods("GET")
+	api.Handle("/tasks/{id}", monkey(taskGetHandler, "")).Methods("GET")
+	api.Handle("/tasks/{id}/cancel", monkey(taskCancelHandler(taskRuntime), "")).Methods("POST")
+	api.Handle("/tasks/{id}/retry", monkey(taskRetryHandler(taskRuntime), "")).Methods("POST")
 
 	api.PathPrefix("/tus").Handler(monkey(tusPostHandler(uploadCache), "/api/tus")).Methods("POST")
 	api.PathPrefix("/tus").Handler(monkey(tusHeadHandler(uploadCache), "/api/tus")).Methods("HEAD", "GET")

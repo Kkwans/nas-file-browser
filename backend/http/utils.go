@@ -13,6 +13,10 @@ import (
 )
 
 func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
+	return renderJSONStatus(w, data, 0)
+}
+
+func renderJSONStatus(w http.ResponseWriter, data interface{}, status int) (int, error) {
 	marsh, err := json.Marshal(data)
 
 	if err != nil {
@@ -20,6 +24,9 @@ func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, 
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if status != 0 {
+		w.WriteHeader(status)
+	}
 	if _, err := w.Write(marsh); err != nil {
 		return http.StatusInternalServerError, err
 	}

@@ -20,6 +20,7 @@
       <template #actions>
         <action
           v-if="isUnifiedMedia"
+          :disabled="favoritePending"
           :icon="isCurrentFavorite ? 'favorite' : 'favorite_border'"
           :label="isCurrentFavorite ? '取消收藏' : '收藏'"
           @action="toggleCurrentFavorite"
@@ -307,6 +308,7 @@ const csvContent = ref<ArrayBuffer | string>("");
 const csvError = ref<string>("");
 const mediaInfoOpen = ref(false);
 const isFullscreen = ref(false);
+const favoritePending = ref(false);
 
 const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
 
@@ -551,8 +553,13 @@ const toggleSize = () => (fullSize.value = !fullSize.value);
 
 const toggleCurrentFavorite = async () => {
   const current = fileStore.req;
-  if (!current) return;
-  await favoritesStore.toggleFavorite(current.path, current.name);
+  if (!current || favoritePending.value) return;
+  favoritePending.value = true;
+  try {
+    await favoritesStore.toggleFavorite(current.path, current.name);
+  } finally {
+    favoritePending.value = false;
+  }
 };
 
 const toggleFullscreen = async () => {

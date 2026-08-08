@@ -579,21 +579,38 @@ function activateHLSPlayback(playlistURL: string) {
   currentPlayer.volume(volume);
   currentPlayer.muted(muted);
   currentPlayer.playbackRate(playbackRate);
-  currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
-  props.subtitles.forEach((subtitle, index) => {
-    currentPlayer.addRemoteTextTrack(
-      {
-        kind: "subtitles",
-        src: subtitle,
-        label: subLabel(subtitle),
-        default: index === 0,
-      },
-      false
-    );
+  currentPlayer.one("loadstart", () => {
+    if (
+      disposed ||
+      player.value !== currentPlayer ||
+      activeHLSURL !== playlistURL
+    ) {
+      return;
+    }
+    // Video.js' load() re-selects currentSource() once the VHS tech exists.
+    // This avoids the first-handler EME race without retry loops or timers.
+    currentPlayer.load();
+    playVideo(currentPlayer);
   });
+  currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
   currentPlayer.one("loadedmetadata", () => {
+    props.subtitles.forEach((subtitle, index) => {
+      currentPlayer.addRemoteTextTrack(
+        {
+          kind: "subtitles",
+          src: subtitle,
+          label: subLabel(subtitle),
+          default: index === 0,
+        },
+        false
+      );
+    });
     if (resumeAt > 0) currentPlayer.currentTime(resumeAt);
   });
+  playVideo(currentPlayer);
+}
+
+function playVideo(currentPlayer: Pick<Player, "play">) {
   const playback = currentPlayer.play();
   if (playback && typeof playback.catch === "function") {
     void playback.catch(() => {

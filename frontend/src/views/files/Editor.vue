@@ -271,10 +271,7 @@ const markdownImageUploading = ref(false);
 const markdownImageUploadLabel = ref("");
 let markdownImagePreviewObserver: MutationObserver | null = null;
 let markdownImagePreviewScheduled = false;
-let markdownImagePreviewRecords = new WeakMap<
-  HTMLImageElement,
-  { markdownSource: string; previewSource: string }
->();
+let markdownImagePreviewSources = new Map<string, string>();
 const showCodeLanguagePicker = ref(false);
 const codeLanguageQuery = ref("");
 const codeLanguageSearchInput = ref<HTMLInputElement | null>(null);
@@ -472,23 +469,18 @@ const rewriteMarkdownImagePreviews = () => {
 
   mountEl.querySelectorAll<HTMLImageElement>("img[src]").forEach((image) => {
     const currentSource = image.getAttribute("src") ?? "";
-    const record = markdownImagePreviewRecords.get(image);
-    let markdownSource = record?.markdownSource ?? currentSource;
-
-    if (record && currentSource !== record.previewSource) {
-      markdownSource = currentSource;
-    }
+    const markdownSource =
+      markdownImagePreviewSources.get(currentSource) ?? currentSource;
 
     const previewSource = markdownImagePreviewSource(
       documentPath,
       markdownSource
     );
     if (!previewSource) {
-      markdownImagePreviewRecords.delete(image);
       return;
     }
 
-    markdownImagePreviewRecords.set(image, { markdownSource, previewSource });
+    markdownImagePreviewSources.set(previewSource, markdownSource);
     if (currentSource !== previewSource) {
       image.setAttribute("src", previewSource);
     }
@@ -524,7 +516,7 @@ function teardownMarkdownImagePreviews() {
   markdownImagePreviewObserver?.disconnect();
   markdownImagePreviewObserver = null;
   markdownImagePreviewScheduled = false;
-  markdownImagePreviewRecords = new WeakMap();
+  markdownImagePreviewSources = new Map();
 }
 
 const getVditorMarkdown = () => {
@@ -534,29 +526,27 @@ const getVditorMarkdown = () => {
     ? Array.from(mountEl.querySelectorAll<HTMLImageElement>("img[src]"))
         .map((image) => ({
           image,
-          record: markdownImagePreviewRecords.get(image),
+          markdownSource: markdownImagePreviewSources.get(
+            image.getAttribute("src") ?? ""
+          ),
         }))
         .filter(
           (
             item
           ): item is {
             image: HTMLImageElement;
-            record: { markdownSource: string; previewSource: string };
-          } => Boolean(item.record)
+            markdownSource: string;
+          } => Boolean(item.markdownSource)
         )
     : [];
 
-  previews.forEach(({ image, record }) => {
-    image.setAttribute("src", record.markdownSource);
+  previews.forEach(({ image, markdownSource }) => {
+    image.setAttribute("src", markdownSource);
   });
   try {
     return vditorInstance.getValue();
   } finally {
-    previews.forEach(({ image, record }) => {
-      if (image.isConnected) {
-        image.setAttribute("src", record.previewSource);
-      }
-    });
+    rewriteMarkdownImagePreviews();
   }
 };
 

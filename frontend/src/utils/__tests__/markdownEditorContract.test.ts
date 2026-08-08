@@ -116,7 +116,7 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toContain("markdownImagePreviewSource");
     expect(editorSource).toContain("setupMarkdownImagePreviews");
     expect(editorSource).toContain("getVditorMarkdown");
-    expect(editorSource).toContain("new WeakMap");
+    expect(editorSource).toContain("new Map");
     expect(editorSource).toContain("userEdited = true");
     expect(editorSource).toContain("请手动保存 Markdown");
     expect(editorSource).toContain("onBeforeRouteLeave");

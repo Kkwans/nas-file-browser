@@ -46,8 +46,12 @@ describe("视频兼容播放依赖契约", () => {
       "video.js@8.23.7: patches/video.js@8.23.7.patch"
     );
     expect(customDockerfileSource).toContain("frontend/pnpm-workspace.yaml");
-    expect(customDockerfileSource).toContain("COPY frontend/patches/ ./patches/");
-    expect(customDockerfileSource.indexOf("COPY frontend/patches/")).toBeLessThan(
+    expect(customDockerfileSource).toContain(
+      "COPY frontend/patches/ ./patches/"
+    );
+    expect(
+      customDockerfileSource.indexOf("COPY frontend/patches/")
+    ).toBeLessThan(
       customDockerfileSource.indexOf("pnpm install --frozen-lockfile")
     );
   });

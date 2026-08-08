@@ -194,8 +194,9 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,
 		})
+		override := r.URL.Query().Get("override") == "true"
 		if err == nil {
-			if r.URL.Query().Get("override") != "true" {
+			if !override {
 				return http.StatusConflict, fmt.Errorf("file already exists")
 			}
 
@@ -210,8 +211,18 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			}
 		}
 
+		writeInvoked := false
+		createdExclusive := false
 		err = d.RunHook(func() error {
-			info, writeErr := writeFile(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
+			writeInvoked = true
+			var info os.FileInfo
+			var writeErr error
+			if override {
+				info, writeErr = writeFile(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
+			} else {
+				info, writeErr = writeFileExclusive(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
+				createdExclusive = writeErr == nil
+			}
 			if writeErr != nil {
 				return writeErr
 			}
@@ -221,10 +232,12 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			return nil
 		}, "upload", r.URL.Path, "", d.user)
 
-		if err != nil {
+		if err != nil && writeInvoked && (override || createdExclusive) {
 			_ = d.user.Fs.RemoveAll(r.URL.Path)
 		} else {
-			recordHistory(d, "file.upload", r.URL.Path, "", history.StatusSuccess)
+			if err == nil {
+				recordHistory(d, "file.upload", r.URL.Path, "", history.StatusSuccess)
+			}
 		}
 
 		return errToStatus(err), err
@@ -364,19 +377,37 @@ func addVersionSuffix(source string, afs afero.Fs) string {
 }
 
 func writeFile(afs afero.Fs, dst string, in io.Reader, fileMode, dirMode fs.FileMode) (info os.FileInfo, err error) {
+	return writeFileWithFlags(afs, dst, in, fileMode, dirMode, os.O_RDWR|os.O_CREATE|os.O_TRUNC, false)
+}
+
+func writeFileExclusive(afs afero.Fs, dst string, in io.Reader, fileMode, dirMode fs.FileMode) (info os.FileInfo, err error) {
+	return writeFileWithFlags(afs, dst, in, fileMode, dirMode, os.O_WRONLY|os.O_CREATE|os.O_EXCL, true)
+}
+
+func writeFileWithFlags(
+	afs afero.Fs,
+	dst string,
+	in io.Reader,
+	fileMode, dirMode fs.FileMode,
+	flags int,
+	removeOnError bool,
+) (info os.FileInfo, err error) {
 	dir, _ := path.Split(dst)
 	err = afs.MkdirAll(dir, dirMode)
 	if err != nil {
 		return nil, err
 	}
 
-	file, err := afs.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+	file, err := afs.OpenFile(dst, flags, fileMode)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
 		if closeErr := file.Close(); err == nil {
 			err = closeErr
+		}
+		if err != nil && removeOnError {
+			_ = afs.Remove(dst)
 		}
 	}()
 

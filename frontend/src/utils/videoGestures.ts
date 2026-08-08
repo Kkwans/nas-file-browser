@@ -56,3 +56,7 @@ export function formatMediaTime(seconds: number) {
   }
   return `${minutes}:${remainder.toString().padStart(2, "0")}`;
 }
+
+export function shouldShowResumePosition(seconds: number) {
+  return Number.isFinite(seconds) && seconds >= 1;
+}

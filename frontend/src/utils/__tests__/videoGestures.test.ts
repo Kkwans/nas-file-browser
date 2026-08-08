@@ -5,6 +5,7 @@ import {
   formatMediaTime,
   seekFromDoubleTap,
   seekFromSwipe,
+  shouldShowResumePosition,
 } from "../videoGestures";
 
 describe("视频移动端手势", () => {
@@ -27,5 +28,12 @@ describe("视频移动端手势", () => {
     expect(formatMediaTime(65)).toBe("1:05");
     expect(formatMediaTime(3661)).toBe("1:01:01");
     expect(clampMediaValue(2, 0.4, 1.6)).toBe(1.6);
+  });
+
+  it("只为可感知的续播位置显示恢复提示", () => {
+    expect(shouldShowResumePosition(0)).toBe(false);
+    expect(shouldShowResumePosition(0.999)).toBe(false);
+    expect(shouldShowResumePosition(1)).toBe(true);
+    expect(shouldShowResumePosition(Number.NaN)).toBe(false);
   });
 });

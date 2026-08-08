@@ -37,7 +37,7 @@
     </div>
 
     <div
-      v-if="restoredPosition > 0"
+      v-if="shouldShowResumePosition(restoredPosition)"
       class="media-resume-chip"
       role="status"
       @pointerdown.stop
@@ -171,6 +171,7 @@ import {
   formatMediaTime,
   seekFromDoubleTap,
   seekFromSwipe,
+  shouldShowResumePosition,
   type VideoGestureAxis,
 } from "@/utils/videoGestures";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";

@@ -65,8 +65,8 @@
         :src="previewUrl"
         :alt="item.name"
         class="quick-preview-image"
-        @load="finishLoading"
-        @error="finishLoading"
+        @load="finishLoading(true)"
+        @error="finishLoading(false)"
       />
       <!-- Video -->
       <video
@@ -76,8 +76,8 @@
         autoplay
         class="quick-preview-video"
         :aria-label="`${item.name} 视频预览`"
-        @loadeddata="finishLoading"
-        @error="finishLoading"
+        @loadeddata="finishLoading(true)"
+        @error="finishLoading(false)"
       />
       <!-- Audio -->
       <div v-else-if="item.type === 'audio'" class="quick-preview-audio-wrap">
@@ -88,8 +88,8 @@
           autoplay
           class="quick-preview-audio"
           :aria-label="`${item.name} 音频预览`"
-          @loadeddata="finishLoading"
-          @error="finishLoading"
+          @loadeddata="finishLoading(true)"
+          @error="finishLoading(false)"
         />
       </div>
       <!-- PDF -->
@@ -98,7 +98,7 @@
         :src="directUrl"
         class="quick-preview-pdf"
         :title="`${item.name} PDF 预览`"
-        @load="finishLoading"
+        @load="finishLoading(true)"
       />
       <!-- Markdown (rendered) -->
       <div
@@ -133,6 +133,7 @@ import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useLayoutStore } from "@/stores/layout";
 import { useFileStore } from "@/stores/file";
+import { useRecentStore } from "@/stores/recent";
 import { files as api } from "@/api";
 import type { ResourceItem } from "@/types/file";
 import { filesize } from "@/utils";
@@ -147,12 +148,14 @@ const router = useRouter();
 
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
+const recentStore = useRecentStore();
 const { closeHovers } = layoutStore;
 const { currentPrompt } = storeToRefs(layoutStore);
 
 const loading = ref(true);
 const textContent = ref("");
 const markdownBody = ref<HTMLElement | null>(null);
+const recordedPath = ref("");
 
 const item = computed(() => currentPrompt.value?.props?.item || {});
 
@@ -202,8 +205,20 @@ const previewUrl = computed(() => {
 });
 
 const directUrl = computed(() => api.getDownloadURL(item.value, true));
-const finishLoading = () => {
+const recordSuccessfulPreview = async () => {
+  const path = item.value.path || "";
+  if (!path || recordedPath.value === path) return;
+  recordedPath.value = path;
+  try {
+    await recentStore.record(path);
+  } catch (error) {
+    console.warn("无法记录快捷预览", error);
+  }
+};
+
+const finishLoading = (successful: boolean) => {
   loading.value = false;
+  if (successful) void recordSuccessfulPreview();
 };
 
 onMounted(() => {
@@ -279,6 +294,7 @@ const loadTextContent = async () => {
       text.length > 51200
         ? text.substring(0, 51200) + "\n\n... " + "文件过大"
         : text;
+    await recordSuccessfulPreview();
   } catch (error) {
     textContent.value =
       error instanceof Error ? error.message : "无法加载预览内容";
@@ -297,6 +313,7 @@ const loadMarkdownContent = async () => {
         ? text.substring(0, 51200) + "\n\n... " + "文件过大"
         : text;
     await renderMarkdown(truncated);
+    await recordSuccessfulPreview();
   } catch (error) {
     textContent.value =
       error instanceof Error ? error.message : "无法加载预览内容";

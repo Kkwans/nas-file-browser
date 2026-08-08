@@ -45,6 +45,7 @@ import { files as api } from "@/api";
 import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useRecentStore } from "@/stores/recent";
 
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
@@ -58,12 +59,14 @@ const Preview = defineAsyncComponent(() => import("@/views/files/Preview.vue"));
 
 const layoutStore = useLayoutStore();
 const fileStore = useFileStore();
+const recentStore = useRecentStore();
 
 const { reload } = storeToRefs(fileStore);
 
 const route = useRoute();
 
 let fetchDataController = new AbortController();
+let lastRecordedPath = "";
 
 const error = ref<StatusError | null>(null);
 
@@ -165,6 +168,13 @@ const fetchData = async () => {
     fileStore.updateRequest(res);
     document.title = `${res.name || "我的文件"} - 文件 - ${name}`;
     layoutStore.loading = false;
+
+    if (lastRecordedPath !== res.path) {
+      lastRecordedPath = res.path;
+      recentStore.record(res.path).catch((recordError) => {
+        console.warn("无法记录最近访问", recordError);
+      });
+    }
 
     // Selects the post-reload target item or the previously visited child folder
     applyPreSelection();

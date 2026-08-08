@@ -10,6 +10,7 @@ const Layout = () => import("@/views/Layout.vue");
 const Files = () => import("@/views/Files.vue");
 const Share = () => import("@/views/Share.vue");
 const SearchPage = () => import("@/views/SearchPage.vue");
+const Recent = () => import("@/views/Recent.vue");
 const Trash = () => import("@/views/Trash.vue");
 const Tasks = () => import("@/views/Tasks.vue");
 const History = () => import("@/views/History.vue");
@@ -26,6 +27,7 @@ const titles: Record<string, string> = {
   Share: "分享",
   Files: "文件管理",
   Search: "搜索",
+  Recent: "最近访问",
   Trash: "回收站",
   Tasks: "任务中心",
   History: "操作历史",
@@ -82,6 +84,20 @@ const routes = [
         path: "",
         name: "Search",
         component: SearchPage,
+      },
+    ],
+  },
+  {
+    path: "/recent",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "Recent",
+        component: Recent,
       },
     ],
   },

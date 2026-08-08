@@ -2,6 +2,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useLayoutStore } from "@/stores/layout";
 import { useTagsStore } from "@/stores/tags";
+import { useRecentStore } from "@/stores/recent";
 import { baseURL } from "@/utils/constants";
 import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
@@ -118,6 +119,7 @@ export async function remove(
   );
   useFavoritesStore().applyPathRemoval(removedPath);
   useTagsStore().applyPathRemoval(removedPath);
+  useRecentStore().applyPathRemoval(removedPath);
   if (mode === "trash") return (await response.json()) as TrashItem;
   return null;
 }
@@ -267,6 +269,7 @@ async function moveCopy(
       }
       favoritesStore.applyPathRewrite(source, destination);
       tagsStore.applyPathRewrite(source, destination);
+      useRecentStore().applyPathRewrite(source, destination);
     });
   }
 

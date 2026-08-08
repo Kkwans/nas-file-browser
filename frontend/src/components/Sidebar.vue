@@ -626,6 +626,7 @@ import { useTagsStore } from "@/stores/tags";
 import { useTrashStore } from "@/stores/trash";
 import { useTasksStore } from "@/stores/tasks";
 import { useHistoryStore } from "@/stores/history";
+import { useRecentStore } from "@/stores/recent";
 import { useSidebarPreferencesStore } from "@/stores/sidebarPreferences";
 import SidebarSectionHeader from "@/components/sidebar/SidebarSectionHeader.vue";
 import SidebarGroupHeader from "@/components/sidebar/SidebarGroupHeader.vue";
@@ -666,6 +667,7 @@ const tagsStore = useTagsStore();
 const trashStore = useTrashStore();
 const tasksStore = useTasksStore();
 const historyStore = useHistoryStore();
+const recentStore = useRecentStore();
 const sidebarPreferencesStore = useSidebarPreferencesStore();
 
 const { closeHovers, showHover } = layoutStore;
@@ -746,6 +748,7 @@ const systemOptions = computed<
 >(() => [
   { id: "files", icon: "folder", label: "我的文件" },
   { id: "search", icon: "search", label: "搜索" },
+  { id: "recent", icon: "schedule", label: "最近访问" },
   { id: "trash", icon: "delete_outline", label: "回收站" },
   { id: "tasks", icon: "pending_actions", label: "任务中心" },
   { id: "history", icon: "history", label: "操作历史" },
@@ -1013,7 +1016,10 @@ const clearSidebarDrag = () => {
 const runSystemOption = (id: SystemOptionId) => {
   if (id === "files") toRoot();
   else if (id === "search") openSearch();
-  else if (id === "trash") {
+  else if (id === "recent") {
+    router.push({ path: "/recent" });
+    closeHovers();
+  } else if (id === "trash") {
     router.push({ path: "/trash" });
     closeHovers();
   } else if (id === "tasks") {
@@ -1430,6 +1436,7 @@ watch(
       trashStore.resetForUser();
       tasksStore.resetForUser();
       historyStore.resetForUser();
+      recentStore.resetForUser();
       return;
     }
     if (loadedUserId === userId) return;
@@ -1438,6 +1445,7 @@ watch(
     trashStore.resetForUser();
     tasksStore.resetForUser();
     historyStore.resetForUser();
+    recentStore.resetForUser();
     await Promise.all([
       favoritesStore.loadFavorites(),
       tagsStore.loadTags(),

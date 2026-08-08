@@ -55,7 +55,7 @@ func newServiceHarness(t *testing.T) *serviceHarness {
 		storage: persistent,
 		service: &trash.Service{
 			Fs: filesystem, Records: persistent.Trash,
-			Favorites: persistent.Favorites, Tags: persistent.Tags,
+			Favorites: persistent.Favorites, Tags: persistent.Tags, Recent: persistent.Recent,
 		},
 	}
 }

@@ -80,6 +80,8 @@ func NewHandler(
 	api.Handle("/tasks/{id}/cancel", monkey(taskCancelHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/tasks/{id}/retry", monkey(taskRetryHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/history", monkey(historyListHandler, "")).Methods("GET")
+	api.Handle("/recent", monkey(recentListHandler, "")).Methods("GET")
+	api.Handle("/recent", monkey(recentRecordHandler, "")).Methods("POST")
 
 	api.PathPrefix("/tus").Handler(monkey(tusPostHandler(uploadCache), "/api/tus")).Methods("POST")
 	api.PathPrefix("/tus").Handler(monkey(tusHeadHandler(uploadCache), "/api/tus")).Methods("HEAD", "GET")

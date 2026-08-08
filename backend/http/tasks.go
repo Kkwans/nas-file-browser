@@ -149,7 +149,7 @@ func trashClearRunner(d *data, task *tasks.Task, args trashClearTaskArgs) tasks.
 			}
 			service := &trash.Service{
 				Fs: owner.Fs, Records: store.Trash,
-				Favorites: store.Favorites, Tags: store.Tags,
+				Favorites: store.Favorites, Tags: store.Tags, Recent: store.Recent,
 				DirMode: dirMode,
 			}
 			if err := service.DeletePermanent(task.UserID, item.ID, args.AllUsers); err != nil {

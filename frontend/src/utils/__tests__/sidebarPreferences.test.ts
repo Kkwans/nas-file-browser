@@ -64,6 +64,7 @@ describe("sidebar preferences", () => {
     ).toEqual([
       "search",
       "files",
+      "recent",
       "trash",
       "tasks",
       "history",

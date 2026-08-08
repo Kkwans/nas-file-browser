@@ -11,6 +11,7 @@ export const DEFAULT_SIDEBAR_MODULE_ORDER = [
 export const DEFAULT_SYSTEM_OPTION_ORDER = [
   "files",
   "search",
+  "recent",
   "trash",
   "tasks",
   "history",

@@ -112,7 +112,7 @@ func trashOwner(d *data, item *trash.Item) (*users.User, error) {
 func newTrashService(d *data, owner *users.User) *trash.Service {
 	return &trash.Service{
 		Fs: owner.Fs, Records: d.store.Trash,
-		Favorites: d.store.Favorites, Tags: d.store.Tags,
+		Favorites: d.store.Favorites, Tags: d.store.Tags, Recent: d.store.Recent,
 		DirMode: d.settings.DirMode,
 	}
 }

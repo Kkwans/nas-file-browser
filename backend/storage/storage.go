@@ -4,6 +4,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/auth"
 	"github.com/Kkwans/nas-file-browser/backend/favorites"
 	"github.com/Kkwans/nas-file-browser/backend/history"
+	"github.com/Kkwans/nas-file-browser/backend/recent"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/share"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
@@ -21,6 +22,7 @@ type Storage struct {
 	Settings  *settings.Storage
 	Favorites *favorites.Storage
 	History   *history.Storage
+	Recent    *recent.Storage
 	Tags      *tags.Storage
 	Tasks     *tasks.Storage
 	Trash     *trash.Storage

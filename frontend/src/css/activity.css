@@ -140,6 +140,106 @@
   background: color-mix(in srgb, var(--icon-orange) 10%, transparent);
 }
 
+.activity-intro-mark--recent {
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 10%, transparent);
+}
+
+.recent-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.recent-entry {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 10px 14px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 12px;
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+  text-decoration: none;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.recent-entry:hover,
+.recent-entry:focus-visible {
+  border-color: color-mix(in srgb, var(--blue) 28%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+}
+
+.recent-entry:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.recent-entry-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--textPrimary);
+  background: var(--surfaceSecondary);
+}
+
+.recent-entry-icon.folder {
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 10%, transparent);
+}
+
+.recent-entry-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.recent-entry-copy strong,
+.recent-entry-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-entry-copy small,
+.recent-entry time,
+.recent-entry-arrow {
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+
+.recent-entry-arrow {
+  font-size: 20px;
+}
+
+@media (max-width: 640px) {
+  .recent-entry {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .recent-entry time {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .recent-entry-arrow {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recent-entry {
+    transition: none;
+  }
+}
+
 .activity-intro-mark span {
   font-size: 18px;
   font-weight: 760;

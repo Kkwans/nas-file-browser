@@ -23,6 +23,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/Kkwans/nas-file-browser/backend/fileutils"
 	"github.com/Kkwans/nas-file-browser/backend/history"
+	"github.com/Kkwans/nas-file-browser/backend/recent"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 )
@@ -112,9 +113,9 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 			return http.StatusBadRequest, fmt.Errorf("不支持的删除模式 %q", mode)
 		}
 
-		favoriteMutation, tagMutation, err := removePathMetadata(d, file.Path)
+		favoriteMutation, tagMutation, recentMutation, err := removePathMetadata(d, file.Path)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("清理关联收藏和标签失败，文件未删除: %w", err)
+			return http.StatusInternalServerError, fmt.Errorf("清理关联元数据失败，文件未删除: %w", err)
 		}
 
 		err = d.store.Share.DeleteWithPathPrefix(file.Path)
@@ -125,7 +126,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		// delete thumbnails
 		err = delThumbs(r.Context(), fileCache, file)
 		if err != nil {
-			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation)
+			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation, recentMutation)
 			return errToStatus(err), fmt.Errorf("清理缩略图失败，文件未删除: %w", errors.Join(err, restoreErr))
 		}
 
@@ -134,7 +135,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		}, "delete", r.URL.Path, "", d.user)
 
 		if err != nil {
-			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation)
+			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation, recentMutation)
 			return errToStatus(err), fmt.Errorf("删除文件失败，关联元数据已回滚: %w", errors.Join(err, restoreErr))
 		}
 		recordHistory(d, "file.delete", file.Path, "", history.StatusSuccess)
@@ -463,29 +464,55 @@ func rewritePathMetadata(d *data, from, to string) error {
 		return err
 	}
 
-	if _, err := d.store.Tags.RewritePathPrefix(from, to); err != nil {
+	tagMutation, err := d.store.Tags.RewritePathPrefix(from, to)
+	if err != nil {
 		return errors.Join(err, d.store.Favorites.RestorePathMutation(favoriteMutation))
+	}
+	if d.store.Recent != nil {
+		if _, err := d.store.Recent.RewritePathPrefix(from, to); err != nil {
+			return errors.Join(
+				err,
+				d.store.Tags.RestorePathMutation(tagMutation),
+				d.store.Favorites.RestorePathMutation(favoriteMutation),
+			)
+		}
 	}
 	return nil
 }
 
-func removePathMetadata(d *data, prefix string) (*favorites.PathMutation, *tags.PathMutation, error) {
+func removePathMetadata(d *data, prefix string) (*favorites.PathMutation, *tags.PathMutation, *recent.PathMutation, error) {
 	favoriteMutation, err := d.store.Favorites.RemovePathPrefix(prefix)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	tagMutation, err := d.store.Tags.RemovePathPrefix(prefix)
 	if err != nil {
-		return nil, nil, errors.Join(err, d.store.Favorites.RestorePathMutation(favoriteMutation))
+		return nil, nil, nil, errors.Join(err, d.store.Favorites.RestorePathMutation(favoriteMutation))
 	}
-	return favoriteMutation, tagMutation, nil
+	if d.store.Recent == nil {
+		return favoriteMutation, tagMutation, nil, nil
+	}
+	recentMutation, err := d.store.Recent.RemovePathPrefix(prefix)
+	if err != nil {
+		return nil, nil, nil, errors.Join(
+			err,
+			d.store.Tags.RestorePathMutation(tagMutation),
+			d.store.Favorites.RestorePathMutation(favoriteMutation),
+		)
+	}
+	return favoriteMutation, tagMutation, recentMutation, nil
 }
 
-func restorePathMetadata(d *data, favoriteMutation *favorites.PathMutation, tagMutation *tags.PathMutation) error {
+func restorePathMetadata(d *data, favoriteMutation *favorites.PathMutation, tagMutation *tags.PathMutation, recentMutation *recent.PathMutation) error {
+	var recentErr error
+	if d.store.Recent != nil {
+		recentErr = d.store.Recent.RestorePathMutation(recentMutation)
+	}
 	return errors.Join(
 		d.store.Favorites.RestorePathMutation(favoriteMutation),
 		d.store.Tags.RestorePathMutation(tagMutation),
+		recentErr,
 	)
 }
 

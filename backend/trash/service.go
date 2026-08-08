@@ -13,6 +13,7 @@ import (
 
 	"github.com/Kkwans/nas-file-browser/backend/favorites"
 	"github.com/Kkwans/nas-file-browser/backend/pathmeta"
+	"github.com/Kkwans/nas-file-browser/backend/recent"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
 )
 
@@ -45,6 +46,7 @@ type Service struct {
 	Records   *Storage
 	Favorites *favorites.Storage
 	Tags      *tags.Storage
+	Recent    *recent.Storage
 	DirMode   fs.FileMode
 }
 
@@ -77,15 +79,15 @@ func (service *Service) Move(userID uint, ownerName, source string) (*Item, erro
 		return nil, errors.Join(err, service.deleteRecordAndDirectory(item))
 	}
 
-	favoriteMutation, tagMutation, err := service.removeMetadata(source)
+	favoriteMutation, tagMutation, recentMutation, err := service.removeMetadata(source)
 	if err != nil {
-		return nil, service.rollbackMove(item, nil, nil, err)
+		return nil, service.rollbackMove(item, nil, nil, nil, err)
 	}
 	item.FavoriteSnapshots = favoriteMutation.DeletedSnapshot()
 	item.TagSnapshots = tagMutation.UpdatedSnapshot()
 	item.Status = StatusAvailable
 	if err := service.Records.Update(item); err != nil {
-		return nil, service.rollbackMove(item, favoriteMutation, tagMutation, err)
+		return nil, service.rollbackMove(item, favoriteMutation, tagMutation, recentMutation, err)
 	}
 	return item.Clone(), nil
 }
@@ -212,22 +214,38 @@ func (service *Service) storageRoot(source string, sourceInfo os.FileInfo) (stri
 	return root, nil
 }
 
-func (service *Service) removeMetadata(source string) (*favorites.PathMutation, *tags.PathMutation, error) {
+func (service *Service) removeMetadata(source string) (*favorites.PathMutation, *tags.PathMutation, *recent.PathMutation, error) {
 	favoriteMutation, err := service.Favorites.RemovePathPrefix(source)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	tagMutation, err := service.Tags.RemovePathPrefix(source)
 	if err != nil {
-		return nil, nil, errors.Join(err, service.Favorites.RestorePathMutation(favoriteMutation))
+		return nil, nil, nil, errors.Join(err, service.Favorites.RestorePathMutation(favoriteMutation))
 	}
-	return favoriteMutation, tagMutation, nil
+	if service.Recent == nil {
+		return favoriteMutation, tagMutation, nil, nil
+	}
+	recentMutation, err := service.Recent.RemovePathPrefix(source)
+	if err != nil {
+		return nil, nil, nil, errors.Join(
+			err,
+			service.Tags.RestorePathMutation(tagMutation),
+			service.Favorites.RestorePathMutation(favoriteMutation),
+		)
+	}
+	return favoriteMutation, tagMutation, recentMutation, nil
 }
 
-func (service *Service) rollbackMove(item *Item, favoriteMutation *favorites.PathMutation, tagMutation *tags.PathMutation, cause error) error {
+func (service *Service) rollbackMove(item *Item, favoriteMutation *favorites.PathMutation, tagMutation *tags.PathMutation, recentMutation *recent.PathMutation, cause error) error {
+	var recentErr error
+	if service.Recent != nil {
+		recentErr = service.Recent.RestorePathMutation(recentMutation)
+	}
 	metadataErr := errors.Join(
 		service.Favorites.RestorePathMutation(favoriteMutation),
 		service.Tags.RestorePathMutation(tagMutation),
+		recentErr,
 	)
 	renameErr := service.Fs.Rename(item.StoredPath, item.OriginalPath)
 	if renameErr == nil {

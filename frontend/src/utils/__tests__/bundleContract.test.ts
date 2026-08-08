@@ -11,11 +11,20 @@ const editorSource = readFileSync(
   fileURLToPath(new URL("../../views/files/Editor.vue", import.meta.url)),
   "utf8"
 );
+const editorThemeSource = readFileSync(
+  fileURLToPath(new URL("../editorTheme.ts", import.meta.url)),
+  "utf8"
+);
 
 describe("前端拆包契约", () => {
   it("全局主题工具不引入 Ace，编辑器按需加载编辑器主题", () => {
     expect(themeSource).not.toContain("ace-builds");
     expect(themeSource).not.toContain("getEditorTheme");
     expect(editorSource).toContain('from "@/utils/editorTheme"');
+    expect(editorSource).toContain('await import("ace-builds")');
+    expect(editorThemeSource).not.toContain('import "ace-builds"');
+    expect(editorThemeSource).toContain(
+      '"ace-builds/src-noconflict/ext-themelist"'
+    );
   });
 });

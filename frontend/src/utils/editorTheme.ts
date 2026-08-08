@@ -1,9 +1,9 @@
-import "ace-builds";
-import { themesByName } from "ace-builds/src-noconflict/ext-themelist";
-
 import { getTheme } from "./theme";
 
-export const getEditorTheme = (themeName: string) => {
+export const getEditorTheme = async (themeName: string) => {
+  const { themesByName } = await import(
+    "ace-builds/src-noconflict/ext-themelist"
+  );
   if (!themeName.startsWith("ace/theme/")) {
     themeName = `ace/theme/${themeName}`;
   }

@@ -207,9 +207,7 @@ import {
   MARKDOWN_CODE_LANGUAGES,
   updateMarkdownCodeFenceLanguage,
 } from "@/utils/markdownCode";
-import ace, { Ace } from "ace-builds";
-import "ace-builds/src-noconflict/ext-language_tools";
-import modelist from "ace-builds/src-noconflict/ext-modelist";
+import type { Ace } from "ace-builds";
 
 import Action from "@/components/header/Action.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
@@ -333,7 +331,7 @@ onMounted(() => {
       if (usesVditor) {
         initVditor(fileContent);
       } else {
-        initAceEditor(fileContent);
+        void initAceEditor(fileContent).catch($showError);
       }
     }, 50);
   };
@@ -703,7 +701,18 @@ const initVditorPreview = async (content: string) => {
   mdInitialized = true;
 };
 
-const initAceEditor = (content: string) => {
+const initAceEditor = async (content: string) => {
+  const { default: ace } = await import("ace-builds");
+  const aceGlobal = globalThis as typeof globalThis & { ace: typeof ace };
+  aceGlobal.ace = ace;
+  await import("ace-builds/src-noconflict/ext-language_tools");
+  const { default: modelist } = await import(
+    "ace-builds/src-noconflict/ext-modelist"
+  );
+  const editorTheme = await getEditorTheme(
+    authStore.user?.aceEditorTheme ?? ""
+  );
+
   initialContent = content;
   const aceAssetRoot = getAceAssetRoot();
   ace.config.set("basePath", aceAssetRoot);
@@ -717,7 +726,7 @@ const initAceEditor = (content: string) => {
     value: content,
     showPrintMargin: false,
     readOnly: fileStore.req?.type === "textImmutable",
-    theme: getEditorTheme(authStore.user?.aceEditorTheme ?? ""),
+    theme: editorTheme,
     mode: modelist.getModeForPath(fileStore.req!.name).mode,
     wrap: true,
     enableBasicAutocompletion: true,

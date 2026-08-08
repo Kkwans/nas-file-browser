@@ -6,5 +6,6 @@ import * as pub from "./pub";
 import search from "./search";
 import commands from "./commands";
 import * as volumes from "./volumes";
+import * as trash from "./trash";
 
-export { files, share, users, settings, pub, commands, search, volumes };
+export { files, share, users, settings, pub, commands, search, volumes, trash };

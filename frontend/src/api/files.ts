@@ -6,6 +6,7 @@ import { baseURL } from "@/utils/constants";
 import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import type { ApiMethod, ApiOpts, ApiContent, ChecksumAlg } from "@/types/api";
+import type { TrashItem } from "./trash";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
 import type {
   Resource,
@@ -106,12 +107,19 @@ async function resourceAction(
   return res;
 }
 
-export async function remove(url: string) {
-  const response = await resourceAction(url, "DELETE");
+export async function remove(
+  url: string,
+  mode: "trash" | "permanent" = "permanent"
+): Promise<TrashItem | null> {
   const removedPath = removePrefix(url);
+  const response = await fetchURL(
+    `/api/resources${removedPath}?mode=${encodeURIComponent(mode)}`,
+    { method: "DELETE" }
+  );
   useFavoritesStore().applyPathRemoval(removedPath);
   useTagsStore().applyPathRemoval(removedPath);
-  return response;
+  if (mode === "trash") return (await response.json()) as TrashItem;
+  return null;
 }
 
 export async function put(url: string, content: ApiContent = "") {

@@ -22,6 +22,7 @@
           v-if="trashStore.items.length > 0"
           type="button"
           class="trash-header-action trash-header-action--danger"
+          :disabled="clearing || clearTaskActive"
           @click="showClearConfirm = true"
         >
           <i class="material-icons" aria-hidden="true">delete_sweep</i>
@@ -66,7 +67,13 @@
             :disabled="clearing"
             @click="clearTrash"
           >
-            {{ clearing ? "正在清空…" : "永久删除全部" }}
+            {{
+              clearing
+                ? "正在提交…"
+                : clearTaskActive
+                  ? "清空任务进行中"
+                  : "永久删除全部"
+            }}
           </button>
         </div>
       </section>
@@ -244,19 +251,24 @@
 
 <script setup lang="ts">
 import { computed, inject, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import dayjs from "dayjs";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import type { TrashConflict, TrashItem, TrashStatus } from "@/api/trash";
 import { StatusError } from "@/api/utils";
 import { useAuthStore } from "@/stores/auth";
 import { useTrashStore } from "@/stores/trash";
+import { useTasksStore } from "@/stores/tasks";
 import { filesize } from "@/utils";
 import { getFileIcon } from "@/utils/fileIcons";
 
 const authStore = useAuthStore();
 const trashStore = useTrashStore();
+const tasksStore = useTasksStore();
+const router = useRouter();
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
+const $showAction = inject<IToastAction>("$showAction")!;
 
 const showClearConfirm = ref(false);
 const clearing = ref(false);
@@ -266,6 +278,9 @@ const busyIds = reactive(new Set<string>());
 
 const countLabel = computed(() =>
   trashStore.items.length === 0 ? "暂无项目" : `${trashStore.items.length} 项`
+);
+const clearTaskActive = computed(() =>
+  tasksStore.activeItems.some((task) => task.type === "trash.clear")
 );
 
 async function load() {
@@ -332,9 +347,23 @@ async function deletePermanent(item: TrashItem) {
 async function clearTrash() {
   clearing.value = true;
   try {
-    await trashStore.clear();
+    const task = await trashStore.clear();
+    tasksStore.record(task);
     showClearConfirm.value = false;
-    $showSuccess("回收站已清空");
+    $showAction("清空任务已提交", "查看任务", async () => {
+      await router.push("/tasks");
+    });
+    void tasksStore
+      .waitForTerminal(task.id)
+      .then(async (finished) => {
+        await trashStore.load();
+        if (finished.status === "completed") {
+          $showSuccess("回收站清空任务已完成");
+        } else {
+          $showError(finished.error || "回收站清空任务未完成", false);
+        }
+      })
+      .catch((error) => $showError(error as Error, false));
   } catch (error) {
     $showError(error as Error, false);
   } finally {
@@ -360,5 +389,8 @@ function statusLabel(status: TrashStatus) {
   return labels[status];
 }
 
-onMounted(load);
+onMounted(() => {
+  void load();
+  void tasksStore.load().catch(() => undefined);
+});
 </script>

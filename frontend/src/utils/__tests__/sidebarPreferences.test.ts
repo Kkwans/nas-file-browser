@@ -61,6 +61,14 @@ describe("sidebar preferences", () => {
       normalizeSidebarPreferences({
         systemOptionOrder: ["search", "files"],
       }).systemOptionOrder
-    ).toEqual(["search", "files", "trash", "new-directory", "new-file"]);
+    ).toEqual([
+      "search",
+      "files",
+      "trash",
+      "tasks",
+      "history",
+      "new-directory",
+      "new-file",
+    ]);
   });
 });

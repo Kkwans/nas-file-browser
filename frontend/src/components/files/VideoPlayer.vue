@@ -565,15 +565,35 @@ function activateHLSPlayback(playlistURL: string) {
     restoredPosition.value,
     lastSavedPosition
   );
+  const volume = currentPlayer.volume();
+  const muted = currentPlayer.muted();
+  const playbackRate = currentPlayer.playbackRate();
   activeHLSURL = playlistURL;
   hlsActive.value = true;
+
+  // A failed direct-play tech can leave Video.js' first VHS MediaSource with
+  // an uninitialized SourceUpdater. Reset the tech before selecting HLS so
+  // decoded segments are appended on the first compatibility-play attempt.
+  currentPlayer.pause();
+  currentPlayer.reset();
+  currentPlayer.volume(volume);
+  currentPlayer.muted(muted);
+  currentPlayer.playbackRate(playbackRate);
   currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
+  props.subtitles.forEach((subtitle, index) => {
+    currentPlayer.addRemoteTextTrack(
+      {
+        kind: "subtitles",
+        src: subtitle,
+        label: subLabel(subtitle),
+        default: index === 0,
+      },
+      false
+    );
+  });
   currentPlayer.one("loadedmetadata", () => {
     if (resumeAt > 0) currentPlayer.currentTime(resumeAt);
   });
-  // player.src() already creates and loads the VHS tech. Calling load() here
-  // resets the new MediaSource before VHS finishes its EME-ready handshake,
-  // leaving decoded segments queued without ever appending them.
   const playback = currentPlayer.play();
   if (playback && typeof playback.catch === "function") {
     void playback.catch(() => {

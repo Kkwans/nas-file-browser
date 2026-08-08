@@ -1,6 +1,8 @@
 package bolt
 
 import (
+	"errors"
+
 	"github.com/asdine/storm/v3"
 
 	"github.com/Kkwans/nas-file-browser/backend/auth"
@@ -19,11 +21,16 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 	shareStore := share.NewStorage(shareBackend{db: db})
 	settingsStore := settings.NewStorage(settingsBackend{db: db})
 	authStore := auth.NewStorage(authBackend{db: db}, userStore)
-	favoriteStore := favorites.NewStorage(favoritesBackend{db: db})
-	tagStore := tags.NewStorage(tagsBackend{db: db})
+	favoriteBackend := favoritesBackend{db: db}
+	tagBackend := tagsBackend{db: db}
+	if err := migrateMetadataOwners(db, favoriteBackend, tagBackend); err != nil {
+		return nil, err
+	}
+	favoriteStore := favorites.NewStorage(favoriteBackend)
+	tagStore := tags.NewStorage(tagBackend)
 	trashStore := trash.NewStorage(trashBackend{db: db})
 
-	err := save(db, "version", 2)
+	err := save(db, "version", 3)
 	if err != nil {
 		return nil, err
 	}
@@ -37,4 +44,22 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 		Tags:      tagStore,
 		Trash:     trashStore,
 	}, nil
+}
+
+func migrateMetadataOwners(db *storm.DB, favoriteBackend favoritesBackend, tagBackend tagsBackend) error {
+	var allUsers []*users.User
+	if err := db.All(&allUsers); err != nil {
+		if errors.Is(err, storm.ErrNotFound) {
+			return nil
+		}
+		return err
+	}
+	userIDs := make([]uint, 0, len(allUsers))
+	for _, user := range allUsers {
+		userIDs = append(userIDs, user.ID)
+	}
+	if err := favoriteBackend.migrateOwners(userIDs); err != nil {
+		return err
+	}
+	return tagBackend.migrateOwners(userIDs)
 }

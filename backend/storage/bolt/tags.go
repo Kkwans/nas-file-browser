@@ -8,16 +8,27 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/tags"
 )
 
+// Tag keeps the historical Storm bucket name while persisting ownership that
+// the public domain type intentionally omits from JSON responses.
+type Tag struct {
+	ID        string   `json:"id" storm:"id"`
+	UserID    uint     `json:"userId" storm:"index"`
+	Name      string   `json:"name" storm:"index"`
+	Color     string   `json:"color"`
+	Paths     []string `json:"paths"`
+	CreatedAt int64    `json:"createdAt"`
+}
+
 type tagsBackend struct {
 	db *storm.DB
 }
 
 func (t tagsBackend) ClaimLegacy(userID uint) error {
-	var all []*tags.Tag
-	if err := t.db.All(&all); err != nil && !errors.Is(err, storm.ErrNotFound) {
+	var records []*Tag
+	if err := t.db.All(&records); err != nil && !errors.Is(err, storm.ErrNotFound) {
 		return err
 	}
-	for _, tag := range all {
+	for _, tag := range records {
 		if tag.UserID == 0 {
 			tag.UserID = userID
 			if err := t.db.Update(tag); err != nil {
@@ -28,59 +39,105 @@ func (t tagsBackend) ClaimLegacy(userID uint) error {
 	return nil
 }
 
+func (t tagsBackend) migrateOwners(userIDs []uint) error {
+	for _, userID := range userIDs {
+		var records []*Tag
+		if err := t.db.Find("UserID", userID, &records); err != nil && !errors.Is(err, storm.ErrNotFound) {
+			return err
+		}
+		for _, record := range records {
+			if record.UserID == userID {
+				continue
+			}
+			record.UserID = userID
+			if err := t.db.Update(record); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (t tagsBackend) GetAll(userID uint) ([]*tags.Tag, error) {
-	var all []*tags.Tag
-	err := t.db.Find("UserID", userID, &all)
+	var records []*Tag
+	err := t.db.Find("UserID", userID, &records)
 	if errors.Is(err, storm.ErrNotFound) {
 		return []*tags.Tag{}, nil
 	}
-	return all, err
+	if err != nil {
+		return nil, err
+	}
+	return tagDomains(records), nil
 }
 
 func (t tagsBackend) GetAllForPathMutation() ([]*tags.Tag, error) {
-	var all []*tags.Tag
-	err := t.db.All(&all)
+	var records []*Tag
+	err := t.db.All(&records)
 	if errors.Is(err, storm.ErrNotFound) {
 		return []*tags.Tag{}, nil
 	}
-	return all, err
+	if err != nil {
+		return nil, err
+	}
+	return tagDomains(records), nil
 }
 
 func (t tagsBackend) GetByID(userID uint, id string) (*tags.Tag, error) {
-	var tag tags.Tag
-	err := t.db.One("ID", id, &tag)
+	var record Tag
+	err := t.db.One("ID", id, &record)
 	if errors.Is(err, storm.ErrNotFound) {
 		return nil, tags.ErrNotExist
 	}
 	if err != nil {
-		return nil, tags.ErrNotExist
+		return nil, err
 	}
-	if tag.UserID == userID {
-		return &tag, nil
+	if record.UserID == userID {
+		return record.domain(), nil
 	}
-	// 兼容按用户隔离改造前创建的旧记录，在首次变更时完成归属迁移。
-	if tag.UserID == 0 {
-		tag.UserID = userID
-		if err := t.db.Update(&tag); err != nil {
+	if record.UserID == 0 {
+		record.UserID = userID
+		if err := t.db.Update(&record); err != nil {
 			return nil, err
 		}
-		return &tag, nil
+		return record.domain(), nil
 	}
 	return nil, tags.ErrNotExist
 }
 
 func (t tagsBackend) Save(tag *tags.Tag) error {
-	return t.db.Save(tag)
+	return t.db.Save(newTagRecord(tag))
 }
 
 func (t tagsBackend) Update(tag *tags.Tag) error {
-	return t.db.Update(tag)
+	return t.db.Update(newTagRecord(tag))
 }
 
 func (t tagsBackend) UpdatePaths(id string, paths []string) error {
-	return t.db.UpdateField(&tags.Tag{ID: id}, "Paths", paths)
+	return t.db.UpdateField(&Tag{ID: id}, "Paths", append([]string(nil), paths...))
 }
 
 func (t tagsBackend) Delete(id string) error {
-	return t.db.DeleteStruct(&tags.Tag{ID: id})
+	return t.db.DeleteStruct(&Tag{ID: id})
+}
+
+func newTagRecord(tag *tags.Tag) *Tag {
+	return &Tag{
+		ID: tag.ID, UserID: tag.UserID, Name: tag.Name, Color: tag.Color,
+		Paths: append([]string(nil), tag.Paths...), CreatedAt: tag.CreatedAt,
+	}
+}
+
+func (tag *Tag) domain() *tags.Tag {
+	return &tags.Tag{
+		ID: tag.ID, UserID: tag.UserID, Name: tag.Name, Color: tag.Color,
+		Paths: append([]string(nil), tag.Paths...), CreatedAt: tag.CreatedAt,
+	}
+}
+
+func tagDomains(records []*Tag) []*tags.Tag {
+	result := make([]*tags.Tag, len(records))
+	for index, record := range records {
+		result[index] = record.domain()
+	}
+	return result
 }

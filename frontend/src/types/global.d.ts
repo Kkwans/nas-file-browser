@@ -41,6 +41,7 @@ declare global {
     setValue?: (value: string) => void;
     insertValue?: (value: string) => void;
     insertMD?: (value: string) => void;
+    insertEmptyBlock?: (position: "beforebegin" | "afterend") => void;
     getCurrentMode?: () => string;
     focus?: () => void;
     blur?: () => void;

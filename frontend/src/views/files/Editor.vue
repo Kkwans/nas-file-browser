@@ -1011,7 +1011,8 @@ const handleMarkdownImageUpload = async (files: File[]): Promise<null> => {
         file,
         api.postExclusive
       );
-      vditorInstance.insertMD(`${stored.markdown}\n\n`);
+      vditorInstance.insertMD(stored.markdown);
+      vditorInstance.insertEmptyBlock?.("afterend");
       rewriteMarkdownImagePreviews();
       markdownBuffer = getVditorMarkdown();
       userEdited = true;

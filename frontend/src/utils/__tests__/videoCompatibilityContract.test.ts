@@ -16,13 +16,13 @@ describe("视频兼容播放恢复契约", () => {
       "compatibilityRecoveryTimer = window.setTimeout"
     );
     expect(videoPlayerSource).toContain("currentPlayer.readyState() !== 0");
-    expect(videoPlayerSource).toContain("}, 750)");
+    expect(videoPlayerSource).toContain('currentPlayer.one("loadstart"');
+    expect(videoPlayerSource).toContain("}, 1250)");
     expect(videoPlayerSource).toContain("stopCompatibilityRecovery()");
     expect(
       videoPlayerSource.match(
         /currentPlayer\.src\(\{ src: playlistURL, type: "application\/x-mpegURL" \}\)/g
       )
     ).toHaveLength(2);
-    expect(videoPlayerSource).not.toContain('currentPlayer.one("loadstart"');
   });
 });

@@ -589,24 +589,34 @@ function activateHLSPlayback(playlistURL: string) {
   currentPlayer.volume(volume);
   currentPlayer.muted(muted);
   currentPlayer.playbackRate(playbackRate);
-  currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
-  compatibilityRecoveryTimer = window.setTimeout(() => {
-    compatibilityRecoveryTimer = null;
+  currentPlayer.one("loadstart", () => {
     if (
       disposed ||
       player.value !== currentPlayer ||
-      activeHLSURL !== playlistURL ||
-      currentPlayer.readyState() !== 0
+      activeHLSURL !== playlistURL
     ) {
       return;
     }
 
-    // Chromium can leave the first VHS SourceUpdater waiting after a failed
-    // direct-play source. Re-selecting the same HLS source once rebuilds that
-    // handler after the tech settles, without introducing an infinite retry.
-    currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
-    playVideo(currentPlayer);
-  }, 750);
+    compatibilityRecoveryTimer = window.setTimeout(() => {
+      compatibilityRecoveryTimer = null;
+      if (
+        disposed ||
+        player.value !== currentPlayer ||
+        activeHLSURL !== playlistURL ||
+        currentPlayer.readyState() !== 0
+      ) {
+        return;
+      }
+
+      // Chromium can leave the first VHS SourceUpdater waiting after a failed
+      // direct-play source. Re-selecting the same HLS source once rebuilds that
+      // handler after the tech settles, without introducing an infinite retry.
+      currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
+      playVideo(currentPlayer);
+    }, 1250);
+  });
+  currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
   currentPlayer.one("loadedmetadata", () => {
     stopCompatibilityRecovery();
     props.subtitles.forEach((subtitle, index) => {

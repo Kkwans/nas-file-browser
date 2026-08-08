@@ -9,6 +9,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/share"
 	"github.com/Kkwans/nas-file-browser/backend/storage"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
+	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
 )
 
@@ -20,6 +21,7 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 	authStore := auth.NewStorage(authBackend{db: db}, userStore)
 	favoriteStore := favorites.NewStorage(favoritesBackend{db: db})
 	tagStore := tags.NewStorage(tagsBackend{db: db})
+	trashStore := trash.NewStorage(trashBackend{db: db})
 
 	err := save(db, "version", 2)
 	if err != nil {
@@ -33,5 +35,6 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 		Settings:  settingsStore,
 		Favorites: favoriteStore,
 		Tags:      tagStore,
+		Trash:     trashStore,
 	}, nil
 }

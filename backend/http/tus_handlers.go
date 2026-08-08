@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/Kkwans/nas-file-browser/backend/files"
+	"github.com/Kkwans/nas-file-browser/backend/history"
 )
 
 // keepUploadActive periodically touches the cache entry to prevent eviction during transfer
@@ -232,6 +233,7 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 		if newOffset >= uploadLength {
 			cache.Complete(file.RealPath())
 			_ = d.RunHook(func() error { return nil }, "upload", r.URL.Path, "", d.user)
+			recordHistory(d, "file.upload", r.URL.Path, "", history.StatusSuccess)
 		}
 
 		return http.StatusNoContent, nil

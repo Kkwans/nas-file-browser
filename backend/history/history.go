@@ -48,8 +48,9 @@ type StorageBackend interface {
 }
 
 type Storage struct {
-	back StorageBackend
-	mu   sync.Mutex
+	back          StorageBackend
+	mu            sync.Mutex
+	lastCreatedAt int64
 }
 
 func NewStorage(back StorageBackend) *Storage {
@@ -64,9 +65,14 @@ func (storage *Storage) Record(userID uint, action, target, detail string, statu
 	if err != nil {
 		return nil, err
 	}
+	createdAt := time.Now().UnixMilli()
+	if createdAt <= storage.lastCreatedAt {
+		createdAt = storage.lastCreatedAt + 1
+	}
+	storage.lastCreatedAt = createdAt
 	entry := &Entry{
 		ID: id, UserID: userID, Action: action, Target: target,
-		Detail: detail, Status: status, CreatedAt: time.Now().UnixMilli(),
+		Detail: detail, Status: status, CreatedAt: createdAt,
 	}
 	if err := storage.back.Save(entry); err != nil {
 		return nil, err

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/Kkwans/nas-file-browser/backend/history"
 	"github.com/Kkwans/nas-file-browser/backend/tasks"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
@@ -41,6 +42,7 @@ func taskCancelHandler(runtime *tasks.Runtime) handleFunc {
 		if err != nil {
 			return taskErrorStatus(err), err
 		}
+		recordHistory(d, "task.cancel", task.Title, task.ID, history.StatusSuccess)
 		return renderJSONStatus(w, task, http.StatusAccepted)
 	})
 }
@@ -66,6 +68,7 @@ func taskRetryHandler(runtime *tasks.Runtime) handleFunc {
 		if err != nil {
 			return taskErrorStatus(err), err
 		}
+		recordHistory(d, "task.retry", original.Title, retry.ID, history.StatusSubmitted)
 		return renderJSONStatus(w, retry, http.StatusAccepted)
 	})
 }

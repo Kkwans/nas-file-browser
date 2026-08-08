@@ -22,6 +22,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/favorites"
 	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/Kkwans/nas-file-browser/backend/fileutils"
+	"github.com/Kkwans/nas-file-browser/backend/history"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 )
@@ -136,6 +137,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation)
 			return errToStatus(err), fmt.Errorf("删除文件失败，关联元数据已回滚: %w", errors.Join(err, restoreErr))
 		}
+		recordHistory(d, "file.delete", file.Path, "", history.StatusSuccess)
 
 		return http.StatusNoContent, nil
 	})
@@ -164,6 +166,7 @@ func moveResourceToTrash(w http.ResponseWriter, r *http.Request, d *data, fileCa
 	if err := d.store.Share.DeleteWithPathPrefix(file.Path); err != nil {
 		log.Printf("WARNING: Error(s) occurred while deleting associated shares with trashed file: %s", err)
 	}
+	recordHistory(d, "trash.move", file.Path, item.ID, history.StatusSuccess)
 	return renderJSON(w, r, item.Public())
 }
 
@@ -176,6 +179,9 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 		// Directories creation on POST.
 		if strings.HasSuffix(r.URL.Path, "/") {
 			err := d.user.Fs.MkdirAll(r.URL.Path, d.settings.DirMode)
+			if err == nil {
+				recordHistory(d, "file.mkdir", r.URL.Path, "", history.StatusSuccess)
+			}
 			return errToStatus(err), err
 		}
 
@@ -216,6 +222,8 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 
 		if err != nil {
 			_ = d.user.Fs.RemoveAll(r.URL.Path)
+		} else {
+			recordHistory(d, "file.upload", r.URL.Path, "", history.StatusSuccess)
 		}
 
 		return errToStatus(err), err
@@ -250,6 +258,9 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		w.Header().Set("ETag", etag)
 		return nil
 	}, "save", r.URL.Path, "", d.user)
+	if err == nil {
+		recordHistory(d, "file.save", r.URL.Path, "", history.StatusSuccess)
+	}
 
 	return errToStatus(err), err
 })
@@ -299,6 +310,9 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 		}, action, src, dst, d.user)
 		if err == nil && action == "rename" {
 			w.Header().Set("X-Resource-Destination", url.PathEscape(dst))
+		}
+		if err == nil {
+			recordHistory(d, "file."+action, dst, src, history.StatusSuccess)
 		}
 
 		return errToStatus(err), err

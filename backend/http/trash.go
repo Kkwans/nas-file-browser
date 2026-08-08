@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/Kkwans/nas-file-browser/backend/history"
 	"github.com/Kkwans/nas-file-browser/backend/tasks"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
@@ -54,6 +55,9 @@ var trashRestoreHandler = withUser(func(w http.ResponseWriter, r *http.Request, 
 	if err != nil {
 		return trashErrorStatus(err), err
 	}
+	if !result.Skipped {
+		recordHistory(d, "trash.restore", result.Path, item.OriginalPath, history.StatusSuccess)
+	}
 	return renderJSON(w, r, result)
 })
 
@@ -68,6 +72,7 @@ var trashDeleteHandler = withUser(func(_ http.ResponseWriter, r *http.Request, d
 	if err := newTrashService(d, owner).DeletePermanent(d.user.ID, item.ID, d.user.Perm.Admin); err != nil {
 		return trashErrorStatus(err), err
 	}
+	recordHistory(d, "trash.delete", item.OriginalPath, "", history.StatusSuccess)
 	return http.StatusNoContent, nil
 })
 
@@ -80,6 +85,7 @@ func trashClearHandler(runtime *tasks.Runtime) handleFunc {
 		if err != nil {
 			return taskErrorStatus(err), err
 		}
+		recordHistory(d, "trash.clear", "回收站", task.ID, history.StatusSubmitted)
 		return renderJSONStatus(w, task, http.StatusAccepted)
 	})
 }

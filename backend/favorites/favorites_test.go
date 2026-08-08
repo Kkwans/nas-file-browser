@@ -78,6 +78,28 @@ func TestDeletedSnapshotIsIndependentAndRestorable(t *testing.T) {
 	assertFavoritePath(t, backend.favorites, "favorite", "/docs/file.md")
 }
 
+func TestRestoreStagedSnapshotPreservesNewFavoriteAtDestination(t *testing.T) {
+	backend := &memoryBackend{favorites: []*Favorite{
+		{ID: "new", UserID: 7, Path: "/docs/file.md", Name: "新收藏"},
+	}}
+	storage := NewStorage(backend)
+	restored, err := storage.RestoreStagedSnapshot([]Favorite{
+		{ID: "staged", UserID: 7, Path: "/docs/file.md", Name: "旧收藏"},
+		{ID: "other-user", UserID: 8, Path: "/docs/file.md", Name: "其他用户"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(restored) != 1 || restored[0].ID != "other-user" {
+		t.Fatalf("restored rows = %#v", restored)
+	}
+	if len(backend.favorites) != 2 {
+		t.Fatalf("favorites = %#v", backend.favorites)
+	}
+	assertFavoritePath(t, backend.favorites, "new", "/docs/file.md")
+	assertFavoritePath(t, backend.favorites, "other-user", "/docs/file.md")
+}
+
 func TestPathMutationCompensatesPartialBackendFailuresWithoutDuplicates(t *testing.T) {
 	original := []*Favorite{
 		{ID: "first", UserID: 1, Path: "/docs/first.md"},

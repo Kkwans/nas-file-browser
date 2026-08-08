@@ -237,8 +237,24 @@ func (s *Storage) RestorePathMutation(mutation *PathMutation) error {
 		return nil
 	}
 
-	var restoreErr error
+	previous := make([]Tag, 0, len(mutation.updated))
 	for _, tag := range mutation.updated {
+		current, err := s.back.GetByID(tag.UserID, tag.ID)
+		if err != nil {
+			return errors.Join(err, s.restoreUpdatedTags(previous))
+		}
+		previousTag := cloneTag(*current)
+		if err := s.back.UpdatePaths(tag.ID, tag.Paths); err != nil {
+			return errors.Join(err, s.restoreUpdatedTags(previous))
+		}
+		previous = append(previous, previousTag)
+	}
+	return nil
+}
+
+func (s *Storage) restoreUpdatedTags(snapshot []Tag) error {
+	var restoreErr error
+	for _, tag := range snapshot {
 		restoreErr = errors.Join(restoreErr, s.back.UpdatePaths(tag.ID, tag.Paths))
 	}
 	return restoreErr
@@ -252,6 +268,50 @@ func (s *Storage) RestoreUpdatedSnapshot(snapshot []Tag) error {
 		updated[index] = cloneTag(tag)
 	}
 	return s.RestorePathMutation(&PathMutation{updated: updated})
+}
+
+// RestoreRemovedSnapshot merges only paths that were removed with a trashed
+// resource. It deliberately preserves unrelated tag edits made while the
+// resource was in the recycle bin and does not recreate a tag the user has
+// since deleted.
+func (s *Storage) RestoreRemovedSnapshot(snapshot []Tag, from, to string) error {
+	previous := make([]Tag, 0, len(snapshot))
+	for _, saved := range snapshot {
+		current, err := s.back.GetByID(saved.UserID, saved.ID)
+		if errors.Is(err, ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return errors.Join(err, s.restoreUpdatedTags(previous))
+		}
+
+		next := append([]string(nil), current.Paths...)
+		seen := make(map[string]struct{}, len(next))
+		for _, currentPath := range next {
+			seen[pathmeta.Clean(currentPath)] = struct{}{}
+		}
+		for _, savedPath := range saved.Paths {
+			rewritten, matched := pathmeta.Rewrite(savedPath, from, to)
+			if !matched {
+				continue
+			}
+			if _, exists := seen[rewritten]; exists {
+				continue
+			}
+			seen[rewritten] = struct{}{}
+			next = append(next, rewritten)
+		}
+		if len(next) == len(current.Paths) {
+			continue
+		}
+
+		previousTag := cloneTag(*current)
+		if err := s.back.UpdatePaths(saved.ID, next); err != nil {
+			return errors.Join(err, s.restoreUpdatedTags(previous))
+		}
+		previous = append(previous, previousTag)
+	}
+	return nil
 }
 
 func cloneTag(tag Tag) Tag {

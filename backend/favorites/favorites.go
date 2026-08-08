@@ -244,9 +244,16 @@ func (s *Storage) RestorePathMutation(mutation *PathMutation) error {
 	for _, favorite := range mutation.updated {
 		restoreErr = errors.Join(restoreErr, s.back.UpdatePath(favorite.ID, favorite.Path))
 	}
+	restored := make([]Favorite, 0, len(mutation.deleted))
 	for _, favorite := range mutation.deleted {
 		copy := favorite
-		restoreErr = errors.Join(restoreErr, s.back.Save(&copy))
+		if err := s.back.Save(&copy); err != nil {
+			for _, saved := range restored {
+				restoreErr = errors.Join(restoreErr, s.back.Delete(saved.ID))
+			}
+			return errors.Join(restoreErr, err)
+		}
+		restored = append(restored, favorite)
 	}
 	return restoreErr
 }
@@ -257,6 +264,37 @@ func (s *Storage) RestoreDeletedSnapshot(snapshot []Favorite) error {
 	return s.RestorePathMutation(&PathMutation{
 		deleted: append([]Favorite(nil), snapshot...),
 	})
+}
+
+// RestoreStagedSnapshot restores recycle-bin favorites without duplicating a
+// favorite the user deliberately created for the same destination while the
+// resource was trashed. The returned slice contains only rows created by this
+// call so a later cross-system failure can compensate precisely.
+func (s *Storage) RestoreStagedSnapshot(snapshot []Favorite) ([]Favorite, error) {
+	restored := make([]Favorite, 0, len(snapshot))
+	for _, favorite := range snapshot {
+		_, err := s.back.GetByPath(favorite.UserID, favorite.Path)
+		if err == nil {
+			continue
+		}
+		if !errors.Is(err, ErrNotExist) {
+			return nil, errors.Join(err, s.deleteSnapshot(restored))
+		}
+		copy := favorite
+		if err := s.back.Save(&copy); err != nil {
+			return nil, errors.Join(err, s.deleteSnapshot(restored))
+		}
+		restored = append(restored, favorite)
+	}
+	return restored, nil
+}
+
+func (s *Storage) deleteSnapshot(snapshot []Favorite) error {
+	var deleteErr error
+	for _, favorite := range snapshot {
+		deleteErr = errors.Join(deleteErr, s.back.Delete(favorite.ID))
+	}
+	return deleteErr
 }
 
 // Reorder replaces the entire order of favorites.

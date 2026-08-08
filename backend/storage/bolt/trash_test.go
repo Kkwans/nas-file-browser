@@ -47,8 +47,14 @@ func TestTrashBackendPersistsMetadataSnapshots(t *testing.T) {
 	if len(loaded.FavoriteSnapshots) != 1 || loaded.FavoriteSnapshots[0].Path != item.OriginalPath {
 		t.Fatalf("favorite snapshots = %#v", loaded.FavoriteSnapshots)
 	}
+	if loaded.FavoriteSnapshots[0].UserID != item.UserID {
+		t.Fatalf("favorite owner = %d, want %d", loaded.FavoriteSnapshots[0].UserID, item.UserID)
+	}
 	if len(loaded.TagSnapshots) != 1 || len(loaded.TagSnapshots[0].Paths) != 1 || loaded.TagSnapshots[0].Paths[0] != item.OriginalPath {
 		t.Fatalf("tag snapshots = %#v", loaded.TagSnapshots)
+	}
+	if loaded.TagSnapshots[0].UserID != item.UserID {
+		t.Fatalf("tag owner = %d, want %d", loaded.TagSnapshots[0].UserID, item.UserID)
 	}
 
 	loaded.Status = trash.StatusFailed

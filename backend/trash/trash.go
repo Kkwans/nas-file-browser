@@ -102,7 +102,7 @@ func NewStorage(back StorageBackend) *Storage {
 	return &Storage{back: back}
 }
 
-func NewItem(userID uint, ownerName, originalPath, storedPath, name string, isDir bool, size int64) (*Item, error) {
+func NewItem(userID uint, ownerName, originalPath, name string, isDir bool, size int64) (*Item, error) {
 	id, err := generateID()
 	if err != nil {
 		return nil, err
@@ -112,7 +112,6 @@ func NewItem(userID uint, ownerName, originalPath, storedPath, name string, isDi
 		UserID:       userID,
 		OwnerName:    ownerName,
 		OriginalPath: originalPath,
-		StoredPath:   storedPath,
 		Name:         name,
 		IsDir:        isDir,
 		Size:         size,

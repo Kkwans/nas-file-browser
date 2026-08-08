@@ -30,8 +30,30 @@ type trashRecord struct {
 }
 
 type trashMetadata struct {
-	Favorites []favorites.Favorite `json:"favorites,omitempty"`
-	Tags      []tags.Tag           `json:"tags,omitempty"`
+	Favorites []favoriteSnapshotRecord `json:"favorites,omitempty"`
+	Tags      []tagSnapshotRecord      `json:"tags,omitempty"`
+}
+
+// Snapshot records intentionally include UserID even though the normal HTTP
+// representations of favorites and tags hide it. Recycle-bin restoration
+// must retain the original owner across process restarts.
+type favoriteSnapshotRecord struct {
+	ID      string `json:"id"`
+	UserID  uint   `json:"userId"`
+	Path    string `json:"path"`
+	Name    string `json:"name"`
+	GroupID string `json:"groupId,omitempty"`
+	AddedAt int64  `json:"addedAt"`
+	Order   int    `json:"order"`
+}
+
+type tagSnapshotRecord struct {
+	ID        string   `json:"id"`
+	UserID    uint     `json:"userId"`
+	Name      string   `json:"name"`
+	Color     string   `json:"color"`
+	Paths     []string `json:"paths"`
+	CreatedAt int64    `json:"createdAt"`
 }
 
 type trashBackend struct {
@@ -102,8 +124,8 @@ func (backend trashBackend) Delete(id string) error {
 
 func newTrashRecord(item *trash.Item) (*trashRecord, error) {
 	metadata, err := json.Marshal(trashMetadata{
-		Favorites: item.FavoriteSnapshots,
-		Tags:      item.TagSnapshots,
+		Favorites: favoriteSnapshotRecords(item.FavoriteSnapshots),
+		Tags:      tagSnapshotRecords(item.TagSnapshots),
 	})
 	if err != nil {
 		return nil, err
@@ -143,7 +165,54 @@ func (record *trashRecord) item() (*trash.Item, error) {
 		DeletedAt:         record.DeletedAt,
 		Status:            record.Status,
 		LastError:         record.LastError,
-		FavoriteSnapshots: metadata.Favorites,
-		TagSnapshots:      metadata.Tags,
+		FavoriteSnapshots: favoriteSnapshots(metadata.Favorites),
+		TagSnapshots:      tagSnapshots(metadata.Tags),
 	}, nil
+}
+
+func favoriteSnapshotRecords(snapshot []favorites.Favorite) []favoriteSnapshotRecord {
+	records := make([]favoriteSnapshotRecord, len(snapshot))
+	for index, favorite := range snapshot {
+		records[index] = favoriteSnapshotRecord{
+			ID: favorite.ID, UserID: favorite.UserID, Path: favorite.Path,
+			Name: favorite.Name, GroupID: favorite.GroupID,
+			AddedAt: favorite.AddedAt, Order: favorite.Order,
+		}
+	}
+	return records
+}
+
+func favoriteSnapshots(records []favoriteSnapshotRecord) []favorites.Favorite {
+	snapshot := make([]favorites.Favorite, len(records))
+	for index, record := range records {
+		snapshot[index] = favorites.Favorite{
+			ID: record.ID, UserID: record.UserID, Path: record.Path,
+			Name: record.Name, GroupID: record.GroupID,
+			AddedAt: record.AddedAt, Order: record.Order,
+		}
+	}
+	return snapshot
+}
+
+func tagSnapshotRecords(snapshot []tags.Tag) []tagSnapshotRecord {
+	records := make([]tagSnapshotRecord, len(snapshot))
+	for index, tag := range snapshot {
+		records[index] = tagSnapshotRecord{
+			ID: tag.ID, UserID: tag.UserID, Name: tag.Name, Color: tag.Color,
+			Paths: append([]string(nil), tag.Paths...), CreatedAt: tag.CreatedAt,
+		}
+	}
+	return records
+}
+
+func tagSnapshots(records []tagSnapshotRecord) []tags.Tag {
+	snapshot := make([]tags.Tag, len(records))
+	for index, record := range records {
+		snapshot[index] = tags.Tag{
+			ID: record.ID, UserID: record.UserID, Name: record.Name,
+			Color: record.Color, Paths: append([]string(nil), record.Paths...),
+			CreatedAt: record.CreatedAt,
+		}
+	}
+	return snapshot
 }

@@ -93,6 +93,7 @@ func NewHandler(
 	api.Handle("/media/playback", monkey(playbackGetHandler, "")).Methods("GET")
 	api.Handle("/media/playback", monkey(playbackPutHandler, "")).Methods("PUT")
 	api.Handle("/media/playback", monkey(playbackDeleteHandler, "")).Methods("DELETE")
+	api.Handle("/media/info", monkey(mediaInfoHandler(defaultMediaProbe), "")).Methods("GET")
 
 	api.PathPrefix("/tus").Handler(monkey(tusPostHandler(uploadCache), "/api/tus")).Methods("POST")
 	api.PathPrefix("/tus").Handler(monkey(tusHeadHandler(uploadCache), "/api/tus")).Methods("HEAD", "GET")

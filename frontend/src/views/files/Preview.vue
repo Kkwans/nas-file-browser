@@ -1,12 +1,13 @@
 <template>
   <div
     id="previewer"
-    @touchmove.prevent.stop
-    @wheel.prevent.stop
+    :class="{ 'media-preview-shell': isUnifiedMedia }"
+    @touchmove="onPreviewTouchMove"
+    @wheel="onPreviewWheel"
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
-    <header-bar v-if="isPdf || isEpub || isCsv || showNav">
+    <header-bar v-if="isPdf || isEpub || isCsv || showNav || mediaInfoOpen">
       <action icon="close" label="关闭" @action="close()" />
       <title>{{ name }}</title>
       <action
@@ -17,6 +18,18 @@
       />
 
       <template #actions>
+        <action
+          v-if="isUnifiedMedia"
+          :icon="isCurrentFavorite ? 'favorite' : 'favorite_border'"
+          :label="isCurrentFavorite ? '取消收藏' : '收藏'"
+          @action="toggleCurrentFavorite"
+        />
+        <action
+          v-if="isUnifiedMedia"
+          :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
+          :label="isFullscreen ? '退出全屏' : '全屏'"
+          @action="toggleFullscreen"
+        />
         <action
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.rename"
@@ -60,7 +73,8 @@
           :disabled="layoutStore.loading"
           icon="info"
           label="文件信息"
-          show="info"
+          :show="isUnifiedMedia ? undefined : 'info'"
+          @action="isUnifiedMedia && (mediaInfoOpen = !mediaInfoOpen)"
         />
       </template>
     </header-bar>
@@ -165,6 +179,12 @@
     </button>
     <link rel="prefetch" :href="previousRaw" />
     <link rel="prefetch" :href="nextRaw" />
+    <MediaInfoPanel
+      v-if="isUnifiedMedia && fileStore.req"
+      :open="mediaInfoOpen"
+      :resource="fileStore.req"
+      @close="mediaInfoOpen = false"
+    />
   </div>
 </template>
 
@@ -215,6 +235,9 @@ const CsvViewer = defineAsyncComponent(
 );
 const PdfViewer = defineAsyncComponent(
   () => import("@/components/files/PdfViewer.vue")
+);
+const MediaInfoPanel = defineAsyncComponent(
+  () => import("@/components/files/MediaInfoPanel.vue")
 );
 const VueReader = defineAsyncComponent(() =>
   import("vue-reader").then((module) => module.VueReader)
@@ -282,6 +305,8 @@ const previousRaw = ref<string>("");
 const nextRaw = ref<string>("");
 const csvContent = ref<ArrayBuffer | string>("");
 const csvError = ref<string>("");
+const mediaInfoOpen = ref(false);
+const isFullscreen = ref(false);
 
 const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
 
@@ -335,6 +360,12 @@ const isCsv = computed(
 );
 
 const isResizeEnabled = computed(() => resizePreview);
+const isUnifiedMedia = computed(() =>
+  ["image", "video", "audio"].includes(fileStore.req?.type ?? "")
+);
+const isCurrentFavorite = computed(() =>
+  fileStore.req ? favoritesStore.isFavorite(fileStore.req.path) : false
+);
 
 const subtitles = computed(() => {
   if (fileStore.req?.subtitles) {
@@ -348,6 +379,7 @@ const videoOptions = computed(() => {
 });
 
 watch(route, () => {
+  mediaInfoOpen.value = false;
   updatePreview();
   toggleNavigation();
 });
@@ -355,11 +387,15 @@ watch(route, () => {
 // Specify hooks
 onMounted(async () => {
   window.addEventListener("keydown", key);
+  document.addEventListener("fullscreenchange", onFullscreenChange);
   listing.value = fileStore.oldReq?.items ?? null;
   updatePreview();
 });
 
-onBeforeUnmount(() => window.removeEventListener("keydown", key));
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", key);
+  document.removeEventListener("fullscreenchange", onFullscreenChange);
+});
 
 // Specify methods
 const deleteFile = () => {
@@ -512,6 +548,43 @@ const prefetchUrl = (item: ResourceItem) => {
 };
 
 const toggleSize = () => (fullSize.value = !fullSize.value);
+
+const toggleCurrentFavorite = async () => {
+  const current = fileStore.req;
+  if (!current) return;
+  await favoritesStore.toggleFavorite(current.path, current.name);
+};
+
+const toggleFullscreen = async () => {
+  const previewer = document.getElementById("previewer");
+  if (!previewer) return;
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await previewer.requestFullscreen();
+  } catch (error) {
+    $showError(error instanceof Error ? error : new Error("无法切换全屏"));
+  }
+};
+
+const onFullscreenChange = () => {
+  isFullscreen.value = document.fullscreenElement?.id === "previewer";
+};
+
+const isMediaPanelEvent = (event: Event) =>
+  event.target instanceof Element &&
+  Boolean(event.target.closest(".media-info-panel"));
+
+const onPreviewTouchMove = (event: TouchEvent) => {
+  if (isMediaPanelEvent(event)) return;
+  event.preventDefault();
+  event.stopPropagation();
+};
+
+const onPreviewWheel = (event: WheelEvent) => {
+  if (isMediaPanelEvent(event)) return;
+  event.preventDefault();
+  event.stopPropagation();
+};
 
 const toggleNavigation = throttle(function () {
   showNav.value = true;

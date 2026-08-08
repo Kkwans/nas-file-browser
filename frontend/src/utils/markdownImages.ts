@@ -1,3 +1,5 @@
+import { encodePath } from "@/utils/url";
+
 const MAX_FILENAME_ATTEMPTS = 10_000;
 
 const IMAGE_EXTENSIONS = new Set([
@@ -85,6 +87,36 @@ export function markdownImageLink(filename: string): string {
     return encodeURIComponent(character);
   });
   return `![${alt}](./assets/${destination})`;
+}
+
+export function markdownImagePreviewSource(
+  documentPath: string,
+  source: string
+): string | null {
+  const trimmed = source.trim();
+  if (
+    trimmed === "" ||
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("#") ||
+    /^[a-z][a-z\d+.-]*:/iu.test(trimmed)
+  ) {
+    return null;
+  }
+
+  try {
+    const normalized = normalizeDocumentPath(documentPath);
+    const separator = normalized.lastIndexOf("/");
+    const directory = separator <= 0 ? "/" : normalized.slice(0, separator);
+    const encodedDirectory = encodePath(directory);
+    const base = new URL(
+      `https://markdown.invalid${encodedDirectory.endsWith("/") ? encodedDirectory : `${encodedDirectory}/`}`
+    );
+    const resolved = new URL(trimmed, base);
+    if (resolved.origin !== base.origin) return null;
+    return `/api/raw${resolved.pathname}${resolved.search}${resolved.hash}`;
+  } catch {
+    return null;
+  }
 }
 
 export async function storeMarkdownImage(

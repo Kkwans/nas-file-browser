@@ -4,6 +4,7 @@ import {
   isMarkdownImageFile,
   markdownImageCandidateName,
   markdownImageLink,
+  markdownImagePreviewSource,
   markdownImageTargetPath,
   normalizeMarkdownImageName,
   storeMarkdownImage,
@@ -50,6 +51,37 @@ describe("Markdown 图片拖入", () => {
       "![图 片(终稿)#1.png](./assets/图%20片%28终稿%29%231.png)"
     );
     expect(markdownImageLink("a[b].png")).toContain("![a\\[b\\].png]");
+  });
+
+  it("只把相对图片地址映射到文档目录的原始内容接口", () => {
+    expect(
+      markdownImagePreviewSource(
+        "/文档/记录.md",
+        "./assets/图%20片%28终稿%29.png"
+      )
+    ).toBe(
+      "/api/raw/%E6%96%87%E6%A1%A3/assets/%E5%9B%BE%20%E7%89%87%28%E7%BB%88%E7%A8%BF%29.png"
+    );
+    expect(
+      markdownImagePreviewSource("/文档/子目录/记录.md", "../图片/photo.png")
+    ).toBe("/api/raw/%E6%96%87%E6%A1%A3/%E5%9B%BE%E7%89%87/photo.png");
+    expect(
+      markdownImagePreviewSource("/记录.md", "assets/photo.png?size=2#view")
+    ).toBe("/api/raw/assets/photo.png?size=2#view");
+  });
+
+  it("不改写绝对、远程和内嵌图片地址", () => {
+    for (const source of [
+      "/api/raw/photo.png",
+      "https://example.com/photo.png",
+      "//example.com/photo.png",
+      "data:image/png;base64,AA==",
+      "blob:https://example.com/id",
+      "#preview",
+      "http://[invalid",
+    ]) {
+      expect(markdownImagePreviewSource("/note.md", source)).toBeNull();
+    }
   });
 
   it("清理路径片段、处理隐藏名并识别无 MIME 图片", () => {

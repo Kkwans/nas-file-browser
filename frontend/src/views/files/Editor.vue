@@ -217,7 +217,10 @@ import {
   MARKDOWN_CODE_LANGUAGES,
   updateMarkdownCodeFenceLanguage,
 } from "@/utils/markdownCode";
-import { storeMarkdownImage } from "@/utils/markdownImages";
+import {
+  markdownImagePreviewSource,
+  storeMarkdownImage,
+} from "@/utils/markdownImages";
 import type { Ace } from "ace-builds";
 
 import Action from "@/components/header/Action.vue";
@@ -266,6 +269,8 @@ const showLineNumbers = ref(!usesVditor);
 const langCaption = ref("");
 const markdownImageUploading = ref(false);
 const markdownImageUploadLabel = ref("");
+let markdownImagePreviewObserver: MutationObserver | null = null;
+let markdownImagePreviewScheduled = false;
 const showCodeLanguagePicker = ref(false);
 const codeLanguageQuery = ref("");
 const codeLanguageSearchInput = ref<HTMLInputElement | null>(null);
@@ -381,6 +386,7 @@ onBeforeUnmount(() => {
     mountEl.removeEventListener("click", handleOutlineCapture, true);
   }
   _outlineHandlerBound = false;
+  teardownMarkdownImagePreviews();
   if (vditorInstance) {
     try {
       vditorInstance.destroy();
@@ -416,7 +422,7 @@ onBeforeRouteUpdate((to, from, next) => {
   // 双重校验：flag 可能有误，用实际内容比对兜底
   if (usesVditor && vditorInstance && mdInitialized) {
     try {
-      const currentContent = vditorInstance.getValue();
+      const currentContent = getVditorMarkdown();
       if (currentContent === initialContent) {
         userEdited = false;
         next();
@@ -454,6 +460,94 @@ onBeforeRouteLeave(() => {
   $showError("图片正在保存，请稍候再离开编辑器", false);
   return false;
 });
+
+const rewriteMarkdownImagePreviews = () => {
+  const documentPath = fileStore.req?.path;
+  const mountEl = document.getElementById("vditor-mount");
+  if (!documentPath || !mountEl) return;
+
+  mountEl.querySelectorAll<HTMLImageElement>("img[src]").forEach((image) => {
+    const currentSource = image.getAttribute("src") ?? "";
+    const previousPreview = image.dataset.nfbMarkdownPreview ?? "";
+    let markdownSource = image.dataset.nfbMarkdownSource ?? currentSource;
+
+    if (previousPreview && currentSource !== previousPreview) {
+      markdownSource = currentSource;
+    }
+
+    const previewSource = markdownImagePreviewSource(
+      documentPath,
+      markdownSource
+    );
+    if (!previewSource) {
+      delete image.dataset.nfbMarkdownSource;
+      delete image.dataset.nfbMarkdownPreview;
+      return;
+    }
+
+    image.dataset.nfbMarkdownSource = markdownSource;
+    image.dataset.nfbMarkdownPreview = previewSource;
+    if (currentSource !== previewSource) {
+      image.setAttribute("src", previewSource);
+    }
+  });
+};
+
+const scheduleMarkdownImagePreviewRewrite = () => {
+  if (markdownImagePreviewScheduled) return;
+  markdownImagePreviewScheduled = true;
+  queueMicrotask(() => {
+    markdownImagePreviewScheduled = false;
+    rewriteMarkdownImagePreviews();
+  });
+};
+
+const setupMarkdownImagePreviews = () => {
+  teardownMarkdownImagePreviews();
+  const mountEl = document.getElementById("vditor-mount");
+  if (!mountEl) return;
+  markdownImagePreviewObserver = new MutationObserver(
+    scheduleMarkdownImagePreviewRewrite
+  );
+  markdownImagePreviewObserver.observe(mountEl, {
+    attributes: true,
+    attributeFilter: ["src"],
+    childList: true,
+    subtree: true,
+  });
+  rewriteMarkdownImagePreviews();
+};
+
+function teardownMarkdownImagePreviews() {
+  markdownImagePreviewObserver?.disconnect();
+  markdownImagePreviewObserver = null;
+  markdownImagePreviewScheduled = false;
+}
+
+const getVditorMarkdown = () => {
+  if (!vditorInstance) return markdownBuffer;
+  const mountEl = document.getElementById("vditor-mount");
+  const previews = mountEl
+    ? Array.from(
+        mountEl.querySelectorAll<HTMLImageElement>(
+          "img[data-nfb-markdown-source][data-nfb-markdown-preview]"
+        )
+      )
+    : [];
+
+  previews.forEach((image) => {
+    image.setAttribute("src", image.dataset.nfbMarkdownSource ?? "");
+  });
+  try {
+    return vditorInstance.getValue();
+  } finally {
+    previews.forEach((image) => {
+      if (image.isConnected) {
+        image.setAttribute("src", image.dataset.nfbMarkdownPreview ?? "");
+      }
+    });
+  }
+};
 
 const initVditor = async (content: string) => {
   initialContent = content;
@@ -563,7 +657,7 @@ const initVditorWithMode = async (
       // 编辑器初始化完成后，捕获 Vditor 规范化后的内容作为基线
       // 这样即使 Vditor 对内容做了微调（如尾部换行），也不会误判为 dirty
       try {
-        const normalized = vditorInstance!.getValue();
+        const normalized = getVditorMarkdown();
         markdownBuffer = normalized;
         if (!markdownBaselineReady) {
           initialContent = normalized;
@@ -573,6 +667,7 @@ const initVditorWithMode = async (
       mdInitialized = true;
       // 初始化期间可能触发 input 事件，重置 dirty 标记
       userEdited = dirtyState;
+      setupMarkdownImagePreviews();
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
       if (currentMode.value === "preview") refreshMarkdownCodeBlocks();
@@ -583,7 +678,7 @@ const initVditorWithMode = async (
         userEdited = true;
       }
       try {
-        markdownBuffer = vditorInstance?.getValue() ?? markdownBuffer;
+        markdownBuffer = getVditorMarkdown();
       } catch {}
     },
   });
@@ -734,6 +829,7 @@ const initVditorPreview = async (content: string) => {
   };
   // 预览模式基线与实际内容一致
   mdInitialized = true;
+  setupMarkdownImagePreviews();
 };
 
 const initAceEditor = async (content: string) => {
@@ -864,7 +960,7 @@ const applyMarkdownCodeLanguage = (language: string) => {
   closeCodeLanguagePicker();
 
   if (targetIndex !== null && vditorInstance?.setValue) {
-    const current = vditorInstance.getValue();
+    const current = getVditorMarkdown();
     const updated = updateMarkdownCodeFenceLanguage(
       current,
       targetIndex,
@@ -881,7 +977,7 @@ const applyMarkdownCodeLanguage = (language: string) => {
   if (!vditorInstance?.insertValue) return;
   vditorInstance.insertValue(createMarkdownCodeFence(language));
   try {
-    markdownBuffer = vditorInstance.getValue();
+    markdownBuffer = getVditorMarkdown();
   } catch {}
   userEdited = true;
 };
@@ -915,7 +1011,8 @@ const handleMarkdownImageUpload = async (files: File[]): Promise<null> => {
         api.postExclusive
       );
       vditorInstance.insertMD(`${stored.markdown}\n`);
-      markdownBuffer = vditorInstance.getValue();
+      rewriteMarkdownImagePreviews();
+      markdownBuffer = getVditorMarkdown();
       userEdited = true;
     }
     $showSuccess(
@@ -939,13 +1036,14 @@ const rebuildMarkdownMode = async (mode: MarkdownMode) => {
 
   let content: string;
   try {
-    content = vditorInstance.getValue();
+    content = getVditorMarkdown();
   } catch {
     content = markdownBuffer;
   }
   const dirtyState = userEdited;
   markdownBuffer = content;
 
+  teardownMarkdownImagePreviews();
   try {
     vditorInstance.destroy();
   } catch {}
@@ -1017,7 +1115,7 @@ const switchMode = async (mode: MarkdownMode) => {
   try {
     // getValue() is authoritative, including an intentionally empty document.
     // The buffer is only a fallback if Vditor has already detached its DOM.
-    content = vditorInstance.getValue();
+    content = getVditorMarkdown();
   } catch {
     content = markdownBuffer;
   }
@@ -1028,6 +1126,7 @@ const switchMode = async (mode: MarkdownMode) => {
   // userEdited 保持不变，因为用户之前可能已经编辑过
 
   // 销毁旧实例，按新模式重建（Vditor 不支持运行时切换模式）
+  teardownMarkdownImagePreviews();
   try {
     vditorInstance.destroy();
   } catch {}
@@ -1079,7 +1178,7 @@ const handlePageChange = (event: BeforeUnloadEvent) => {
     // Vditor dirty 检测：用 userEdited 标记 + 内容比对双重判断
     if (userEdited && mdInitialized) {
       try {
-        const currentContent = vditorInstance.getValue();
+        const currentContent = getVditorMarkdown();
         if (currentContent === initialContent) return;
       } catch {}
       event.preventDefault();
@@ -1108,7 +1207,7 @@ const save = async (throwError?: boolean) => {
   try {
     let content = "";
     if (usesVditor && vditorInstance) {
-      content = vditorInstance.getValue();
+      content = getVditorMarkdown();
       markdownBuffer = content;
     } else if (aceEditor) {
       content = aceEditor.getValue();
@@ -1152,7 +1251,7 @@ const close = () => {
   // 双重校验：flag 可能有误，用实际内容比对兜底
   if (usesVditor && vditorInstance && mdInitialized) {
     try {
-      const currentContent = vditorInstance.getValue();
+      const currentContent = getVditorMarkdown();
       if (currentContent === initialContent) {
         userEdited = false;
         finishClose();

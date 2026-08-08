@@ -113,6 +113,9 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toContain("handler: handleMarkdownImageUpload");
     expect(editorSource).toContain("api.postExclusive");
     expect(editorSource).toContain("vditorInstance.insertMD");
+    expect(editorSource).toContain("markdownImagePreviewSource");
+    expect(editorSource).toContain("setupMarkdownImagePreviews");
+    expect(editorSource).toContain("getVditorMarkdown");
     expect(editorSource).toContain("userEdited = true");
     expect(editorSource).toContain("请手动保存 Markdown");
     expect(editorSource).toContain("onBeforeRouteLeave");

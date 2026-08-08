@@ -20,6 +20,7 @@ type Type string
 const (
 	TypeTrashClear        Type = "trash.clear"
 	TypeDuplicateAnalysis Type = "analysis.duplicates"
+	TypeArchiveExtract    Type = "archive.extract"
 )
 
 type Status string

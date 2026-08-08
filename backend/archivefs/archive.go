@@ -32,6 +32,7 @@ var (
 	ErrUnsafeEntry       = errors.New("unsafe archive entry")
 	ErrLimitExceeded     = errors.New("archive safety limit exceeded")
 	ErrArchiveChanged    = errors.New("archive changed before extraction")
+	ErrInvalidArchive    = errors.New("invalid or damaged archive")
 )
 
 type Checker interface {
@@ -210,7 +211,7 @@ func List(ctx context.Context, filesystem afero.Fs, archivePath string, limits L
 		err = nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("读取压缩包失败: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidArchive, err)
 	}
 	sort.SliceStable(listing.Entries, func(i, j int) bool {
 		return listing.Entries[i].Path < listing.Entries[j].Path
@@ -228,7 +229,7 @@ func Extract(
 		return nil, fmt.Errorf("文件系统不能为空")
 	}
 	options.Limits = options.Limits.normalized()
-	selected, err := normalizeSelections(options.Selected, options.Limits.MaxSelected)
+	selected, err := NormalizeSelections(options.Selected, options.Limits.MaxSelected)
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +376,7 @@ func openArchive(ctx context.Context, filesystem afero.Fs, archivePath string) (
 		if errors.Is(err, archives.NoMatch) {
 			return nil, ErrUnsupportedFormat
 		}
-		return nil, fmt.Errorf("识别压缩包失败: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidArchive, err)
 	}
 	extractor, ok := format.(archives.Extractor)
 	if !ok {
@@ -428,7 +429,10 @@ func cleanEntryPath(value string) (string, error) {
 	return cleaned, nil
 }
 
-func normalizeSelections(values []string, maximum int) ([]string, error) {
+func NormalizeSelections(values []string, maximum int) ([]string, error) {
+	if maximum <= 0 {
+		maximum = DefaultMaxSelected
+	}
 	if len(values) == 0 || len(values) > maximum {
 		return nil, fmt.Errorf("解压选择必须包含 1–%d 个条目", maximum)
 	}

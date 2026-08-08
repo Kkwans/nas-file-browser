@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/Kkwans/nas-file-browser/backend/auth"
 	"github.com/Kkwans/nas-file-browser/backend/favorites"
+	"github.com/Kkwans/nas-file-browser/backend/history"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/share"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
@@ -19,6 +20,7 @@ type Storage struct {
 	Auth      *auth.Storage
 	Settings  *settings.Storage
 	Favorites *favorites.Storage
+	History   *history.Storage
 	Tags      *tags.Storage
 	Tasks     *tasks.Storage
 	Trash     *trash.Storage

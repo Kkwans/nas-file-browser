@@ -20,8 +20,16 @@ services:
       - /etc/samba/smbshare.conf:/run/ugreen/smbshare.conf:ro
       - ./config:/config
       - ./database:/database
+      - nas-file-browser-hls-cache:/cache/hls
     environment:
       - UGREEN_SMB_SHARE_CONFIG=/run/ugreen/smbshare.conf
       - FB_DATABASE=/database/filebrowser.db
       - FB_ROOT=/
       - FB_LOGLEVEL=info
+      - FB_HLS_CACHE_DIR=/cache/hls
+      - FB_HLS_CACHE_MAX_BYTES=10737418240
+      - FB_HLS_PROCESSORS=1
+
+volumes:
+  nas-file-browser-hls-cache:
+    name: nas-file-browser-hls-cache

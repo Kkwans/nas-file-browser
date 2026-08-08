@@ -5,6 +5,8 @@
 # --- Stage 1: Build Frontend ---
 FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend-builder
 
+ENV NODE_USE_ENV_PROXY=1
+
 WORKDIR /src/frontend
 
 COPY frontend/package.json frontend/pnpm-lock.yaml ./

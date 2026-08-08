@@ -90,7 +90,7 @@ func (service *Service) Move(userID uint, ownerName, source string) (*Item, erro
 	return item.Clone(), nil
 }
 
-func (service *Service) Restore(actorUserID uint, actorName, id string, admin bool, strategy ConflictStrategy) (*RestoreResult, error) {
+func (service *Service) Restore(actorUserID uint, id string, admin bool, strategy ConflictStrategy) (*RestoreResult, error) {
 	item, err := service.Records.Get(actorUserID, id, admin)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (service *Service) Restore(actorUserID uint, actorName, id string, admin bo
 				return nil, err
 			}
 		case ConflictReplace:
-			displaced, err = service.Move(actorUserID, actorName, destination)
+			displaced, err = service.Move(item.UserID, item.OwnerName, destination)
 			if err != nil {
 				return nil, fmt.Errorf("move conflicting destination to trash: %w", err)
 			}
@@ -132,22 +132,22 @@ func (service *Service) Restore(actorUserID uint, actorName, id string, admin bo
 	item.Status = StatusRestoring
 	item.LastError = ""
 	if err := service.Records.Update(item); err != nil {
-		return nil, service.restoreDisplaced(actorUserID, actorName, displaced, err)
+		return nil, service.restoreDisplaced(displaced, err)
 	}
 	if err := service.Fs.MkdirAll(path.Dir(destination), service.dirMode()); err != nil {
-		return nil, service.restoreDisplaced(actorUserID, actorName, displaced, service.markAvailable(item, err))
+		return nil, service.restoreDisplaced(displaced, service.markAvailable(item, err))
 	}
 	if err := service.Fs.Rename(item.StoredPath, destination); err != nil {
-		return nil, service.restoreDisplaced(actorUserID, actorName, displaced, service.markAvailable(item, err))
+		return nil, service.restoreDisplaced(displaced, service.markAvailable(item, err))
 	}
 
 	favoriteSnapshots := rewriteFavoriteSnapshots(item.FavoriteSnapshots, item.OriginalPath, destination)
 	restoredFavorites, err := service.Favorites.RestoreStagedSnapshot(favoriteSnapshots)
 	if err != nil {
-		return nil, service.restoreDisplaced(actorUserID, actorName, displaced, service.rollbackRestore(item, destination, nil, err))
+		return nil, service.restoreDisplaced(displaced, service.rollbackRestore(item, destination, nil, err))
 	}
 	if err := service.Tags.RestoreRemovedSnapshot(item.TagSnapshots, item.OriginalPath, destination); err != nil {
-		return nil, service.restoreDisplaced(actorUserID, actorName, displaced, service.rollbackRestore(item, destination, restoredFavorites, err))
+		return nil, service.restoreDisplaced(displaced, service.rollbackRestore(item, destination, restoredFavorites, err))
 	}
 	if err := service.Records.Delete(actorUserID, item.ID, admin); err != nil {
 		item.Status = StatusFailed
@@ -251,11 +251,11 @@ func (service *Service) rollbackRestore(item *Item, destination string, restored
 	return service.markAvailable(item, cause)
 }
 
-func (service *Service) restoreDisplaced(actorUserID uint, actorName string, displaced *Item, cause error) error {
+func (service *Service) restoreDisplaced(displaced *Item, cause error) error {
 	if displaced == nil {
 		return cause
 	}
-	if _, err := service.Restore(actorUserID, actorName, displaced.ID, true, ConflictFail); err != nil {
+	if _, err := service.Restore(displaced.UserID, displaced.ID, true, ConflictFail); err != nil {
 		return errors.Join(cause, fmt.Errorf("restore displaced conflict: %w", err))
 	}
 	return cause

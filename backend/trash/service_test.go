@@ -118,7 +118,7 @@ func TestServiceMoveAndRestorePreservesOwnedMetadata(t *testing.T) {
 		t.Fatalf("tag snapshot = %#v", item.TagSnapshots)
 	}
 
-	result, err := h.service.Restore(testUserID, testUserName, item.ID, false, trash.ConflictFail)
+	result, err := h.service.Restore(testUserID, item.ID, false, trash.ConflictFail)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,7 +158,7 @@ func TestServiceKeepBothPreservesChangesMadeWhileTrashed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := h.service.Restore(testUserID, testUserName, item.ID, false, trash.ConflictKeepBoth)
+	result, err := h.service.Restore(testUserID, item.ID, false, trash.ConflictKeepBoth)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,7 +193,7 @@ func TestServiceReplaceMovesConflictIntoTrash(t *testing.T) {
 	}
 	h.writeFile(t, testPath, "replacement")
 
-	result, err := h.service.Restore(testUserID, testUserName, original.ID, false, trash.ConflictReplace)
+	result, err := h.service.Restore(testUserID, original.ID, false, trash.ConflictReplace)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -225,7 +225,7 @@ func TestServiceReplaceRestoresConflictWhenOriginalRestoreFails(t *testing.T) {
 	}
 	h.service.Fs = failingFS
 
-	if _, err := h.service.Restore(testUserID, testUserName, original.ID, false, trash.ConflictReplace); err == nil {
+	if _, err := h.service.Restore(testUserID, original.ID, false, trash.ConflictReplace); err == nil {
 		t.Fatal("restore should report the injected rename failure")
 	}
 	assertFileContent(t, h.fs, testPath, "replacement")
@@ -248,7 +248,7 @@ func TestServiceSkipAndPermanentDelete(t *testing.T) {
 	}
 	h.writeFile(t, testPath, "replacement")
 
-	result, err := h.service.Restore(testUserID, testUserName, item.ID, false, trash.ConflictSkip)
+	result, err := h.service.Restore(testUserID, item.ID, false, trash.ConflictSkip)
 	if err != nil {
 		t.Fatal(err)
 	}

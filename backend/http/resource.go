@@ -23,6 +23,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/Kkwans/nas-file-browser/backend/fileutils"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
+	"github.com/Kkwans/nas-file-browser/backend/trash"
 )
 
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -99,6 +100,17 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 			return errToStatus(err), err
 		}
 
+		mode := r.URL.Query().Get("mode")
+		switch mode {
+		case "trash":
+			return moveResourceToTrash(r, d, fileCache, file)
+		case "", "permanent":
+			// The empty mode intentionally preserves the historical permanent
+			// delete contract for older clients. The new UI always sends trash.
+		default:
+			return http.StatusBadRequest, fmt.Errorf("不支持的删除模式 %q", mode)
+		}
+
 		favoriteMutation, tagMutation, err := removePathMetadata(d, file.Path)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("清理关联收藏和标签失败，文件未删除: %w", err)
@@ -127,6 +139,32 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 
 		return http.StatusNoContent, nil
 	})
+}
+
+func moveResourceToTrash(r *http.Request, d *data, fileCache FileCache, file *files.FileInfo) (int, error) {
+	if err := delThumbs(r.Context(), fileCache, file); err != nil {
+		return errToStatus(err), fmt.Errorf("清理缩略图失败，文件未移入回收站: %w", err)
+	}
+
+	service := newTrashService(d, d.user)
+	var item *trash.Item
+	err := d.RunHook(func() error {
+		var moveErr error
+		item, moveErr = service.Move(d.user.ID, d.user.Username, file.Path)
+		return moveErr
+	}, "delete", file.Path, "", d.user)
+	if err != nil {
+		if item != nil {
+			_, rollbackErr := service.Restore(d.user.ID, item.ID, false, trash.ConflictFail)
+			err = errors.Join(err, rollbackErr)
+		}
+		return errToStatus(err), fmt.Errorf("文件未移入回收站: %w", err)
+	}
+
+	if err := d.store.Share.DeleteWithPathPrefix(file.Path); err != nil {
+		log.Printf("WARNING: Error(s) occurred while deleting associated shares with trashed file: %s", err)
+	}
+	return http.StatusNoContent, nil
 }
 
 func resourcePostHandler(fileCache FileCache) handleFunc {

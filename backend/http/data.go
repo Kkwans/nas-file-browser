@@ -11,6 +11,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/runner"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/storage"
+	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
 )
 
@@ -27,6 +28,9 @@ type data struct {
 
 // Check implements rules.Checker.
 func (d *data) Check(path string) bool {
+	if trash.IsInternalPath(path) {
+		return false
+	}
 	if d.user.HideDotfiles && rules.MatchHidden(path) {
 		return false
 	}

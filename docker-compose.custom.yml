@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.8-p2-phase7-media
+    image: nas-file-browser:2026.8.8-p2-phase7-media-r2
     build:
       context: .
       dockerfile: Dockerfile.custom

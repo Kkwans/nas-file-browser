@@ -1,0 +1,164 @@
+package hls
+
+import (
+	"context"
+	"errors"
+	"os"
+	"path/filepath"
+	"strconv"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+)
+
+func TestReserveMergesSameSourceAndRunCreatesReusableCache(t *testing.T) {
+	service := newFakeService(t, 1, DefaultMaxBytes, 0)
+	input := Input{UserID: 7, Path: "/电影/示例.mkv", Identity: "12:34", SourcePath: "/source.mkv"}
+	var starts atomic.Int32
+	var job Job
+	start := func(candidate Job) (string, error) {
+		starts.Add(1)
+		job = candidate
+		return "task-one", nil
+	}
+	first, created, err := service.Reserve(input, start)
+	if err != nil || !created {
+		t.Fatalf("first reserve = %#v, %v, %v", first, created, err)
+	}
+	second, created, err := service.Reserve(input, start)
+	if err != nil || created || second.ID != first.ID || starts.Load() != 1 {
+		t.Fatalf("merged reserve = %#v, %v, %v, starts=%d", second, created, err, starts.Load())
+	}
+	if err := service.Run(context.Background(), job); err != nil {
+		t.Fatal(err)
+	}
+	completed, err := service.Get(first.ID, input.UserID)
+	if err != nil || completed.State != StateCompleted || completed.SizeBytes <= 0 {
+		t.Fatalf("completed = %#v, %v", completed, err)
+	}
+	if _, _, err := service.Asset(first.ID, input.UserID+1, "index.m3u8"); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("cross-user asset error = %v", err)
+	}
+	if _, _, err := service.Asset(first.ID, input.UserID, "../meta.json"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("unsafe asset error = %v", err)
+	}
+
+	reloaded, err := New(Config{CacheDir: service.cacheDir, MaxBytes: DefaultMaxBytes, Workers: 1, FFmpegPath: service.ffmpegPath})
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, err := reloaded.Get(first.ID, input.UserID)
+	if err != nil || status.State != StateCompleted {
+		t.Fatalf("reloaded = %#v, %v", status, err)
+	}
+}
+
+func TestWorkerLimitQueuesAndCancellationDoesNotRun(t *testing.T) {
+	service := newFakeService(t, 1, DefaultMaxBytes, 350*time.Millisecond)
+	jobs := reserveJobs(t, service, 2)
+	var wait sync.WaitGroup
+	wait.Add(1)
+	go func() {
+		defer wait.Done()
+		if err := service.Run(context.Background(), jobs[0]); err != nil {
+			t.Errorf("first run: %v", err)
+		}
+	}()
+	waitForState(t, service, jobs[0], StatePreparing)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := service.Run(ctx, jobs[1]); !errors.Is(err, context.Canceled) {
+		t.Fatalf("queued cancellation = %v", err)
+	}
+	status, err := service.Get(jobs[1].ID, jobs[1].UserID)
+	if err != nil || status.State != StateCanceled {
+		t.Fatalf("canceled status = %#v, %v", status, err)
+	}
+	wait.Wait()
+}
+
+func TestLRUEvictionProtectsRecentlyPlayedEntry(t *testing.T) {
+	service := newFakeService(t, 1, 1, 0)
+	jobs := reserveJobs(t, service, 3)
+	if err := service.Run(context.Background(), jobs[0]); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := service.Asset(jobs[0].ID, jobs[0].UserID, "index.m3u8"); err != nil {
+		t.Fatal(err)
+	}
+	if err := service.Run(context.Background(), jobs[1]); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.Get(jobs[0].ID, jobs[0].UserID); err != nil {
+		t.Fatalf("playing entry was evicted: %v", err)
+	}
+
+	service.mu.Lock()
+	service.entries[jobs[0].ID].leaseUntil = time.Time{}
+	service.mu.Unlock()
+	if err := service.Run(context.Background(), jobs[2]); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.Get(jobs[0].ID, jobs[0].UserID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("old unprotected entry error = %v", err)
+	}
+	if _, err := service.Get(jobs[2].ID, jobs[2].UserID); err != nil {
+		t.Fatalf("new entry was evicted: %v", err)
+	}
+}
+
+func newFakeService(t *testing.T, workers int, maxBytes int64, delay time.Duration) *Service {
+	t.Helper()
+	directory := t.TempDir()
+	script := filepath.Join(directory, "fake-ffmpeg.sh")
+	contents := "#!/bin/sh\nfor last do :; done\noutdir=$(dirname \"$last\")\nprintf 'segment-data' > \"$outdir/segment-000000.ts.tmp\"\nmv \"$outdir/segment-000000.ts.tmp\" \"$outdir/segment-000000.ts\"\nprintf '#EXTM3U\\n#EXTINF:4,\\nsegment-000000.ts\\n#EXT-X-ENDLIST\\n' > \"$last.tmp\"\nmv \"$last.tmp\" \"$last\"\n"
+	if delay > 0 {
+		contents += "sleep " + strconv.FormatFloat(delay.Seconds(), 'f', 3, 64) + "\n"
+	}
+	if err := os.WriteFile(script, []byte(contents), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	service, err := New(Config{
+		CacheDir: filepath.Join(directory, "cache"), MaxBytes: maxBytes,
+		Workers: workers, FFmpegPath: script,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return service
+}
+
+func reserveJobs(t *testing.T, service *Service, count int) []Job {
+	t.Helper()
+	jobs := make([]Job, 0, count)
+	for index := 0; index < count; index++ {
+		input := Input{
+			UserID: 1, Path: "/video-" + string(rune('a'+index)) + ".mkv",
+			Identity: string(rune('1' + index)), SourcePath: "/source.mkv",
+		}
+		_, created, err := service.Reserve(input, func(job Job) (string, error) {
+			jobs = append(jobs, job)
+			return "task-" + job.ID[:6], nil
+		})
+		if err != nil || !created {
+			t.Fatalf("reserve %d: created=%v err=%v", index, created, err)
+		}
+	}
+	return jobs
+}
+
+func waitForState(t *testing.T, service *Service, job Job, state State) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		status, err := service.Get(job.ID, job.UserID)
+		if err == nil && status.State == state {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	status, err := service.Get(job.ID, job.UserID)
+	t.Fatalf("state = %#v, %v; want %s", status, err, state)
+}

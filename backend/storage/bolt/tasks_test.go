@@ -1,0 +1,63 @@
+package bolt
+
+import (
+	"encoding/json"
+	"path/filepath"
+	"testing"
+
+	"github.com/asdine/storm/v3"
+
+	"github.com/Kkwans/nas-file-browser/backend/tasks"
+)
+
+func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
+	db, err := storm.Open(filepath.Join(t.TempDir(), "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+
+	backend := taskBackend{db: db}
+	task := &tasks.Task{
+		ID: "task", UserID: 7, OwnerName: "owner",
+		Type: tasks.TypeTrashClear, Title: "清空回收站",
+		Status: tasks.StatusFailed, CreatedAt: 10, StartedAt: 11,
+		FinishedAt: 12, TotalItems: 4, ProcessedItems: 2,
+		TotalBytes: 100, ProcessedBytes: 50, Error: "disk failure",
+		Args: json.RawMessage(`{"all":false}`),
+	}
+	if err := backend.Save(task); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := backend.GetByID(task.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(loaded.Args) != string(task.Args) || loaded.Error != task.Error {
+		t.Fatalf("loaded task = %#v", loaded)
+	}
+
+	loaded.StartedAt = 0
+	loaded.FinishedAt = 0
+	loaded.TotalItems = 0
+	loaded.ProcessedItems = 0
+	loaded.TotalBytes = 0
+	loaded.ProcessedBytes = 0
+	loaded.Error = ""
+	loaded.Status = tasks.StatusQueued
+	if err := backend.Update(loaded); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err = backend.GetByID(task.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.StartedAt != 0 || loaded.FinishedAt != 0 || loaded.TotalItems != 0 || loaded.Error != "" {
+		t.Fatalf("zero fields were not persisted: %#v", loaded)
+	}
+}

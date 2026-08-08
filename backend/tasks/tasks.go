@@ -17,7 +17,10 @@ var (
 
 type Type string
 
-const TypeTrashClear Type = "trash.clear"
+const (
+	TypeTrashClear        Type = "trash.clear"
+	TypeDuplicateAnalysis Type = "analysis.duplicates"
+)
 
 type Status string
 
@@ -49,6 +52,7 @@ type Task struct {
 	Error          string          `json:"error,omitempty"`
 	RetryOf        string          `json:"retryOf,omitempty"`
 	Args           json.RawMessage `json:"-"`
+	Result         json.RawMessage `json:"-"`
 }
 
 func (task *Task) Clone() *Task {
@@ -57,6 +61,7 @@ func (task *Task) Clone() *Task {
 	}
 	clone := *task
 	clone.Args = append(json.RawMessage(nil), task.Args...)
+	clone.Result = append(json.RawMessage(nil), task.Result...)
 	return &clone
 }
 

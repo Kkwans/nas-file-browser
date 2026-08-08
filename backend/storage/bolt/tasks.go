@@ -26,6 +26,7 @@ type taskRecord struct {
 	Error          string
 	RetryOf        string
 	Args           string
+	Result         string
 }
 
 type taskBackend struct {
@@ -73,7 +74,8 @@ func (backend taskBackend) Update(task *tasks.Task) error {
 		"StartedAt": task.StartedAt, "FinishedAt": task.FinishedAt,
 		"TotalItems": task.TotalItems, "ProcessedItems": task.ProcessedItems,
 		"TotalBytes": task.TotalBytes, "ProcessedBytes": task.ProcessedBytes,
-		"Error": task.Error,
+		"Error":  task.Error,
+		"Result": string(task.Result),
 	} {
 		if err := backend.db.UpdateField(&taskRecord{ID: task.ID}, field, value); err != nil {
 			return err
@@ -90,7 +92,7 @@ func newTaskRecord(task *tasks.Task) *taskRecord {
 		FinishedAt: task.FinishedAt, TotalItems: task.TotalItems,
 		ProcessedItems: task.ProcessedItems, TotalBytes: task.TotalBytes,
 		ProcessedBytes: task.ProcessedBytes, Error: task.Error,
-		RetryOf: task.RetryOf, Args: string(task.Args),
+		RetryOf: task.RetryOf, Args: string(task.Args), Result: string(task.Result),
 	}
 }
 
@@ -102,6 +104,6 @@ func (record *taskRecord) task() *tasks.Task {
 		FinishedAt: record.FinishedAt, TotalItems: record.TotalItems,
 		ProcessedItems: record.ProcessedItems, TotalBytes: record.TotalBytes,
 		ProcessedBytes: record.ProcessedBytes, Error: record.Error,
-		RetryOf: record.RetryOf, Args: json.RawMessage(record.Args),
+		RetryOf: record.RetryOf, Args: json.RawMessage(record.Args), Result: json.RawMessage(record.Result),
 	}
 }

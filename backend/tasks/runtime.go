@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -16,7 +17,7 @@ type Progress struct {
 }
 
 type Reporter func(progress Progress) error
-type Runner func(ctx context.Context, report Reporter) error
+type Runner func(ctx context.Context, report Reporter) (json.RawMessage, error)
 
 // Runtime coordinates only active in-process workers. Durable task state and
 // restart semantics remain in Storage so task history survives process exits.
@@ -143,7 +144,10 @@ func (runtime *Runtime) run(ctx context.Context, task *Task, runner Runner) {
 		return runtime.storage.Update(task)
 	}
 
-	err := runner(ctx, report)
+	result, err := runner(ctx, report)
+	if err == nil {
+		task.Result = append(json.RawMessage(nil), result...)
+	}
 	task.FinishedAt = time.Now().UnixMilli()
 	switch {
 	case errors.Is(ctx.Err(), context.Canceled), errors.Is(err, context.Canceled):

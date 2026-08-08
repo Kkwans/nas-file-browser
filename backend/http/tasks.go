@@ -56,7 +56,7 @@ func taskRetryHandler(runtime *tasks.Runtime) handleFunc {
 		if !original.CanRetry() {
 			return http.StatusConflict, tasks.ErrState
 		}
-		if !d.user.Perm.Admin && !d.user.Perm.Delete {
+		if !d.user.Perm.Admin && !canRunTaskType(d.user, original.Type) {
 			return http.StatusForbidden, fmt.Errorf("没有重试此任务的权限")
 		}
 
@@ -121,8 +121,41 @@ func taskRunner(d *data, task *tasks.Task) (tasks.Runner, error) {
 			}
 		}
 		return trashClearRunner(d, task, args), nil
+	case tasks.TypeDuplicateAnalysis:
+		var args duplicateAnalysisArgs
+		if err := json.Unmarshal(task.Args, &args); err != nil {
+			return nil, fmt.Errorf("任务参数损坏: %w", err)
+		}
+		owner, err := d.store.Users.Get(d.server.Root, task.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("任务所有者已不可用: %w", err)
+		}
+		if !owner.Perm.Download {
+			return nil, fmt.Errorf("任务所有者没有读取文件内容的权限")
+		}
+		ownerData := *d
+		ownerData.user = owner
+		paths, err := validateAnalysisScopes(&ownerData, args.Paths)
+		if err != nil {
+			return nil, err
+		}
+		return duplicateAnalysisRunner(&ownerData, task, duplicateAnalysisArgs{Paths: paths}), nil
 	default:
 		return nil, fmt.Errorf("不支持的任务类型 %q", task.Type)
+	}
+}
+
+func canRunTaskType(user *users.User, taskType tasks.Type) bool {
+	if user == nil {
+		return false
+	}
+	switch taskType {
+	case tasks.TypeTrashClear:
+		return user.Perm.Delete
+	case tasks.TypeDuplicateAnalysis:
+		return user.Perm.Download
+	default:
+		return false
 	}
 }
 
@@ -130,22 +163,22 @@ func trashClearRunner(d *data, task *tasks.Task, args trashClearTaskArgs) tasks.
 	store := d.store
 	root := d.server.Root
 	dirMode := d.settings.DirMode
-	return func(ctx context.Context, report tasks.Reporter) error {
+	return func(ctx context.Context, report tasks.Reporter) (json.RawMessage, error) {
 		items, err := store.Trash.List(task.UserID, args.AllUsers)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		progress := tasks.Progress{TotalItems: len(items)}
 		if err := report(progress); err != nil {
-			return err
+			return nil, err
 		}
 		for index, item := range items {
 			if err := ctx.Err(); err != nil {
-				return err
+				return nil, err
 			}
 			owner, err := store.Users.Get(root, item.UserID)
 			if err != nil {
-				return fmt.Errorf("第 %d 项的所有者不可用: %w", index+1, err)
+				return nil, fmt.Errorf("第 %d 项的所有者不可用: %w", index+1, err)
 			}
 			service := &trash.Service{
 				Fs: owner.Fs, Records: store.Trash,
@@ -153,14 +186,14 @@ func trashClearRunner(d *data, task *tasks.Task, args trashClearTaskArgs) tasks.
 				DirMode: dirMode,
 			}
 			if err := service.DeletePermanent(task.UserID, item.ID, args.AllUsers); err != nil {
-				return fmt.Errorf("第 %d 项永久删除失败: %w", index+1, err)
+				return nil, fmt.Errorf("第 %d 项永久删除失败: %w", index+1, err)
 			}
 			progress.ProcessedItems++
 			if err := report(progress); err != nil {
-				return err
+				return nil, err
 			}
 		}
-		return nil
+		return nil, nil
 	}
 }
 

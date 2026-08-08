@@ -36,7 +36,7 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 	taskStore := tasks.NewStorage(taskBackend{db: db})
 	trashStore := trash.NewStorage(trashBackend{db: db})
 
-	err := save(db, "version", 6)
+	err := save(db, "version", 7)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -18,8 +19,8 @@ func TestRuntimeCompletesTaskWithDurableProgress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := runtime.Start(task, func(_ context.Context, report Reporter) error {
-		return report(Progress{TotalItems: 3, ProcessedItems: 3, TotalBytes: 30, ProcessedBytes: 30})
+	if err := runtime.Start(task, func(_ context.Context, report Reporter) (json.RawMessage, error) {
+		return json.RawMessage(`{"ok":true}`), report(Progress{TotalItems: 3, ProcessedItems: 3, TotalBytes: 30, ProcessedBytes: 30})
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -27,6 +28,9 @@ func TestRuntimeCompletesTaskWithDurableProgress(t *testing.T) {
 	completed := waitForTaskStatus(t, backend, task.ID, StatusCompleted)
 	if completed.ProcessedItems != 3 || completed.ProcessedBytes != 30 || completed.FinishedAt == 0 {
 		t.Fatalf("completed task = %#v", completed)
+	}
+	if string(completed.Result) != `{"ok":true}` {
+		t.Fatalf("completed result = %s", completed.Result)
 	}
 }
 
@@ -42,10 +46,10 @@ func TestRuntimeCancellationStopsWorker(t *testing.T) {
 		t.Fatal(err)
 	}
 	started := make(chan struct{})
-	if err := runtime.Start(task, func(ctx context.Context, _ Reporter) error {
+	if err := runtime.Start(task, func(ctx context.Context, _ Reporter) (json.RawMessage, error) {
 		close(started)
 		<-ctx.Done()
-		return ctx.Err()
+		return nil, ctx.Err()
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -79,15 +83,15 @@ func TestRuntimeExclusiveKeyRejectsOverlappingDestructiveTask(t *testing.T) {
 		t.Fatal(err)
 	}
 	started := make(chan struct{})
-	if err := runtime.StartExclusive(first, func(ctx context.Context, _ Reporter) error {
+	if err := runtime.StartExclusive(first, func(ctx context.Context, _ Reporter) (json.RawMessage, error) {
 		close(started)
 		<-ctx.Done()
-		return ctx.Err()
+		return nil, ctx.Err()
 	}, "trash.clear"); err != nil {
 		t.Fatal(err)
 	}
 	<-started
-	if err := runtime.StartExclusive(second, func(context.Context, Reporter) error { return nil }, "trash.clear"); !errors.Is(err, ErrState) {
+	if err := runtime.StartExclusive(second, func(context.Context, Reporter) (json.RawMessage, error) { return nil, nil }, "trash.clear"); !errors.Is(err, ErrState) {
 		t.Fatalf("overlapping start error = %v", err)
 	}
 	if _, err := runtime.Cancel(first.UserID, first.ID, false); err != nil {
@@ -96,7 +100,7 @@ func TestRuntimeExclusiveKeyRejectsOverlappingDestructiveTask(t *testing.T) {
 	waitForTaskStatus(t, backend, first.ID, StatusCanceled)
 	deadline := time.Now().Add(2 * time.Second)
 	for {
-		err = runtime.StartExclusive(second, func(context.Context, Reporter) error { return nil }, "trash.clear")
+		err = runtime.StartExclusive(second, func(context.Context, Reporter) (json.RawMessage, error) { return nil, nil }, "trash.clear")
 		if err == nil {
 			break
 		}

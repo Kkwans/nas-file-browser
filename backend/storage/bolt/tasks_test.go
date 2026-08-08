@@ -28,7 +28,7 @@ func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
 		Status: tasks.StatusFailed, CreatedAt: 10, StartedAt: 11,
 		FinishedAt: 12, TotalItems: 4, ProcessedItems: 2,
 		TotalBytes: 100, ProcessedBytes: 50, Error: "disk failure",
-		Args: json.RawMessage(`{"all":false}`),
+		Args: json.RawMessage(`{"all":false}`), Result: json.RawMessage(`{"groups":2}`),
 	}
 	if err := backend.Save(task); err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(loaded.Args) != string(task.Args) || loaded.Error != task.Error {
+	if string(loaded.Args) != string(task.Args) || string(loaded.Result) != string(task.Result) || loaded.Error != task.Error {
 		t.Fatalf("loaded task = %#v", loaded)
 	}
 
@@ -49,6 +49,7 @@ func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
 	loaded.TotalBytes = 0
 	loaded.ProcessedBytes = 0
 	loaded.Error = ""
+	loaded.Result = nil
 	loaded.Status = tasks.StatusQueued
 	if err := backend.Update(loaded); err != nil {
 		t.Fatal(err)
@@ -57,7 +58,7 @@ func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.StartedAt != 0 || loaded.FinishedAt != 0 || loaded.TotalItems != 0 || loaded.Error != "" {
+	if loaded.StartedAt != 0 || loaded.FinishedAt != 0 || loaded.TotalItems != 0 || loaded.Error != "" || len(loaded.Result) != 0 {
 		t.Fatalf("zero fields were not persisted: %#v", loaded)
 	}
 }

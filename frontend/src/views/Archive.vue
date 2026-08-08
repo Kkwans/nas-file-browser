@@ -1086,7 +1086,7 @@ onBeforeUnmount(() => {
 }
 .archive-expand,
 .archive-expand-spacer {
-  width: 28px;
+  width: 32px;
   flex-shrink: 0;
 }
 .archive-expand {

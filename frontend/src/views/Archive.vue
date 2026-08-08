@@ -1,0 +1,1458 @@
+<template>
+  <div id="archive-page" class="archive-page">
+    <header-bar show-menu show-logo>
+      <div class="archive-header-title">
+        <i class="material-icons" aria-hidden="true">folder_zip</i>
+        <div>
+          <strong>压缩包浏览</strong>
+          <span>{{ archiveName || "只读查看并选择性解压" }}</span>
+        </div>
+      </div>
+      <template #actions>
+        <router-link
+          v-if="archivePath"
+          class="archive-header-action"
+          :to="parentRoute"
+        >
+          <i class="material-icons" aria-hidden="true">arrow_back</i>
+          返回所在目录
+        </router-link>
+        <router-link class="archive-header-action" to="/tasks">
+          <i class="material-icons" aria-hidden="true">pending_actions</i>
+          任务中心
+        </router-link>
+      </template>
+    </header-bar>
+
+    <main class="archive-workspace">
+      <section class="archive-hero" aria-labelledby="archive-title">
+        <div class="archive-hero-mark" aria-hidden="true">
+          <i class="material-icons">inventory_2</i>
+        </div>
+        <div>
+          <p class="archive-eyebrow">SAFE ARCHIVE BROWSER</p>
+          <h1 id="archive-title">先查看内容，再决定解压哪些项目</h1>
+          <p>
+            浏览阶段不会修改文件；解压只在你明确提交后运行，已有同名目标会跳过，不会覆盖。
+          </p>
+        </div>
+        <span class="archive-safety-badge">
+          <i class="material-icons" aria-hidden="true">verified_user</i>
+          路径穿越保护
+        </span>
+      </section>
+
+      <section v-if="loading" class="archive-state" aria-live="polite">
+        <i class="material-icons archive-spin" aria-hidden="true">sync</i>
+        <div>
+          <strong>正在读取压缩包目录</strong>
+          <p>大型 TAR 或压缩 TAR 需要顺序扫描，请稍候。</p>
+        </div>
+      </section>
+
+      <section
+        v-else-if="loadError"
+        class="archive-state archive-state--error"
+        role="alert"
+      >
+        <i class="material-icons" aria-hidden="true">error_outline</i>
+        <div>
+          <strong>无法打开压缩包</strong>
+          <p>{{ loadError }}</p>
+          <small
+            >当前安全支持 ZIP、TAR、tar.gz、tar.bz2、tar.xz 和 tar.zst；7z/RAR
+            尚未启用。</small
+          >
+        </div>
+        <button
+          v-if="archivePath"
+          type="button"
+          @click="loadListing(archivePath)"
+        >
+          重试
+        </button>
+      </section>
+
+      <template v-if="listing && !loading">
+        <section class="archive-overview" aria-label="压缩包摘要">
+          <article>
+            <small>格式</small>
+            <strong>{{ listing.format.toUpperCase() }}</strong>
+            <span>{{ formatBytes(listing.sourceSize) }} 源文件</span>
+          </article>
+          <article>
+            <small>安全条目</small>
+            <strong>{{ listing.entries.length.toLocaleString() }}</strong>
+            <span>{{ formatBytes(listing.listedBytes) }} 声明内容</span>
+          </article>
+          <article :class="{ 'is-warning': listing.blockedCount > 0 }">
+            <small>已阻止条目</small>
+            <strong>{{ listing.blockedCount.toLocaleString() }}</strong>
+            <span>链接、特殊文件或不安全路径</span>
+          </article>
+        </section>
+
+        <section v-if="listing.truncated" class="archive-warning" role="alert">
+          <i class="material-icons" aria-hidden="true">gpp_bad</i>
+          <div>
+            <strong>压缩包超过安全限制，已停止继续读取</strong>
+            <p>{{ listing.limitReason }}。在确认完整内容前不会允许解压。</p>
+          </div>
+        </section>
+
+        <details v-if="listing.blockedCount" class="archive-blocked">
+          <summary>{{ listing.blockedCount }} 个条目已被安全阻止</summary>
+          <p>阻止的内容不会出现在选择列表，也不会写入 NAS。</p>
+          <ul>
+            <li
+              v-for="entry in listing.blocked"
+              :key="`${entry.path}:${entry.reason}`"
+            >
+              <span>{{ entry.path }}</span>
+              <small>{{ entry.reason }}</small>
+            </li>
+          </ul>
+        </details>
+
+        <section class="archive-browser" aria-labelledby="entries-title">
+          <div class="archive-browser-toolbar">
+            <div>
+              <span>01</span>
+              <div>
+                <h2 id="entries-title">选择条目</h2>
+                <p>勾选目录会包含其全部后代；也可展开后只选单个文件。</p>
+              </div>
+            </div>
+            <div class="archive-browser-actions">
+              <label>
+                <i class="material-icons" aria-hidden="true">search</i>
+                <input
+                  v-model.trim="filter"
+                  type="search"
+                  placeholder="筛选归档路径"
+                />
+              </label>
+              <button type="button" @click="toggleSelectAll">
+                {{ selected.has(".") ? "清空选择" : "选择全部" }}
+              </button>
+            </div>
+          </div>
+
+          <div class="archive-table-heading" aria-hidden="true">
+            <span>名称</span>
+            <span>大小</span>
+            <span>修改时间</span>
+          </div>
+          <div
+            v-if="visibleRows.length"
+            class="archive-entry-list"
+            role="tree"
+            aria-multiselectable="true"
+          >
+            <div
+              v-for="row in visibleRows"
+              :key="row.path"
+              class="archive-entry-row"
+              :class="{
+                'is-selected': rowSelected(row.path),
+                'is-inherited': rowInherited(row.path),
+              }"
+              role="treeitem"
+              :aria-level="row.depth + 1"
+              :aria-expanded="row.isDir ? expanded.has(row.path) : undefined"
+              :aria-selected="rowSelected(row.path)"
+            >
+              <div
+                class="archive-entry-name"
+                :style="{ paddingLeft: `${12 + row.depth * 20}px` }"
+              >
+                <button
+                  v-if="row.isDir"
+                  type="button"
+                  class="archive-expand"
+                  :aria-label="
+                    expanded.has(row.path)
+                      ? `收起 ${row.name}`
+                      : `展开 ${row.name}`
+                  "
+                  @click="toggleExpanded(row.path)"
+                >
+                  <i class="material-icons" aria-hidden="true">{{
+                    expanded.has(row.path) ? "expand_more" : "chevron_right"
+                  }}</i>
+                </button>
+                <span v-else class="archive-expand-spacer"></span>
+                <label>
+                  <input
+                    type="checkbox"
+                    :checked="rowSelected(row.path)"
+                    :disabled="rowInherited(row.path)"
+                    :aria-label="`选择 ${row.path}`"
+                    @change="toggleSelected(row)"
+                  />
+                  <i class="material-icons" aria-hidden="true">{{
+                    row.isDir ? "folder" : "insert_drive_file"
+                  }}</i>
+                  <span :title="row.path">
+                    <strong>{{ row.name }}</strong>
+                    <small>{{ row.path }}</small>
+                  </span>
+                </label>
+              </div>
+              <span>{{ row.isDir ? "—" : formatBytes(row.size) }}</span>
+              <time
+                :datetime="
+                  row.modified
+                    ? new Date(row.modified).toISOString()
+                    : undefined
+                "
+              >
+                {{ row.modified ? formatModified(row.modified) : "—" }}
+              </time>
+            </div>
+          </div>
+          <div v-else class="archive-empty-filter">
+            <i class="material-icons" aria-hidden="true">search_off</i>
+            没有匹配“{{ filter }}”的条目
+          </div>
+          <button
+            v-if="visibleRows.length < filteredRows.length"
+            type="button"
+            class="archive-load-more"
+            @click="visibleLimit += 200"
+          >
+            再显示
+            {{ Math.min(200, filteredRows.length - visibleRows.length) }} 项
+          </button>
+        </section>
+
+        <section class="archive-extract-card" aria-labelledby="extract-title">
+          <div class="archive-section-title">
+            <span>02</span>
+            <div>
+              <h2 id="extract-title">确认解压</h2>
+              <p>
+                当前选择 {{ selectedStats.files }} 个文件，共
+                {{ formatBytes(selectedStats.bytes) }}。
+              </p>
+            </div>
+          </div>
+          <label class="archive-destination">
+            <span>目标目录</span>
+            <div>
+              <i class="material-icons" aria-hidden="true">drive_file_move</i>
+              <input
+                v-model.trim="destination"
+                type="text"
+                autocomplete="off"
+                placeholder="例如 /照片/已解压"
+              />
+            </div>
+            <small>目录必须已存在；同名文件会跳过并写入结果报告。</small>
+          </label>
+          <div class="archive-extract-footer">
+            <p>
+              <i class="material-icons" aria-hidden="true">info</i>
+              解压任务全局并发 1，可在任务中心取消或显式重试。
+            </p>
+            <button
+              type="button"
+              class="archive-primary"
+              :disabled="!canExtract"
+              @click="startExtraction"
+            >
+              <i class="material-icons" aria-hidden="true">unarchive</i>
+              {{ starting ? "正在提交…" : "解压所选项目" }}
+            </button>
+          </div>
+        </section>
+      </template>
+
+      <section v-if="currentTask" class="archive-task" aria-live="polite">
+        <div class="archive-task-icon" :class="`is-${currentTask.status}`">
+          <i class="material-icons" aria-hidden="true">{{ taskIcon }}</i>
+        </div>
+        <div>
+          <strong>{{ currentTask.title }}</strong>
+          <span>{{ taskStatusLabel }}</span>
+          <div v-if="currentTask.totalItems > 0" class="archive-progress">
+            <div :style="{ width: `${taskProgress}%` }"></div>
+          </div>
+          <small v-if="currentTask.totalItems > 0">
+            {{ currentTask.processedItems }} / {{ currentTask.totalItems }} 项
+            <template v-if="currentTask.totalBytes > 0">
+              · {{ formatBytes(currentTask.processedBytes) }} /
+              {{ formatBytes(currentTask.totalBytes) }}</template
+            >
+          </small>
+          <small v-else-if="taskActive">等待唯一解压工作槽</small>
+          <small v-if="currentTask.error" class="archive-task-error">{{
+            currentTask.error
+          }}</small>
+        </div>
+        <button
+          v-if="taskActive"
+          type="button"
+          :disabled="canceling"
+          @click="cancelExtraction"
+        >
+          {{ canceling ? "提交中…" : "取消解压" }}
+        </button>
+      </section>
+
+      <section
+        v-if="extractReport"
+        class="archive-result"
+        aria-labelledby="result-title"
+      >
+        <div class="archive-result-mark" aria-hidden="true">
+          <i class="material-icons">task_alt</i>
+        </div>
+        <div>
+          <small>EXTRACTION COMPLETE</small>
+          <h2 id="result-title">解压任务已完成</h2>
+          <p>
+            写入 {{ extractReport.extractedFiles }} 个文件、{{
+              extractReport.extractedDirs
+            }}
+            个目录， 共 {{ formatBytes(extractReport.extractedBytes) }}。
+          </p>
+          <p v-if="extractReport.skippedCount" class="archive-result-warning">
+            {{ extractReport.skippedCount }}
+            项因目标已存在而跳过，没有覆盖原文件。
+          </p>
+          <ul v-if="extractReport.skipped?.length">
+            <li v-for="entry in extractReport.skipped" :key="entry.path">
+              <span>{{ entry.path }}</span
+              ><small>{{ entry.reason }}</small>
+            </li>
+          </ul>
+        </div>
+        <router-link :to="destinationRoute">
+          打开目标目录
+          <i class="material-icons" aria-hidden="true">arrow_forward</i>
+        </router-link>
+      </section>
+    </main>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import HeaderBar from "@/components/header/HeaderBar.vue";
+import * as archiveApi from "@/api/archive";
+import * as taskApi from "@/api/tasks";
+import type { ArchiveExtractReport, ArchiveListing } from "@/api/archive";
+import type { TaskItem, TaskStatus } from "@/api/tasks";
+import { useAuthStore } from "@/stores/auth";
+import { useTasksStore } from "@/stores/tasks";
+import { useRecentStore } from "@/stores/recent";
+import {
+  buildArchiveTree,
+  flattenArchiveTree,
+  hasSelectedAncestor,
+  pathCoveredBySelection,
+  selectedArchiveStats,
+  type ArchiveTreeNode,
+  type ArchiveTreeRow,
+} from "@/utils/archiveTree";
+import { encodePath } from "@/utils/url";
+import { filesize } from "@/utils";
+import dayjs from "@/utils/date";
+
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
+const tasksStore = useTasksStore();
+const recentStore = useRecentStore();
+const $showError = inject<IToastError>("$showError")!;
+const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
+
+const archivePath = ref(archivePathFromRoute());
+const destination = ref(parentPath(archivePath.value));
+const listing = ref<ArchiveListing | null>(null);
+const loading = ref(false);
+const loadError = ref("");
+const filter = ref("");
+const expanded = ref<Set<string>>(new Set());
+const selected = ref<Set<string>>(new Set());
+const visibleLimit = ref(200);
+const starting = ref(false);
+const canceling = ref(false);
+const currentTask = ref<TaskItem | null>(null);
+const extractReport = ref<ArchiveExtractReport | null>(null);
+let pollTimer: number | undefined;
+let disposed = false;
+let routeLoadSequence = 0;
+let listingLoadSequence = 0;
+
+const archiveName = computed(() => archivePath.value.split("/").at(-1) || "");
+const tree = computed(() => buildArchiveTree(listing.value?.entries ?? []));
+const allExpanded = computed(() => {
+  const paths = new Set<string>();
+  collectDirectoryPaths(tree.value, paths);
+  return paths;
+});
+const flattenedRows = computed(() =>
+  flattenArchiveTree(
+    tree.value,
+    filter.value ? allExpanded.value : expanded.value
+  )
+);
+const filteredRows = computed(() => {
+  const query = filter.value.toLocaleLowerCase();
+  if (!query) return flattenedRows.value;
+  return flattenedRows.value.filter((row) =>
+    row.path.toLocaleLowerCase().includes(query)
+  );
+});
+const visibleRows = computed(() =>
+  filteredRows.value.slice(0, visibleLimit.value)
+);
+const selectedStats = computed(() =>
+  selectedArchiveStats(listing.value?.entries ?? [], selected.value)
+);
+const taskActive = computed(
+  () =>
+    currentTask.value?.status === "queued" ||
+    currentTask.value?.status === "running"
+);
+const canExtract = computed(
+  () =>
+    Boolean(authStore.user?.perm.create && authStore.user?.perm.download) &&
+    selectedStats.value.items > 0 &&
+    destination.value.startsWith("/") &&
+    !listing.value?.truncated &&
+    !starting.value &&
+    !taskActive.value
+);
+const taskProgress = computed(() => {
+  const task = currentTask.value;
+  if (!task || task.totalItems <= 0) return 0;
+  return Math.min(
+    100,
+    Math.round((task.processedItems / task.totalItems) * 100)
+  );
+});
+const taskStatusLabel = computed(() =>
+  currentTask.value ? taskStatus(currentTask.value.status) : ""
+);
+const taskIcon = computed(() => {
+  const icons: Record<TaskStatus, string> = {
+    queued: "hourglass_top",
+    running: "sync",
+    completed: "task_alt",
+    failed: "error_outline",
+    canceled: "cancel",
+    interrupted: "power_settings_new",
+  };
+  return currentTask.value ? icons[currentTask.value.status] : "pending";
+});
+const parentRoute = computed(() => filesRoute(parentPath(archivePath.value)));
+const destinationRoute = computed(() =>
+  filesRoute(extractReport.value?.destination || destination.value)
+);
+
+watch(filter, () => {
+  visibleLimit.value = 200;
+});
+
+watch(
+  () => [route.query.path, route.query.task],
+  () => {
+    void loadFromRoute();
+  }
+);
+
+async function loadListing(path = archivePath.value) {
+  if (!path) return;
+  const sequence = ++listingLoadSequence;
+  archivePath.value = path;
+  loading.value = true;
+  loadError.value = "";
+  try {
+    const next = await archiveApi.entries(path);
+    if (
+      disposed ||
+      sequence !== listingLoadSequence ||
+      archivePath.value !== path
+    )
+      return;
+    listing.value = next;
+    void recentStore.record(path).catch(() => {});
+    destination.value ||= parentPath(path);
+    selected.value = new Set();
+    expanded.value = new Set(treeRootDirectories(next.entries));
+    visibleLimit.value = 200;
+  } catch (error) {
+    if (disposed || sequence !== listingLoadSequence) return;
+    listing.value = null;
+    loadError.value = error instanceof Error ? error.message : String(error);
+  } finally {
+    if (!disposed && sequence === listingLoadSequence) loading.value = false;
+  }
+}
+
+async function loadFromRoute() {
+  const sequence = ++routeLoadSequence;
+  stopPolling();
+  loadError.value = "";
+  extractReport.value = null;
+  const routePath = archivePathFromRoute();
+  if (routePath) {
+    archivePath.value = routePath;
+    destination.value = parentPath(routePath);
+  }
+  const taskId = typeof route.query.task === "string" ? route.query.task : "";
+  try {
+    if (taskId) {
+      const task = await taskApi.get(taskId);
+      if (sequence !== routeLoadSequence || disposed) return;
+      if (task.type !== "archive.extract") {
+        loadError.value = "该任务不是压缩包解压任务。";
+        return;
+      }
+      currentTask.value = task;
+      tasksStore.record(task);
+      if (task.status === "completed") {
+        await loadExtractReport(task.id);
+      } else if (task.status === "queued" || task.status === "running") {
+        schedulePoll(0);
+      }
+    } else {
+      currentTask.value = null;
+    }
+    if (
+      archivePath.value &&
+      (!listing.value || listing.value.archivePath !== archivePath.value)
+    ) {
+      await loadListing(archivePath.value);
+    } else if (!archivePath.value && !taskId) {
+      loadError.value = "缺少要打开的压缩包路径。";
+    }
+  } catch (error) {
+    if (sequence !== routeLoadSequence || disposed) return;
+    loadError.value = error instanceof Error ? error.message : String(error);
+  }
+}
+
+async function startExtraction() {
+  if (!canExtract.value || !listing.value) return;
+  starting.value = true;
+  loadError.value = "";
+  extractReport.value = null;
+  try {
+    const task = await archiveApi.extract({
+      archivePath: listing.value.archivePath,
+      destination: destination.value,
+      selected: [...selected.value],
+    });
+    currentTask.value = task;
+    tasksStore.record(task);
+    await router.replace({
+      path: "/archive",
+      query: { path: listing.value.archivePath, task: task.id },
+    });
+    $showSuccess("解压任务已提交，可在任务中心取消");
+    schedulePoll(0);
+  } catch (error) {
+    $showError(
+      error instanceof Error ? error : new Error(String(error)),
+      false
+    );
+  } finally {
+    starting.value = false;
+  }
+}
+
+async function cancelExtraction() {
+  if (!currentTask.value || canceling.value) return;
+  canceling.value = true;
+  try {
+    currentTask.value = await tasksStore.cancel(currentTask.value.id);
+    stopPolling();
+    $showSuccess("取消请求已提交");
+  } catch (error) {
+    $showError(
+      error instanceof Error ? error : new Error(String(error)),
+      false
+    );
+  } finally {
+    canceling.value = false;
+  }
+}
+
+function schedulePoll(delay = 750) {
+  stopPolling();
+  if (disposed || !currentTask.value) return;
+  pollTimer = window.setTimeout(pollTask, delay);
+}
+
+function stopPolling() {
+  if (pollTimer !== undefined) window.clearTimeout(pollTimer);
+  pollTimer = undefined;
+}
+
+async function pollTask() {
+  const id = currentTask.value?.id;
+  if (!id || disposed) return;
+  try {
+    const task = await taskApi.get(id);
+    currentTask.value = task;
+    tasksStore.record(task);
+    if (task.status === "queued" || task.status === "running") {
+      schedulePoll();
+      return;
+    }
+    if (task.status === "completed") await loadExtractReport(task.id);
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : String(error);
+    schedulePoll(1500);
+  }
+}
+
+async function loadExtractReport(taskId: string) {
+  const report = await archiveApi.extractionResult(taskId);
+  if (disposed) return;
+  extractReport.value = report;
+  archivePath.value = report.archivePath;
+  destination.value = report.destination;
+  if (!listing.value || listing.value.archivePath !== report.archivePath) {
+    await loadListing(report.archivePath);
+    destination.value = report.destination;
+  }
+}
+
+function toggleExpanded(path: string) {
+  const next = new Set(expanded.value);
+  if (next.has(path)) next.delete(path);
+  else next.add(path);
+  expanded.value = next;
+}
+
+function toggleSelected(row: ArchiveTreeRow) {
+  if (rowInherited(row.path)) return;
+  const next = new Set(selected.value);
+  if (next.has(row.path)) {
+    next.delete(row.path);
+  } else {
+    if (next.size >= 500) {
+      $showError(
+        new Error("一次最多选择 500 个独立条目；可勾选上层目录合并范围。"),
+        false
+      );
+      return;
+    }
+    for (const saved of next) {
+      if (saved.startsWith(`${row.path}/`)) next.delete(saved);
+    }
+    next.add(row.path);
+  }
+  selected.value = next;
+}
+
+function toggleSelectAll() {
+  selected.value = selected.value.has(".") ? new Set() : new Set(["."]);
+}
+
+function rowSelected(path: string) {
+  return pathCoveredBySelection(selected.value, path);
+}
+
+function rowInherited(path: string) {
+  return hasSelectedAncestor(selected.value, path);
+}
+
+function taskStatus(status: TaskStatus) {
+  const labels: Record<TaskStatus, string> = {
+    queued: "排队中",
+    running: "正在解压",
+    completed: "已完成",
+    failed: "解压失败",
+    canceled: "已取消",
+    interrupted: "已中断",
+  };
+  return labels[status];
+}
+
+function archivePathFromRoute() {
+  return typeof route.query.path === "string" ? route.query.path : "";
+}
+
+function parentPath(value: string) {
+  const parts = value.split("/").filter(Boolean);
+  parts.pop();
+  return parts.length ? `/${parts.join("/")}` : "/";
+}
+
+function filesRoute(value: string) {
+  return value === "/" ? "/files/" : `/files${encodePath(value)}/`;
+}
+
+function treeRootDirectories(entries: ArchiveListing["entries"]) {
+  const roots = new Set<string>();
+  for (const entry of entries) {
+    const root = entry.path.split("/")[0];
+    if (entry.path.includes("/") || entry.isDir) roots.add(root);
+  }
+  return roots;
+}
+
+function collectDirectoryPaths(nodes: ArchiveTreeNode[], paths: Set<string>) {
+  for (const node of nodes) {
+    if (!node.isDir) continue;
+    paths.add(node.path);
+    collectDirectoryPaths(node.children, paths);
+  }
+}
+
+function formatBytes(value: number) {
+  return filesize(value || 0);
+}
+
+function formatModified(value: number) {
+  return dayjs(value).format("YYYY-MM-DD HH:mm");
+}
+
+onMounted(loadFromRoute);
+onBeforeUnmount(() => {
+  disposed = true;
+  stopPolling();
+});
+</script>
+
+<style scoped>
+.archive-page {
+  min-height: 100vh;
+  color: var(--textSecondary);
+  background: var(--background);
+}
+.archive-header-title,
+.archive-header-title > div {
+  display: flex;
+  min-width: 0;
+}
+.archive-header-title {
+  align-items: center;
+  gap: 10px;
+}
+.archive-header-title > div {
+  flex-direction: column;
+  gap: 1px;
+}
+.archive-header-title > .material-icons {
+  color: var(--icon-orange);
+  font-size: 25px;
+}
+.archive-header-title strong {
+  font-size: 15px;
+}
+.archive-header-title span {
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.archive-header-action {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border-radius: 8px;
+  color: var(--textSecondary);
+  font-size: 12px;
+  text-decoration: none;
+}
+.archive-header-action:hover,
+.archive-header-action:focus-visible {
+  outline: none;
+  background: var(--hover);
+}
+.archive-header-action:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+.archive-workspace {
+  box-sizing: border-box;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 18px 0 56px;
+}
+.archive-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 16px;
+  background: var(--surfacePrimary);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+.archive-hero-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 15px;
+  color: var(--icon-orange);
+  background: color-mix(in srgb, var(--icon-orange) 11%, transparent);
+}
+.archive-hero-mark .material-icons {
+  font-size: 30px;
+}
+.archive-eyebrow {
+  margin: 0 0 5px;
+  color: var(--icon-orange);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.archive-hero h1 {
+  margin: 0;
+  color: var(--textSecondary);
+  font-size: 20px;
+  line-height: 1.3;
+}
+.archive-hero p:last-child {
+  margin: 7px 0 0;
+  color: var(--textPrimary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.archive-safety-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #16845d;
+  background: color-mix(in srgb, #1ea672 11%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+}
+.archive-safety-badge .material-icons {
+  font-size: 16px;
+}
+.archive-state,
+.archive-warning,
+.archive-task,
+.archive-result {
+  margin-top: 14px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 13px;
+  background: var(--surfacePrimary);
+}
+.archive-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px;
+}
+.archive-state > .material-icons {
+  color: var(--blue);
+  font-size: 27px;
+}
+.archive-state strong,
+.archive-state p,
+.archive-state small {
+  display: block;
+  margin: 0;
+}
+.archive-state p {
+  margin-top: 3px;
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.archive-state small {
+  margin-top: 5px;
+  color: var(--textPrimary);
+  font-size: 10px;
+}
+.archive-state button {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 8px;
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
+  cursor: pointer;
+}
+.archive-state--error > .material-icons {
+  color: var(--red);
+}
+.archive-spin {
+  animation: archive-spin 1.4s linear infinite;
+}
+.archive-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+.archive-overview article {
+  display: grid;
+  gap: 4px;
+  padding: 15px 16px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 12px;
+  background: var(--surfacePrimary);
+}
+.archive-overview small,
+.archive-overview span {
+  color: var(--textPrimary);
+  font-size: 10px;
+}
+.archive-overview strong {
+  font-size: 21px;
+}
+.archive-overview article.is-warning strong {
+  color: var(--icon-orange);
+}
+.archive-warning {
+  display: flex;
+  gap: 11px;
+  padding: 13px 15px;
+  color: var(--icon-orange);
+}
+.archive-warning .material-icons {
+  font-size: 23px;
+}
+.archive-warning strong,
+.archive-warning p {
+  margin: 0;
+}
+.archive-warning p {
+  margin-top: 3px;
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.archive-blocked {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
+  background: var(--surfacePrimary);
+  font-size: 11px;
+}
+.archive-blocked summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.archive-blocked p {
+  color: var(--textPrimary);
+}
+.archive-blocked ul,
+.archive-result ul {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.archive-blocked li,
+.archive-result li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 5px;
+  border-top: 1px solid var(--borderPrimary);
+}
+.archive-blocked li small,
+.archive-result li small {
+  color: var(--textPrimary);
+}
+.archive-browser,
+.archive-extract-card {
+  margin-top: 14px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 14px;
+  background: var(--surfacePrimary);
+  overflow: hidden;
+}
+.archive-browser-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid var(--borderPrimary);
+}
+.archive-browser-toolbar > div:first-child,
+.archive-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.archive-browser-toolbar > div:first-child > span,
+.archive-section-title > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 9%, transparent);
+  font-size: 10px;
+  font-weight: 800;
+}
+.archive-browser h2,
+.archive-section-title h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.archive-browser p,
+.archive-section-title p {
+  margin: 3px 0 0;
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.archive-browser-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.archive-browser-actions label {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 8px;
+  background: var(--surfaceSecondary);
+}
+.archive-browser-actions label .material-icons {
+  color: var(--textPrimary);
+  font-size: 17px;
+}
+.archive-browser-actions input {
+  width: 170px;
+  border: 0;
+  outline: 0;
+  color: var(--textSecondary);
+  background: transparent;
+}
+.archive-browser-actions button,
+.archive-load-more {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 8px;
+  color: var(--blue);
+  background: var(--surfacePrimary);
+  cursor: pointer;
+}
+.archive-table-heading,
+.archive-entry-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 150px;
+  align-items: center;
+}
+.archive-table-heading {
+  min-height: 34px;
+  padding: 0 12px;
+  color: var(--textPrimary);
+  background: var(--surfaceSecondary);
+  font-size: 10px;
+  font-weight: 700;
+}
+.archive-table-heading span:not(:first-child) {
+  text-align: right;
+}
+.archive-entry-row {
+  min-height: 52px;
+  border-top: 1px solid var(--borderPrimary);
+  transition: background-color 120ms ease;
+}
+.archive-entry-row:hover {
+  background: var(--hover);
+}
+.archive-entry-row.is-selected {
+  background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
+}
+.archive-entry-row > span,
+.archive-entry-row > time {
+  padding-right: 12px;
+  color: var(--textPrimary);
+  font-size: 10px;
+  text-align: right;
+}
+.archive-entry-name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+.archive-expand,
+.archive-expand-spacer {
+  width: 28px;
+  flex-shrink: 0;
+}
+.archive-expand {
+  display: grid;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  color: var(--textPrimary);
+  background: transparent;
+  cursor: pointer;
+}
+.archive-expand:hover {
+  background: var(--hover);
+}
+.archive-expand .material-icons {
+  font-size: 19px;
+}
+.archive-entry-name > label {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+.archive-entry-name input {
+  width: 16px;
+  height: 16px;
+}
+.archive-entry-name label > .material-icons {
+  color: var(--textPrimary);
+  font-size: 20px;
+}
+.archive-entry-name label > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.archive-entry-name strong,
+.archive-entry-name small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.archive-entry-name strong {
+  font-size: 11px;
+}
+.archive-entry-name small {
+  color: var(--textPrimary);
+  font-size: 9px;
+}
+.archive-empty-filter {
+  display: flex;
+  min-height: 100px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.archive-load-more {
+  display: block;
+  margin: 12px auto;
+}
+.archive-extract-card {
+  padding: 17px;
+  overflow: visible;
+}
+.archive-destination {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+}
+.archive-destination > span {
+  font-size: 11px;
+  font-weight: 700;
+}
+.archive-destination > div {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 9px;
+  background: var(--surfaceSecondary);
+}
+.archive-destination .material-icons {
+  color: var(--textPrimary);
+  font-size: 19px;
+}
+.archive-destination input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  color: var(--textSecondary);
+  background: transparent;
+}
+.archive-destination small {
+  color: var(--textPrimary);
+  font-size: 10px;
+}
+.archive-extract-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 14px;
+}
+.archive-extract-footer p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.archive-extract-footer p .material-icons {
+  font-size: 16px;
+}
+.archive-primary {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  background: var(--blue);
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--blue) 24%, transparent);
+  cursor: pointer;
+  font-weight: 700;
+}
+.archive-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.archive-task {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 16px;
+}
+.archive-task-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 10%, transparent);
+}
+.archive-task-icon.is-running .material-icons {
+  animation: archive-spin 1.4s linear infinite;
+}
+.archive-task-icon.is-completed {
+  color: #16845d;
+  background: color-mix(in srgb, #1ea672 10%, transparent);
+}
+.archive-task-icon.is-failed,
+.archive-task-icon.is-canceled,
+.archive-task-icon.is-interrupted {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+.archive-task > div:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.archive-task strong {
+  font-size: 13px;
+}
+.archive-task span,
+.archive-task small {
+  color: var(--textPrimary);
+  font-size: 10px;
+}
+.archive-task-error {
+  color: var(--red) !important;
+}
+.archive-task > button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
+  cursor: pointer;
+}
+.archive-progress {
+  height: 5px;
+  margin: 5px 0 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surfaceSecondary);
+}
+.archive-progress > div {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+  transition: width 180ms ease;
+}
+.archive-result {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 17px;
+}
+.archive-result-mark {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 12px;
+  color: #16845d;
+  background: color-mix(in srgb, #1ea672 10%, transparent);
+}
+.archive-result > div:nth-child(2) > small {
+  color: #16845d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.archive-result h2 {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+.archive-result p {
+  margin: 5px 0 0;
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.archive-result-warning {
+  color: var(--icon-orange) !important;
+}
+.archive-result > a {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 8%, var(--surfacePrimary));
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.archive-result > a .material-icons {
+  font-size: 17px;
+}
+@keyframes archive-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 760px) {
+  .archive-workspace {
+    width: min(100% - 20px, 1120px);
+    padding-top: 12px;
+  }
+  .archive-hero {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 16px;
+  }
+  .archive-safety-badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .archive-overview {
+    grid-template-columns: 1fr;
+  }
+  .archive-browser-toolbar,
+  .archive-extract-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .archive-browser-actions {
+    width: 100%;
+  }
+  .archive-browser-actions label {
+    flex: 1;
+  }
+  .archive-browser-actions input {
+    width: 100%;
+  }
+  .archive-table-heading,
+  .archive-entry-row {
+    grid-template-columns: minmax(0, 1fr) 80px;
+  }
+  .archive-table-heading span:last-child,
+  .archive-entry-row > time {
+    display: none;
+  }
+  .archive-primary {
+    width: 100%;
+  }
+  .archive-result {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .archive-result > a {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+@media (max-width: 520px) {
+  .archive-header-action {
+    width: 42px;
+    justify-content: center;
+    padding: 0;
+    font-size: 0;
+  }
+  .archive-header-action:first-child {
+    display: none;
+  }
+  .archive-hero-mark {
+    width: 48px;
+    height: 48px;
+  }
+  .archive-hero h1 {
+    font-size: 16px;
+  }
+  .archive-browser-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .archive-browser-toolbar {
+    padding: 13px;
+  }
+  .archive-entry-row > span {
+    display: none;
+  }
+  .archive-table-heading,
+  .archive-entry-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .archive-table-heading span:not(:first-child) {
+    display: none;
+  }
+  .archive-entry-name {
+    padding-right: 8px;
+  }
+  .archive-task {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .archive-task > button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .archive-spin,
+  .archive-task-icon.is-running .material-icons {
+    animation: none;
+  }
+  .archive-entry-row,
+  .archive-progress > div {
+    transition: none;
+  }
+}
+</style>

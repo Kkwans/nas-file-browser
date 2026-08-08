@@ -10,6 +10,7 @@ import * as trash from "./trash";
 import * as tasks from "./tasks";
 import * as history from "./history";
 import * as analysis from "./analysis";
+import * as archive from "./archive";
 
 export {
   files,
@@ -24,4 +25,5 @@ export {
   tasks,
   history,
   analysis,
+  archive,
 };

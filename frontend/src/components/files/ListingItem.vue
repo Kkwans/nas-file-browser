@@ -285,6 +285,7 @@ import {
   shouldRenderListingTagSlot,
 } from "@/utils/layoutContract";
 import { getFileTypeLabel, normalizeFileKey } from "@/utils/fileListing";
+import { resourceOpenRoute } from "@/utils/archivePath";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
@@ -684,7 +685,7 @@ const click = (
 };
 
 const open = () => {
-  router.push({ path: props.url });
+  router.push(resourceOpenRoute(props));
 };
 
 const getExtension = (fileName: string): string => {

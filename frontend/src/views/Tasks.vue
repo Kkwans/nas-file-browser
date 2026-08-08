@@ -185,6 +185,16 @@
               <i class="material-icons" aria-hidden="true">fact_check</i>
               查看结果
             </router-link>
+            <router-link
+              v-if="
+                task.status === 'completed' && task.type === 'archive.extract'
+              "
+              class="primary"
+              :to="{ path: '/archive', query: { task: task.id } }"
+            >
+              <i class="material-icons" aria-hidden="true">folder_zip</i>
+              查看结果
+            </router-link>
             <span
               v-if="
                 !canCancel(task.status) &&
@@ -192,6 +202,9 @@
                 !(
                   task.status === 'completed' &&
                   task.type === 'analysis.duplicates'
+                ) &&
+                !(
+                  task.status === 'completed' && task.type === 'archive.extract'
                 )
               "
               class="task-finished"

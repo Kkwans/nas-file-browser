@@ -112,6 +112,7 @@ import { useRecentStore } from "@/stores/recent";
 import dayjs from "@/utils/date";
 import { getFileIcon } from "@/utils/fileIcons";
 import { encodePath } from "@/utils/url";
+import { resourceOpenRoute } from "@/utils/archivePath";
 
 const recentStore = useRecentStore();
 const $showError = inject<IToastError>("$showError")!;
@@ -126,7 +127,11 @@ async function load() {
 
 function entryRoute(entry: RecentEntry) {
   const suffix = entry.isDir && entry.path !== "/" ? "/" : "";
-  return `/files${encodePath(entry.path)}${suffix}`;
+  return resourceOpenRoute({
+    isDir: entry.isDir,
+    path: entry.path,
+    url: `/files${encodePath(entry.path)}${suffix}`,
+  });
 }
 
 onMounted(load);

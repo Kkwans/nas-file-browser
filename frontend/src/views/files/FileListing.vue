@@ -846,6 +846,7 @@ import {
   normalizeSearchBase,
 } from "@/utils/searchPath";
 import { isExternalFileDrag } from "@/utils/fileDrag";
+import { resourceOpenRoute } from "@/utils/archivePath";
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -1205,7 +1206,7 @@ const keyEvent = (event: KeyboardEvent) => {
     if (fileStore.selectedCount === 1) {
       const item = fileStore.selectedItems[0];
       if (item) {
-        router.push({ path: item.url });
+        router.push(resourceOpenRoute(item));
       }
     }
     return;

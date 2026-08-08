@@ -85,7 +85,7 @@
             v-for="result in results"
             :key="result.path"
             :is="result.error ? 'div' : RouterLink"
-            :to="result.error ? undefined : result.url"
+            :to="result.error ? undefined : resultRoute(result)"
             class="result-explorer-item"
             :class="{ 'is-error': result.error }"
             @contextmenu.prevent.stop="
@@ -170,6 +170,7 @@ import dayjs from "@/utils/date";
 import { getFileIcon } from "@/utils/fileIcons";
 import { getResultParentPath } from "@/utils/tagResults";
 import { useAuthStore } from "@/stores/auth";
+import { resourceOpenRoute } from "@/utils/archivePath";
 
 export type ExplorerResult = {
   path: string;
@@ -224,6 +225,14 @@ const emit = defineEmits<{
 }>();
 
 const authStore = useAuthStore();
+
+function resultRoute(result: ExplorerResult) {
+  return resourceOpenRoute({
+    isDir: result.dir,
+    path: result.path,
+    url: result.url,
+  });
+}
 
 const contextMenuVisible = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });

@@ -194,6 +194,7 @@ import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { getFileTypeLabel, normalizeFileKey } from "@/utils/fileListing";
+import { resourceOpenRoute } from "@/utils/archivePath";
 import {
   getMobileTouchAction,
   shouldOpenDetailedRow,
@@ -285,7 +286,7 @@ const open = (event?: MouseEvent) => {
     (event?.target as HTMLElement | null)?.closest(".details-actions-cell")
   );
   if (!shouldOpenDetailedRow(isActionControl)) return;
-  router.push({ path: props.url });
+  router.push(resourceOpenRoute(props));
 };
 const toggleTagPicker = () => {
   showTagPicker.value = !showTagPicker.value;
@@ -327,7 +328,7 @@ const itemClick = (event: Event | KeyboardEvent) => {
       fileStore.multiple
     )
   ) {
-    router.push({ path: props.url });
+    router.push(resourceOpenRoute(props));
     return;
   }
   if (fileStore.selected.includes(itemKey.value)) {

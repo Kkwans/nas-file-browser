@@ -4,7 +4,8 @@ export type TaskType =
   | "trash.clear"
   | "analysis.duplicates"
   | "analysis.storage"
-  | "archive.extract";
+  | "archive.extract"
+  | "media.hls";
 export type TaskStatus =
   | "queued"
   | "running"

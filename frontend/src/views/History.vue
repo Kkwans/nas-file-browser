@@ -139,6 +139,7 @@ const actions: Record<string, { label: string; icon: string }> = {
   "analysis.duplicates": { label: "查找重复文件", icon: "content_copy" },
   "analysis.storage": { label: "分析存储空间", icon: "donut_large" },
   "archive.extract": { label: "解压归档", icon: "folder_zip" },
+  "media.hls": { label: "准备兼容播放", icon: "movie_filter" },
   "task.cancel": { label: "取消任务", icon: "stop_circle" },
   "task.retry": { label: "重试任务", icon: "replay" },
   "file.mkdir": { label: "新建文件夹", icon: "create_new_folder" },

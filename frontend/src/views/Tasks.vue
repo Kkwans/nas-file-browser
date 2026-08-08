@@ -88,7 +88,7 @@
         <h2>
           {{ tasksStore.items.length ? "此筛选下没有任务" : "还没有后台任务" }}
         </h2>
-        <p>回收站清空、分析和其他长操作会出现在这里。</p>
+        <p>回收站清空、分析、兼容播放和其他长操作会出现在这里。</p>
       </section>
 
       <section v-else class="activity-list" aria-label="任务列表">

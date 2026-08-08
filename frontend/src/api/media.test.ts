@@ -9,9 +9,12 @@ vi.mock("./utils", () => mocks);
 
 import {
   clearPlayback,
+  cancelHLSPlayback,
+  getHLSPlayback,
   getMediaInformation,
   getPlayback,
   savePlayback,
+  startHLSPlayback,
 } from "./media";
 
 describe("媒体 API", () => {
@@ -46,5 +49,30 @@ describe("媒体 API", () => {
       "/api/media/playback?path=%2Fvideo.mp4",
       { method: "DELETE" }
     );
+  });
+
+  it("只有显式调用才创建、轮询或取消兼容播放任务", async () => {
+    mocks.fetchURL.mockImplementation(async () =>
+      Promise.resolve(
+        new Response(JSON.stringify({ id: "cache-id", state: "queued" }))
+      )
+    );
+    await startHLSPlayback("/电影/示例.mkv");
+    await getHLSPlayback("cache-id");
+    await cancelHLSPlayback("cache-id");
+
+    expect(mocks.fetchURL.mock.calls[0]).toEqual([
+      "/api/media/hls",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "/电影/示例.mkv" }),
+      },
+    ]);
+    expect(mocks.fetchJSON).toHaveBeenCalledWith("/api/media/hls/cache-id");
+    expect(mocks.fetchURL.mock.calls[1]).toEqual([
+      "/api/media/hls/cache-id/cancel",
+      { method: "POST" },
+    ]);
   });
 });

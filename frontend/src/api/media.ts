@@ -32,6 +32,28 @@ export interface MediaInformation {
   technicalError?: string;
 }
 
+export type HLSPlaybackState =
+  | "queued"
+  | "preparing"
+  | "streamable"
+  | "completed"
+  | "failed"
+  | "canceled";
+
+export interface HLSPlaybackStatus {
+  id: string;
+  taskId?: string;
+  path: string;
+  identity: string;
+  profile: string;
+  state: HLSPlaybackState;
+  error?: string;
+  updatedAt: number;
+  lastAccessAt?: number;
+  sizeBytes?: number;
+  playlistUrl?: string;
+}
+
 export function getPlayback(path: string): Promise<PlaybackPosition> {
   return fetchJSON<PlaybackPosition>(
     `/api/media/playback?path=${encodeURIComponent(path)}`
@@ -63,4 +85,31 @@ export function getMediaInformation(
   const query = new URLSearchParams({ path });
   if (includeLocation) query.set("includeLocation", "true");
   return fetchJSON<MediaInformation>(`/api/media/info?${query.toString()}`);
+}
+
+export async function startHLSPlayback(
+  path: string
+): Promise<HLSPlaybackStatus> {
+  const response = await fetchURL("/api/media/hls", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path }),
+  });
+  return response.json() as Promise<HLSPlaybackStatus>;
+}
+
+export function getHLSPlayback(id: string): Promise<HLSPlaybackStatus> {
+  return fetchJSON<HLSPlaybackStatus>(
+    `/api/media/hls/${encodeURIComponent(id)}`
+  );
+}
+
+export async function cancelHLSPlayback(
+  id: string
+): Promise<HLSPlaybackStatus> {
+  const response = await fetchURL(
+    `/api/media/hls/${encodeURIComponent(id)}/cancel`,
+    { method: "POST" }
+  );
+  return response.json() as Promise<HLSPlaybackStatus>;
 }

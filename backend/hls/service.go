@@ -24,6 +24,7 @@ const (
 	DefaultMaxBytes = int64(10 << 30)
 	DefaultProfile  = "h264-main-720p-aac-hls4-v1"
 	playingLease    = 2 * time.Minute
+	maxFFmpegError  = 8 * 1024
 )
 
 var (
@@ -100,6 +101,23 @@ type Service struct {
 
 	mu      sync.Mutex
 	entries map[string]*entry
+}
+
+type cappedBuffer struct {
+	bytes.Buffer
+	limit int
+}
+
+func (buffer *cappedBuffer) Write(payload []byte) (int, error) {
+	written := len(payload)
+	remaining := buffer.limit - buffer.Len()
+	if remaining > 0 {
+		if remaining > len(payload) {
+			remaining = len(payload)
+		}
+		_, _ = buffer.Buffer.Write(payload[:remaining])
+	}
+	return written, nil
 }
 
 func New(config Config) (*Service, error) {
@@ -220,7 +238,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	segmentPattern := filepath.Join(directory, "segment-%06d.ts")
 	args := ffmpegArgs(job.SourcePath, segmentPattern, playlist)
 	command := exec.CommandContext(ctx, service.ffmpegPath, args...)
-	var stderr bytes.Buffer
+	stderr := cappedBuffer{limit: maxFFmpegError}
 	command.Stderr = &stderr
 	if err := command.Start(); err != nil {
 		message := fmt.Sprintf("FFmpeg HLS 转码启动失败: %v", err)
@@ -255,9 +273,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	}
 	if errors.Is(ctx.Err(), context.Canceled) {
 		service.finish(job.ID, StateCanceled, "任务已取消", 0)
-		if !streamable {
-			_ = os.RemoveAll(directory)
-		}
+		_ = os.RemoveAll(directory)
 		return ctx.Err()
 	}
 	if runErr != nil {
@@ -267,9 +283,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 		}
 		message = "FFmpeg HLS 转码失败: " + message
 		service.finish(job.ID, StateFailed, message, 0)
-		if !streamable {
-			_ = os.RemoveAll(directory)
-		}
+		_ = os.RemoveAll(directory)
 		return errors.New(message)
 	}
 	if !readyToStream(directory) {
@@ -463,7 +477,7 @@ func ffmpegArgs(source, segmentPattern, playlist string) []string {
 	return []string{
 		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
 		"-map", "0:v:0", "-map", "0:a:0?",
-		"-vf", "scale=w='min(1280,iw)':h=-2:force_original_aspect_ratio=decrease",
+		"-vf", "scale=w='trunc(min(1280,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease",
 		"-c:v", "libx264", "-preset", "veryfast", "-profile:v", "main", "-pix_fmt", "yuv420p",
 		"-threads", "1", "-filter_threads", "1",
 		"-c:a", "aac", "-b:a", "128k", "-ac", "2",

@@ -109,6 +109,14 @@ func TestLRUEvictionProtectsRecentlyPlayedEntry(t *testing.T) {
 	}
 }
 
+func TestCappedBufferAcceptsAllInputAndRetainsOnlyLimit(t *testing.T) {
+	buffer := cappedBuffer{limit: 4}
+	written, err := buffer.Write([]byte("123456789"))
+	if err != nil || written != 9 || buffer.String() != "1234" {
+		t.Fatalf("buffer = %q written=%d err=%v", buffer.String(), written, err)
+	}
+}
+
 func newFakeService(t *testing.T, workers int, maxBytes int64, delay time.Duration) *Service {
 	t.Helper()
 	directory := t.TempDir()

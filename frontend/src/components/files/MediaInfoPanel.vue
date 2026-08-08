@@ -6,7 +6,7 @@
         <strong>{{ resource.name }}</strong>
       </div>
       <button type="button" aria-label="关闭媒体信息" @click="$emit('close')">
-        <i class="material-icons">close</i>
+        <i class="material-icons" aria-hidden="true">close</i>
       </button>
     </header>
 
@@ -88,9 +88,10 @@
           v-if="!locationRequested"
           type="button"
           class="media-location-button"
+          aria-label="显示位置信息"
           @click="requestLocation"
         >
-          <i class="material-icons">my_location</i>
+          <i class="material-icons" aria-hidden="true">my_location</i>
           显示位置信息
         </button>
       </section>
@@ -219,12 +220,19 @@ function requestLocation() {
 }
 
 .media-info-panel > header {
+  position: static;
+  inset: auto;
   display: flex;
+  width: auto;
   min-height: 66px;
+  height: auto;
   align-items: center;
   justify-content: space-between;
   padding: 12px 12px 12px 18px;
+  background: transparent;
   border-bottom: 1px solid rgb(255 255 255 / 8%);
+  box-shadow: none;
+  transition: none;
 }
 
 .media-info-panel header div {

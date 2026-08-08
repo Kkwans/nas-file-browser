@@ -510,7 +510,7 @@ const languageImports: LanguageImports = {
 
 @media (max-width: 736px) {
   .media-resume-chip {
-    top: 12px;
+    top: calc(3rem + 12px);
     max-width: calc(100% - 24px);
     font-size: 12px;
   }

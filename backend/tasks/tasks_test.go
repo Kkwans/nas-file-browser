@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -89,6 +90,7 @@ func TestTaskCloneKeepsReplayArgsPrivateAndIndependent(t *testing.T) {
 }
 
 type memoryBackend struct {
+	mu    sync.RWMutex
 	items map[string]*Task
 }
 
@@ -97,6 +99,8 @@ func newMemoryBackend() *memoryBackend {
 }
 
 func (backend *memoryBackend) GetAll() ([]*Task, error) {
+	backend.mu.RLock()
+	defer backend.mu.RUnlock()
 	items := make([]*Task, 0, len(backend.items))
 	for _, item := range backend.items {
 		items = append(items, item.Clone())
@@ -105,6 +109,8 @@ func (backend *memoryBackend) GetAll() ([]*Task, error) {
 }
 
 func (backend *memoryBackend) GetByID(id string) (*Task, error) {
+	backend.mu.RLock()
+	defer backend.mu.RUnlock()
 	item, ok := backend.items[id]
 	if !ok {
 		return nil, ErrNotExist
@@ -113,11 +119,15 @@ func (backend *memoryBackend) GetByID(id string) (*Task, error) {
 }
 
 func (backend *memoryBackend) Save(task *Task) error {
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
 	backend.items[task.ID] = task.Clone()
 	return nil
 }
 
 func (backend *memoryBackend) Update(task *Task) error {
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
 	if _, ok := backend.items[task.ID]; !ok {
 		return ErrNotExist
 	}

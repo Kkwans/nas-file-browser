@@ -1,0 +1,122 @@
+package tasks
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"sync"
+	"time"
+)
+
+type Progress struct {
+	TotalItems     int
+	ProcessedItems int
+	TotalBytes     int64
+	ProcessedBytes int64
+}
+
+type Reporter func(progress Progress) error
+type Runner func(ctx context.Context, report Reporter) error
+
+// Runtime coordinates only active in-process workers. Durable task state and
+// restart semantics remain in Storage so task history survives process exits.
+type Runtime struct {
+	storage *Storage
+	mu      sync.Mutex
+	cancels map[string]context.CancelFunc
+}
+
+func NewRuntime(storage *Storage) (*Runtime, error) {
+	if storage == nil {
+		return nil, fmt.Errorf("task storage is not configured")
+	}
+	if err := storage.InterruptActive(); err != nil {
+		return nil, fmt.Errorf("mark active tasks interrupted: %w", err)
+	}
+	return &Runtime{storage: storage, cancels: make(map[string]context.CancelFunc)}, nil
+}
+
+func (runtime *Runtime) Start(task *Task, runner Runner) error {
+	if task == nil || task.Status != StatusQueued || runner == nil {
+		return ErrState
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	runtime.mu.Lock()
+	if _, exists := runtime.cancels[task.ID]; exists {
+		runtime.mu.Unlock()
+		cancel()
+		return ErrState
+	}
+	runtime.cancels[task.ID] = cancel
+	runtime.mu.Unlock()
+
+	go runtime.run(ctx, task.Clone(), runner)
+	return nil
+}
+
+func (runtime *Runtime) Cancel(userID uint, id string, admin bool) (*Task, error) {
+	task, err := runtime.storage.Get(userID, id, admin)
+	if err != nil {
+		return nil, err
+	}
+	if !task.CanCancel() {
+		return nil, ErrState
+	}
+
+	runtime.mu.Lock()
+	cancel := runtime.cancels[id]
+	runtime.mu.Unlock()
+	if cancel != nil {
+		cancel()
+		return task, nil
+	}
+
+	// A queued task can be visible before its worker is attached. If no worker
+	// exists, cancellation is persisted synchronously.
+	task.Status = StatusCanceled
+	task.FinishedAt = time.Now().UnixMilli()
+	task.Error = "任务已取消"
+	if err := runtime.storage.Update(task); err != nil {
+		return nil, err
+	}
+	return task, nil
+}
+
+func (runtime *Runtime) run(ctx context.Context, task *Task, runner Runner) {
+	defer func() {
+		runtime.mu.Lock()
+		delete(runtime.cancels, task.ID)
+		runtime.mu.Unlock()
+	}()
+
+	task.Status = StatusRunning
+	task.StartedAt = time.Now().UnixMilli()
+	task.FinishedAt = 0
+	task.Error = ""
+	if err := runtime.storage.Update(task); err != nil {
+		return
+	}
+
+	report := func(progress Progress) error {
+		task.TotalItems = progress.TotalItems
+		task.ProcessedItems = progress.ProcessedItems
+		task.TotalBytes = progress.TotalBytes
+		task.ProcessedBytes = progress.ProcessedBytes
+		return runtime.storage.Update(task)
+	}
+
+	err := runner(ctx, report)
+	task.FinishedAt = time.Now().UnixMilli()
+	switch {
+	case errors.Is(ctx.Err(), context.Canceled), errors.Is(err, context.Canceled):
+		task.Status = StatusCanceled
+		task.Error = "任务已取消"
+	case err != nil:
+		task.Status = StatusFailed
+		task.Error = err.Error()
+	default:
+		task.Status = StatusCompleted
+		task.Error = ""
+	}
+	_ = runtime.storage.Update(task)
+}

@@ -19,6 +19,8 @@ type modifyRequest struct {
 	CurrentPassword string   `json:"current_password"` // Answer to: user logged password
 }
 
+const appContentSecurityPolicy = `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; connect-src 'self';`
+
 func NewHandler(
 	imgSvc ImgService,
 	fileCache FileCache,
@@ -41,7 +43,7 @@ func NewHandler(
 	r := mux.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Security-Policy", `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self';`)
+			w.Header().Set("Content-Security-Policy", appContentSecurityPolicy)
 			next.ServeHTTP(w, r)
 		})
 	})

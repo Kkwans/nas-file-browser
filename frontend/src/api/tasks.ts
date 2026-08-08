@@ -3,6 +3,7 @@ import { fetchJSON, fetchURL } from "./utils";
 export type TaskType =
   | "trash.clear"
   | "analysis.duplicates"
+  | "analysis.storage"
   | "archive.extract";
 export type TaskStatus =
   | "queued"

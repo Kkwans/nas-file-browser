@@ -36,6 +36,40 @@ export interface DuplicateReport {
   resultFileLimit: number;
 }
 
+export interface StorageScope {
+  path: string;
+  isDir: boolean;
+  files: number;
+  directories: number;
+  bytes: number;
+}
+
+export interface StorageFile {
+  path: string;
+  size: number;
+  modified: number;
+}
+
+export interface StorageDirectory {
+  path: string;
+  files: number;
+  bytes: number;
+}
+
+export interface StorageReport {
+  scopes: StorageScope[];
+  scannedFiles: number;
+  scannedDirectories: number;
+  scannedBytes: number;
+  largestFiles: StorageFile[];
+  largestDirectories: StorageDirectory[];
+  skippedCount: number;
+  skipped?: SkippedFile[];
+  truncated: boolean;
+  completedAt: number;
+  resultLimit: number;
+}
+
 export async function startDuplicateScan(paths: string[]) {
   const response = await fetchURL("/api/analysis/duplicates", {
     method: "POST",
@@ -48,5 +82,20 @@ export async function startDuplicateScan(paths: string[]) {
 export function getDuplicateReport(taskId: string) {
   return fetchJSON<DuplicateReport>(
     `/api/analysis/${encodeURIComponent(taskId)}`
+  );
+}
+
+export async function startStorageScan(paths: string[]) {
+  const response = await fetchURL("/api/analysis/storage", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paths }),
+  });
+  return (await response.json()) as TaskItem;
+}
+
+export function getStorageReport(taskId: string) {
+  return fetchJSON<StorageReport>(
+    `/api/analysis/storage/${encodeURIComponent(taskId)}`
   );
 }

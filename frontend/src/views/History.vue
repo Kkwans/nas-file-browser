@@ -137,6 +137,7 @@ const actions: Record<string, { label: string; icon: string }> = {
   "trash.delete": { label: "永久删除", icon: "delete_forever" },
   "trash.clear": { label: "清空回收站", icon: "delete_sweep" },
   "analysis.duplicates": { label: "查找重复文件", icon: "content_copy" },
+  "analysis.storage": { label: "分析存储空间", icon: "donut_large" },
   "archive.extract": { label: "解压归档", icon: "folder_zip" },
   "task.cancel": { label: "取消任务", icon: "stop_circle" },
   "task.retry": { label: "重试任务", icon: "replay" },

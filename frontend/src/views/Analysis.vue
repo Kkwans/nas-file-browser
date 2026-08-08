@@ -5,7 +5,7 @@
         <i class="material-icons" aria-hidden="true">data_usage</i>
         <div>
           <strong>存储工具</strong>
-          <span>重复文件 · 主动扫描</span>
+          <span>{{ toolSubtitle }}</span>
         </div>
       </div>
       <template #actions>
@@ -17,16 +17,46 @@
     </header-bar>
 
     <main class="analysis-workspace">
+      <nav class="analysis-tool-tabs" aria-label="选择存储工具">
+        <button
+          type="button"
+          :class="{ 'is-active': activeTool === 'duplicates' }"
+          :aria-current="activeTool === 'duplicates' ? 'page' : undefined"
+          @click="selectTool('duplicates')"
+        >
+          <i class="material-icons" aria-hidden="true">content_copy</i>
+          <span>
+            <strong>重复文件</strong>
+            <small>分级哈希确认相同内容</small>
+          </span>
+        </button>
+        <button
+          type="button"
+          :class="{ 'is-active': activeTool === 'storage' }"
+          :aria-current="activeTool === 'storage' ? 'page' : undefined"
+          @click="selectTool('storage')"
+        >
+          <i class="material-icons" aria-hidden="true">donut_large</i>
+          <span>
+            <strong>空间分布</strong>
+            <small>目录大小与大文件排行</small>
+          </span>
+        </button>
+      </nav>
+
       <section class="analysis-hero" aria-labelledby="analysis-title">
         <div class="analysis-hero-icon" aria-hidden="true">
-          <i class="material-icons">content_copy</i>
+          <i class="material-icons">{{ toolIcon }}</i>
         </div>
         <div>
-          <p class="analysis-eyebrow">DUPLICATE FINDER</p>
-          <h1 id="analysis-title">确认内容相同，而不只是名称相似</h1>
-          <p>
+          <p class="analysis-eyebrow">{{ toolEyebrow }}</p>
+          <h1 id="analysis-title">{{ toolTitle }}</h1>
+          <p v-if="activeTool === 'duplicates'">
             先按大小缩小范围，再比较文件首尾样本，最后使用完整 SHA-256
             确认。扫描只读，不会自动删除或修改任何文件。
+          </p>
+          <p v-else>
+            只读取目录与文件元数据，汇总所选范围的实际占用，并列出最大的目录和文件。每次都由你主动开始，不保留可能过期的统计缓存。
           </p>
         </div>
         <span class="analysis-safety-badge">
@@ -102,8 +132,10 @@
             :disabled="!canStart"
             @click="startScan"
           >
-            <i class="material-icons" aria-hidden="true">manage_search</i>
-            {{ starting ? "正在提交…" : "开始查找重复文件" }}
+            <i class="material-icons" aria-hidden="true">{{
+              toolActionIcon
+            }}</i>
+            {{ starting ? "正在提交…" : toolActionLabel }}
           </button>
         </div>
       </section>
@@ -122,11 +154,16 @@
           </div>
           <small v-if="currentTask.totalItems > 0">
             已处理 {{ currentTask.processedItems }} /
-            {{ currentTask.totalItems }} 个校验阶段
+            {{ currentTask.totalItems }}
+            {{ activeTool === "duplicates" ? "个校验阶段" : "个文件或目录" }}
           </small>
-          <small v-else-if="isTaskActive"
-            >正在枚举范围或等待唯一分析工作槽</small
-          >
+          <small v-else-if="isTaskActive">
+            <template v-if="currentTask.processedItems > 0">
+              已枚举 {{ currentTask.processedItems.toLocaleString() }} 项 ·
+              {{ formatBytes(currentTask.processedBytes) }}
+            </template>
+            <template v-else>正在枚举范围或等待唯一分析工作槽</template>
+          </small>
           <small v-if="currentTask.error" class="analysis-task-error">{{
             currentTask.error
           }}</small>
@@ -153,7 +190,7 @@
         </div>
       </section>
 
-      <template v-if="report">
+      <template v-if="report && activeTool === 'duplicates'">
         <section class="analysis-results-heading">
           <div>
             <span>02</span>
@@ -255,6 +292,161 @@
         </details>
       </template>
 
+      <template v-if="storageReport && activeTool === 'storage'">
+        <section class="analysis-results-heading">
+          <div>
+            <span>02</span>
+            <div>
+              <h2>空间分布</h2>
+              <p>
+                {{ completedTime }} ·
+                {{ storageReport.scopes.map((scope) => scope.path).join("、") }}
+              </p>
+            </div>
+          </div>
+          <span class="analysis-readonly-chip">实时只读报告</span>
+        </section>
+
+        <section class="analysis-summary-grid" aria-label="存储空间分析摘要">
+          <article>
+            <small>已扫描文件</small>
+            <strong>{{ storageReport.scannedFiles.toLocaleString() }}</strong>
+            <span
+              >{{
+                storageReport.scannedDirectories.toLocaleString()
+              }}
+              个目录</span
+            >
+          </article>
+          <article class="analysis-summary-highlight">
+            <small>所选范围占用</small>
+            <strong>{{ formatBytes(storageReport.scannedBytes) }}</strong>
+            <span>基于本次元数据扫描</span>
+          </article>
+          <article>
+            <small>统计时间</small>
+            <strong class="analysis-summary-time">{{ completedTime }}</strong>
+            <span>未使用旧缓存</span>
+          </article>
+        </section>
+
+        <section
+          v-if="storageReport.scopes.length > 1"
+          class="storage-scope-grid"
+          aria-label="各扫描范围占用"
+        >
+          <article v-for="scope in storageReport.scopes" :key="scope.path">
+            <i class="material-icons" aria-hidden="true">{{
+              scope.isDir ? "folder" : "insert_drive_file"
+            }}</i>
+            <span>
+              <strong :title="scope.path">{{ scope.path }}</strong>
+              <small>
+                {{ scope.files.toLocaleString() }} 个文件 ·
+                {{ formatBytes(scope.bytes) }}
+              </small>
+            </span>
+          </article>
+        </section>
+
+        <section
+          v-if="storageReport.truncated"
+          class="analysis-warning"
+          role="status"
+        >
+          <i class="material-icons" aria-hidden="true">warning_amber</i>
+          排行榜各最多展示
+          {{ storageReport.resultLimit.toLocaleString() }}
+          项；顶部总量仍为完整扫描结果。
+        </section>
+
+        <section class="storage-rankings" aria-label="存储占用排行">
+          <article>
+            <header>
+              <span>目录大小</span>
+              <small>包含全部后代文件</small>
+            </header>
+            <div v-if="storageReport.largestDirectories.length">
+              <router-link
+                v-for="(directory, index) in storageReport.largestDirectories"
+                :key="directory.path"
+                :to="fileRoute(directory.path, true)"
+              >
+                <b>{{ String(index + 1).padStart(2, "0") }}</b>
+                <i class="material-icons" aria-hidden="true">folder</i>
+                <span>
+                  <strong>{{ fileName(directory.path) }}</strong>
+                  <small :title="directory.path">{{ directory.path }}</small>
+                  <em>
+                    <i
+                      :style="{
+                        width: storageBarWidth(
+                          directory.bytes,
+                          maxDirectoryBytes
+                        ),
+                      }"
+                    ></i>
+                  </em>
+                </span>
+                <span class="storage-rank-value">
+                  <strong>{{ formatBytes(directory.bytes) }}</strong>
+                  <small>{{ directory.files.toLocaleString() }} 个文件</small>
+                </span>
+              </router-link>
+            </div>
+            <p v-else class="storage-rank-empty">所选范围内没有目录。</p>
+          </article>
+
+          <article>
+            <header>
+              <span>大文件</span>
+              <small>按实际文件大小排序</small>
+            </header>
+            <div v-if="storageReport.largestFiles.length">
+              <router-link
+                v-for="(file, index) in storageReport.largestFiles"
+                :key="file.path"
+                :to="fileRoute(file.path, false)"
+              >
+                <b>{{ String(index + 1).padStart(2, "0") }}</b>
+                <i class="material-icons" aria-hidden="true"
+                  >insert_drive_file</i
+                >
+                <span>
+                  <strong>{{ fileName(file.path) }}</strong>
+                  <small :title="file.path">{{ file.path }}</small>
+                  <em>
+                    <i
+                      :style="{
+                        width: storageBarWidth(file.size, maxFileBytes),
+                      }"
+                    ></i>
+                  </em>
+                </span>
+                <span class="storage-rank-value">
+                  <strong>{{ formatBytes(file.size) }}</strong>
+                  <small>{{ formatModified(file.modified) }}</small>
+                </span>
+              </router-link>
+            </div>
+            <p v-else class="storage-rank-empty">所选范围内没有普通文件。</p>
+          </article>
+        </section>
+
+        <details v-if="storageReport.skippedCount" class="analysis-skipped">
+          <summary>
+            有 {{ storageReport.skippedCount }} 个路径被安全跳过
+          </summary>
+          <p>符号链接、特殊文件或无权读取的路径不计入空间统计。</p>
+          <ul>
+            <li v-for="item in storageReport.skipped" :key="item.path">
+              <span>{{ item.path }}</span>
+              <small>{{ item.reason }}</small>
+            </li>
+          </ul>
+        </details>
+      </template>
+
       <section v-if="recentTasks.length" class="analysis-recent-tasks">
         <div class="analysis-section-title">
           <div>
@@ -268,7 +460,10 @@
         <router-link
           v-for="task in recentTasks"
           :key="task.id"
-          :to="{ path: '/analysis', query: { task: task.id } }"
+          :to="{
+            path: '/analysis',
+            query: { tool: toolForTask(task), task: task.id },
+          }"
         >
           <i class="material-icons" aria-hidden="true">{{
             task.status === "completed" ? "fact_check" : "pending_actions"
@@ -293,7 +488,7 @@ import { useRoute, useRouter } from "vue-router";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import * as analysisApi from "@/api/analysis";
 import * as taskApi from "@/api/tasks";
-import type { DuplicateReport } from "@/api/analysis";
+import type { DuplicateReport, StorageReport } from "@/api/analysis";
 import type { TaskItem, TaskStatus } from "@/api/tasks";
 import { useTasksStore } from "@/stores/tasks";
 import {
@@ -301,8 +496,11 @@ import {
   analysisScopesFromQuery,
 } from "@/utils/analysisScopes";
 import { encodePath } from "@/utils/url";
+import { resourceOpenRoute } from "@/utils/archivePath";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
+
+type AnalysisTool = "duplicates" | "storage";
 
 const route = useRoute();
 const router = useRouter();
@@ -312,17 +510,39 @@ const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 
 const scopeInput = ref("");
 const scopes = ref(analysisScopesFromQuery(route.query.paths));
+const activeTool = ref<AnalysisTool>(toolFromRoute());
 const rootConfirmed = ref(false);
 const starting = ref(false);
 const canceling = ref(false);
 const currentTask = ref<TaskItem | null>(null);
 const report = ref<DuplicateReport | null>(null);
+const storageReport = ref<StorageReport | null>(null);
 const loadError = ref("");
 let pollTimer: number | undefined;
 let disposed = false;
 let taskLoadSequence = 0;
 
 const includesRoot = computed(() => scopes.value.includes("/"));
+const toolSubtitle = computed(() =>
+  activeTool.value === "storage" ? "空间分布 · 主动扫描" : "重复文件 · 主动扫描"
+);
+const toolIcon = computed(() =>
+  activeTool.value === "storage" ? "donut_large" : "content_copy"
+);
+const toolEyebrow = computed(() =>
+  activeTool.value === "storage" ? "STORAGE MAP" : "DUPLICATE FINDER"
+);
+const toolTitle = computed(() =>
+  activeTool.value === "storage"
+    ? "看清空间花在哪里，再决定如何整理"
+    : "确认内容相同，而不只是名称相似"
+);
+const toolActionIcon = computed(() =>
+  activeTool.value === "storage" ? "query_stats" : "manage_search"
+);
+const toolActionLabel = computed(() =>
+  activeTool.value === "storage" ? "开始分析空间" : "开始查找重复文件"
+);
 const isTaskActive = computed(
   () =>
     currentTask.value?.status === "queued" ||
@@ -359,11 +579,21 @@ const taskIcon = computed(() => {
 });
 const recentTasks = computed(() =>
   tasksStore.items
-    .filter((task) => task.type === "analysis.duplicates")
+    .filter((task) => task.type === `analysis.${activeTool.value}`)
     .slice(0, 5)
 );
-const completedTime = computed(() =>
-  report.value ? dayjs(report.value.completedAt).format("YYYY-MM-DD HH:mm") : ""
+const completedTime = computed(() => {
+  const completedAt =
+    activeTool.value === "storage"
+      ? storageReport.value?.completedAt
+      : report.value?.completedAt;
+  return completedAt ? dayjs(completedAt).format("YYYY-MM-DD HH:mm") : "";
+});
+const maxDirectoryBytes = computed(
+  () => storageReport.value?.largestDirectories[0]?.bytes ?? 0
+);
+const maxFileBytes = computed(
+  () => storageReport.value?.largestFiles[0]?.size ?? 0
 );
 
 watch(includesRoot, (value) => {
@@ -371,13 +601,38 @@ watch(includesRoot, (value) => {
 });
 
 watch(
-  () => route.query.task,
-  (value) => {
-    const taskId = typeof value === "string" ? value : "";
-    if (!taskId || taskId === currentTask.value?.id) return;
-    void loadTask(taskId);
+  () => [route.query.tool, route.query.task],
+  ([, taskValue]) => {
+    const taskId = typeof taskValue === "string" ? taskValue : "";
+    if (taskId) {
+      if (taskId !== currentTask.value?.id) void loadTask(taskId);
+      return;
+    }
+    taskLoadSequence++;
+    stopPolling();
+    currentTask.value = null;
+    report.value = null;
+    storageReport.value = null;
+    loadError.value = "";
+    activeTool.value = toolFromRoute();
+    scopes.value = analysisScopesFromQuery(route.query.paths);
   }
 );
+
+function selectTool(tool: AnalysisTool) {
+  if (tool === activeTool.value) return;
+  activeTool.value = tool;
+  taskLoadSequence++;
+  stopPolling();
+  currentTask.value = null;
+  report.value = null;
+  storageReport.value = null;
+  loadError.value = "";
+  void router.push({
+    path: "/analysis",
+    query: { tool, paths: scopes.value },
+  });
+}
 
 function addScope() {
   const next = addAnalysisScope(scopes.value, scopeInput.value);
@@ -398,18 +653,27 @@ function removeScope(scope: string) {
 
 async function startScan() {
   if (!canStart.value) return;
+  const tool = activeTool.value;
   starting.value = true;
   loadError.value = "";
   report.value = null;
+  storageReport.value = null;
   try {
-    const task = await analysisApi.startDuplicateScan(scopes.value);
+    const task =
+      tool === "storage"
+        ? await analysisApi.startStorageScan(scopes.value)
+        : await analysisApi.startDuplicateScan(scopes.value);
     currentTask.value = task;
     tasksStore.record(task);
     await router.replace({
       path: "/analysis",
-      query: { task: task.id, paths: scopes.value },
+      query: { tool, task: task.id, paths: scopes.value },
     });
-    $showSuccess("重复文件扫描已提交，可在任务中心取消");
+    $showSuccess(
+      tool === "storage"
+        ? "存储空间分析已提交，可在任务中心取消"
+        : "重复文件扫描已提交，可在任务中心取消"
+    );
     schedulePoll(0);
   } catch (error) {
     $showError(error instanceof Error ? error : String(error), false);
@@ -448,6 +712,7 @@ async function pollTask() {
   if (!id || disposed) return;
   try {
     const task = await taskApi.get(id);
+    if (disposed || currentTask.value?.id !== id) return;
     currentTask.value = task;
     tasksStore.record(task);
     if (task.status === "queued" || task.status === "running") {
@@ -456,17 +721,31 @@ async function pollTask() {
     }
     if (task.status === "completed") await loadReport(task.id);
   } catch (error) {
+    if (disposed || currentTask.value?.id !== id) return;
     loadError.value = error instanceof Error ? error.message : String(error);
     schedulePoll(1500);
   }
 }
 
 async function loadReport(taskId: string) {
+  const taskType = currentTask.value?.type;
   try {
-    report.value = await analysisApi.getDuplicateReport(taskId);
-    scopes.value = [...report.value.scopes];
+    if (taskType === "analysis.storage") {
+      const next = await analysisApi.getStorageReport(taskId);
+      if (disposed || currentTask.value?.id !== taskId) return;
+      storageReport.value = next;
+      report.value = null;
+      scopes.value = storageReport.value.scopes.map((scope) => scope.path);
+    } else {
+      const next = await analysisApi.getDuplicateReport(taskId);
+      if (disposed || currentTask.value?.id !== taskId) return;
+      report.value = next;
+      storageReport.value = null;
+      scopes.value = [...report.value.scopes];
+    }
     loadError.value = "";
   } catch (error) {
+    if (disposed || currentTask.value?.id !== taskId) return;
     loadError.value = error instanceof Error ? error.message : String(error);
   }
 }
@@ -476,15 +755,21 @@ async function loadTask(taskId: string) {
   stopPolling();
   currentTask.value = null;
   report.value = null;
+  storageReport.value = null;
   loadError.value = "";
 
   try {
     const task = await taskApi.get(taskId);
     if (sequence !== taskLoadSequence || disposed) return;
-    if (task.type !== "analysis.duplicates") {
-      loadError.value = "该任务不是重复文件分析任务。";
+    if (
+      task.type !== "analysis.duplicates" &&
+      task.type !== "analysis.storage"
+    ) {
+      loadError.value = "该任务不是存储分析任务。";
       return;
     }
+    activeTool.value =
+      task.type === "analysis.storage" ? "storage" : "duplicates";
     currentTask.value = task;
     tasksStore.record(task);
     if (task.status === "completed") await loadReport(task.id);
@@ -499,6 +784,7 @@ async function loadTask(taskId: string) {
 
 async function loadInitial() {
   try {
+    activeTool.value = toolFromRoute();
     await tasksStore.load();
     const taskId = typeof route.query.task === "string" ? route.query.task : "";
     if (!taskId) return;
@@ -520,8 +806,21 @@ function taskStatus(status: TaskStatus) {
   return labels[status];
 }
 
-function fileRoute(path: string) {
-  return `/files${encodePath(path)}`;
+function toolFromRoute(): AnalysisTool {
+  return route.query.tool === "storage" ? "storage" : "duplicates";
+}
+
+function toolForTask(task: TaskItem): AnalysisTool {
+  return task.type === "analysis.storage" ? "storage" : "duplicates";
+}
+
+function fileRoute(path: string, isDir = false) {
+  const suffix = isDir && path !== "/" ? "/" : "";
+  return resourceOpenRoute({
+    isDir,
+    path,
+    url: `/files${encodePath(path)}${suffix}`,
+  });
 }
 
 function fileName(path: string) {
@@ -534,6 +833,11 @@ function formatBytes(value: number) {
 
 function formatModified(value: number) {
   return dayjs(value).format("YYYY-MM-DD HH:mm");
+}
+
+function storageBarWidth(value: number, maximum: number) {
+  if (value <= 0 || maximum <= 0) return "0%";
+  return `${Math.max(4, Math.round((value / maximum) * 100))}%`;
 }
 
 onMounted(loadInitial);
@@ -607,6 +911,71 @@ onBeforeUnmount(() => {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
   padding: 18px 0 56px;
+}
+
+.analysis-tool-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 5px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 12px;
+  background: var(--surfaceSecondary);
+}
+
+.analysis-tool-tabs button {
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--textPrimary);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.analysis-tool-tabs button:hover,
+.analysis-tool-tabs button:focus-visible {
+  outline: none;
+  background: var(--hover);
+}
+
+.analysis-tool-tabs button:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+.analysis-tool-tabs button.is-active {
+  color: var(--blue);
+  background: var(--surfacePrimary);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.analysis-tool-tabs > button > .material-icons {
+  font-size: 22px;
+}
+
+.analysis-tool-tabs button > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.analysis-tool-tabs strong {
+  color: var(--textSecondary);
+  font-size: 12px;
+}
+
+.analysis-tool-tabs small {
+  overflow: hidden;
+  color: var(--textPrimary);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .analysis-hero {
@@ -1071,6 +1440,11 @@ onBeforeUnmount(() => {
   letter-spacing: -0.03em;
 }
 
+.analysis-summary-grid .analysis-summary-time {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
 .analysis-summary-grid .analysis-summary-highlight {
   border-color: color-mix(in srgb, #1ea672 24%, var(--borderPrimary));
   background: color-mix(in srgb, #1ea672 5%, var(--surfacePrimary));
@@ -1089,6 +1463,186 @@ onBeforeUnmount(() => {
   background: color-mix(in srgb, var(--icon-orange) 6%, transparent);
   font-size: 11px;
   line-height: 1.5;
+}
+
+.storage-scope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.storage-scope-grid article {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
+  background: var(--surfacePrimary);
+}
+
+.storage-scope-grid > article > .material-icons {
+  color: var(--blue);
+  font-size: 20px;
+}
+
+.storage-scope-grid span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.storage-scope-grid strong,
+.storage-scope-grid small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storage-scope-grid strong {
+  font-size: 11px;
+}
+
+.storage-scope-grid small {
+  color: var(--textPrimary);
+  font-size: 9px;
+}
+
+.storage-rankings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.storage-rankings > article {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 13px;
+  background: var(--surfacePrimary);
+}
+
+.storage-rankings > article > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 13px;
+  border-bottom: 1px solid var(--borderPrimary);
+  background: var(--surfaceSecondary);
+}
+
+.storage-rankings > article > header > span {
+  color: var(--textSecondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.storage-rankings > article > header > small {
+  color: var(--textPrimary);
+  font-size: 9px;
+}
+
+.storage-rankings > article > div {
+  max-height: 560px;
+  overflow: auto;
+}
+
+.storage-rankings a {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 62px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--borderPrimary);
+  color: var(--textSecondary);
+  text-decoration: none;
+}
+
+.storage-rankings a:last-child {
+  border-bottom: 0;
+}
+
+.storage-rankings a:hover,
+.storage-rankings a:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+}
+
+.storage-rankings a:focus-visible {
+  box-shadow: inset 3px 0 var(--focus-ring);
+}
+
+.storage-rankings a > b {
+  color: var(--textPrimary);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.storage-rankings a > .material-icons {
+  color: var(--textPrimary);
+  font-size: 19px;
+}
+
+.storage-rankings a > span:not(.storage-rank-value) {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.storage-rankings a strong,
+.storage-rankings a small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storage-rankings a strong {
+  font-size: 10px;
+}
+
+.storage-rankings a small {
+  color: var(--textPrimary);
+  font-size: 8px;
+}
+
+.storage-rankings em {
+  display: block;
+  height: 3px;
+  margin-top: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surfaceSecondary);
+}
+
+.storage-rankings em > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+  transition: width 180ms ease;
+}
+
+.storage-rank-value {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.storage-rank-empty {
+  margin: 0;
+  padding: 28px 14px;
+  color: var(--textPrimary);
+  font-size: 10px;
+  text-align: center;
 }
 
 .duplicate-groups {
@@ -1348,6 +1902,10 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
+  .storage-rankings {
+    grid-template-columns: 1fr;
+  }
+
   .analysis-start-row {
     align-items: stretch;
     flex-direction: column;
@@ -1379,6 +1937,15 @@ onBeforeUnmount(() => {
   .analysis-hero-icon {
     width: 48px;
     height: 48px;
+  }
+
+  .analysis-tool-tabs button {
+    min-height: 46px;
+    padding: 7px 9px;
+  }
+
+  .analysis-tool-tabs small {
+    display: none;
   }
 
   .analysis-hero h1 {
@@ -1421,7 +1988,8 @@ onBeforeUnmount(() => {
     animation: none;
   }
 
-  .analysis-task-progress > div {
+  .analysis-task-progress > div,
+  .storage-rankings em > i {
     transition: none;
   }
 }

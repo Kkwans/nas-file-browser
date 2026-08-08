@@ -187,6 +187,19 @@
             </router-link>
             <router-link
               v-if="
+                task.status === 'completed' && task.type === 'analysis.storage'
+              "
+              class="primary"
+              :to="{
+                path: '/analysis',
+                query: { tool: 'storage', task: task.id },
+              }"
+            >
+              <i class="material-icons" aria-hidden="true">donut_large</i>
+              查看结果
+            </router-link>
+            <router-link
+              v-if="
                 task.status === 'completed' && task.type === 'archive.extract'
               "
               class="primary"
@@ -202,6 +215,10 @@
                 !(
                   task.status === 'completed' &&
                   task.type === 'analysis.duplicates'
+                ) &&
+                !(
+                  task.status === 'completed' &&
+                  task.type === 'analysis.storage'
                 ) &&
                 !(
                   task.status === 'completed' && task.type === 'archive.extract'

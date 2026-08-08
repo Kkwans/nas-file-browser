@@ -94,6 +94,30 @@ app.provide("$showSuccess", (message: string) => {
   );
 });
 
+app.provide(
+  "$showAction",
+  (
+    message: string,
+    actionLabel: string,
+    action: () => void | Promise<void>,
+    timeout = 10000
+  ) => {
+    const $toast = useToast();
+    $toast.success(
+      {
+        component: CustomToast,
+        props: { message, actionLabel, onAction: action },
+      },
+      {
+        ...toastConfig,
+        timeout,
+        closeOnClick: false,
+        rtl: false,
+      }
+    );
+  }
+);
+
 app.provide("$showError", (error: Error | string, displayReport = true) => {
   const $toast = useToast();
   $toast.error(

@@ -1,20 +1,48 @@
 <template>
   <div class="t-container">
     <span>{{ message }}</span>
-    <button v-if="isReport" class="action" @click.stop="clicked">
+    <button
+      v-if="actionLabel && !actionHandled"
+      class="action action--primary"
+      :disabled="actionPending"
+      @click.stop="runAction"
+    >
+      {{ actionPending ? "处理中…" : actionLabel }}
+    </button>
+    <button v-else-if="isReport" class="action" @click.stop="openReport">
       {{ reportText }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { ref } from "vue";
+
+const props = defineProps<{
   message: string;
   reportText?: string;
   isReport?: boolean;
+  actionLabel?: string;
+  onAction?: () => void | Promise<void>;
 }>();
 
-const clicked = () => {
+const actionPending = ref(false);
+const actionHandled = ref(false);
+
+const runAction = async () => {
+  if (!props.onAction || actionPending.value) return;
+  actionPending.value = true;
+  try {
+    await props.onAction();
+    actionHandled.value = true;
+  } catch {
+    actionHandled.value = false;
+  } finally {
+    actionPending.value = false;
+  }
+};
+
+const openReport = () => {
   window.open(
     "https://github.com/filebrowser/filebrowser/issues/new/choose",
     "_blank",
@@ -40,6 +68,16 @@ const clicked = () => {
   color: white;
   cursor: pointer;
   border: thin solid currentColor;
+}
+
+.action--primary {
+  border-color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+}
+
+.action:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
 }
 
 html[dir="rtl"] .action {

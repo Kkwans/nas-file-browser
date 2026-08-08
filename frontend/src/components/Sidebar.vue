@@ -623,6 +623,7 @@ import { useCategoriesStore } from "@/stores/categories";
 import type { CategoryGroup } from "@/api/categories";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
+import { useTrashStore } from "@/stores/trash";
 import { useSidebarPreferencesStore } from "@/stores/sidebarPreferences";
 import SidebarSectionHeader from "@/components/sidebar/SidebarSectionHeader.vue";
 import SidebarGroupHeader from "@/components/sidebar/SidebarGroupHeader.vue";
@@ -660,6 +661,7 @@ const volumesStore = useVolumesStore();
 const categoriesStore = useCategoriesStore();
 const favoritesStore = useFavoritesStore();
 const tagsStore = useTagsStore();
+const trashStore = useTrashStore();
 const sidebarPreferencesStore = useSidebarPreferencesStore();
 
 const { closeHovers, showHover } = layoutStore;
@@ -740,6 +742,7 @@ const systemOptions = computed<
 >(() => [
   { id: "files", icon: "folder", label: "我的文件" },
   { id: "search", icon: "search", label: "搜索" },
+  { id: "trash", icon: "delete_outline", label: "回收站" },
   ...(user.value?.perm?.create
     ? ([
         { id: "new-directory", icon: "create_new_folder", label: "新建文件夹" },
@@ -1004,7 +1007,10 @@ const clearSidebarDrag = () => {
 const runSystemOption = (id: SystemOptionId) => {
   if (id === "files") toRoot();
   else if (id === "search") openSearch();
-  else if (id === "new-directory") showHover("newDir");
+  else if (id === "trash") {
+    router.push({ path: "/trash" });
+    closeHovers();
+  } else if (id === "new-directory") showHover("newDir");
   else showHover("newFile");
 };
 
@@ -1409,11 +1415,13 @@ watch(
       favoritesStore.groups = [];
       tagsStore.tags = [];
       tagsStore.activeFilter = null;
+      trashStore.resetForUser();
       return;
     }
     if (loadedUserId === userId) return;
 
     loadedUserId = userId;
+    trashStore.resetForUser();
     await Promise.all([
       favoritesStore.loadFavorites(),
       tagsStore.loadTags(),

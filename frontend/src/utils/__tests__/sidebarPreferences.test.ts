@@ -55,4 +55,12 @@ describe("sidebar preferences", () => {
       DEFAULT_SIDEBAR_MODULE_ORDER
     );
   });
+
+  it("appends the trash entry to existing system option preferences", () => {
+    expect(
+      normalizeSidebarPreferences({
+        systemOptionOrder: ["search", "files"],
+      }).systemOptionOrder
+    ).toEqual(["search", "files", "trash", "new-directory", "new-file"]);
+  });
 });

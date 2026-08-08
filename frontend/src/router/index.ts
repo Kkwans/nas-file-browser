@@ -10,6 +10,7 @@ const Layout = () => import("@/views/Layout.vue");
 const Files = () => import("@/views/Files.vue");
 const Share = () => import("@/views/Share.vue");
 const SearchPage = () => import("@/views/SearchPage.vue");
+const Trash = () => import("@/views/Trash.vue");
 const Settings = () => import("@/views/Settings.vue");
 const ProfileSettings = () => import("@/views/settings/Profile.vue");
 const Shares = () => import("@/views/settings/Shares.vue");
@@ -23,6 +24,7 @@ const titles: Record<string, string> = {
   Share: "分享",
   Files: "文件管理",
   Search: "搜索",
+  Trash: "回收站",
   Settings: "设置",
   ProfileSettings: "账户设置",
   Shares: "分享管理",
@@ -76,6 +78,20 @@ const routes = [
         path: "",
         name: "Search",
         component: SearchPage,
+      },
+    ],
+  },
+  {
+    path: "/trash",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "Trash",
+        component: Trash,
       },
     ],
   },

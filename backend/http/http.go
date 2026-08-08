@@ -90,6 +90,9 @@ func NewHandler(
 	api.Handle("/history", monkey(historyListHandler, "")).Methods("GET")
 	api.Handle("/recent", monkey(recentListHandler, "")).Methods("GET")
 	api.Handle("/recent", monkey(recentRecordHandler, "")).Methods("POST")
+	api.Handle("/media/playback", monkey(playbackGetHandler, "")).Methods("GET")
+	api.Handle("/media/playback", monkey(playbackPutHandler, "")).Methods("PUT")
+	api.Handle("/media/playback", monkey(playbackDeleteHandler, "")).Methods("DELETE")
 
 	api.PathPrefix("/tus").Handler(monkey(tusPostHandler(uploadCache), "/api/tus")).Methods("POST")
 	api.PathPrefix("/tus").Handler(monkey(tusHeadHandler(uploadCache), "/api/tus")).Methods("HEAD", "GET")

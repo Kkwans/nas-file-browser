@@ -50,6 +50,9 @@ func NewStorage(back StorageBackend) *Storage {
 }
 
 func (storage *Storage) Get(userID uint, value, identity string) (*Entry, error) {
+	storage.mu.Lock()
+	defer storage.mu.Unlock()
+
 	value = pathmeta.Clean(value)
 	entry, err := storage.back.GetByID(entryID(userID, value))
 	if err != nil {
@@ -100,6 +103,9 @@ func (storage *Storage) Save(userID uint, value, identity string, position, dura
 }
 
 func (storage *Storage) Delete(userID uint, value string) error {
+	storage.mu.Lock()
+	defer storage.mu.Unlock()
+
 	value = pathmeta.Clean(value)
 	id := entryID(userID, value)
 	entry, err := storage.back.GetByID(id)

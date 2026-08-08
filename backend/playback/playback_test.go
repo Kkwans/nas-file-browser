@@ -2,6 +2,7 @@ package playback
 
 import (
 	"errors"
+	"sync"
 	"testing"
 )
 
@@ -83,5 +84,31 @@ func TestStorageInvalidatesReplacedFileAndSupportsExplicitClear(t *testing.T) {
 	}
 	if err := storage.Delete(3, "video.mkv"); err != nil {
 		t.Fatalf("idempotent delete = %v", err)
+	}
+}
+
+func TestStorageSerializesConcurrentSaveAndDelete(t *testing.T) {
+	storage := NewStorage(newMemoryBackend())
+	const operations = 64
+	errCh := make(chan error, operations*2)
+	var wg sync.WaitGroup
+	for i := 0; i < operations; i++ {
+		wg.Add(2)
+		go func(position float64) {
+			defer wg.Done()
+			_, err := storage.Save(9, "/race.mp4", "v1:1:1", position, 120)
+			errCh <- err
+		}(float64(i))
+		go func() {
+			defer wg.Done()
+			errCh <- storage.Delete(9, "/race.mp4")
+		}()
+	}
+	wg.Wait()
+	close(errCh)
+	for err := range errCh {
+		if err != nil {
+			t.Fatalf("concurrent playback mutation failed: %v", err)
+		}
 	}
 }

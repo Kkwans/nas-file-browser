@@ -98,6 +98,7 @@ let disposed = false;
 let progressRequest = 0;
 let lastSavedAt = 0;
 let lastSavedPosition = -1;
+let suppressPersistenceUntil = 0;
 let messageTimer: number | null = null;
 let hudTimer: number | null = null;
 let tapTimer: number | null = null;
@@ -120,9 +121,10 @@ watch(
   () => [props.path, props.source] as const,
   ([nextPath, nextSource], previous) => {
     if (!player.value || !previous) return;
-    void persistPlayback(true);
+    void persistPlayback(true, previous[0]);
     restoredPosition.value = 0;
     brightness.value = 1;
+    suppressPersistenceUntil = 0;
     player.value.src({ src: nextSource, type: getSourceType(nextSource) });
     player.value.load();
     void restorePlayback(nextPath);
@@ -208,9 +210,9 @@ function onTimeUpdate() {
   if (Date.now() - lastSavedAt >= 2000) void persistPlayback(false);
 }
 
-async function persistPlayback(force: boolean) {
+async function persistPlayback(force: boolean, path = props.path) {
   const currentPlayer = player.value;
-  if (!currentPlayer || !props.path) return;
+  if (!currentPlayer || !path || Date.now() < suppressPersistenceUntil) return;
   const position = currentPlayer.currentTime();
   const duration = currentPlayer.duration();
   if (
@@ -227,7 +229,7 @@ async function persistPlayback(force: boolean) {
   lastSavedAt = Date.now();
   lastSavedPosition = position;
   try {
-    await mediaApi.savePlayback(props.path, position, duration);
+    await mediaApi.savePlayback(path, position, duration);
   } catch {
     if (force && !disposed) showProgressMessage("播放位置暂时无法保存");
   }
@@ -236,6 +238,7 @@ async function persistPlayback(force: boolean) {
 async function restartFromBeginning() {
   restoredPosition.value = 0;
   lastSavedPosition = 0;
+  suppressPersistenceUntil = Date.now() + 1000;
   player.value?.currentTime(0);
   try {
     await mediaApi.clearPlayback(props.path);

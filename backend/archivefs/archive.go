@@ -169,6 +169,8 @@ func List(ctx context.Context, filesystem afero.Fs, archivePath string, limits L
 		Entries: make([]Entry, 0), MaxEntries: limits.MaxEntries,
 		MaxFileBytes: limits.MaxFileBytes, MaxExtractBytes: limits.MaxExtractBytes,
 	}
+	knownEntries := make(map[string]Entry)
+	requiredDirectories := make(map[string]struct{})
 	err = opened.extractor.Extract(ctx, opened.reader, func(ctx context.Context, info archives.FileInfo) error {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -185,6 +187,22 @@ func List(ctx context.Context, filesystem afero.Fs, archivePath string, limits L
 			listing.addBlocked(entryPath, "链接或特殊文件不会被解压")
 			return nil
 		}
+		if _, duplicate := knownEntries[entryPath]; duplicate {
+			listing.addBlocked(entryPath, "归档中存在重复路径")
+			return nil
+		}
+		for ancestor := path.Dir(entryPath); ancestor != "." && ancestor != "/"; ancestor = path.Dir(ancestor) {
+			if existing, found := knownEntries[ancestor]; found && !existing.IsDir {
+				listing.addBlocked(entryPath, "父路径是文件，目录结构冲突")
+				return nil
+			}
+		}
+		if !info.IsDir() {
+			if _, neededAsDirectory := requiredDirectories[entryPath]; neededAsDirectory {
+				listing.addBlocked(entryPath, "同一路径同时被声明为文件和目录")
+				return nil
+			}
+		}
 		if info.Size() < 0 || info.Size() > limits.MaxFileBytes {
 			listing.Truncated = true
 			listing.LimitReason = fmt.Sprintf("条目 %s 超过单文件安全上限", entryPath)
@@ -200,10 +218,15 @@ func List(ctx context.Context, filesystem afero.Fs, archivePath string, limits L
 			listing.LimitReason = "归档声明内容超过总解压安全上限"
 			return fs.SkipAll
 		}
-		listing.Entries = append(listing.Entries, Entry{
+		entry := Entry{
 			Path: entryPath, Name: path.Base(entryPath), IsDir: info.IsDir(),
 			Size: info.Size(), Modified: info.ModTime().UnixMilli(),
-		})
+		}
+		listing.Entries = append(listing.Entries, entry)
+		knownEntries[entryPath] = entry
+		for ancestor := path.Dir(entryPath); ancestor != "." && ancestor != "/"; ancestor = path.Dir(ancestor) {
+			requiredDirectories[ancestor] = struct{}{}
+		}
 		listing.ListedBytes += info.Size()
 		return nil
 	})

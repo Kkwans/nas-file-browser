@@ -159,6 +159,38 @@ func TestExtractionNeverOverwritesAndRejectsSymlinkDestination(t *testing.T) {
 	}
 }
 
+func TestConflictingArchiveHierarchyAndDuplicatePathsAreBlocked(t *testing.T) {
+	filesystem := testFilesystem(t)
+	file, err := filesystem.Create("/conflicts.zip")
+	if err != nil {
+		t.Fatal(err)
+	}
+	writer := zip.NewWriter(file)
+	for _, name := range []string{"parent", "parent/child.txt", "same.txt", "same.txt"} {
+		entry, createErr := writer.Create(name)
+		if createErr != nil {
+			t.Fatal(createErr)
+		}
+		if _, writeErr := entry.Write([]byte(name)); writeErr != nil {
+			t.Fatal(writeErr)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	listing, err := List(context.Background(), filesystem, "/conflicts.zip", Limits{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(listing.Entries) != 2 || listing.BlockedCount != 2 {
+		t.Fatalf("conflicting listing = %#v", listing)
+	}
+}
+
 func TestSafetyLimitsAndDisabledFormats(t *testing.T) {
 	filesystem := testFilesystem(t)
 	writeArchive(t, filesystem, "/large.zip", archives.Zip{}, map[string]string{"large.bin": string(make([]byte, 128))})

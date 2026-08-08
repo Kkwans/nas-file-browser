@@ -37,6 +37,11 @@ export interface StoredMarkdownImage {
   markdown: string;
 }
 
+export interface MarkdownImagePreviewContent {
+  markdown: string;
+  sources: Array<{ markdownSource: string; previewSource: string }>;
+}
+
 type ImageFile = Pick<File, "name" | "type">;
 type ImageUpload = (path: string, file: File) => Promise<unknown>;
 
@@ -117,6 +122,26 @@ export function markdownImagePreviewSource(
   } catch {
     return null;
   }
+}
+
+export function markdownImagePreviewContent(
+  documentPath: string,
+  markdown: string
+): MarkdownImagePreviewContent {
+  const sources: MarkdownImagePreviewContent["sources"] = [];
+  const rewritten = markdown.replace(
+    /(!\[(?:\\.|[^\]\\])*\]\()([^\s)]+)(\))/gu,
+    (match, prefix: string, markdownSource: string, suffix: string) => {
+      const previewSource = markdownImagePreviewSource(
+        documentPath,
+        markdownSource
+      );
+      if (!previewSource) return match;
+      sources.push({ markdownSource, previewSource });
+      return `${prefix}${previewSource}${suffix}`;
+    }
+  );
+  return { markdown: rewritten, sources };
 }
 
 export async function storeMarkdownImage(

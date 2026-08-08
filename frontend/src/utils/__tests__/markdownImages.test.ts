@@ -4,6 +4,7 @@ import {
   isMarkdownImageFile,
   markdownImageCandidateName,
   markdownImageLink,
+  markdownImagePreviewContent,
   markdownImagePreviewSource,
   markdownImageTargetPath,
   normalizeMarkdownImageName,
@@ -82,6 +83,31 @@ describe("Markdown 图片拖入", () => {
     ]) {
       expect(markdownImagePreviewSource("/note.md", source)).toBeNull();
     }
+  });
+
+  it("渲染前只临时改写相对 Markdown 图片并返回反向映射", () => {
+    const prepared = markdownImagePreviewContent(
+      "/文档/记录.md",
+      [
+        "![图\\]片](./assets/photo.png)",
+        "[普通链接](./other.md)",
+        "![远程](https://example.com/photo.png)",
+      ].join("\n\n")
+    );
+
+    expect(prepared.markdown).toContain(
+      "![图\\]片](/api/raw/%E6%96%87%E6%A1%A3/assets/photo.png)"
+    );
+    expect(prepared.markdown).toContain("[普通链接](./other.md)");
+    expect(prepared.markdown).toContain(
+      "![远程](https://example.com/photo.png)"
+    );
+    expect(prepared.sources).toEqual([
+      {
+        markdownSource: "./assets/photo.png",
+        previewSource: "/api/raw/%E6%96%87%E6%A1%A3/assets/photo.png",
+      },
+    ]);
   });
 
   it("清理路径片段、处理隐藏名并识别无 MIME 图片", () => {

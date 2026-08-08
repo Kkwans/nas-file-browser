@@ -218,6 +218,7 @@ import {
   updateMarkdownCodeFenceLanguage,
 } from "@/utils/markdownCode";
 import {
+  markdownImagePreviewContent,
   markdownImagePreviewSource,
   storeMarkdownImage,
 } from "@/utils/markdownImages";
@@ -497,7 +498,9 @@ const scheduleMarkdownImagePreviewRewrite = () => {
 };
 
 const setupMarkdownImagePreviews = () => {
-  teardownMarkdownImagePreviews();
+  markdownImagePreviewObserver?.disconnect();
+  markdownImagePreviewObserver = null;
+  markdownImagePreviewScheduled = false;
   const mountEl = document.getElementById("vditor-mount");
   if (!mountEl) return;
   markdownImagePreviewObserver = new MutationObserver(
@@ -510,6 +513,16 @@ const setupMarkdownImagePreviews = () => {
     subtree: true,
   });
   rewriteMarkdownImagePreviews();
+};
+
+const prepareMarkdownImagePreviewContent = (content: string) => {
+  const documentPath = fileStore.req?.path;
+  if (!documentPath) return content;
+  const prepared = markdownImagePreviewContent(documentPath, content);
+  prepared.sources.forEach(({ markdownSource, previewSource }) => {
+    markdownImagePreviewSources.set(previewSource, markdownSource);
+  });
+  return prepared.markdown;
 };
 
 function teardownMarkdownImagePreviews() {
@@ -581,7 +594,7 @@ const initVditorWithMode = async (
 
   vditorInstance = new VditorClass("vditor-mount", {
     cdn: getVditorAssetRoot(),
-    value: content,
+    value: prepareMarkdownImagePreviewContent(content),
     lang: "zh_CN",
     theme: isDark ? "dark" : "classic",
     mode: mode,
@@ -766,10 +779,13 @@ const initVditorPreview = async (content: string) => {
 
   // 阅读模式：用 Vditor 的预览方法渲染为纯 HTML
   // md2html 可能返回 Promise 或 string，统一用 Promise.resolve 包裹确保 await
-  const htmlResult = VditorClass.md2html(content, {
-    cdn: getVditorAssetRoot(),
-    mode: isDark ? "dark" : "light",
-  });
+  const htmlResult = VditorClass.md2html(
+    prepareMarkdownImagePreviewContent(content),
+    {
+      cdn: getVditorAssetRoot(),
+      mode: isDark ? "dark" : "light",
+    }
+  );
   const html = await Promise.resolve(htmlResult);
   if (typeof html !== "string") {
     console.error("[Vditor] md2html returned non-string:", html);

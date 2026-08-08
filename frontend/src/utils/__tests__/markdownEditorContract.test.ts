@@ -115,6 +115,8 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toContain("vditorInstance.insertMD");
     expect(editorSource).toContain('insertEmptyBlock?.("afterend")');
     expect(editorSource).toContain("markdownImagePreviewSource");
+    expect(editorSource).toContain("markdownImagePreviewContent");
+    expect(editorSource).toContain("prepareMarkdownImagePreviewContent");
     expect(editorSource).toContain("setupMarkdownImagePreviews");
     expect(editorSource).toContain("getVditorMarkdown");
     expect(editorSource).toContain("new Map");

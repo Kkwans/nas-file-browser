@@ -225,6 +225,7 @@ let hudTimer: number | null = null;
 let tapTimer: number | null = null;
 let lastTap = 0;
 let compatibilityPollTimer: number | null = null;
+let compatibilityRecoveryTimer: number | null = null;
 let compatibilityRequest = 0;
 let activeHLSURL = "";
 let gesture:
@@ -263,6 +264,7 @@ onBeforeUnmount(() => {
   if (hudTimer) window.clearTimeout(hudTimer);
   if (tapTimer) window.clearTimeout(tapTimer);
   stopCompatibilityPolling();
+  stopCompatibilityRecovery();
   compatibilityRequest++;
   player.value?.dispose();
   player.value = null;
@@ -557,6 +559,13 @@ function stopCompatibilityPolling() {
   }
 }
 
+function stopCompatibilityRecovery() {
+  if (compatibilityRecoveryTimer !== null) {
+    window.clearTimeout(compatibilityRecoveryTimer);
+    compatibilityRecoveryTimer = null;
+  }
+}
+
 function activateHLSPlayback(playlistURL: string) {
   const currentPlayer = player.value;
   if (!currentPlayer || activeHLSURL === playlistURL) return;
@@ -570,6 +579,7 @@ function activateHLSPlayback(playlistURL: string) {
   const playbackRate = currentPlayer.playbackRate();
   activeHLSURL = playlistURL;
   hlsActive.value = true;
+  stopCompatibilityRecovery();
 
   // A failed direct-play tech can leave Video.js' first VHS MediaSource with
   // an uninitialized SourceUpdater. Reset the tech before selecting HLS so
@@ -579,21 +589,26 @@ function activateHLSPlayback(playlistURL: string) {
   currentPlayer.volume(volume);
   currentPlayer.muted(muted);
   currentPlayer.playbackRate(playbackRate);
-  currentPlayer.one("loadstart", () => {
+  currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
+  compatibilityRecoveryTimer = window.setTimeout(() => {
+    compatibilityRecoveryTimer = null;
     if (
       disposed ||
       player.value !== currentPlayer ||
-      activeHLSURL !== playlistURL
+      activeHLSURL !== playlistURL ||
+      currentPlayer.readyState() !== 0
     ) {
       return;
     }
-    // Video.js' load() re-selects currentSource() once the VHS tech exists.
-    // This avoids the first-handler EME race without retry loops or timers.
+
+    // Chromium can leave the first VHS SourceUpdater waiting after a failed
+    // direct-play source. One bounded reload after the VHS tech settles lets
+    // Video.js initialize the current HLS source without an infinite retry.
     currentPlayer.load();
     playVideo(currentPlayer);
-  });
-  currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
+  }, 750);
   currentPlayer.one("loadedmetadata", () => {
+    stopCompatibilityRecovery();
     props.subtitles.forEach((subtitle, index) => {
       currentPlayer.addRemoteTextTrack(
         {
@@ -622,6 +637,7 @@ function playVideo(currentPlayer: Pick<Player, "play">) {
 function tryDirectPlayback() {
   const currentPlayer = player.value;
   if (!currentPlayer) return;
+  stopCompatibilityRecovery();
   activeHLSURL = "";
   hlsActive.value = false;
   directPlaybackFailed.value = false;
@@ -640,6 +656,7 @@ function useCompatibilityPlayback() {
 function resetCompatibility(path: string) {
   compatibilityRequest++;
   stopCompatibilityPolling();
+  stopCompatibilityRecovery();
   compatibilityBusy.value = false;
   compatibilityNetworkError.value = "";
   compatibilityStatus.value = null;

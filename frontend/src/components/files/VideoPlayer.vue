@@ -571,7 +571,9 @@ function activateHLSPlayback(playlistURL: string) {
   currentPlayer.one("loadedmetadata", () => {
     if (resumeAt > 0) currentPlayer.currentTime(resumeAt);
   });
-  currentPlayer.load();
+  // player.src() already creates and loads the VHS tech. Calling load() here
+  // resets the new MediaSource before VHS finishes its EME-ready handshake,
+  // leaving decoded segments queued without ever appending them.
   const playback = currentPlayer.play();
   if (playback && typeof playback.catch === "function") {
     void playback.catch(() => {

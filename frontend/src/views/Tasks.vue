@@ -174,8 +174,26 @@
               <i class="material-icons" aria-hidden="true">replay</i>
               {{ busyIds.has(task.id) ? "正在提交…" : "重试" }}
             </button>
+            <router-link
+              v-if="
+                task.status === 'completed' &&
+                task.type === 'analysis.duplicates'
+              "
+              class="primary"
+              :to="{ path: '/analysis', query: { task: task.id } }"
+            >
+              <i class="material-icons" aria-hidden="true">fact_check</i>
+              查看结果
+            </router-link>
             <span
-              v-if="!canCancel(task.status) && !canRetry(task.status)"
+              v-if="
+                !canCancel(task.status) &&
+                !canRetry(task.status) &&
+                !(
+                  task.status === 'completed' &&
+                  task.type === 'analysis.duplicates'
+                )
+              "
               class="task-finished"
             >
               <i class="material-icons" aria-hidden="true">check</i>

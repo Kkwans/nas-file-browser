@@ -106,7 +106,8 @@
 .activity-switcher a:focus-visible,
 .activity-toolbar button:focus-visible,
 .activity-state button:focus-visible,
-.task-card-actions button:focus-visible {
+.task-card-actions button:focus-visible,
+.task-card-actions a:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
@@ -530,7 +531,8 @@
   gap: 7px;
 }
 
-.task-card-actions button {
+.task-card-actions button,
+.task-card-actions a {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
@@ -542,13 +544,16 @@
   background: var(--surfacePrimary);
   font-size: 12px;
   cursor: pointer;
+  text-decoration: none;
 }
 
-.task-card-actions button:hover {
+.task-card-actions button:hover,
+.task-card-actions a:hover {
   background: var(--hover);
 }
 
-.task-card-actions button.primary {
+.task-card-actions button.primary,
+.task-card-actions a.primary {
   color: var(--blue);
   border-color: color-mix(in srgb, var(--blue) 28%, var(--borderPrimary));
 }
@@ -888,7 +893,8 @@
     padding-right: 13px;
   }
 
-  .task-card-actions button {
+  .task-card-actions button,
+  .task-card-actions a {
     min-height: 42px;
   }
 

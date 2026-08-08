@@ -752,6 +752,7 @@ const systemOptions = computed<
   { id: "trash", icon: "delete_outline", label: "回收站" },
   { id: "tasks", icon: "pending_actions", label: "任务中心" },
   { id: "history", icon: "history", label: "操作历史" },
+  { id: "analysis", icon: "data_usage", label: "存储工具" },
   ...(user.value?.perm?.create
     ? ([
         { id: "new-directory", icon: "create_new_folder", label: "新建文件夹" },
@@ -1027,6 +1028,9 @@ const runSystemOption = (id: SystemOptionId) => {
     closeHovers();
   } else if (id === "history") {
     router.push({ path: "/history" });
+    closeHovers();
+  } else if (id === "analysis") {
+    router.push({ path: "/analysis" });
     closeHovers();
   } else if (id === "new-directory") showHover("newDir");
   else showHover("newFile");

@@ -56,7 +56,7 @@ describe("sidebar preferences", () => {
     );
   });
 
-  it("appends the trash entry to existing system option preferences", () => {
+  it("appends newly introduced entries to existing system option preferences", () => {
     expect(
       normalizeSidebarPreferences({
         systemOptionOrder: ["search", "files"],
@@ -68,6 +68,7 @@ describe("sidebar preferences", () => {
       "trash",
       "tasks",
       "history",
+      "analysis",
       "new-directory",
       "new-file",
     ]);

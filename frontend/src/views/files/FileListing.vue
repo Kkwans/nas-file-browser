@@ -60,6 +60,12 @@
             show="move"
           />
           <action
+            v-if="headerButtons.analyze"
+            icon="data_usage"
+            label="分析"
+            @action="analyzeSelection"
+          />
+          <action
             v-if="headerButtons.delete"
             id="delete-button"
             icon="delete"
@@ -228,6 +234,12 @@
         icon="forward"
         label="移动"
         show="move"
+      />
+      <action
+        v-if="headerButtons.analyze"
+        icon="data_usage"
+        label="分析"
+        @action="analyzeSelection"
       />
       <action
         v-if="headerButtons.delete"
@@ -657,6 +669,12 @@
             label="下载"
             @action="download"
           />
+          <action
+            v-if="headerButtons.analyze"
+            icon="data_usage"
+            label="分析"
+            @action="analyzeSelection"
+          />
           <action icon="info" label="详细信息" show="info" />
         </context-menu>
 
@@ -738,6 +756,14 @@
               >
                 <i class="material-icons">file_download</i>
                 <span>下载</span>
+              </button>
+              <button
+                v-if="headerButtons.analyze"
+                class="selection-btn action-btn"
+                @click="analyzeSelection"
+              >
+                <i class="material-icons">data_usage</i>
+                <span>分析</span>
               </button>
               <button
                 v-if="headerButtons.delete"
@@ -1030,6 +1056,7 @@ const headerButtons = computed(() => {
       authStore.user?.perm.download,
     move: fileStore.selectedCount > 0 && authStore.user?.perm.rename,
     copy: fileStore.selectedCount > 0 && authStore.user?.perm.create,
+    analyze: fileStore.selectedCount > 0 && authStore.user?.perm.download,
   };
 });
 
@@ -1605,6 +1632,13 @@ const toggleMultipleSelection = () => {
 
 const clearSelection = () => {
   fileStore.clearSelection();
+};
+
+const analyzeSelection = () => {
+  const paths = fileStore.selectedItems.map((item) => item.path);
+  if (paths.length === 0) return;
+  hideContextMenu();
+  void router.push({ path: "/analysis", query: { paths } });
 };
 
 const selectAll = () => {

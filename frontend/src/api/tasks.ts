@@ -1,6 +1,6 @@
 import { fetchJSON, fetchURL } from "./utils";
 
-export type TaskType = "trash.clear";
+export type TaskType = "trash.clear" | "analysis.duplicates";
 export type TaskStatus =
   | "queued"
   | "running"

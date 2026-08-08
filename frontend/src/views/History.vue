@@ -136,6 +136,7 @@ const actions: Record<string, { label: string; icon: string }> = {
   "trash.restore": { label: "从回收站恢复", icon: "restore" },
   "trash.delete": { label: "永久删除", icon: "delete_forever" },
   "trash.clear": { label: "清空回收站", icon: "delete_sweep" },
+  "analysis.duplicates": { label: "查找重复文件", icon: "content_copy" },
   "task.cancel": { label: "取消任务", icon: "stop_circle" },
   "task.retry": { label: "重试任务", icon: "replay" },
   "file.mkdir": { label: "新建文件夹", icon: "create_new_folder" },

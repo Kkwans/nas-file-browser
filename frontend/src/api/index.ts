@@ -9,6 +9,7 @@ import * as volumes from "./volumes";
 import * as trash from "./trash";
 import * as tasks from "./tasks";
 import * as history from "./history";
+import * as analysis from "./analysis";
 
 export {
   files,
@@ -22,4 +23,5 @@ export {
   trash,
   tasks,
   history,
+  analysis,
 };

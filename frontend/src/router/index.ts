@@ -14,6 +14,7 @@ const Recent = () => import("@/views/Recent.vue");
 const Trash = () => import("@/views/Trash.vue");
 const Tasks = () => import("@/views/Tasks.vue");
 const History = () => import("@/views/History.vue");
+const Analysis = () => import("@/views/Analysis.vue");
 const Settings = () => import("@/views/Settings.vue");
 const ProfileSettings = () => import("@/views/settings/Profile.vue");
 const Shares = () => import("@/views/settings/Shares.vue");
@@ -31,6 +32,7 @@ const titles: Record<string, string> = {
   Trash: "回收站",
   Tasks: "任务中心",
   History: "操作历史",
+  Analysis: "存储工具",
   Settings: "设置",
   ProfileSettings: "账户设置",
   Shares: "分享管理",
@@ -140,6 +142,20 @@ const routes = [
         path: "",
         name: "History",
         component: History,
+      },
+    ],
+  },
+  {
+    path: "/analysis",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "Analysis",
+        component: Analysis,
       },
     ],
   },

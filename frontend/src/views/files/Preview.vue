@@ -121,6 +121,7 @@
         <VideoPlayer
           v-else-if="fileStore.req?.type == 'video'"
           ref="player"
+          :path="fileStore.req.path"
           :source="previewUrl"
           :subtitles="subtitles"
           :options="videoOptions"

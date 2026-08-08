@@ -11,6 +11,7 @@ import * as tasks from "./tasks";
 import * as history from "./history";
 import * as analysis from "./analysis";
 import * as archive from "./archive";
+import * as media from "./media";
 
 export {
   files,
@@ -26,4 +27,5 @@ export {
   history,
   analysis,
   archive,
+  media,
 };

@@ -145,6 +145,25 @@ export async function put(url: string, content: ApiContent = "") {
   return resourceAction(url, "PUT", content);
 }
 
+/**
+ * Creates a new resource without ever overwriting an existing path.
+ * The backend performs the final existence check atomically; callers may
+ * retry a 409 response with a different filename.
+ */
+export async function postExclusive(path: string, content: Blob) {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return fetchURL(
+    `/api/resources${urlUtils.encodePath(normalized)}?override=false`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": content.type || "application/octet-stream",
+      },
+      body: content,
+    }
+  );
+}
+
 export function download(format: DownloadFormat, ...files: string[]) {
   let url = `${baseURL}/api/raw`;
 

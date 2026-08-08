@@ -79,6 +79,16 @@
       </template>
     </header-bar>
 
+    <div
+      v-if="markdownImageUploading"
+      class="markdown-image-upload-status"
+      role="status"
+      aria-live="polite"
+    >
+      <span aria-hidden="true"></span>
+      {{ markdownImageUploadLabel }}
+    </div>
+
     <div class="loading delayed" v-if="layoutStore.loading">
       <div class="spinner">
         <div class="bounce1"></div>
@@ -207,6 +217,7 @@ import {
   MARKDOWN_CODE_LANGUAGES,
   updateMarkdownCodeFenceLanguage,
 } from "@/utils/markdownCode";
+import { storeMarkdownImage } from "@/utils/markdownImages";
 import type { Ace } from "ace-builds";
 
 import Action from "@/components/header/Action.vue";
@@ -225,8 +236,14 @@ import {
   ref,
   watch,
 } from "vue";
-import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
+import {
+  onBeforeRouteLeave,
+  onBeforeRouteUpdate,
+  useRoute,
+  useRouter,
+} from "vue-router";
 const $showError = inject<IToastError>("$showError")!;
+const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 
 const fileStore = useFileStore();
 const authStore = useAuthStore();
@@ -247,6 +264,8 @@ const usesVditor = isMarkdownFile && !isLargeMarkdown;
 const aceEditorReady = ref(false);
 const showLineNumbers = ref(!usesVditor);
 const langCaption = ref("");
+const markdownImageUploading = ref(false);
+const markdownImageUploadLabel = ref("");
 const showCodeLanguagePicker = ref(false);
 const codeLanguageQuery = ref("");
 const codeLanguageSearchInput = ref<HTMLInputElement | null>(null);
@@ -375,6 +394,11 @@ onBeforeUnmount(() => {
 });
 
 onBeforeRouteUpdate((to, from, next) => {
+  if (markdownImageUploading.value) {
+    $showError("图片正在保存，请稍候再离开编辑器", false);
+    next(false);
+    return;
+  }
   if (layoutStore.loading) {
     next();
     return;
@@ -423,6 +447,12 @@ onBeforeRouteUpdate((to, from, next) => {
       } catch {}
     },
   });
+});
+
+onBeforeRouteLeave(() => {
+  if (!markdownImageUploading.value) return true;
+  $showError("图片正在保存，请稍候再离开编辑器", false);
+  return false;
 });
 
 const initVditor = async (content: string) => {
@@ -522,6 +552,11 @@ const initVditorWithMode = async (
         sanitize: true,
         toc: true,
       },
+    },
+    upload: {
+      accept: "image/*",
+      multiple: true,
+      handler: handleMarkdownImageUpload,
     },
     after: () => {
       if (generation !== editorGeneration) return;
@@ -851,6 +886,54 @@ const applyMarkdownCodeLanguage = (language: string) => {
   userEdited = true;
 };
 
+const handleMarkdownImageUpload = async (files: File[]): Promise<null> => {
+  if (!authStore.user?.perm.create || !authStore.user?.perm.modify) {
+    $showError("拖入图片需要创建文件和修改 Markdown 的权限", false);
+    return null;
+  }
+  if (markdownImageUploading.value) {
+    $showError("已有图片正在保存，请稍候", false);
+    return null;
+  }
+  if (!vditorInstance?.insertMD) {
+    $showError("Markdown 编辑器尚未准备好", false);
+    return null;
+  }
+  const documentPath = fileStore.req?.path;
+  if (!documentPath) {
+    $showError("无法确定 Markdown 文档路径", false);
+    return null;
+  }
+
+  markdownImageUploading.value = true;
+  try {
+    for (const [index, file] of files.entries()) {
+      markdownImageUploadLabel.value = `正在保存图片 ${index + 1} / ${files.length}`;
+      const stored = await storeMarkdownImage(
+        documentPath,
+        file,
+        api.postExclusive
+      );
+      vditorInstance.insertMD(`${stored.markdown}\n`);
+      markdownBuffer = vditorInstance.getValue();
+      userEdited = true;
+    }
+    $showSuccess(
+      files.length === 1
+        ? "图片已保存到 assets；请手动保存 Markdown"
+        : `${files.length} 张图片已保存到 assets；请手动保存 Markdown`
+    );
+    return null;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    $showError(`图片保存失败：${message}`, false);
+    return null;
+  } finally {
+    markdownImageUploading.value = false;
+    markdownImageUploadLabel.value = "";
+  }
+};
+
 const rebuildMarkdownMode = async (mode: MarkdownMode) => {
   if (!vditorInstance) return;
 
@@ -882,6 +965,10 @@ const rebuildMarkdownMode = async (mode: MarkdownMode) => {
 };
 
 const toggleLineNumbers = async () => {
+  if (markdownImageUploading.value) {
+    $showError("图片正在保存，请稍候再切换行号", false);
+    return;
+  }
   if (usesVditor && currentMode.value === "sv") return;
   showLineNumbers.value = !showLineNumbers.value;
   persistLineNumberPreference();
@@ -899,6 +986,10 @@ const toggleLineNumbers = async () => {
 };
 
 const toggleOutline = async () => {
+  if (markdownImageUploading.value) {
+    $showError("图片正在保存，请稍候再切换大纲", false);
+    return;
+  }
   if (!usesVditor) return;
   showOutline.value = !showOutline.value;
   persistOutlinePreference();
@@ -914,6 +1005,10 @@ const refreshMarkdownCodeBlocks = () => {
 };
 
 const switchMode = async (mode: MarkdownMode) => {
+  if (markdownImageUploading.value) {
+    $showError("图片正在保存，请稍候再切换模式", false);
+    return;
+  }
   if (!vditorInstance) return;
   if (currentMode.value === mode) return;
 
@@ -972,6 +1067,11 @@ const keyEvent = (event: KeyboardEvent) => {
 };
 
 const handlePageChange = (event: BeforeUnloadEvent) => {
+  if (markdownImageUploading.value) {
+    event.preventDefault();
+    event.returnValue = true;
+    return;
+  }
   // 编辑器未初始化完成时，不提示
   if (layoutStore.loading) return;
 
@@ -996,6 +1096,12 @@ const handlePageChange = (event: BeforeUnloadEvent) => {
 };
 
 const save = async (throwError?: boolean) => {
+  if (markdownImageUploading.value) {
+    const error = new Error("图片正在保存，请稍候再保存 Markdown");
+    $showError(error, false);
+    if (throwError) throw error;
+    return;
+  }
   const button = "save";
   buttons.loading("save");
 
@@ -1024,6 +1130,10 @@ const save = async (throwError?: boolean) => {
 };
 
 const close = () => {
+  if (markdownImageUploading.value) {
+    $showError("图片正在保存，请稍候再关闭编辑器", false);
+    return;
+  }
   // 编辑器未初始化完成时，直接关闭
   if (layoutStore.loading) {
     finishClose();
@@ -1097,6 +1207,41 @@ const finishClose = () => {
 .editor-lightweight-shell #editor {
   min-height: 0;
   flex: 1;
+}
+
+.markdown-image-upload-status {
+  display: flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--borderSecondary);
+  color: var(--textPrimary);
+  background: color-mix(in srgb, var(--blue) 8%, var(--surfacePrimary));
+  font-size: 0.82rem;
+}
+
+.markdown-image-upload-status span {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 2px solid color-mix(in srgb, var(--blue) 28%, transparent);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: markdown-image-upload-spin 700ms linear infinite;
+}
+
+@keyframes markdown-image-upload-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown-image-upload-status span {
+    animation: none;
+    border-color: var(--blue);
+  }
 }
 
 .editor-degraded-notice {

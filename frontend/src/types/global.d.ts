@@ -40,6 +40,7 @@ declare global {
     getValue: () => string;
     setValue?: (value: string) => void;
     insertValue?: (value: string) => void;
+    insertMD?: (value: string) => void;
     getCurrentMode?: () => string;
     focus?: () => void;
     blur?: () => void;

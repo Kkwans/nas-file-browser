@@ -81,6 +81,8 @@ func NewHandler(
 	api.Handle("/tasks/{id}/cancel", monkey(taskCancelHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/tasks/{id}/retry", monkey(taskRetryHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/duplicates", monkey(duplicateAnalysisStartHandler(taskRuntime), "")).Methods("POST")
+	api.Handle("/analysis/storage", monkey(storageAnalysisStartHandler(taskRuntime), "")).Methods("POST")
+	api.Handle("/analysis/storage/{id}", monkey(storageAnalysisResultHandler, "")).Methods("GET")
 	api.Handle("/analysis/{id}", monkey(analysisResultHandler, "")).Methods("GET")
 	api.Handle("/archives/entries", monkey(archiveEntriesHandler, "")).Methods("GET")
 	api.Handle("/archives/extractions", monkey(archiveExtractStartHandler(taskRuntime), "")).Methods("POST")

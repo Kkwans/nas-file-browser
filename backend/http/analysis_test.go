@@ -137,3 +137,93 @@ func TestDuplicateAnalysisRequiresReadPermissionAndValidScope(t *testing.T) {
 		t.Fatalf("hidden scope status = %d body=%s", response.Code, response.Body.String())
 	}
 }
+
+func TestStorageAnalysisSharesOneCancelableGlobalWorkerSlot(t *testing.T) {
+	analysisWorkerSlot <- struct{}{}
+	defer func() { <-analysisWorkerSlot }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	d := &data{user: &users.User{Fs: afero.NewMemMapFs()}}
+	runner := storageAnalysisRunner(d, &tasks.Task{}, storageAnalysisArgs{Paths: []string{"/"}})
+	finished := make(chan error, 1)
+	go func() {
+		_, err := runner(ctx, func(tasks.Progress) error { return nil })
+		finished <- err
+	}()
+	select {
+	case err := <-finished:
+		t.Fatalf("queued storage analysis returned before slot release: %v", err)
+	case <-time.After(25 * time.Millisecond):
+	}
+	cancel()
+	select {
+	case err := <-finished:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("queued cancellation error = %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("queued storage analysis did not honor cancellation")
+	}
+}
+
+func TestStorageAnalysisRunsOnExplicitScopesAndKeepsResultsPrivate(t *testing.T) {
+	h := newTrashHTTPHarness(t,
+		users.User{Username: "owner", Perm: users.Permissions{Download: true}},
+		users.User{Username: "other", Perm: users.Permissions{Download: true}},
+	)
+	owner := trashHTTPUserByName(t, h, "owner")
+	other := trashHTTPUserByName(t, h, "other")
+	filesystem := h.fs[owner.ID]
+	if err := filesystem.MkdirAll("/scan/nested", 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := afero.WriteFile(filesystem, "/scan/a.txt", []byte("12345"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	if err := afero.WriteFile(filesystem, "/scan/nested/b.txt", []byte("1234567"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	if err := afero.WriteFile(filesystem, "/outside.txt", []byte("outside"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	runtime, err := tasks.NewRuntime(h.storage.Tasks)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	response := h.request(t, owner.ID, storageAnalysisStartHandler(runtime), http.MethodPost, "/analysis/storage", bytes.NewBufferString(`{"paths":["/scan","/scan/nested"]}`), nil)
+	if response.Code != http.StatusAccepted {
+		t.Fatalf("start status = %d body=%s", response.Code, response.Body.String())
+	}
+	if strings.Contains(response.Body.String(), "paths") || strings.Contains(response.Body.String(), "largestFiles") {
+		t.Fatalf("task response leaked internal args or result: %s", response.Body.String())
+	}
+	var created tasks.Task
+	if err := json.Unmarshal(response.Body.Bytes(), &created); err != nil {
+		t.Fatal(err)
+	}
+	completed := waitForHTTPTask(t, h, created.ID, tasks.StatusCompleted)
+	if completed.Type != tasks.TypeStorageAnalysis || len(completed.Result) == 0 {
+		t.Fatalf("completed storage task = %#v", completed)
+	}
+
+	response = h.request(t, owner.ID, storageAnalysisResultHandler, http.MethodGet, "/analysis/storage/"+created.ID, nil, map[string]string{"id": created.ID})
+	if response.Code != http.StatusOK {
+		t.Fatalf("result status = %d body=%s", response.Code, response.Body.String())
+	}
+	var report analysis.StorageReport
+	if err := json.Unmarshal(response.Body.Bytes(), &report); err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Scopes) != 1 || report.Scopes[0].Path != "/scan" || report.ScannedFiles != 2 || report.ScannedBytes != 12 {
+		t.Fatalf("storage report = %#v", report)
+	}
+	if len(report.LargestFiles) != 2 || report.LargestFiles[0].Path != "/scan/nested/b.txt" {
+		t.Fatalf("largest files = %#v", report.LargestFiles)
+	}
+
+	privateResponse := h.request(t, other.ID, storageAnalysisResultHandler, http.MethodGet, "/analysis/storage/"+created.ID, nil, map[string]string{"id": created.ID})
+	if privateResponse.Code != http.StatusForbidden {
+		t.Fatalf("cross-user result status = %d body=%s", privateResponse.Code, privateResponse.Body.String())
+	}
+}

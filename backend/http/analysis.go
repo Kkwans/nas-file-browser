@@ -26,6 +26,10 @@ type duplicateAnalysisArgs struct {
 	Paths []string `json:"paths"`
 }
 
+type storageAnalysisArgs struct {
+	Paths []string `json:"paths"`
+}
+
 func duplicateAnalysisStartHandler(runtime *tasks.Runtime) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Download {
@@ -57,6 +61,37 @@ func duplicateAnalysisStartHandler(runtime *tasks.Runtime) handleFunc {
 	})
 }
 
+func storageAnalysisStartHandler(runtime *tasks.Runtime) handleFunc {
+	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		if !d.user.Perm.Download {
+			return http.StatusForbidden, fmt.Errorf("没有读取文件元数据的权限")
+		}
+		var request storageAnalysisArgs
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 64*1024))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&request); err != nil {
+			return http.StatusBadRequest, fmt.Errorf("存储分析参数无效: %w", err)
+		}
+		paths, err := validateAnalysisScopes(d, request.Paths)
+		if err != nil {
+			if errors.Is(err, errAnalysisScopeForbidden) {
+				return http.StatusForbidden, err
+			}
+			return http.StatusBadRequest, err
+		}
+		args, err := json.Marshal(storageAnalysisArgs{Paths: paths})
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		task, err := enqueueTask(runtime, d, d.user, tasks.TypeStorageAnalysis, "分析存储空间", args, "")
+		if err != nil {
+			return taskErrorStatus(err), err
+		}
+		recordHistory(d, "analysis.storage", strings.Join(paths, "、"), task.ID, history.StatusSubmitted)
+		return renderJSONStatus(w, task, http.StatusAccepted)
+	})
+}
+
 var analysisResultHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	task, err := d.store.Tasks.Get(d.user.ID, mux.Vars(r)["id"], d.user.Perm.Admin)
 	if err != nil {
@@ -71,6 +106,24 @@ var analysisResultHandler = withUser(func(w http.ResponseWriter, r *http.Request
 	var report analysis.DuplicateReport
 	if err := json.Unmarshal(task.Result, &report); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("分析结果损坏: %w", err)
+	}
+	return renderJSON(w, r, &report)
+})
+
+var storageAnalysisResultHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	task, err := d.store.Tasks.Get(d.user.ID, mux.Vars(r)["id"], d.user.Perm.Admin)
+	if err != nil {
+		return taskErrorStatus(err), err
+	}
+	if task.Type != tasks.TypeStorageAnalysis {
+		return http.StatusNotFound, tasks.ErrNotExist
+	}
+	if task.Status != tasks.StatusCompleted || len(task.Result) == 0 {
+		return http.StatusConflict, fmt.Errorf("存储分析结果尚未完成")
+	}
+	var report analysis.StorageReport
+	if err := json.Unmarshal(task.Result, &report); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("存储分析结果损坏: %w", err)
 	}
 	return renderJSON(w, r, &report)
 })
@@ -141,6 +194,43 @@ func duplicateAnalysisRunner(d *data, task *tasks.Task, args duplicateAnalysisAr
 			})
 		})
 		if err != nil {
+			return nil, err
+		}
+		encoded, err := json.Marshal(result)
+		if err != nil {
+			return nil, err
+		}
+		return encoded, nil
+	}
+}
+
+func storageAnalysisRunner(d *data, task *tasks.Task, args storageAnalysisArgs) tasks.Runner {
+	return func(ctx context.Context, report tasks.Reporter) (json.RawMessage, error) {
+		select {
+		case analysisWorkerSlot <- struct{}{}:
+			defer func() { <-analysisWorkerSlot }()
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+
+		lastReported := -64
+		result, err := analysis.AnalyzeStorage(ctx, d.user.Fs, args.Paths, d, func(progress analysis.ScanProgress) error {
+			if progress.ProcessedItems-lastReported < 64 && progress.ProcessedItems != 0 {
+				return nil
+			}
+			lastReported = progress.ProcessedItems
+			return report(tasks.Progress{
+				ProcessedItems: progress.ProcessedItems,
+				ProcessedBytes: progress.ProcessedBytes,
+			})
+		})
+		if err != nil {
+			return nil, err
+		}
+		if err := report(tasks.Progress{
+			TotalItems: result.ScannedFiles + result.ScannedDirectories, ProcessedItems: result.ScannedFiles + result.ScannedDirectories,
+			TotalBytes: result.ScannedBytes, ProcessedBytes: result.ScannedBytes,
+		}); err != nil {
 			return nil, err
 		}
 		encoded, err := json.Marshal(result)

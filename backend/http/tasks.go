@@ -141,6 +141,25 @@ func taskRunner(d *data, task *tasks.Task) (tasks.Runner, error) {
 			return nil, err
 		}
 		return duplicateAnalysisRunner(&ownerData, task, duplicateAnalysisArgs{Paths: paths}), nil
+	case tasks.TypeStorageAnalysis:
+		var args storageAnalysisArgs
+		if err := json.Unmarshal(task.Args, &args); err != nil {
+			return nil, fmt.Errorf("任务参数损坏: %w", err)
+		}
+		owner, err := d.store.Users.Get(d.server.Root, task.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("任务所有者已不可用: %w", err)
+		}
+		if !owner.Perm.Download {
+			return nil, fmt.Errorf("任务所有者没有读取文件元数据的权限")
+		}
+		ownerData := *d
+		ownerData.user = owner
+		paths, err := validateAnalysisScopes(&ownerData, args.Paths)
+		if err != nil {
+			return nil, err
+		}
+		return storageAnalysisRunner(&ownerData, task, storageAnalysisArgs{Paths: paths}), nil
 	case tasks.TypeArchiveExtract:
 		var args archiveExtractTaskArgs
 		if err := json.Unmarshal(task.Args, &args); err != nil {
@@ -177,6 +196,8 @@ func canRunTaskType(user *users.User, taskType tasks.Type) bool {
 	case tasks.TypeTrashClear:
 		return user.Perm.Delete
 	case tasks.TypeDuplicateAnalysis:
+		return user.Perm.Download
+	case tasks.TypeStorageAnalysis:
 		return user.Perm.Download
 	case tasks.TypeArchiveExtract:
 		return user.Perm.Download && user.Perm.Create

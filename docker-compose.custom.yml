@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.9-phase9f-touch-r3
+    image: nas-file-browser:2026.8.9-phase9f-touch-r7
     build:
       context: .
       dockerfile: Dockerfile.custom

@@ -253,6 +253,16 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 				return http.StatusBadRequest, err
 			}
 		}
+		if v == "ListingPreferences" {
+			preferences, preferenceErr := users.NormalizeListingPreferences(
+				req.Data.ListingPreferences,
+				d.user.HideDotfiles,
+			)
+			if preferenceErr != nil {
+				return http.StatusBadRequest, preferenceErr
+			}
+			req.Data.ListingPreferences = preferences
+		}
 
 		for _, f := range NonModifiableFieldsForNonAdmin {
 			if !d.user.Perm.Admin && v == f {

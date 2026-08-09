@@ -394,73 +394,45 @@
             <i class="material-icons" aria-hidden="true">filter_alt_off</i>
             <span>当前目录没有匹配项，可切换为全局筛选或清除筛选</span>
           </div>
-
-          <h2 data-clear-on-click="true" v-if="items.dirs.length > 0">
-            文件夹
+          <div
+            v-else-if="listingSections.length === 0"
+            class="message filtered-empty prefix-hidden-empty"
+          >
+            <i class="material-icons" aria-hidden="true">visibility_off</i>
+            <span>当前项目已按特殊前缀偏好隐藏，可在账户设置中调整。</span>
+          </div>
+          <template v-for="section in renderedSections" :key="section.id">
             <button
-              v-if="hasSystemDirs"
-              class="system-dirs-toggle"
+              v-if="section.kind === 'prefix'"
               type="button"
-              :aria-expanded="showSystemDirs"
-              @click="toggleSystemDirs"
-              :title="showSystemDirs ? '隐藏系统文件夹' : '显示系统文件夹'"
+              class="listing-prefix-header"
+              :data-prefix-group="section.prefix"
+              :aria-expanded="section.expanded"
+              @click="togglePrefixSection(section.prefix || '')"
             >
+              <code>{{ section.prefix }}</code>
+              <span>{{ section.label }}</span>
+              <span class="listing-prefix-count">{{ section.total }}</span>
               <i class="material-icons" aria-hidden="true">{{
-                showSystemDirs ? "expand_less" : "expand_more"
+                section.expanded ? "expand_less" : "expand_more"
               }}</i>
-              <span>{{ systemDirs.length }} 项</span>
             </button>
-          </h2>
-          <div
-            v-if="items.dirs.length > 0"
-            data-clear-on-click="true"
-            @contextmenu="showContextMenu"
-          >
-            <item
-              v-for="item in dirs"
-              :key="base64(item.name)"
-              v-bind:index="item.index"
-              v-bind:name="item.name"
-              v-bind:isDir="item.isDir"
-              v-bind:url="item.url"
-              v-bind:modified="item.modified"
-              v-bind:type="item.type"
-              v-bind:extension="item.extension"
-              v-bind:view-mode="currentViewMode"
-              v-bind:size="item.size"
-              v-bind:path="item.path"
-              v-bind:risk-level="item.riskLevel"
-              :visible-keys="visibleItemKeys"
-              :register-item="registerItem"
+            <h2 v-else data-clear-on-click="true">{{ section.label }}</h2>
+            <div
+              v-if="section.expanded && section.items.length > 0"
+              data-clear-on-click="true"
+              @contextmenu="showContextMenu"
             >
-            </item>
-          </div>
-
-          <h2 data-clear-on-click="true" v-if="files.length > 0">文件</h2>
-          <div
-            v-if="files.length > 0"
-            data-clear-on-click="true"
-            @contextmenu="showContextMenu"
-          >
-            <item
-              v-for="item in files"
-              :key="base64(item.name)"
-              v-bind:index="item.index"
-              v-bind:name="item.name"
-              v-bind:isDir="item.isDir"
-              v-bind:url="item.url"
-              v-bind:modified="item.modified"
-              v-bind:type="item.type"
-              v-bind:extension="item.extension"
-              v-bind:view-mode="currentViewMode"
-              v-bind:size="item.size"
-              v-bind:path="item.path"
-              v-bind:risk-level="item.riskLevel"
-              :visible-keys="visibleItemKeys"
-              :register-item="registerItem"
-            >
-            </item>
-          </div>
+              <item
+                v-for="item in section.items"
+                :key="base64(item.path)"
+                v-bind="item"
+                :view-mode="currentViewMode"
+                :visible-keys="visibleItemKeys"
+                :register-item="registerItem"
+              />
+            </div>
+          </template>
         </template>
 
         <template v-else>
@@ -507,23 +479,39 @@
               <i class="material-icons" aria-hidden="true">close</i>
             </button>
           </div>
-          <div v-if="isMobile" class="details-mobile-list">
-            <Item
-              v-for="item in dirs"
-              :key="base64(item.name)"
-              v-bind="item"
-              view-mode="details"
-              :visible-keys="visibleItemKeys"
-              :register-item="registerItem"
-            />
-            <Item
-              v-for="item in files"
-              :key="base64(item.name)"
-              v-bind="item"
-              view-mode="details"
-              :visible-keys="visibleItemKeys"
-              :register-item="registerItem"
-            />
+          <div
+            v-if="listingSections.length === 0"
+            class="message filtered-empty prefix-hidden-empty"
+          >
+            <i class="material-icons" aria-hidden="true">visibility_off</i>
+            <span>当前项目已按特殊前缀偏好隐藏，可在账户设置中调整。</span>
+          </div>
+          <div v-else-if="isMobile" class="details-mobile-list">
+            <template v-for="section in renderedSections" :key="section.id">
+              <button
+                v-if="section.kind === 'prefix'"
+                type="button"
+                class="listing-prefix-header"
+                :data-prefix-group="section.prefix"
+                :aria-expanded="section.expanded"
+                @click="togglePrefixSection(section.prefix || '')"
+              >
+                <code>{{ section.prefix }}</code>
+                <span>{{ section.label }}</span>
+                <span class="listing-prefix-count">{{ section.total }}</span>
+                <i class="material-icons" aria-hidden="true">{{
+                  section.expanded ? "expand_less" : "expand_more"
+                }}</i>
+              </button>
+              <Item
+                v-for="item in section.items"
+                :key="base64(item.path)"
+                v-bind="item"
+                view-mode="details"
+                :visible-keys="visibleItemKeys"
+                :register-item="registerItem"
+              />
+            </template>
           </div>
           <div v-else class="details-table-shell">
             <table class="details-table" aria-label="文件列表">
@@ -608,20 +596,38 @@
                 </tr>
               </thead>
               <tbody @contextmenu="showContextMenu">
-                <DetailedTableRow
-                  v-for="item in dirs"
-                  :key="base64(item.name)"
-                  v-bind="item"
-                  :visible-keys="visibleItemKeys"
-                  :register-item="registerItem"
-                />
-                <DetailedTableRow
-                  v-for="item in files"
-                  :key="base64(item.name)"
-                  v-bind="item"
-                  :visible-keys="visibleItemKeys"
-                  :register-item="registerItem"
-                />
+                <template v-for="section in renderedSections" :key="section.id">
+                  <tr
+                    v-if="section.kind === 'prefix'"
+                    class="details-prefix-row"
+                  >
+                    <td colspan="5">
+                      <button
+                        type="button"
+                        class="listing-prefix-header"
+                        :data-prefix-group="section.prefix"
+                        :aria-expanded="section.expanded"
+                        @click="togglePrefixSection(section.prefix || '')"
+                      >
+                        <code>{{ section.prefix }}</code>
+                        <span>{{ section.label }}</span>
+                        <span class="listing-prefix-count">{{
+                          section.total
+                        }}</span>
+                        <i class="material-icons" aria-hidden="true">{{
+                          section.expanded ? "expand_less" : "expand_more"
+                        }}</i>
+                      </button>
+                    </td>
+                  </tr>
+                  <DetailedTableRow
+                    v-for="item in section.items"
+                    :key="base64(item.path)"
+                    v-bind="item"
+                    :visible-keys="visibleItemKeys"
+                    :register-item="registerItem"
+                  />
+                </template>
               </tbody>
             </table>
           </div>
@@ -801,6 +807,7 @@ import { useClipboardStore } from "@/stores/clipboard";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useTagsStore } from "@/stores/tags";
+import { useListingPreferencesStore } from "@/stores/listingPreferences";
 
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
@@ -849,6 +856,10 @@ import {
 } from "@/utils/searchPath";
 import { isExternalFileDrag } from "@/utils/fileDrag";
 import { resourceOpenRoute } from "@/utils/archivePath";
+import {
+  buildListingSections,
+  paginateListingSections,
+} from "@/utils/listingPreferences";
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -864,6 +875,7 @@ const clipboardStore = useClipboardStore();
 const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
+const listingPreferencesStore = useListingPreferencesStore();
 
 // View mode dropdown
 const showViewDropdown = ref<boolean>(false);
@@ -927,11 +939,6 @@ const sortOptions = [
   { by: "type", icon: "category", label: "按类型排序" },
 ];
 
-// @-prefix folder collapse
-const showSystemDirs = ref<boolean>(
-  localStorage.getItem("nas-file-browser-show-system-dirs") === "true"
-);
-
 const { req } = storeToRefs(fileStore);
 
 const route = useRoute();
@@ -950,31 +957,6 @@ const registerItem = (key: string, element: HTMLElement | null) => {
 };
 const scrollItemIntoView = (key: string, block: ScrollLogicalPosition) => {
   itemElements.get(normalizeFileKey(key))?.scrollIntoView({ block });
-};
-
-const normalDirs = computed(() =>
-  items.value.dirs
-    .filter((d) => !d.name.startsWith("@"))
-    .slice(0, showLimit.value)
-);
-const systemDirs = computed(() =>
-  items.value.dirs
-    .filter((d) => d.name.startsWith("@"))
-    .slice(0, showLimit.value)
-);
-const dirs = computed(() => {
-  if (showSystemDirs.value) {
-    return items.value.dirs.slice(0, showLimit.value);
-  }
-  return normalDirs.value;
-});
-const hasSystemDirs = computed(() => systemDirs.value.length > 0);
-const toggleSystemDirs = () => {
-  showSystemDirs.value = !showSystemDirs.value;
-  localStorage.setItem(
-    "nas-file-browser-show-system-dirs",
-    String(showSystemDirs.value)
-  );
 };
 
 const items = computed(() => {
@@ -1010,17 +992,55 @@ const items = computed(() => {
   };
 });
 
-const files = computed((): ResourceItem[] => {
-  let _showLimit = showLimit.value - dirs.value.length;
+const listingSections = computed(() =>
+  buildListingSections(
+    items.value.dirs,
+    items.value.files,
+    listingPreferencesStore.preferences
+  )
+);
 
-  if (_showLimit < 0) _showLimit = 0;
+const navigableItems = computed<ResourceItem[]>(() =>
+  listingSections.value.flatMap((section) =>
+    section.expanded ? section.items : []
+  )
+);
 
-  return items.value.files.slice(0, _showLimit);
-});
+const renderedSections = computed(() =>
+  paginateListingSections(listingSections.value, showLimit.value)
+);
 
 const visibleItemKeys = computed(() =>
-  [...dirs.value, ...files.value].map((item) => normalizeFileKey(item.path))
+  navigableItems.value.map((item) => normalizeFileKey(item.path))
 );
+
+const togglePrefixSection = async (prefix: string) => {
+  const section = listingSections.value.find(
+    (candidate) => candidate.prefix === prefix
+  );
+  if (!section) return;
+  const selectionSnapshot = {
+    selected: [...fileStore.selected],
+    focused: fileStore.focused,
+    rangeAnchor: fileStore.rangeAnchor,
+  };
+  if (section.expanded) {
+    const hiddenKeys = new Set(
+      section.items.map((item) => normalizeFileKey(item.path))
+    );
+    fileStore.setSelected(
+      fileStore.selected.filter((key) => !hiddenKeys.has(key))
+    );
+  }
+  try {
+    await listingPreferencesStore.updateRule(prefix, {
+      expanded: !section.expanded,
+    });
+  } catch (error) {
+    fileStore.$patch(selectionSnapshot);
+    $showError(error instanceof Error ? error : new Error("分组偏好保存失败"));
+  }
+};
 
 const skeletonViewMode = computed(() => {
   const mode = currentViewMode.value;
@@ -1167,7 +1187,7 @@ const keyEvent = (event: KeyboardEvent) => {
   // Arrow key navigation
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     event.preventDefault();
-    const allItems = [...items.value.dirs, ...items.value.files];
+    const allItems = navigableItems.value;
     if (allItems.length === 0) return;
 
     const currentKey = fileStore.focused ?? fileStore.selected.at(-1);
@@ -1217,7 +1237,7 @@ const keyEvent = (event: KeyboardEvent) => {
   // Home - jump to first item
   if (event.key === "Home" && !event.ctrlKey && !event.metaKey) {
     event.preventDefault();
-    const allItems = [...items.value.dirs, ...items.value.files];
+    const allItems = navigableItems.value;
     if (allItems.length > 0) {
       const targetKey = normalizeFileKey(allItems[0].path);
       const orderedKeys = allItems.map((item) => normalizeFileKey(item.path));
@@ -1231,7 +1251,7 @@ const keyEvent = (event: KeyboardEvent) => {
   // End - jump to last item
   if (event.key === "End" && !event.ctrlKey && !event.metaKey) {
     event.preventDefault();
-    const allItems = [...items.value.dirs, ...items.value.files];
+    const allItems = navigableItems.value;
     if (allItems.length > 0) {
       const targetKey = normalizeFileKey(allItems[allItems.length - 1].path);
       const orderedKeys = allItems.map((item) => normalizeFileKey(item.path));
@@ -1246,7 +1266,7 @@ const keyEvent = (event: KeyboardEvent) => {
   // Page Up / Page Down - jump by visible page size
   if (event.key === "PageDown" || event.key === "PageUp") {
     event.preventDefault();
-    const allItems = [...items.value.dirs, ...items.value.files];
+    const allItems = navigableItems.value;
     if (allItems.length === 0) return;
 
     // Estimate visible items from viewport height
@@ -1317,7 +1337,7 @@ const keyEvent = (event: KeyboardEvent) => {
             path: item.path,
             extension: item.extension || "",
           },
-          items: [...items.value.dirs, ...items.value.files],
+          items: navigableItems.value,
         },
       });
     }
@@ -1345,11 +1365,8 @@ const keyEvent = (event: KeyboardEvent) => {
       break;
     case "a":
       event.preventDefault();
-      for (const file of items.value.files) {
-        fileStore.addSelected(normalizeFileKey(file.path));
-      }
-      for (const dir of items.value.dirs) {
-        fileStore.addSelected(normalizeFileKey(dir.path));
+      for (const item of navigableItems.value) {
+        fileStore.addSelected(normalizeFileKey(item.path));
       }
       break;
     case "s":
@@ -1477,8 +1494,7 @@ const paste = async (event: Event) => {
 };
 
 const scrollEvent = throttle(() => {
-  const totalItems =
-    (fileStore.req?.numDirs ?? 0) + (fileStore.req?.numFiles ?? 0);
+  const totalItems = navigableItems.value.length;
 
   // All items are displayed
   if (showLimit.value >= totalItems) return;
@@ -1646,17 +1662,14 @@ const analyzeSelection = () => {
 
 const selectAll = () => {
   fileStore.setSelected(
-    [...items.value.dirs, ...items.value.files].map((item) =>
-      normalizeFileKey(item.path)
-    )
+    navigableItems.value.map((item) => normalizeFileKey(item.path))
   );
 };
 
 const invertSelection = () => {
-  const allKeys = new Set<string>();
-  for (const dir of items.value.dirs) allKeys.add(normalizeFileKey(dir.path));
-  for (const file of items.value.files)
-    allKeys.add(normalizeFileKey(file.path));
+  const allKeys = new Set<string>(
+    navigableItems.value.map((item) => normalizeFileKey(item.path))
+  );
   const selectedSet = new Set(fileStore.selected);
   fileStore.setSelected([...allKeys].filter((key) => !selectedSet.has(key)));
 };
@@ -1819,8 +1832,12 @@ const setItemWeight = () => {
   // Listing element is not displayed
   if (listing.value === null || fileStore.req === null) return;
 
-  let itemQuantity = fileStore.req.numDirs + fileStore.req.numFiles;
+  let itemQuantity = navigableItems.value.length;
   if (itemQuantity > showLimit.value) itemQuantity = showLimit.value;
+  if (itemQuantity === 0) {
+    itemWeight.value = 60;
+    return;
+  }
 
   // How much every listing item affects the window height
   itemWeight.value = listing.value.offsetHeight / itemQuantity;
@@ -1829,7 +1846,7 @@ const setItemWeight = () => {
 const fillWindow = (fit = false) => {
   if (fileStore.req === null) return;
 
-  const totalItems = fileStore.req.numDirs + fileStore.req.numFiles;
+  const totalItems = navigableItems.value.length;
 
   // More items are displayed than the total
   if (showLimit.value >= totalItems && !fit) return;

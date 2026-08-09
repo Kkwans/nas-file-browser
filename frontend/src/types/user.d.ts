@@ -18,6 +18,7 @@ export interface IUser {
   sorting?: Sorting;
   aceEditorTheme: string;
   sidebarPreferences?: string;
+  listingPreferences?: ListingPreferences;
 }
 
 export type ViewModeType =
@@ -44,6 +45,18 @@ export interface Permissions {
 export interface Sorting {
   by: string;
   asc: boolean;
+}
+
+export interface PrefixRule {
+  prefix: string;
+  visible: boolean;
+  expanded: boolean;
+  order: number;
+}
+
+export interface ListingPreferences {
+  version: number;
+  prefixRules: PrefixRule[];
 }
 
 interface IRule {

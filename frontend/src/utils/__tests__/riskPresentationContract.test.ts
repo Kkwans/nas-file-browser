@@ -55,9 +55,7 @@ describe("risk presentation contract", () => {
     expect(thumbnailSource).toContain("<RiskResourceIcon");
     expect(listingItemSource).toContain("<RiskIndicator");
     expect(detailedRowSource).toContain("<RiskIndicator");
-    expect(
-      fileListingSource.match(/v-bind:risk-level="item\.riskLevel"/g)
-    ).toHaveLength(2);
+    expect(fileListingSource.match(/v-bind="item"/g)).toHaveLength(3);
   });
 
   it("removes frontend classification and every legacy overlay dot", () => {

@@ -20,24 +20,25 @@ const (
 
 // User describes a user.
 type User struct {
-	ID                    uint          `storm:"id,increment" json:"id"`
-	Username              string        `storm:"unique" json:"username"`
-	Password              string        `json:"password"`
-	Scope                 string        `json:"scope"`
-	Locale                string        `json:"locale"`
-	LockPassword          bool          `json:"lockPassword"`
-	ViewMode              ViewMode      `json:"viewMode"`
-	SingleClick           bool          `json:"singleClick"`
-	RedirectAfterCopyMove bool          `json:"redirectAfterCopyMove"`
-	Perm                  Permissions   `json:"perm"`
-	Commands              []string      `json:"commands"`
-	Sorting               files.Sorting `json:"sorting"`
-	Fs                    afero.Fs      `json:"-" yaml:"-"`
-	Rules                 []rules.Rule  `json:"rules"`
-	HideDotfiles          bool          `json:"hideDotfiles"`
-	DateFormat            bool          `json:"dateFormat"`
-	AceEditorTheme        string        `json:"aceEditorTheme"`
-	SidebarPreferences    string        `json:"sidebarPreferences"`
+	ID                    uint               `storm:"id,increment" json:"id"`
+	Username              string             `storm:"unique" json:"username"`
+	Password              string             `json:"password"`
+	Scope                 string             `json:"scope"`
+	Locale                string             `json:"locale"`
+	LockPassword          bool               `json:"lockPassword"`
+	ViewMode              ViewMode           `json:"viewMode"`
+	SingleClick           bool               `json:"singleClick"`
+	RedirectAfterCopyMove bool               `json:"redirectAfterCopyMove"`
+	Perm                  Permissions        `json:"perm"`
+	Commands              []string           `json:"commands"`
+	Sorting               files.Sorting      `json:"sorting"`
+	Fs                    afero.Fs           `json:"-" yaml:"-"`
+	Rules                 []rules.Rule       `json:"rules"`
+	HideDotfiles          bool               `json:"hideDotfiles"`
+	DateFormat            bool               `json:"dateFormat"`
+	AceEditorTheme        string             `json:"aceEditorTheme"`
+	SidebarPreferences    string             `json:"sidebarPreferences"`
+	ListingPreferences    ListingPreferences `json:"listingPreferences"`
 }
 
 // GetRules implements rules.Provider.
@@ -53,6 +54,7 @@ var checkableFields = []string{
 	"Commands",
 	"Sorting",
 	"Rules",
+	"ListingPreferences",
 }
 
 // Clean cleans up a user and verifies if all its fields
@@ -88,6 +90,12 @@ func (u *User) Clean(baseScope string, fields ...string) error {
 			if u.Rules == nil {
 				u.Rules = []rules.Rule{}
 			}
+		case "ListingPreferences":
+			preferences, err := NormalizeListingPreferences(u.ListingPreferences, u.HideDotfiles)
+			if err != nil {
+				return err
+			}
+			u.ListingPreferences = preferences
 		}
 	}
 

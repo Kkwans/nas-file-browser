@@ -133,8 +133,8 @@ func TestDuplicateAnalysisRequiresReadPermissionAndValidScope(t *testing.T) {
 		t.Fatal(err)
 	}
 	response = h.request(t, reader.ID, duplicateAnalysisStartHandler(runtime), http.MethodPost, "/analysis/duplicates", bytes.NewBufferString(`{"paths":["/.hidden"]}`), nil)
-	if response.Code != http.StatusForbidden {
-		t.Fatalf("hidden scope status = %d body=%s", response.Code, response.Body.String())
+	if response.Code != http.StatusAccepted {
+		t.Fatalf("direct hidden scope status = %d body=%s", response.Code, response.Body.String())
 	}
 }
 

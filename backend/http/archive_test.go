@@ -160,8 +160,8 @@ func TestArchiveHTTPRequiresPermissionsAndSupportedSafePaths(t *testing.T) {
 	}
 	writeTarFixture(t, h.fs[hidden.ID], "/.hidden/bundle.tar", map[string]string{"file.txt": "data"})
 	response = h.request(t, hidden.ID, archiveEntriesHandler, http.MethodGet, "/archives/entries?path=/.hidden/bundle.tar", nil, nil)
-	if response.Code != http.StatusForbidden {
-		t.Fatalf("hidden archive status = %d body=%s", response.Code, response.Body.String())
+	if response.Code != http.StatusOK {
+		t.Fatalf("direct hidden archive status = %d body=%s", response.Code, response.Body.String())
 	}
 
 	if err := afero.WriteFile(h.fs[hidden.ID], "/unsupported.rar", []byte("Rar!\x1a\x07\x00"), 0o640); err != nil {

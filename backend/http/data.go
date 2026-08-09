@@ -7,7 +7,6 @@ import (
 
 	"github.com/tomasen/realip"
 
-	"github.com/Kkwans/nas-file-browser/backend/rules"
 	"github.com/Kkwans/nas-file-browser/backend/runner"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/storage"
@@ -31,10 +30,6 @@ func (d *data) Check(path string) bool {
 	if trash.IsInternalPath(path) {
 		return false
 	}
-	if d.user.HideDotfiles && rules.MatchHidden(path) {
-		return false
-	}
-
 	allow := true
 	for _, rule := range d.settings.Rules {
 		if rule.Matches(path) {

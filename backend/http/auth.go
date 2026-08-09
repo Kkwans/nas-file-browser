@@ -26,18 +26,19 @@ const (
 )
 
 type userInfo struct {
-	ID                    uint              `json:"id"`
-	Locale                string            `json:"locale"`
-	ViewMode              users.ViewMode    `json:"viewMode"`
-	SingleClick           bool              `json:"singleClick"`
-	RedirectAfterCopyMove bool              `json:"redirectAfterCopyMove"`
-	Perm                  users.Permissions `json:"perm"`
-	Commands              []string          `json:"commands"`
-	LockPassword          bool              `json:"lockPassword"`
-	HideDotfiles          bool              `json:"hideDotfiles"`
-	DateFormat            bool              `json:"dateFormat"`
-	Username              string            `json:"username"`
-	AceEditorTheme        string            `json:"aceEditorTheme"`
+	ID                    uint                     `json:"id"`
+	Locale                string                   `json:"locale"`
+	ViewMode              users.ViewMode           `json:"viewMode"`
+	SingleClick           bool                     `json:"singleClick"`
+	RedirectAfterCopyMove bool                     `json:"redirectAfterCopyMove"`
+	Perm                  users.Permissions        `json:"perm"`
+	Commands              []string                 `json:"commands"`
+	LockPassword          bool                     `json:"lockPassword"`
+	HideDotfiles          bool                     `json:"hideDotfiles"`
+	DateFormat            bool                     `json:"dateFormat"`
+	Username              string                   `json:"username"`
+	AceEditorTheme        string                   `json:"aceEditorTheme"`
+	ListingPreferences    users.ListingPreferences `json:"listingPreferences"`
 }
 
 type authToken struct {
@@ -257,6 +258,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 			DateFormat:            user.DateFormat,
 			Username:              user.Username,
 			AceEditorTheme:        user.AceEditorTheme,
+			ListingPreferences:    user.ListingPreferences,
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

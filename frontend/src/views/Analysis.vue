@@ -9,9 +9,9 @@
         </div>
       </div>
       <template #actions>
-        <router-link class="analysis-header-action" to="/tasks">
-          <AppIcon name="tasks" :size="19" />
-          任务中心
+        <router-link class="analysis-header-action" :to="taskReturnRoute">
+          <AppIcon :name="taskReturnId ? 'arrow-left' : 'tasks'" :size="19" />
+          {{ taskReturnId ? "返回原任务" : "任务中心" }}
         </router-link>
       </template>
     </header-bar>
@@ -400,6 +400,16 @@ let pollTimer: number | undefined;
 let disposed = false;
 let taskLoadSequence = 0;
 let recentLoadSequence = 0;
+
+const taskReturnId = computed(() =>
+  route.query.from === "tasks" && typeof route.query.returnTask === "string"
+    ? route.query.returnTask
+    : ""
+);
+const taskReturnRoute = computed(() => ({
+  path: "/tasks",
+  query: taskReturnId.value ? { returnTask: taskReturnId.value } : undefined,
+}));
 
 const includesRoot = computed(() => scopes.value.includes("/"));
 const isTaskActive = computed(

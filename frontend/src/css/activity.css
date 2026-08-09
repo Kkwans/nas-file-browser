@@ -836,6 +836,10 @@
   background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
 }
 
+.task-row.is-return-focus {
+  animation: task-return-focus 600ms ease-out;
+}
+
 .task-row__content {
   min-width: 0;
 }
@@ -1209,6 +1213,25 @@
 @keyframes activity-skeleton {
   to {
     background-position-x: -220%;
+  }
+}
+
+@keyframes task-return-focus {
+  0%, 45% {
+    background: color-mix(in srgb, var(--blue) 14%, var(--surfacePrimary));
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--blue) 45%, transparent);
+  }
+  100% {
+    background: var(--surfacePrimary);
+    box-shadow: inset 0 0 0 2px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-row.is-return-focus {
+    animation: none;
+    background: color-mix(in srgb, var(--blue) 11%, var(--surfacePrimary));
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--blue) 38%, transparent);
   }
 }
 

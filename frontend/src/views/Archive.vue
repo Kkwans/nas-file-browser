@@ -17,9 +17,11 @@
           <i class="material-icons" aria-hidden="true">arrow_back</i>
           返回所在目录
         </router-link>
-        <router-link class="archive-header-action" to="/tasks">
-          <i class="material-icons" aria-hidden="true">pending_actions</i>
-          任务中心
+        <router-link class="archive-header-action" :to="taskReturnRoute">
+          <i class="material-icons" aria-hidden="true">{{
+            taskReturnId ? "arrow_back" : "pending_actions"
+          }}</i>
+          {{ taskReturnId ? "返回原任务" : "任务中心" }}
         </router-link>
       </template>
     </header-bar>
@@ -383,6 +385,16 @@ const canceling = ref(false);
 const currentTask = ref<TaskItem | null>(null);
 const extractReport = ref<ArchiveExtractReport | null>(null);
 let pollTimer: number | undefined;
+
+const taskReturnId = computed(() =>
+  route.query.from === "tasks" && typeof route.query.returnTask === "string"
+    ? route.query.returnTask
+    : ""
+);
+const taskReturnRoute = computed(() => ({
+  path: "/tasks",
+  query: taskReturnId.value ? { returnTask: taskReturnId.value } : undefined,
+}));
 let disposed = false;
 let routeLoadSequence = 0;
 let listingLoadSequence = 0;

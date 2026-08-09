@@ -197,6 +197,8 @@
           :id="`task-${task.id}`"
           :key="task.id"
           class="task-row"
+          :class="{ 'is-return-focus': returnFocusId === task.id }"
+          tabindex="-1"
         >
           <span class="task-icon" :class="`task-icon--${task.status}`">
             <app-icon :name="taskIcon(task.status)" :size="20" />
@@ -286,13 +288,14 @@
             >
               <app-icon name="retry" :size="17" />重试
             </button>
-            <router-link
+            <button
               v-if="resultRoute(task)"
+              type="button"
               class="primary"
-              :to="resultRoute(task)!"
+              @click="resultTask = task"
             >
               <app-icon :name="resultIcon(task.type)" :size="17" />查看结果
-            </router-link>
+            </button>
             <button
               v-if="task.archivedAt"
               type="button"
@@ -338,6 +341,12 @@
       @close="closeBatch"
       @confirm="confirmBatch"
     />
+    <task-result-dialog
+      v-if="resultTask"
+      :task="resultTask"
+      @close="resultTask = null"
+      @full-report="openFullReport(resultTask)"
+    />
   </div>
 </template>
 
@@ -345,16 +354,18 @@
 import {
   computed,
   inject,
+  nextTick,
   onMounted,
   onUnmounted,
   reactive,
   ref,
   watch,
 } from "vue";
-import type { RouteLocationRaw } from "vue-router";
+import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import dayjs from "dayjs";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import TaskBatchDialog from "@/components/tasks/TaskBatchDialog.vue";
+import TaskResultDialog from "@/components/tasks/TaskResultDialog.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 import * as taskApi from "@/api/tasks";
@@ -380,6 +391,8 @@ type TaskFilter =
 
 const authStore = useAuthStore();
 const tasksStore = useTasksStore();
+const route = useRoute();
+const router = useRouter();
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const activeFilter = ref<TaskFilter>("all");
@@ -406,7 +419,20 @@ const batchContext = ref<{
 } | null>(null);
 const batchResult = ref<TaskBatchResponse | null>(null);
 const batchBusy = ref(false);
+const resultTask = ref<TaskItem | null>(null);
+const returnFocusId = ref("");
 let pollingTimer: number | undefined;
+let restoringReturn = false;
+
+const taskReturnStorageKey = "nfb:task-return:v1";
+
+interface TaskReturnState {
+  taskId: string;
+  activeFilter: TaskFilter;
+  filters: typeof appliedFilter;
+  loadedCount: number;
+  scrollY: number;
+}
 
 const taskTypes: Array<{ value: TaskType; label: string }> = [
   { value: "trash.clear", label: "回收站清理" },
@@ -673,6 +699,108 @@ function resultRoute(task: TaskItem): RouteLocationRaw | null {
   return null;
 }
 
+function fullResultRoute(task: TaskItem): RouteLocationRaw | null {
+  const target = resultRoute(task);
+  if (!target || typeof target === "string") return target;
+  return {
+    ...target,
+    query: {
+      ...(target.query ?? {}),
+      from: "tasks",
+      returnTask: task.id,
+    },
+  };
+}
+
+function rememberTaskPosition(taskId: string) {
+  const state: TaskReturnState = {
+    taskId,
+    activeFilter: activeFilter.value,
+    filters: { ...appliedFilter },
+    loadedCount: tasksStore.items.length,
+    scrollY: window.scrollY,
+  };
+  try {
+    sessionStorage.setItem(taskReturnStorageKey, JSON.stringify(state));
+  } catch {
+    // 浏览器禁用会话存储时仍允许打开完整报告，只是不恢复原滚动位置。
+  }
+}
+
+async function openFullReport(task: TaskItem) {
+  const target = fullResultRoute(task);
+  if (!target) return;
+  rememberTaskPosition(task.id);
+  resultTask.value = null;
+  await router.push(target);
+}
+
+function readTaskReturnState(taskId: string): TaskReturnState | null {
+  try {
+    const raw = sessionStorage.getItem(taskReturnStorageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<TaskReturnState>;
+    if (
+      parsed.taskId !== taskId ||
+      !filters.value.some((item) => item.id === parsed.activeFilter) ||
+      !parsed.filters
+    ) {
+      return null;
+    }
+    return parsed as TaskReturnState;
+  } catch {
+    return null;
+  }
+}
+
+async function restoreTaskPosition() {
+  const taskId =
+    typeof route.query.returnTask === "string" ? route.query.returnTask : "";
+  if (!taskId) {
+    await load();
+    return;
+  }
+  const state = readTaskReturnState(taskId);
+  if (state) {
+    restoringReturn = true;
+    activeFilter.value = state.activeFilter;
+    Object.assign(filterDraft, state.filters);
+    Object.assign(appliedFilter, state.filters);
+  }
+  await load();
+  if (state) {
+    while (
+      tasksStore.nextCursor &&
+      tasksStore.items.length < state.loadedCount &&
+      !tasksStore.items.some((task) => task.id === taskId)
+    ) {
+      await tasksStore.loadMore();
+    }
+  }
+  restoringReturn = false;
+  await nextTick();
+  const target = document.getElementById(`task-${taskId}`);
+  if (target) {
+    returnFocusId.value = taskId;
+    window.scrollTo({
+      top: state?.scrollY ?? window.scrollY,
+      behavior: "auto",
+    });
+    target.focus({ preventScroll: true });
+    window.setTimeout(() => {
+      if (returnFocusId.value === taskId) returnFocusId.value = "";
+    }, 600);
+  }
+  try {
+    sessionStorage.removeItem(taskReturnStorageKey);
+  } catch {
+    // 无会话存储时无需清理。
+  }
+  const query = { ...route.query };
+  delete query.returnTask;
+  await router.replace({ query });
+}
+
 function resultIcon(type: TaskType): AppIconName {
   if (type === "analysis.duplicates") return "analysis-duplicates";
   if (type === "analysis.storage") return "analysis-storage";
@@ -680,10 +808,12 @@ function resultIcon(type: TaskType): AppIconName {
   return "tasks";
 }
 
-watch(activeFilter, () => void load());
+watch(activeFilter, () => {
+  if (!restoringReturn) void load();
+});
 
 onMounted(() => {
-  void load();
+  void restoreTaskPosition();
   pollingTimer = window.setInterval(() => {
     if (!batchContext.value) void load(false);
   }, 5000);

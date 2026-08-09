@@ -2,6 +2,7 @@ import type { Component } from "vue";
 import {
   Archive,
   ArchiveRestore,
+  ArrowLeft,
   BarChart3,
   ChartPie,
   ChevronRight,
@@ -12,6 +13,7 @@ import {
   Database,
   Download,
   Ellipsis,
+  ExternalLink,
   FileCog,
   FileExclamationPoint,
   FilePlus2,
@@ -50,6 +52,7 @@ import {
 export const appIcons = {
   archive: Archive,
   "archive-restore": ArchiveRestore,
+  "arrow-left": ArrowLeft,
   "analysis-duplicates": Copy,
   "analysis-storage": ChartPie,
   categories: Shapes,
@@ -62,6 +65,7 @@ export const appIcons = {
   database: Database,
   download: Download,
   ellipsis: Ellipsis,
+  "external-link": ExternalLink,
   file: Files,
   "file-maintenance": FileCog,
   "file-new": FilePlus2,

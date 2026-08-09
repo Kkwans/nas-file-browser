@@ -13,6 +13,15 @@ const scopePanelSource = readFileSync(
   ),
   "utf8"
 );
+const recentScansSource = readFileSync(
+  fileURLToPath(
+    new URL(
+      "../../components/analysis/AnalysisRecentScans.vue",
+      import.meta.url
+    )
+  ),
+  "utf8"
+);
 
 describe("存储工具无障碍契约", () => {
   it("扫描范围移除按钮保留 44px 触摸目标", () => {
@@ -36,6 +45,20 @@ describe("存储工具无障碍契约", () => {
     );
     expect(scopePanelSource).not.toContain(
       '<header class="analysis-run-panel__header">'
+    );
+  });
+
+  it("最近扫描同时呈现范围、指标、状态、时间和可达结果入口", () => {
+    expect(analysisSource).toContain("<AnalysisRecentScans");
+    expect(recentScansSource).toContain("item.scopes.join");
+    expect(recentScansSource).toContain("metricsLabel(item)");
+    expect(recentScansSource).toContain("statusLabel(item)");
+    expect(recentScansSource).toContain("formatTime(item.createdAt)");
+    expect(recentScansSource).toMatch(
+      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*44px;/
+    );
+    expect(recentScansSource).not.toContain(
+      '<header class="analysis-recent__header">'
     );
   });
 });

@@ -70,6 +70,28 @@ export interface StorageReport {
   resultLimit: number;
 }
 
+export interface AnalysisRecentMetrics {
+  scannedFiles: number;
+  scannedDirectories: number;
+  scannedBytes: number;
+  duplicateGroups: number;
+  reclaimableBytes: number;
+}
+
+export interface AnalysisRecentItem {
+  id: string;
+  tool: "duplicates" | "storage";
+  status: TaskItem["status"];
+  createdAt: number;
+  finishedAt?: number;
+  scopes: string[];
+  processedItems: number;
+  totalItems: number;
+  error?: string;
+  resultReady: boolean;
+  metrics?: AnalysisRecentMetrics;
+}
+
 export async function startDuplicateScan(paths: string[]) {
   const response = await fetchURL("/api/analysis/duplicates", {
     method: "POST",
@@ -98,4 +120,9 @@ export function getStorageReport(taskId: string) {
   return fetchJSON<StorageReport>(
     `/api/analysis/storage/${encodeURIComponent(taskId)}`
   );
+}
+
+export function listRecentScans(tool: AnalysisRecentItem["tool"], limit = 5) {
+  const query = new URLSearchParams({ tool, limit: String(limit) });
+  return fetchJSON<AnalysisRecentItem[]>(`/api/analysis/recent?${query}`);
 }

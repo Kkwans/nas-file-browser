@@ -339,37 +339,13 @@
         </details>
       </template>
 
-      <section v-if="recentTasks.length" class="analysis-recent-tasks">
-        <div class="analysis-section-title">
-          <div>
-            <span>最近</span>
-            <div>
-              <h2>最近扫描</h2>
-              <p>结果属于发起任务的用户；管理员任务中心可查看任务状态。</p>
-            </div>
-          </div>
-        </div>
-        <router-link
-          v-for="task in recentTasks"
-          :key="task.id"
-          :to="{
-            path: '/analysis',
-            query: { tool: toolForTask(task), task: task.id },
-          }"
-        >
-          <i class="material-icons" aria-hidden="true">{{
-            task.status === "completed" ? "fact_check" : "pending_actions"
-          }}</i>
-          <span>
-            <strong>{{ task.title }}</strong>
-            <small
-              >{{ taskStatus(task.status) }} ·
-              {{ formatModified(task.createdAt) }}</small
-            >
-          </span>
-          <i class="material-icons" aria-hidden="true">chevron_right</i>
-        </router-link>
-      </section>
+      <AnalysisRecentScans
+        :tool="activeTool"
+        :items="recentScans"
+        :loading="recentLoading"
+        :error="recentError"
+        @retry="loadRecent(activeTool)"
+      />
     </main>
   </div>
 </template>
@@ -377,13 +353,18 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import AnalysisRecentScans from "@/components/analysis/AnalysisRecentScans.vue";
 import AnalysisScopePanel from "@/components/analysis/AnalysisScopePanel.vue";
 import AnalysisToolSwitcher from "@/components/analysis/AnalysisToolSwitcher.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import * as analysisApi from "@/api/analysis";
 import * as taskApi from "@/api/tasks";
-import type { DuplicateReport, StorageReport } from "@/api/analysis";
+import type {
+  AnalysisRecentItem,
+  DuplicateReport,
+  StorageReport,
+} from "@/api/analysis";
 import type { TaskItem, TaskStatus } from "@/api/tasks";
 import { useTasksStore } from "@/stores/tasks";
 import {
@@ -412,9 +393,13 @@ const currentTask = ref<TaskItem | null>(null);
 const report = ref<DuplicateReport | null>(null);
 const storageReport = ref<StorageReport | null>(null);
 const loadError = ref("");
+const recentScans = ref<AnalysisRecentItem[]>([]);
+const recentLoading = ref(false);
+const recentError = ref("");
 let pollTimer: number | undefined;
 let disposed = false;
 let taskLoadSequence = 0;
+let recentLoadSequence = 0;
 
 const includesRoot = computed(() => scopes.value.includes("/"));
 const isTaskActive = computed(
@@ -451,11 +436,6 @@ const taskIcon = computed(() => {
   };
   return currentTask.value ? icons[currentTask.value.status] : "pending";
 });
-const recentTasks = computed(() =>
-  tasksStore.items
-    .filter((task) => task.type === `analysis.${activeTool.value}`)
-    .slice(0, 5)
-);
 const completedTime = computed(() => {
   const completedAt =
     activeTool.value === "storage"
@@ -490,6 +470,7 @@ watch(
     loadError.value = "";
     activeTool.value = toolFromRoute();
     scopes.value = analysisScopesFromQuery(route.query.paths);
+    void loadRecent(activeTool.value);
   }
 );
 
@@ -539,6 +520,7 @@ async function startScan() {
         : await analysisApi.startDuplicateScan(scopes.value);
     currentTask.value = task;
     tasksStore.record(task);
+    void loadRecent(tool);
     await router.replace({
       path: "/analysis",
       query: { tool, task: task.id, paths: scopes.value },
@@ -562,6 +544,7 @@ async function cancelScan() {
   try {
     currentTask.value = await tasksStore.cancel(currentTask.value.id);
     stopPolling();
+    void loadRecent(activeTool.value);
     $showSuccess("取消请求已提交");
   } catch (error) {
     $showError(error instanceof Error ? error : String(error), false);
@@ -594,6 +577,7 @@ async function pollTask() {
       return;
     }
     if (task.status === "completed") await loadReport(task.id);
+    await loadRecent(activeTool.value);
   } catch (error) {
     if (disposed || currentTask.value?.id !== id) return;
     loadError.value = error instanceof Error ? error.message : String(error);
@@ -642,8 +626,12 @@ async function loadTask(taskId: string) {
       loadError.value = "该任务不是存储分析任务。";
       return;
     }
-    activeTool.value =
+    const taskTool: AnalysisTool =
       task.type === "analysis.storage" ? "storage" : "duplicates";
+    if (activeTool.value !== taskTool) {
+      activeTool.value = taskTool;
+      void loadRecent(taskTool);
+    }
     currentTask.value = task;
     tasksStore.record(task);
     if (task.status === "completed") await loadReport(task.id);
@@ -659,12 +647,31 @@ async function loadTask(taskId: string) {
 async function loadInitial() {
   try {
     activeTool.value = toolFromRoute();
-    await tasksStore.load();
+    await loadRecent(activeTool.value);
     const taskId = typeof route.query.task === "string" ? route.query.task : "";
     if (!taskId) return;
     await loadTask(taskId);
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : String(error);
+  }
+}
+
+async function loadRecent(tool: AnalysisTool) {
+  const sequence = ++recentLoadSequence;
+  recentLoading.value = true;
+  recentError.value = "";
+  recentScans.value = [];
+  try {
+    const items = await analysisApi.listRecentScans(tool);
+    if (sequence !== recentLoadSequence || disposed) return;
+    recentScans.value = items;
+  } catch (error) {
+    if (sequence !== recentLoadSequence || disposed) return;
+    recentError.value = error instanceof Error ? error.message : String(error);
+  } finally {
+    if (sequence === recentLoadSequence && !disposed) {
+      recentLoading.value = false;
+    }
   }
 }
 
@@ -682,10 +689,6 @@ function taskStatus(status: TaskStatus) {
 
 function toolFromRoute(): AnalysisTool {
   return route.query.tool === "storage" ? "storage" : "duplicates";
-}
-
-function toolForTask(task: TaskItem): AnalysisTool {
-  return task.type === "analysis.storage" ? "storage" : "duplicates";
 }
 
 function fileRoute(path: string, isDir = false) {
@@ -798,16 +801,13 @@ onBeforeUnmount(() => {
 }
 
 .analysis-task-card,
-.analysis-error,
-.analysis-recent-tasks {
+.analysis-error {
   margin-top: 14px;
   border: 1px solid var(--borderPrimary);
   border-radius: 14px;
   background: var(--surfacePrimary);
 }
 
-.analysis-section-title,
-.analysis-section-title > div,
 .analysis-results-heading,
 .analysis-results-heading > div {
   display: flex;
@@ -816,12 +816,10 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.analysis-section-title > div,
 .analysis-results-heading > div {
   justify-content: flex-start;
 }
 
-.analysis-section-title > div > span,
 .analysis-results-heading > div > span {
   display: grid;
   width: 30px;
@@ -835,21 +833,14 @@ onBeforeUnmount(() => {
   font-weight: 800;
 }
 
-.analysis-section-title h2,
 .analysis-results-heading h2 {
   margin: 0;
   color: var(--textSecondary);
   font-size: 15px;
 }
 
-.analysis-section-title p,
 .analysis-results-heading p {
   margin: 3px 0 0;
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-
-.analysis-section-title > small {
   color: var(--textPrimary);
   font-size: 11px;
 }
@@ -1400,51 +1391,6 @@ onBeforeUnmount(() => {
 
 .analysis-skipped li small {
   color: var(--textPrimary);
-}
-
-.analysis-recent-tasks {
-  padding: 16px;
-}
-
-.analysis-recent-tasks > a {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  min-height: 50px;
-  margin-top: 8px;
-  padding: 0 10px;
-  border-radius: 9px;
-  color: var(--textSecondary);
-  background: var(--surfaceSecondary);
-  text-decoration: none;
-}
-
-.analysis-recent-tasks > a:hover {
-  background: var(--hover);
-}
-
-.analysis-recent-tasks > a > .material-icons {
-  color: var(--blue);
-  font-size: 19px;
-}
-
-.analysis-recent-tasks > a > .material-icons:last-child {
-  color: var(--textPrimary);
-}
-
-.analysis-recent-tasks > a span {
-  display: grid;
-  gap: 2px;
-}
-
-.analysis-recent-tasks > a strong {
-  font-size: 11px;
-}
-
-.analysis-recent-tasks > a small {
-  color: var(--textPrimary);
-  font-size: 9px;
 }
 
 @keyframes analysis-spin {

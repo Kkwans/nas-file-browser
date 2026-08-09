@@ -227,3 +227,72 @@ func TestStorageAnalysisRunsOnExplicitScopesAndKeepsResultsPrivate(t *testing.T)
 		t.Fatalf("cross-user result status = %d body=%s", privateResponse.Code, privateResponse.Body.String())
 	}
 }
+
+func TestAnalysisRecentSummariesStayPrivateAndDoNotExposeRawResults(t *testing.T) {
+	h := newTrashHTTPHarness(t,
+		users.User{Username: "admin", Perm: users.Permissions{Admin: true, Download: true}},
+		users.User{Username: "other", Perm: users.Permissions{Download: true}},
+	)
+	admin := trashHTTPUserByName(t, h, "admin")
+	other := trashHTTPUserByName(t, h, "other")
+
+	createCompleted := func(owner *users.User, scope string, createdAt int64) *tasks.Task {
+		t.Helper()
+		args, err := json.Marshal(duplicateAnalysisArgs{Paths: []string{scope}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		task, err := h.storage.Tasks.New(owner.ID, owner.Username, tasks.TypeDuplicateAnalysis, "查找重复文件", args, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		result, err := json.Marshal(analysis.DuplicateReport{
+			Scopes: []string{scope}, ScannedFiles: 12, ScannedBytes: 2048,
+			DuplicateGroups: 2, ReclaimableBytes: 512,
+			Groups: []analysis.DuplicateGroup{{SHA256: "internal-result-must-not-leak"}},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		task.Status = tasks.StatusCompleted
+		task.CreatedAt = createdAt
+		task.FinishedAt = createdAt + 100
+		task.Result = result
+		if err := h.storage.Tasks.Update(task); err != nil {
+			t.Fatal(err)
+		}
+		return task
+	}
+
+	otherTask := createCompleted(other, "/other-private", 200)
+	adminTask := createCompleted(admin, "/photos", 100)
+	response := h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?tool=duplicates&limit=5", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("recent analysis status = %d body=%s", response.Code, response.Body.String())
+	}
+	if strings.Contains(response.Body.String(), otherTask.ID) || strings.Contains(response.Body.String(), "/other-private") {
+		t.Fatalf("admin recent analysis leaked another user's report: %s", response.Body.String())
+	}
+	if strings.Contains(response.Body.String(), "internal-result-must-not-leak") || strings.Contains(response.Body.String(), "args") {
+		t.Fatalf("recent analysis leaked raw task data: %s", response.Body.String())
+	}
+	var items []analysisRecentItem
+	if err := json.Unmarshal(response.Body.Bytes(), &items); err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 1 || items[0].ID != adminTask.ID || len(items[0].Scopes) != 1 || items[0].Scopes[0] != "/photos" {
+		t.Fatalf("recent analysis items = %#v", items)
+	}
+	if !items[0].ResultReady || items[0].Metrics == nil || items[0].Metrics.DuplicateGroups != 2 || items[0].Metrics.ReclaimableBytes != 512 {
+		t.Fatalf("recent analysis metrics = %#v", items[0])
+	}
+
+	response = h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?tool=invalid", nil, nil)
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("invalid tool status = %d body=%s", response.Code, response.Body.String())
+	}
+	response = h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?limit=11", nil, nil)
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("invalid limit status = %d body=%s", response.Code, response.Body.String())
+	}
+}

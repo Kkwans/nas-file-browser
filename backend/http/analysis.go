@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -18,6 +19,10 @@ import (
 )
 
 const maxAnalysisScopes = 32
+const (
+	defaultRecentAnalysisLimit = 5
+	maxRecentAnalysisLimit     = 10
+)
 
 var analysisWorkerSlot = make(chan struct{}, 1)
 var errAnalysisScopeForbidden = errors.New("没有访问分析路径的权限")
@@ -28,6 +33,28 @@ type duplicateAnalysisArgs struct {
 
 type storageAnalysisArgs struct {
 	Paths []string `json:"paths"`
+}
+
+type analysisRecentMetrics struct {
+	ScannedFiles       int   `json:"scannedFiles"`
+	ScannedDirectories int   `json:"scannedDirectories"`
+	ScannedBytes       int64 `json:"scannedBytes"`
+	DuplicateGroups    int   `json:"duplicateGroups"`
+	ReclaimableBytes   int64 `json:"reclaimableBytes"`
+}
+
+type analysisRecentItem struct {
+	ID             string                 `json:"id"`
+	Tool           string                 `json:"tool"`
+	Status         tasks.Status           `json:"status"`
+	CreatedAt      int64                  `json:"createdAt"`
+	FinishedAt     int64                  `json:"finishedAt,omitempty"`
+	Scopes         []string               `json:"scopes"`
+	ProcessedItems int                    `json:"processedItems"`
+	TotalItems     int                    `json:"totalItems"`
+	Error          string                 `json:"error,omitempty"`
+	ResultReady    bool                   `json:"resultReady"`
+	Metrics        *analysisRecentMetrics `json:"metrics,omitempty"`
 }
 
 func duplicateAnalysisStartHandler(runtime *tasks.Runtime) handleFunc {
@@ -127,6 +154,83 @@ var storageAnalysisResultHandler = withUser(func(w http.ResponseWriter, r *http.
 	}
 	return renderJSON(w, r, &report)
 })
+
+var analysisRecentHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	tool := r.URL.Query().Get("tool")
+	taskType := tasks.TypeDuplicateAnalysis
+	if tool == "storage" {
+		taskType = tasks.TypeStorageAnalysis
+	} else if tool != "" && tool != "duplicates" {
+		return http.StatusBadRequest, fmt.Errorf("存储工具类型无效")
+	}
+	limit := defaultRecentAnalysisLimit
+	if raw := r.URL.Query().Get("limit"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed <= 0 || parsed > maxRecentAnalysisLimit {
+			return http.StatusBadRequest, fmt.Errorf("最近扫描数量必须为 1–%d", maxRecentAnalysisLimit)
+		}
+		limit = parsed
+	}
+	// 分析报告始终只属于发起用户。管理员需要查看其他用户任务时使用任务中心，
+	// 此处不能因为管理员权限而混入无法从当前工作区打开的其他用户报告。
+	all, err := d.store.Tasks.List(d.user.ID, false)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	items := make([]analysisRecentItem, 0, limit)
+	for _, task := range all {
+		if task.Type != taskType {
+			continue
+		}
+		items = append(items, summarizeAnalysisTask(task))
+		if len(items) == limit {
+			break
+		}
+	}
+	return renderJSON(w, r, items)
+})
+
+func summarizeAnalysisTask(task *tasks.Task) analysisRecentItem {
+	item := analysisRecentItem{
+		ID: task.ID, Tool: "duplicates", Status: task.Status,
+		CreatedAt: task.CreatedAt, FinishedAt: task.FinishedAt,
+		Scopes: make([]string, 0), ProcessedItems: task.ProcessedItems,
+		TotalItems: task.TotalItems, Error: task.Error,
+	}
+	if task.Type == tasks.TypeStorageAnalysis {
+		item.Tool = "storage"
+		var args storageAnalysisArgs
+		if json.Unmarshal(task.Args, &args) == nil {
+			item.Scopes = append(item.Scopes, args.Paths...)
+		}
+		if task.Status == tasks.StatusCompleted && len(task.Result) > 0 {
+			var report analysis.StorageReport
+			if json.Unmarshal(task.Result, &report) == nil {
+				item.ResultReady = true
+				item.Metrics = &analysisRecentMetrics{
+					ScannedFiles: report.ScannedFiles, ScannedDirectories: report.ScannedDirectories,
+					ScannedBytes: report.ScannedBytes,
+				}
+			}
+		}
+		return item
+	}
+	var args duplicateAnalysisArgs
+	if json.Unmarshal(task.Args, &args) == nil {
+		item.Scopes = append(item.Scopes, args.Paths...)
+	}
+	if task.Status == tasks.StatusCompleted && len(task.Result) > 0 {
+		var report analysis.DuplicateReport
+		if json.Unmarshal(task.Result, &report) == nil {
+			item.ResultReady = true
+			item.Metrics = &analysisRecentMetrics{
+				ScannedFiles: report.ScannedFiles, ScannedBytes: report.ScannedBytes,
+				DuplicateGroups: report.DuplicateGroups, ReclaimableBytes: report.ReclaimableBytes,
+			}
+		}
+	}
+	return item
+}
 
 func validateAnalysisScopes(d *data, requested []string) ([]string, error) {
 	if len(requested) == 0 || len(requested) > maxAnalysisScopes {

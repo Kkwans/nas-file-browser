@@ -9,7 +9,7 @@
       tabindex="-1"
       @keydown.esc="emit('close')"
     >
-      <header class="task-result-dialog__header">
+      <div class="task-result-dialog__header">
         <span class="task-result-dialog__mark" aria-hidden="true">
           <app-icon :name="resultIcon" :size="22" />
         </span>
@@ -26,7 +26,7 @@
         >
           <app-icon name="x" :size="20" />
         </button>
-      </header>
+      </div>
 
       <div class="task-result-dialog__body">
         <div v-if="loading" class="task-result-state" aria-live="polite">

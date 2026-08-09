@@ -24,6 +24,7 @@ export type SidebarModuleId = (typeof DEFAULT_SIDEBAR_MODULE_ORDER)[number];
 export type SystemOptionId = (typeof DEFAULT_SYSTEM_OPTION_ORDER)[number];
 
 export interface SidebarPreferences {
+  desktopCollapsed: boolean;
   moduleOrder: SidebarModuleId[];
   systemOptionOrder: SystemOptionId[];
   tagOrder: string[];
@@ -33,6 +34,7 @@ export interface SidebarPreferences {
 }
 
 export const DEFAULT_SIDEBAR_PREFERENCES: SidebarPreferences = {
+  desktopCollapsed: false,
   moduleOrder: [...DEFAULT_SIDEBAR_MODULE_ORDER],
   systemOptionOrder: [...DEFAULT_SYSTEM_OPTION_ORDER],
   tagOrder: [],
@@ -84,6 +86,7 @@ export function normalizeSidebarPreferences(
   }
 
   return {
+    desktopCollapsed: source.desktopCollapsed === true,
     moduleOrder: knownOrder(source.moduleOrder, DEFAULT_SIDEBAR_MODULE_ORDER),
     systemOptionOrder: knownOrder(
       source.systemOptionOrder,

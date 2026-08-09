@@ -9,7 +9,16 @@
     @keydown.enter.prevent="$emit('toggle')"
     @keydown.space.prevent="$emit('toggle')"
   >
+    <AppIcon
+      v-if="appIcon"
+      class="favorite-group-icon"
+      :name="appIcon"
+      :size="21"
+      :stroke-width="1.9"
+      :style="{ color }"
+    />
     <i
+      v-else
       class="material-icons favorite-group-icon"
       :style="{ color }"
       aria-hidden="true"
@@ -30,9 +39,13 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
+
 withDefaults(
   defineProps<{
     icon: string;
+    appIcon?: AppIconName;
     label: string;
     count: number;
     expanded: boolean;

@@ -4,12 +4,15 @@
     class="sidebar"
     :class="{
       active,
+      'sidebar--rail': railMode,
       'is-resizing': isResizing,
       'is-scrolling': sidebarScrolling,
     }"
     @scroll.passive="onSidebarScroll"
+    @keydown.esc="closeRailPanel(true)"
   >
     <div
+      v-if="!railMode"
       class="sidebar-resize-handle"
       @mousedown="startResize"
       @touchstart="startResize"
@@ -17,7 +20,275 @@
       title="拖拽调节侧边栏宽度"
     ></div>
     <template v-if="isLoggedIn">
-      <div class="sidebar-personalized-stack">
+      <template v-if="railMode">
+        <div ref="railRootRef" class="sidebar-icon-rail">
+          <button
+            type="button"
+            class="sidebar-rail-action sidebar-rail-profile"
+            :class="{ active: route.path.startsWith('/settings') }"
+            data-tooltip="账户设置"
+            title="账户设置"
+            aria-label="账户设置"
+            @click="toAccountSettings"
+          >
+            <AppIcon name="user" :size="22" />
+            <span class="sidebar-rail-avatar-dot" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="sidebar-rail-action sidebar-rail-expand"
+            data-tooltip="展开侧边栏"
+            title="展开侧边栏"
+            aria-label="展开侧边栏"
+            @click="toggleDesktopRail(false)"
+          >
+            <AppIcon name="panel-open" :size="21" />
+          </button>
+
+          <div class="sidebar-rail-divider" aria-hidden="true"></div>
+
+          <button
+            v-for="option in orderedSystemOptions"
+            :key="option.id"
+            type="button"
+            class="sidebar-rail-action"
+            :class="{ active: isSystemOptionActive(option.id) }"
+            :data-tooltip="option.label"
+            :title="option.label"
+            :aria-label="option.label"
+            @click="runSystemOption(option.id)"
+          >
+            <AppIcon :name="option.icon" :size="21" />
+          </button>
+
+          <div class="sidebar-rail-divider" aria-hidden="true"></div>
+
+          <button
+            type="button"
+            class="sidebar-rail-action"
+            :class="{ active: railPanel === 'favorites' }"
+            data-tooltip="收藏夹"
+            title="收藏夹"
+            aria-label="打开收藏夹"
+            :aria-expanded="railPanel === 'favorites'"
+            @click.stop="toggleRailPanel('favorites', $event)"
+          >
+            <AppIcon name="star" :size="21" />
+            <span
+              v-if="favoritesStore.sortedFavorites.length"
+              class="sidebar-rail-count"
+              >{{ compactCount(favoritesStore.sortedFavorites.length) }}</span
+            >
+          </button>
+          <button
+            type="button"
+            class="sidebar-rail-action"
+            :class="{
+              active: railPanel === 'tags' || Boolean(tagsStore.activeFilter),
+            }"
+            data-tooltip="标签"
+            title="标签"
+            aria-label="打开标签"
+            :aria-expanded="railPanel === 'tags'"
+            @click.stop="toggleRailPanel('tags', $event)"
+          >
+            <AppIcon name="tags" :size="21" />
+            <span
+              v-if="tagsStore.sortedTags.length"
+              class="sidebar-rail-count"
+              >{{ compactCount(tagsStore.sortedTags.length) }}</span
+            >
+          </button>
+          <button
+            v-if="user?.perm?.admin && categoryGroups.length > 0"
+            type="button"
+            class="sidebar-rail-action"
+            :class="{ active: railPanel === 'categories' }"
+            data-tooltip="目录分类"
+            title="目录分类"
+            aria-label="打开目录分类"
+            :aria-expanded="railPanel === 'categories'"
+            @click.stop="toggleRailPanel('categories', $event)"
+          >
+            <AppIcon name="categories" :size="21" />
+          </button>
+          <button
+            v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
+            type="button"
+            class="sidebar-rail-action"
+            :class="{ active: railPanel === 'volumes' }"
+            data-tooltip="存储卷"
+            title="存储卷"
+            aria-label="打开存储卷"
+            :aria-expanded="railPanel === 'volumes'"
+            @click.stop="toggleRailPanel('volumes', $event)"
+          >
+            <AppIcon name="database" :size="21" />
+          </button>
+
+          <div class="sidebar-rail-spacer"></div>
+          <button
+            v-if="canLogout"
+            type="button"
+            class="sidebar-rail-action sidebar-rail-logout"
+            data-tooltip="登出"
+            title="登出"
+            aria-label="登出"
+            @click="logout"
+          >
+            <AppIcon name="logout" :size="21" />
+          </button>
+        </div>
+
+        <Teleport to="body">
+          <section
+            v-if="railMode && railPanel"
+            ref="railPopoverRef"
+            class="sidebar-rail-popover"
+            :style="railPopoverStyle"
+            role="dialog"
+            tabindex="-1"
+            :aria-label="railPanelTitle"
+            @click.stop
+          >
+            <header class="sidebar-rail-popover-header">
+              <div>
+                <span>{{ railPanelTitle }}</span>
+                <small>{{ railPanelDescription }}</small>
+              </div>
+              <button
+                type="button"
+                aria-label="关闭浮层"
+                @click="closeRailPanel(true)"
+              >
+                <AppIcon name="x" :size="18" />
+              </button>
+            </header>
+
+            <div class="sidebar-rail-popover-list">
+              <template v-if="railPanel === 'favorites'">
+                <button
+                  v-for="fav in favoritesStore.sortedFavorites"
+                  :key="fav.id"
+                  type="button"
+                  class="sidebar-rail-popover-item"
+                  :title="fav.path"
+                  @click="navigateVolume(fav.path, fav.groupId)"
+                >
+                  <AppIcon
+                    :name="isFileByExtension(fav.name) ? 'file' : 'folder'"
+                    :size="19"
+                  />
+                  <span
+                    ><strong>{{ fav.name }}</strong
+                    ><small>{{ fav.path }}</small></span
+                  >
+                  <AppIcon name="chevron-right" :size="17" />
+                </button>
+                <p
+                  v-if="favoritesStore.sortedFavorites.length === 0"
+                  class="sidebar-rail-empty"
+                >
+                  暂无收藏项目
+                </p>
+              </template>
+
+              <template v-else-if="railPanel === 'tags'">
+                <button
+                  v-for="tag in orderedTags"
+                  :key="tag.id"
+                  type="button"
+                  class="sidebar-rail-popover-item"
+                  :class="{ active: tagsStore.activeFilter === tag.id }"
+                  @click="filterByTag(tag.id)"
+                >
+                  <span
+                    class="sidebar-rail-tag-dot"
+                    :style="{ background: tag.color }"
+                  ></span>
+                  <span
+                    ><strong>{{ tag.name }}</strong
+                    ><small>{{ tag.paths.length }} 个项目</small></span
+                  >
+                  <span class="sidebar-rail-item-count">{{
+                    tag.paths.length
+                  }}</span>
+                </button>
+                <p v-if="orderedTags.length === 0" class="sidebar-rail-empty">
+                  暂无标签
+                </p>
+              </template>
+
+              <template v-else-if="railPanel === 'categories'">
+                <div
+                  v-for="group in orderedCategoryGroups"
+                  :key="group.id"
+                  class="sidebar-rail-popover-group"
+                >
+                  <div class="sidebar-rail-popover-group-title">
+                    <span>{{ group.name }}</span
+                    ><small>{{ group.paths.length }}</small>
+                  </div>
+                  <button
+                    v-for="path in orderedCategoryPaths(group)"
+                    :key="path.path"
+                    type="button"
+                    class="sidebar-rail-popover-item"
+                    :title="path.path"
+                    @click="navigateVolume(path.path)"
+                  >
+                    <AppIcon name="folder" :size="19" />
+                    <span
+                      ><strong>{{ path.name }}</strong
+                      ><small>{{ path.path }}</small></span
+                    >
+                    <AppIcon name="chevron-right" :size="17" />
+                  </button>
+                </div>
+              </template>
+
+              <template v-else-if="railPanel === 'volumes'">
+                <button
+                  v-for="volume in orderedVolumes"
+                  :key="volume.path"
+                  type="button"
+                  class="sidebar-rail-popover-item sidebar-rail-volume-item"
+                  @click="navigateVolume(volume.path)"
+                >
+                  <AppIcon name="database" :size="19" />
+                  <span>
+                    <strong>{{ volume.displayName }}</strong>
+                    <small
+                      >{{ volume.usedFormatted }} /
+                      {{ volume.totalFormatted }}</small
+                    >
+                    <i aria-hidden="true"
+                      ><b
+                        :style="{
+                          width: volume.usedPercentage + '%',
+                          background: volumeBarColor(volume.usedPercentage),
+                        }"
+                      ></b
+                    ></i>
+                  </span>
+                  <span class="sidebar-rail-item-count"
+                    >{{ Math.round(volume.usedPercentage) }}%</span
+                  >
+                </button>
+              </template>
+            </div>
+
+            <footer class="sidebar-rail-popover-footer">
+              <button type="button" @click="toggleDesktopRail(false)">
+                <AppIcon name="panel-open" :size="18" />
+                展开侧边栏以管理
+              </button>
+            </footer>
+          </section>
+        </Teleport>
+      </template>
+
+      <div v-else class="sidebar-personalized-stack">
         <div
           class="sidebar-primary-nav sidebar-sortable-module"
           :class="sidebarDropClass('module', 'moduleOrder', 'user')"
@@ -27,17 +298,30 @@
           "
           @drop="onModuleDrop('user')"
         >
-          <button
-            type="button"
-            @click="toAccountSettings"
-            class="action sidebar-user-card"
-            draggable="true"
-            @dragstart="onModuleDragStart($event, 'user')"
-            @dragend="clearSidebarDrag"
-          >
-            <i class="material-icons">person</i>
-            <span>{{ user?.username }}</span>
-          </button>
+          <div class="sidebar-user-row">
+            <button
+              type="button"
+              @click="toAccountSettings"
+              class="action sidebar-user-card"
+              draggable="true"
+              @dragstart="onModuleDragStart($event, 'user')"
+              @dragend="clearSidebarDrag"
+            >
+              <span class="sidebar-user-icon"
+                ><AppIcon name="user" :size="20"
+              /></span>
+              <span>{{ user?.username }}</span>
+            </button>
+            <button
+              type="button"
+              class="sidebar-collapse-control"
+              aria-label="折叠为图标侧栏"
+              title="折叠为图标侧栏"
+              @click="toggleDesktopRail(true)"
+            >
+              <AppIcon name="panel-close" :size="20" />
+            </button>
+          </div>
         </div>
 
         <div
@@ -50,7 +334,7 @@
           @drop="onModuleDrop('system-options')"
         >
           <SidebarSectionHeader
-            icon="tune"
+            icon="settings"
             label="系统选项"
             :expanded="!collapsedSections.systemOptions"
             draggable="true"
@@ -83,7 +367,7 @@
               @drop.stop="onPreferenceDrop('systemOptionOrder', option.id)"
               @dragend="clearSidebarDrag"
             >
-              <i class="material-icons">{{ option.icon }}</i>
+              <AppIcon :name="option.icon" :size="20" />
               <span>{{ option.label }}</span>
             </button>
           </template>
@@ -239,6 +523,7 @@
               <SidebarGroupHeader
                 class="favorite-group-header"
                 icon="inventory_2"
+                app-icon="collection"
                 :label="group.name"
                 :count="
                   (favoritesStore.favoritesByGroup[group.id] || []).length
@@ -335,7 +620,7 @@
           @drop="onModuleDrop('tags')"
         >
           <SidebarSectionHeader
-            icon="label"
+            icon="tags"
             label="标签"
             :expanded="!collapsedSections.tags"
             draggable="true"
@@ -409,7 +694,7 @@
           @drop="onModuleDrop('volumes')"
         >
           <SidebarSectionHeader
-            icon="storage"
+            icon="database"
             label="存储卷"
             :expanded="!collapsedSections.volumes"
             draggable="true"
@@ -470,7 +755,7 @@
           @drop="onModuleDrop('categories')"
         >
           <SidebarSectionHeader
-            icon="category"
+            icon="categories"
             label="目录分类"
             :expanded="!collapsedSections.categories"
             draggable="true"
@@ -567,7 +852,7 @@
           aria-label="退出"
           title="登出"
         >
-          <i class="material-icons">exit_to_app</i>
+          <AppIcon name="logout" :size="20" />
           <span>登出</span>
         </button>
       </div>
@@ -596,7 +881,7 @@
       </router-link>
     </template>
 
-    <p class="credits">
+    <p v-if="!railMode" class="credits">
       <span>
         <a
           rel="noopener noreferrer"
@@ -613,7 +898,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onUnmounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
@@ -630,6 +924,8 @@ import { useRecentStore } from "@/stores/recent";
 import { useSidebarPreferencesStore } from "@/stores/sidebarPreferences";
 import SidebarSectionHeader from "@/components/sidebar/SidebarSectionHeader.vue";
 import SidebarGroupHeader from "@/components/sidebar/SidebarGroupHeader.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 
 import * as auth from "@/utils/auth";
 import { getFileIcon, isFileByExtension } from "@/utils/fileIcons";
@@ -736,34 +1032,50 @@ let sidebarScrollTimer: ReturnType<typeof setTimeout> | undefined;
 const startX = ref(0);
 const startWidth = ref(0);
 const groupInputRef = ref<HTMLInputElement | null>(null);
+type RailPanel = "favorites" | "tags" | "categories" | "volumes";
+type SidebarOrderKey = Exclude<
+  keyof SidebarPreferences,
+  "categoryPathOrder" | "desktopCollapsed"
+>;
+
+const isDesktopViewport = ref(window.matchMedia("(min-width: 737px)").matches);
+const railPanel = ref<RailPanel | "">("");
+const railPanelTop = ref(64);
+const railRootRef = ref<HTMLElement | null>(null);
+const railPopoverRef = ref<HTMLElement | null>(null);
+const railTriggerElement = ref<HTMLButtonElement | null>(null);
+const desktopMediaQuery = window.matchMedia("(min-width: 737px)");
 
 // Computed
 const active = computed(() => currentPromptName.value === "sidebar");
+const railMode = computed(
+  () => isDesktopViewport.value && sidebarPreferencesStore.desktopCollapsed
+);
 const canLogout = computed(
   () => !noAuth && (loginPage || logoutPage !== "/login")
 );
 
 const systemOptions = computed<
-  Array<{ id: SystemOptionId; icon: string; label: string }>
+  Array<{ id: SystemOptionId; icon: AppIconName; label: string }>
 >(() => [
   {
     id: "files",
-    icon: user.value?.perm?.admin ? "dns" : "folder",
+    icon: user.value?.perm?.admin ? "server" : "folder",
     label: user.value?.perm?.admin ? "NAS 根目录" : "我的文件",
   },
   { id: "search", icon: "search", label: "搜索" },
-  { id: "recent", icon: "schedule", label: "最近访问" },
-  { id: "trash", icon: "delete_outline", label: "回收站" },
-  { id: "tasks", icon: "pending_actions", label: "任务中心" },
+  { id: "recent", icon: "clock", label: "最近访问" },
+  { id: "trash", icon: "trash", label: "回收站" },
+  { id: "tasks", icon: "tasks", label: "任务中心" },
   { id: "history", icon: "history", label: "操作历史" },
-  { id: "analysis", icon: "data_usage", label: "存储工具" },
+  { id: "analysis", icon: "chart-storage", label: "存储工具" },
   ...(user.value?.perm?.create
     ? ([
-        { id: "new-directory", icon: "create_new_folder", label: "新建文件夹" },
-        { id: "new-file", icon: "note_add", label: "新建文件" },
+        { id: "new-directory", icon: "folder-new", label: "新建文件夹" },
+        { id: "new-file", icon: "file-new", label: "新建文件" },
       ] satisfies Array<{
         id: SystemOptionId;
-        icon: string;
+        icon: AppIconName;
         label: string;
       }>)
     : []),
@@ -854,6 +1166,99 @@ const visibleModuleIds = computed<SidebarModuleId[]>(() => {
   return ids;
 });
 
+const railPanelTitle = computed(() => {
+  if (railPanel.value === "favorites") return "收藏夹";
+  if (railPanel.value === "tags") return "标签";
+  if (railPanel.value === "categories") return "目录分类";
+  if (railPanel.value === "volumes") return "存储卷";
+  return "";
+});
+
+const railPanelDescription = computed(() => {
+  if (railPanel.value === "favorites") return "快速打开收藏的文件与目录";
+  if (railPanel.value === "tags") return "按标签筛选当前文件范围";
+  if (railPanel.value === "categories") return "按 NAS 目录语义快速定位";
+  if (railPanel.value === "volumes") return "查看容量并进入存储卷";
+  return "";
+});
+
+const railPopoverStyle = computed(() => ({
+  top: `${railPanelTop.value}px`,
+}));
+
+const compactCount = (count: number) => (count > 99 ? "99+" : String(count));
+
+const isSystemOptionActive = (id: SystemOptionId) => {
+  const path = route.path;
+  if (id === "files") return path.startsWith("/files");
+  if (id === "search") return path === "/search";
+  if (id === "recent") return path === "/recent";
+  if (id === "trash") return path === "/trash";
+  if (id === "tasks") return path === "/tasks";
+  if (id === "history") return path === "/history";
+  if (id === "analysis") return path === "/analysis";
+  if (id === "new-directory") return currentPromptName.value === "newDir";
+  if (id === "new-file") return currentPromptName.value === "newFile";
+  return false;
+};
+
+const closeRailPanel = (restoreFocus = false) => {
+  railPanel.value = "";
+  if (restoreFocus) {
+    void nextTick(() => railTriggerElement.value?.focus());
+  }
+};
+
+const toggleRailPanel = async (panel: RailPanel, event: MouseEvent) => {
+  if (railPanel.value === panel) {
+    closeRailPanel(true);
+    return;
+  }
+  railTriggerElement.value = event.currentTarget as HTMLButtonElement;
+  const rect = railTriggerElement.value.getBoundingClientRect();
+  railPanelTop.value = Math.max(
+    60,
+    Math.min(rect.top - 8, window.innerHeight - 520)
+  );
+  railPanel.value = panel;
+  await nextTick();
+  railPopoverRef.value?.focus();
+};
+
+const toggleDesktopRail = async (collapsed: boolean) => {
+  closeRailPanel();
+  try {
+    await sidebarPreferencesStore.setDesktopCollapsed(collapsed);
+  } catch (error) {
+    $showError(error as Error);
+  }
+};
+
+const applySidebarWidth = () => {
+  document.documentElement.style.setProperty(
+    "--sidebar-width",
+    `${railMode.value ? 72 : sidebarWidth.value}px`
+  );
+};
+
+const updateDesktopViewport = (event?: MediaQueryListEvent) => {
+  isDesktopViewport.value = event?.matches ?? desktopMediaQuery.matches;
+  if (!isDesktopViewport.value) closeRailPanel();
+  applySidebarWidth();
+};
+
+const onDocumentPointerDown = (event: PointerEvent) => {
+  const target = event.target as Node | null;
+  if (!target || !railPanel.value) return;
+  if (
+    railRootRef.value?.contains(target) ||
+    railPopoverRef.value?.contains(target)
+  ) {
+    return;
+  }
+  closeRailPanel();
+};
+
 // Methods
 const moduleStyle = (id: SidebarModuleId) => ({
   order: sidebarPreferencesStore.moduleOrder.indexOf(id),
@@ -932,7 +1337,7 @@ const sidebarDropClass = (
 
 const onPreferenceDragStart = (
   event: DragEvent,
-  key: Exclude<keyof SidebarPreferences, "categoryPathOrder">,
+  key: SidebarOrderKey,
   id: string
 ) => {
   clearSidebarDrag();
@@ -943,9 +1348,7 @@ const onPreferenceDragStart = (
   }
 };
 
-const preferenceIds = (
-  key: Exclude<keyof SidebarPreferences, "categoryPathOrder">
-) => {
+const preferenceIds = (key: SidebarOrderKey) => {
   if (key === "systemOptionOrder") {
     return orderedSystemOptions.value.map((option) => option.id);
   }
@@ -959,10 +1362,7 @@ const preferenceIds = (
   return visibleModuleIds.value;
 };
 
-const onPreferenceDrop = async (
-  key: Exclude<keyof SidebarPreferences, "categoryPathOrder">,
-  targetId: string
-) => {
+const onPreferenceDrop = async (key: SidebarOrderKey, targetId: string) => {
   const dragged = draggedPreference.value;
   if (!dragged || dragged.key !== key || dragged.id === targetId) return;
   await sidebarPreferencesStore.reorder(
@@ -1018,6 +1418,7 @@ const clearSidebarDrag = () => {
 };
 
 const runSystemOption = (id: SystemOptionId) => {
+  closeRailPanel();
   if (id === "files") toRoot();
   else if (id === "search") openSearch();
   else if (id === "recent") {
@@ -1132,6 +1533,7 @@ const riskIcon = (risk: string) => {
 };
 
 const navigateVolume = (path: string, favoriteGroupId = "") => {
+  closeRailPanel();
   const isFile = isFileByExtension(path);
   const url = isFile ? "/files" + path : "/files" + path + "/";
   router.push({
@@ -1366,6 +1768,7 @@ const openTagManager = () => {
 };
 
 const filterByTag = (tagId: string) => {
+  closeRailPanel();
   if (tagsStore.activeFilter === tagId) {
     clearTagFilter();
     return;
@@ -1385,6 +1788,7 @@ const filterByTag = (tagId: string) => {
 };
 
 const clearTagFilter = () => {
+  closeRailPanel();
   tagsStore.setFilter(null);
   if (typeof route.query.tag === "string") {
     const base = typeof route.query.base === "string" ? route.query.base : "/";
@@ -1416,11 +1820,13 @@ const getVolumeLabel = (path: string) => {
 };
 
 const toRoot = () => {
+  closeRailPanel();
   router.push({ path: "/files" });
   closeHovers();
 };
 
 const toAccountSettings = () => {
+  closeRailPanel();
   router.push({ path: "/settings/profile" });
   closeHovers();
 };
@@ -1429,10 +1835,22 @@ const help = () => {
   showHover("help");
 };
 
-const logout = () => auth.logout();
+const logout = () => {
+  closeRailPanel();
+  auth.logout();
+};
 
 // Lifecycle
 let loadedUserId: number | null = null;
+
+watch(() => [railMode.value, sidebarWidth.value] as const, applySidebarWidth, {
+  immediate: true,
+});
+
+watch(
+  () => route.fullPath,
+  () => closeRailPanel()
+);
 
 watch(
   () => user.value?.id,
@@ -1480,8 +1898,16 @@ watch(
   { immediate: true }
 );
 
+onMounted(() => {
+  desktopMediaQuery.addEventListener("change", updateDesktopViewport);
+  document.addEventListener("pointerdown", onDocumentPointerDown);
+  updateDesktopViewport();
+});
+
 onUnmounted(() => {
   if (sidebarScrollTimer) clearTimeout(sidebarScrollTimer);
+  desktopMediaQuery.removeEventListener("change", updateDesktopViewport);
+  document.removeEventListener("pointerdown", onDocumentPointerDown);
   stopResize();
 });
 </script>

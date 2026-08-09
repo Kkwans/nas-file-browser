@@ -6,7 +6,7 @@
       :aria-expanded="expanded"
       @click="$emit('toggle')"
     >
-      <i class="material-icons">{{ icon }}</i>
+      <AppIcon :name="icon" :size="20" :stroke-width="1.9" />
       <span>{{ label }}</span>
     </button>
     <div class="section-tools">
@@ -27,10 +27,12 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 
 const props = withDefaults(
   defineProps<{
-    icon: string;
+    icon: AppIconName;
     label: string;
     expanded: boolean;
     tone?: "default" | "favorite";

@@ -51,9 +51,16 @@ describe("sidebar preferences", () => {
   });
 
   it("normalizes malformed persisted JSON to safe defaults", () => {
-    expect(normalizeSidebarPreferences("{bad json").moduleOrder).toEqual(
-      DEFAULT_SIDEBAR_MODULE_ORDER
-    );
+    const preferences = normalizeSidebarPreferences("{bad json");
+    expect(preferences.moduleOrder).toEqual(DEFAULT_SIDEBAR_MODULE_ORDER);
+    expect(preferences.desktopCollapsed).toBe(false);
+  });
+
+  it("keeps the desktop icon rail preference while old records stay expanded", () => {
+    expect(
+      normalizeSidebarPreferences({ desktopCollapsed: true }).desktopCollapsed
+    ).toBe(true);
+    expect(normalizeSidebarPreferences({}).desktopCollapsed).toBe(false);
   });
 
   it("appends newly introduced entries to existing system option preferences", () => {

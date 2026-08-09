@@ -12,7 +12,7 @@ import {
 
 type PreferenceOrderKey = Exclude<
   keyof SidebarPreferences,
-  "categoryPathOrder"
+  "categoryPathOrder" | "desktopCollapsed"
 >;
 
 export const useSidebarPreferencesStore = defineStore(
@@ -26,6 +26,7 @@ export const useSidebarPreferencesStore = defineStore(
     let saveQueue = Promise.resolve();
 
     const moduleOrder = computed(() => preferences.value.moduleOrder);
+    const desktopCollapsed = computed(() => preferences.value.desktopCollapsed);
 
     async function load() {
       const userId = authStore.user?.id;
@@ -67,6 +68,28 @@ export const useSidebarPreferencesStore = defineStore(
           ])
         );
       return saveQueue;
+    }
+
+    async function setDesktopCollapsed(collapsed: boolean) {
+      if (preferences.value.desktopCollapsed === collapsed) return;
+      const previous = preferences.value;
+      const next = { ...previous, desktopCollapsed: collapsed };
+      preferences.value = next;
+
+      try {
+        await queueSave();
+      } catch (error) {
+        if (preferences.value.desktopCollapsed === collapsed) {
+          preferences.value = {
+            ...preferences.value,
+            desktopCollapsed: previous.desktopCollapsed,
+          };
+          authStore.updateUser({
+            sidebarPreferences: JSON.stringify(preferences.value),
+          });
+        }
+        throw error;
+      }
     }
 
     async function reorder(
@@ -138,7 +161,9 @@ export const useSidebarPreferencesStore = defineStore(
     return {
       preferences,
       moduleOrder,
+      desktopCollapsed,
       load,
+      setDesktopCollapsed,
       reorder,
       reorderCategoryPath,
       ordered,

@@ -10,7 +10,7 @@
       :aria-expanded="open"
       :aria-controls="menuId"
       @click.stop="toggleMenu"
-      @keydown.down.prevent.stop="openMenu"
+      @keydown.down.prevent.stop="openMenu(false)"
       @keydown.up.prevent.stop="openMenu(true)"
     >
       <AppIcon name="ellipsis" :size="20" :stroke-width="2" />
@@ -144,6 +144,7 @@ const openMenu = async (focusLast = false) => {
   open.value = true;
   await nextTick();
   positionMenu();
+  await nextTick();
   focusMenuItem(focusLast);
 };
 

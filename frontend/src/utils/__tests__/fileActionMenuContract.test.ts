@@ -52,6 +52,9 @@ describe("文件操作区契约", () => {
     expect(menuSource).toContain('event.key === "Escape"');
     expect(menuSource).toContain("closeMenu(true)");
     expect(menuSource).toContain("preventScroll: true");
+    expect(menuSource).toContain(
+      '@keydown.down.prevent.stop="openMenu(false)"'
+    );
   });
 
   it("移动端单击、双击、长按契约保持原实现", () => {

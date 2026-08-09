@@ -649,6 +649,10 @@ onUnmounted(() => {
 
 @media (max-width: 736px) {
   .search-page-input {
+    height: 2.875rem;
+  }
+
+  .search-page-input input {
     height: 2.75rem;
   }
 

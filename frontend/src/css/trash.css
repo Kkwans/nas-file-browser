@@ -44,6 +44,7 @@
   color: var(--textSecondary);
   background: transparent;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .trash-header-action:hover,
@@ -294,9 +295,8 @@
 }
 
 .trash-item {
-  position: relative;
   min-height: 82px;
-  padding: 12px 16px 12px 20px;
+  padding: 12px 16px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
   border-radius: 12px;
@@ -305,24 +305,6 @@
     border-color var(--motion-fast),
     box-shadow var(--motion-fast),
     transform var(--motion-fast);
-}
-
-.trash-item::before {
-  position: absolute;
-  inset: 10px auto 10px 0;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--blue);
-  content: "";
-}
-
-.trash-item--failed::before {
-  background: var(--icon-red);
-}
-
-.trash-item--pending::before,
-.trash-item--restoring::before {
-  background: var(--icon-orange);
 }
 
 .trash-item:hover {
@@ -642,7 +624,7 @@
 
   .trash-item {
     grid-template-columns: 1fr;
-    padding: 13px 12px 13px 17px;
+    padding: 13px 12px;
   }
 
   .trash-item-meta {
@@ -659,12 +641,12 @@
   }
 
   .trash-action-primary {
-    min-height: 42px !important;
+    min-height: 44px !important;
   }
 
   .trash-action-icon {
-    width: 42px;
-    min-height: 42px !important;
+    width: 44px;
+    min-height: 44px !important;
   }
 
   .trash-conflict-dialog {

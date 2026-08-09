@@ -35,14 +35,8 @@
   }
 }
 
-/* General */
-
-.file-icons [aria-label^="."] {
-  opacity: 0.33;
-}
-.file-icons [data-ext=".bak"] {
-  opacity: 0.33;
-}
+/* Hidden-name and backup resources remain fully readable. Visibility and
+ * grouping are controlled by the user's prefix preferences, not opacity. */
 
 .file-icons [data-type="audio"] .file-type-icon::before {
   content: "volume_up";

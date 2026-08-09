@@ -411,7 +411,8 @@ nav.sidebar.is-scrolling::-webkit-scrollbar-thumb {
 
 /* Desktop icon rail ---------------------------------------------------- */
 nav.sidebar .sidebar-personalized-stack {
-  min-height: calc(100dvh - 8rem);
+  flex: 1 0 auto;
+  min-height: 0;
 }
 
 nav.sidebar .sidebar-user-row {

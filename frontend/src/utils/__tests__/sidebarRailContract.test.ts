@@ -31,6 +31,18 @@ describe("桌面侧边栏图标轨契约", () => {
       expect(sidebarSource).toContain(`toggleRailPanel('${panel}', $event)`);
     }
     expect(sidebarSource).toContain('class="sidebar-rail-popover"');
+    expect(sidebarSource).toContain('@keydown.esc.stop="closeRailPanel(true)"');
+  });
+
+  it("完整侧栏内容栈占满可用高度且不会挤压页脚", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-personalized-stack\s*\{[^}]*flex:\s*1 0 auto;[^}]*min-height:\s*0;/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-personalized-stack > #logout\s*\{[^}]*margin-top:\s*auto\s*!important;/s
+    );
   });
 
   it("图标由本地 AppIcon 包装层管理并提供可访问标签和 Tooltip", () => {

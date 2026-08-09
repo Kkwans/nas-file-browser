@@ -150,6 +150,7 @@
             tabindex="-1"
             :aria-label="railPanelTitle"
             @click.stop
+            @keydown.esc.stop="closeRailPanel(true)"
           >
             <header class="sidebar-rail-popover-header">
               <div>

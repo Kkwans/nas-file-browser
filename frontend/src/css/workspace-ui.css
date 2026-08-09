@@ -208,7 +208,7 @@ header > .header-center {
 }
 
 #listing.details .details-table {
-  min-width: 1040px;
+  min-width: 900px;
   border-collapse: separate;
   border-spacing: 0 4px;
   table-layout: fixed;
@@ -231,7 +231,7 @@ header > .header-center {
 }
 
 #listing.details .details-col-actions {
-  width: 246px;
+  width: 128px;
 }
 
 #listing.details .details-table thead th {
@@ -428,8 +428,8 @@ header > .header-center {
   position: relative;
   display: grid;
   grid-template-rows: 108px minmax(0, 1fr);
-  min-height: 230px;
-  padding: 14px;
+  min-height: 242px;
+  padding: 14px 14px 56px;
   border: 1px solid var(--borderPrimary, #e2e7ed);
   border-radius: 12px;
   background: var(--surfacePrimary, #fff);
@@ -466,27 +466,21 @@ header > .header-center {
 
 #listing.mosaic .item > .item-controls {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  left: 14px;
+  top: auto;
+  right: auto;
+  bottom: 10px;
+  left: 50%;
   z-index: 2;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   min-width: 0;
-  gap: 6px;
+  gap: 2px;
+  transform: translateX(-50%);
 }
 
 #listing.mosaic .item > .item-controls .item-quick-actions {
-  display: contents;
-}
-
-#listing.mosaic .item > .item-controls .tag-btn {
-  order: 1;
-}
-
-#listing.mosaic .item > .item-controls .favorite-star {
-  order: 2;
+  display: inline-flex;
 }
 
 #listing.mosaic .item-icon-button {
@@ -546,10 +540,6 @@ header > .header-center {
   margin-top: 4px;
   color: var(--textSecondary, #718096);
   font-size: 12px;
-}
-
-#listing.mosaic .item[data-dir="true"] {
-  min-height: 208px;
 }
 
 #listing.mosaic .item[data-dir="true"] > div:last-child {
@@ -1572,8 +1562,8 @@ nav.sidebar .favorite-item.drag-over-bottom {
 
   #listing.mosaic .item {
     grid-template-rows: 82px minmax(0, 1fr);
-    min-height: 218px;
-    padding: 42px 8px 10px;
+    min-height: 226px;
+    padding: 10px 8px 48px;
     border-radius: 11px;
   }
 
@@ -1586,9 +1576,10 @@ nav.sidebar .favorite-item.drag-over-bottom {
   }
 
   #listing.mosaic .item > .item-controls {
-    top: 7px;
-    right: 7px;
-    left: 7px;
+    top: auto;
+    right: auto;
+    bottom: 7px;
+    left: 50%;
     gap: 2px;
   }
 

@@ -53,9 +53,7 @@
           :title="isFavorited ? '取消收藏' : '添加收藏'"
           @click.prevent="toggleFav"
         >
-          <i class="material-icons" aria-hidden="true">{{
-            isFavorited ? "star" : "star_border"
-          }}</i>
+          <AppIcon name="star" :size="19" :stroke-width="2" />
         </button>
         <button
           class="item-icon-button tag-btn"
@@ -65,9 +63,18 @@
           aria-label="分配标签"
           @click.prevent="toggleTagPicker"
         >
-          <i class="material-icons" aria-hidden="true">label</i>
+          <AppIcon name="tags" :size="18" :stroke-width="2" />
         </button>
       </div>
+      <FileActionMenu
+        v-if="viewMode === 'mosaic'"
+        :name="name"
+        :can-rename="Boolean(authStore.user?.perm.rename)"
+        :can-download="Boolean(authStore.user?.perm.download)"
+        :can-delete="Boolean(authStore.user?.perm.delete)"
+        trigger-class="item-icon-button"
+        @select="runFileAction"
+      />
       <button
         v-if="viewMode === 'details'"
         class="mobile-item-more"
@@ -76,7 +83,7 @@
         title="更多操作"
         @click.stop="openMobileActionSheet"
       >
-        <i class="material-icons" aria-hidden="true">more_vert</i>
+        <AppIcon name="ellipsis" :size="20" :stroke-width="2" />
       </button>
     </div>
 
@@ -121,58 +128,6 @@
       <p v-if="fieldVisibility.modified" class="modified">
         <time :datetime="modified">{{ humanTime }}</time>
       </p>
-
-      <div v-if="viewMode === 'details'" class="detail-actions" @click.stop>
-        <button
-          class="detail-action-button"
-          type="button"
-          title="详细信息"
-          aria-label="详细信息"
-          @click="showItemAction('info')"
-        >
-          <i class="material-icons">info</i>
-        </button>
-        <button
-          v-if="authStore.user?.perm.rename"
-          class="detail-action-button"
-          type="button"
-          title="重命名"
-          aria-label="重命名"
-          @click="showItemAction('rename')"
-        >
-          <i class="material-icons">drive_file_rename_outline</i>
-        </button>
-        <button
-          v-if="authStore.user?.perm.rename"
-          class="detail-action-button"
-          type="button"
-          title="移动"
-          aria-label="移动"
-          @click="showItemAction('move')"
-        >
-          <i class="material-icons">drive_file_move</i>
-        </button>
-        <button
-          v-if="authStore.user?.perm.download"
-          class="detail-action-button"
-          type="button"
-          title="下载"
-          aria-label="下载"
-          @click="downloadItem"
-        >
-          <i class="material-icons">file_download</i>
-        </button>
-        <button
-          v-if="authStore.user?.perm.delete"
-          class="detail-action-button danger"
-          type="button"
-          title="删除"
-          aria-label="删除"
-          @click="showItemAction('delete')"
-        >
-          <i class="material-icons">delete</i>
-        </button>
-      </div>
     </div>
   </div>
   <Teleport to="body">
@@ -205,7 +160,7 @@
       <div class="mobile-item-action-sheet" role="menu" @click.stop>
         <div class="mobile-item-action-title">{{ name }}</div>
         <button type="button" role="menuitem" @click="runMobileAction('info')">
-          <i class="material-icons" aria-hidden="true">info</i>
+          <AppIcon name="info" :size="19" />
           <span>详细信息</span>
         </button>
         <button
@@ -214,9 +169,7 @@
           role="menuitem"
           @click="runMobileAction('rename')"
         >
-          <i class="material-icons" aria-hidden="true"
-            >drive_file_rename_outline</i
-          >
+          <AppIcon name="rename" :size="19" />
           <span>重命名</span>
         </button>
         <button
@@ -225,7 +178,7 @@
           role="menuitem"
           @click="runMobileAction('move')"
         >
-          <i class="material-icons" aria-hidden="true">drive_file_move</i>
+          <AppIcon name="move" :size="19" />
           <span>移动</span>
         </button>
         <button
@@ -234,7 +187,7 @@
           role="menuitem"
           @click="runMobileAction('download')"
         >
-          <i class="material-icons" aria-hidden="true">file_download</i>
+          <AppIcon name="download" :size="19" />
           <span>下载</span>
         </button>
         <button
@@ -244,7 +197,7 @@
           role="menuitem"
           @click="runMobileAction('delete')"
         >
-          <i class="material-icons" aria-hidden="true">delete</i>
+          <AppIcon name="trash" :size="19" />
           <span>删除</span>
         </button>
         <button
@@ -286,6 +239,8 @@ import * as upload from "@/utils/upload";
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import FileActionMenu from "@/components/files/FileActionMenu.vue";
 import FileThumbnail from "@/components/files/FileThumbnail.vue";
 import RiskIndicator from "@/components/files/RiskIndicator.vue";
 import type {
@@ -293,6 +248,7 @@ import type {
   MoveCopyItem,
   RiskLevel,
 } from "@/types/file";
+import type { FileActionMenuAction } from "@/utils/fileActionMenu";
 
 const touches = ref<number>(0);
 
@@ -445,6 +401,14 @@ const closeMobileActionSheet = () => {
 
 const runMobileAction = (action: string) => {
   closeMobileActionSheet();
+  if (action === "download") {
+    downloadItem();
+    return;
+  }
+  showItemAction(action);
+};
+
+const runFileAction = (action: FileActionMenuAction) => {
   if (action === "download") {
     downloadItem();
     return;

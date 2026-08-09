@@ -422,7 +422,16 @@
   color: #d97706;
 }
 
-#listing .item-icon-button.has-tags {
+#listing .detail-action-button.is-fav {
+  color: #d97706;
+}
+
+#listing .favorite-star.is-fav > .app-icon {
+  fill: currentColor;
+}
+
+#listing .item-icon-button.has-tags,
+#listing .detail-action-button.has-tags {
   color: var(--listing-accent);
 }
 
@@ -491,7 +500,7 @@
   display: flex;
   flex-direction: column;
   min-height: 224px;
-  padding: 16px;
+  padding: 16px 16px 56px;
   border: 1px solid var(--listing-border);
   border-radius: 10px;
   background: var(--listing-surface);
@@ -547,11 +556,60 @@
   text-align: center;
 }
 
-#listing.mosaic .item-quick-actions {
+#listing.mosaic .item-controls {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  right: auto;
+  bottom: 10px;
+  left: 50%;
   z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 38px;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  transform: translateX(-50%);
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+#listing.mosaic .item-quick-actions {
+  display: inline-flex;
+}
+
+#listing.mosaic .item-controls .item-icon-button,
+#listing.mosaic .item-controls .file-action-menu-host {
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    opacity 140ms ease;
+}
+
+#listing.mosaic .item-controls .item-icon-button.is-fav,
+#listing.mosaic .item-controls .item-icon-button.has-tags {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#listing.mosaic .item:hover .item-controls,
+#listing.mosaic .item:focus-within .item-controls {
+  border-color: var(--listing-border);
+  background: color-mix(in srgb, var(--listing-surface) 94%, transparent);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+}
+
+#listing.mosaic .item:hover .item-controls .item-icon-button,
+#listing.mosaic .item:hover .item-controls .file-action-menu-host,
+#listing.mosaic .item:focus-within .item-controls .item-icon-button,
+#listing.mosaic .item:focus-within .item-controls .file-action-menu-host {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 #listing.mosaic .item-name {
@@ -796,7 +854,7 @@
 }
 
 #listing.details .details-col-actions {
-  width: 176px;
+  width: 128px;
 }
 
 #listing.details .details-table th,
@@ -970,11 +1028,74 @@
 }
 
 #listing.details .details-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   white-space: nowrap;
 }
 
 #listing.details .details-actions-cell .detail-action-button {
-  border-radius: 50%;
+  border-radius: 8px;
+}
+
+.file-action-menu-host {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.file-action-popover {
+  position: fixed;
+  z-index: 100008;
+  display: grid;
+  width: 208px;
+  padding: 6px;
+  border: 1px solid var(--borderPrimary, #e2e7ed);
+  border-radius: 11px;
+  color: var(--textPrimary, #1f2937);
+  background: var(--surfacePrimary, #fff);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+}
+
+.file-action-popover > button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease;
+}
+
+.file-action-popover > button:hover,
+.file-action-popover > button:focus-visible {
+  color: var(--blue, #1677ff);
+  background: color-mix(in srgb, var(--blue, #1677ff) 9%, transparent);
+  outline: none;
+}
+
+.file-action-popover > button:focus-visible {
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--blue, #1677ff) 36%, transparent);
+}
+
+.file-action-popover > button.danger {
+  color: #c83232;
+}
+
+.file-action-popover > button.danger:hover,
+.file-action-popover > button.danger:focus-visible {
+  background: rgba(200, 50, 50, 0.08);
 }
 
 /* Compact list: two independent columns on desktop. */
@@ -2054,11 +2175,27 @@
   }
 }
 
+@media (hover: none), (pointer: coarse) {
+  #listing.mosaic .item-controls {
+    border-color: var(--listing-border);
+    background: color-mix(in srgb, var(--listing-surface) 94%, transparent);
+  }
+
+  #listing.mosaic .item-controls .item-icon-button,
+  #listing.mosaic .item-controls .file-action-menu-host {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #listing .item,
   #listing .item-icon-button,
   #listing .detail-action-button,
   #listing .mobile-item-more,
+  #listing.mosaic .item-controls,
+  #listing.mosaic .item-controls .file-action-menu-host,
+  .file-action-popover > button,
   .listing-search {
     transition: none;
   }

@@ -86,9 +86,7 @@
         :title="isFavorited ? '取消收藏' : '添加收藏'"
         @click.prevent="toggleFav"
       >
-        <i class="material-icons" aria-hidden="true">{{
-          isFavorited ? "star" : "star_border"
-        }}</i>
+        <AppIcon name="star" :size="19" :stroke-width="2" />
       </button>
       <button
         class="detail-action-button tag-btn"
@@ -98,57 +96,15 @@
         aria-label="分配标签"
         @click.prevent="toggleTagPicker"
       >
-        <i class="material-icons" aria-hidden="true">label</i>
+        <AppIcon name="tags" :size="18" :stroke-width="2" />
       </button>
-      <button
-        class="detail-action-button"
-        type="button"
-        title="详细信息"
-        aria-label="详细信息"
-        @click="showItemAction('info')"
-      >
-        <i class="material-icons">info</i>
-      </button>
-      <button
-        v-if="authStore.user?.perm.rename"
-        class="detail-action-button"
-        type="button"
-        title="重命名"
-        aria-label="重命名"
-        @click="showItemAction('rename')"
-      >
-        <i class="material-icons">drive_file_rename_outline</i>
-      </button>
-      <button
-        v-if="authStore.user?.perm.rename"
-        class="detail-action-button"
-        type="button"
-        title="移动"
-        aria-label="移动"
-        @click="showItemAction('move')"
-      >
-        <i class="material-icons">drive_file_move</i>
-      </button>
-      <button
-        v-if="authStore.user?.perm.download"
-        class="detail-action-button"
-        type="button"
-        title="下载"
-        aria-label="下载"
-        @click="downloadItem"
-      >
-        <i class="material-icons">file_download</i>
-      </button>
-      <button
-        v-if="authStore.user?.perm.delete"
-        class="detail-action-button danger"
-        type="button"
-        title="删除"
-        aria-label="删除"
-        @click="showItemAction('delete')"
-      >
-        <i class="material-icons">delete</i>
-      </button>
+      <FileActionMenu
+        :name="name"
+        :can-rename="Boolean(authStore.user?.perm.rename)"
+        :can-download="Boolean(authStore.user?.perm.download)"
+        :can-delete="Boolean(authStore.user?.perm.delete)"
+        @select="runFileAction"
+      />
     </td>
   </tr>
   <Teleport to="body">
@@ -178,6 +134,8 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import FileActionMenu from "@/components/files/FileActionMenu.vue";
 import FileThumbnail from "@/components/files/FileThumbnail.vue";
 import RiskIndicator from "@/components/files/RiskIndicator.vue";
 import { useAuthStore } from "@/stores/auth";
@@ -198,6 +156,7 @@ import {
   shouldSuppressTouchContextMenu,
 } from "@/utils/layoutContract";
 import type { RiskLevel } from "@/types/file";
+import type { FileActionMenuAction } from "@/utils/fileActionMenu";
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
@@ -313,6 +272,13 @@ const downloadItem = () => {
       $showError(error instanceof Error ? error : new Error(String(error)));
     }
   }
+};
+const runFileAction = (action: FileActionMenuAction) => {
+  if (action === "download") {
+    downloadItem();
+    return;
+  }
+  showItemAction(action);
 };
 const itemClick = (event: Event | KeyboardEvent) => {
   if (touchInteraction.value) return;

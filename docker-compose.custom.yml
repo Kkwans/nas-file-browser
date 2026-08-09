@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.9-phase9d-workspace-r2
+    image: nas-file-browser:2026.8.9-phase9d-analysis-r3
     build:
       context: .
       dockerfile: Dockerfile.custom

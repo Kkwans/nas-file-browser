@@ -116,7 +116,7 @@ const focusMenuItem = (last = false) => {
   const items =
     menu.value?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]');
   if (!items?.length) return;
-  items[last ? items.length - 1 : 0].focus();
+  items[last ? items.length - 1 : 0].focus({ preventScroll: true });
 };
 
 const positionMenu = () => {
@@ -150,7 +150,8 @@ const openMenu = async (focusLast = false) => {
 const closeMenu = (restoreFocus = false) => {
   if (!open.value) return;
   open.value = false;
-  if (restoreFocus) void nextTick(() => trigger.value?.focus());
+  if (restoreFocus)
+    void nextTick(() => trigger.value?.focus({ preventScroll: true }));
 };
 
 const toggleMenu = () => {

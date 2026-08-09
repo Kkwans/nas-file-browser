@@ -57,6 +57,14 @@ describe("file listing layout contract", () => {
       modified: false,
     });
 
+    expect(getListingFieldVisibility("compact-list")).toEqual({
+      quickActions: false,
+      tags: true,
+      type: true,
+      size: true,
+      modified: true,
+    });
+
     expect(getListingFieldVisibility("mosaic")).toEqual({
       quickActions: true,
       tags: true,

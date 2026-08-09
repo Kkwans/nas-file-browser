@@ -51,6 +51,7 @@ describe("文件操作区契约", () => {
     expect(menuSource).toContain("props.canDelete");
     expect(menuSource).toContain('event.key === "Escape"');
     expect(menuSource).toContain("closeMenu(true)");
+    expect(menuSource).toContain("preventScroll: true");
   });
 
   it("移动端单击、双击、长按契约保持原实现", () => {

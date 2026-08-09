@@ -20,17 +20,17 @@ export function getListingTagPresentation(
   return "none";
 }
 
-/** Compact grids deliberately expose only the visual, name and folder risk dot. */
+/** Compact layouts deliberately avoid persistent action controls. */
 export function getListingFieldVisibility(
   mode: ViewModeType | string | undefined
 ): ListingFieldVisibility {
-  if (mode === "compact-grid") {
+  if (mode === "compact-grid" || mode === "compact-list") {
     return {
       quickActions: false,
-      tags: false,
-      type: false,
-      size: false,
-      modified: false,
+      tags: mode === "compact-list",
+      type: mode === "compact-list",
+      size: mode === "compact-list",
+      modified: mode === "compact-list",
     };
   }
 

@@ -255,6 +255,7 @@ export async function makeRawResource(
     modified: new Date().toISOString(),
     name: url.split("/").pop() || "",
     type: "text",
+    riskLevel: "low",
     mode: 0,
     url: `/files${url}`,
     rawContent: buffer,

@@ -223,7 +223,6 @@ import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
-import { useCategoriesStore } from "@/stores/categories";
 import url from "@/utils/url";
 import { files as api } from "@/api";
 import { removePrefix } from "@/api/utils";
@@ -240,7 +239,6 @@ const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const router = useRouter();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
-const categoriesStore = useCategoriesStore();
 const { closeHovers, showHover } = layoutStore;
 const { req, selectedItems, selectedCount, isListing } = storeToRefs(fileStore);
 const { reload, preselect } = storeToRefs(fileStore);
@@ -371,8 +369,8 @@ async function submitSingle() {
   if (name.value === "" || name.value === oldName.value || submitting.value)
     return;
   const item = isListing.value ? selectedItems.value[0] : req.value!;
-  if (item?.isDir && item.path) {
-    const risk = categoriesStore.getRiskLevel(item.path);
+  if (item?.path) {
+    const risk = item.riskLevel ?? "low";
     if (risk === "high" || risk === "medium") {
       showHover({
         prompt: "risk-confirm",
@@ -423,10 +421,10 @@ async function submitBatch() {
     .map((change) =>
       selectedItems.value.find((item) => item.path === change.from)
     )
-    .filter((item) => item?.isDir)
+    .filter((item) => Boolean(item?.path))
     .map((item) => ({
       item: item!,
-      risk: categoriesStore.getRiskLevel(item!.path),
+      risk: item!.riskLevel ?? "low",
     }))
     .find(({ risk }) => risk === "high" || risk === "medium");
   if (risky) {

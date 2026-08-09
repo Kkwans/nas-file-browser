@@ -1,4 +1,5 @@
 import { fetchURL } from "./utils";
+import type { RiskLevel } from "@/types/file";
 
 export interface CategoryRule {
   id: string;
@@ -11,7 +12,7 @@ export interface CategoryRule {
 export interface CategoryPath {
   path: string;
   name: string;
-  risk: "high" | "medium" | "low";
+  risk: RiskLevel;
   volumeType: string;
 }
 
@@ -35,7 +36,7 @@ export interface ClassifyResult {
     icon: string;
     color: string;
   };
-  risk: "high" | "medium" | "low";
+  risk: RiskLevel;
 }
 
 export async function getCategories(): Promise<CategoryInfo> {

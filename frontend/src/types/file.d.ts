@@ -4,6 +4,7 @@
 export {};
 
 export type FileKey = string;
+export type RiskLevel = "low" | "medium" | "high";
 
 interface ResourceBase {
   path: string;
@@ -15,6 +16,7 @@ interface ResourceBase {
   isDir: boolean;
   isSymlink: boolean;
   type: ResourceType;
+  riskLevel: RiskLevel;
   url: string;
 }
 
@@ -108,6 +110,7 @@ export interface SearchResult {
   name: string;
   size: number;
   modified: string;
+  riskLevel: RiskLevel;
   url?: string;
 }
 

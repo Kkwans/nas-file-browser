@@ -814,12 +814,11 @@ const categoryGroups = computed(() => {
 
   for (const dir of subDirs) {
     const cat = categoriesStore.classifyPath(dir.path);
-    const risk = categoriesStore.getRiskLevel(dir.path);
     if (groups[cat.id]) {
       groups[cat.id].paths.push({
         path: dir.path,
         name: dir.name,
-        risk,
+        risk: dir.risk,
         volumeType: "",
       });
     }

@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/Kkwans/nas-file-browser/backend/risk"
 )
 
 // CategoryRule defines a classification rule for directories.
@@ -246,49 +248,7 @@ func matchPattern(pattern, path string) bool {
 
 // riskLevel determines the risk level of a directory path.
 func riskLevel(path string) string {
-	cleaned := filepath.Clean(path)
-
-	highRiskPrefixes := []string{
-		"/volume1/@docker",
-		"/volume1/@appstore",
-		"/volume1/@home",
-		"/volume1/@tmp",
-		"/volume1/@upload",
-		"/volume2/@docker",
-		"/volume2/@appstore",
-		"/volume2/@home",
-		"/etc",
-		"/usr",
-		"/var",
-		"/bin",
-		"/sbin",
-		"/boot",
-		"/dev",
-		"/proc",
-		"/sys",
-	}
-
-	mediumRiskPrefixes := []string{
-		"/volume1/Docker",
-		"/volume2/Docker",
-		"/volume1/@search",
-		"/volume1/@thumbnail",
-		"/volume1/@RecentlyScan",
-	}
-
-	for _, prefix := range highRiskPrefixes {
-		if strings.HasPrefix(cleaned, prefix) {
-			return "high"
-		}
-	}
-
-	for _, prefix := range mediumRiskPrefixes {
-		if strings.HasPrefix(cleaned, prefix) {
-			return "medium"
-		}
-	}
-
-	return "low"
+	return string(risk.Classify(path))
 }
 
 // categoriesHandler returns the category classification rules and risk levels.

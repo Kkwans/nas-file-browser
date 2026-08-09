@@ -139,6 +139,7 @@
 
 #listing .file-thumbnail > img,
 #listing .file-thumbnail > .file-type-icon,
+#listing .file-thumbnail > .risk-resource-icon,
 #listing .file-thumbnail > .thumbnail-placeholder {
   display: block;
   width: 100%;
@@ -155,6 +156,59 @@
 #listing .file-thumbnail > .file-type-icon {
   font-size: inherit;
   line-height: 1;
+}
+
+#listing .risk-resource-icon {
+  box-sizing: border-box;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: currentColor;
+}
+
+#listing .risk-resource-icon > .app-icon {
+  width: 82%;
+  height: 82%;
+  stroke: currentColor;
+  filter: drop-shadow(0 1px 1px rgb(15 23 42 / 10%));
+}
+
+#listing .risk-resource-icon--medium {
+  color: #a15c07;
+}
+
+#listing .risk-resource-icon--high {
+  color: #c4323a;
+}
+
+#listing .risk-inline-indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  min-height: 20px;
+  padding: 1px 5px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+#listing .risk-inline-indicator > .app-icon {
+  flex: 0 0 auto;
+}
+
+#listing .risk-inline-indicator--medium {
+  color: #92510a;
+  background: color-mix(in srgb, #f2a43a 10%, var(--listing-surface));
+}
+
+#listing .risk-inline-indicator--high {
+  color: #b52a35;
+  background: color-mix(in srgb, #dc3f4c 9%, var(--listing-surface));
 }
 
 #listing .thumbnail-placeholder {
@@ -269,55 +323,12 @@
   display: none;
 }
 
-#listing .risk-icon {
-  display: inline-flex;
-  flex: 0 0 18px;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  margin-left: 0;
-  border-radius: 50%;
-  font-size: 17px;
-  line-height: 1;
-}
-
-#listing .risk-high {
-  color: #b42318;
-}
-
-#listing .risk-medium {
-  color: #b54708;
-}
-
 #listing .item-visual {
   position: relative;
   display: grid;
   width: max-content;
   height: max-content;
   place-items: center;
-}
-
-#listing .risk-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
-  display: block;
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  border: 2px solid var(--listing-surface, #fff);
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px rgb(15 23 42 / 12%);
-}
-
-#listing .risk-badge.risk-high {
-  background: #e5484d;
-}
-
-#listing .risk-badge.risk-medium {
-  background: #f5a524;
 }
 
 #listing .item-quick-actions {
@@ -608,13 +619,8 @@
 #listing.compact-grid .size,
 #listing.compact-grid .modified,
 #listing.compact-grid .item-quick-actions,
-#listing.compact-grid .tag-chip,
-#listing.compact-grid .risk-icon {
+#listing.compact-grid .tag-chip {
   display: none;
-}
-
-#listing.compact-grid .risk-badge {
-  display: block;
 }
 
 #listing.compact-grid.compact-grid-size-small
@@ -1019,7 +1025,7 @@
 
 #listing.compact-list .item-quick-actions,
 #listing.compact-list .tag-chip,
-#listing.compact-list .risk-icon {
+#listing.compact-list .risk-inline-indicator {
   display: none;
 }
 
@@ -1619,21 +1625,16 @@
   }
 
   #listing.details .item .item-title-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      "name quick more"
-      "risk risk risk";
-    align-items: start;
+    display: flex;
+    align-items: flex-start;
     gap: 6px;
   }
 
   #listing.details .item .item-name {
-    grid-area: name;
+    flex: 1 1 auto;
   }
 
   #listing.details .item .item-quick-actions {
-    grid-area: quick;
     position: static;
     display: inline-flex;
     gap: 2px;
@@ -1644,12 +1645,6 @@
     width: 34px;
     height: 34px;
     min-width: 34px;
-  }
-
-  #listing.details .item .risk-badge {
-    grid-area: risk;
-    width: max-content;
-    margin-top: 4px;
   }
 
   #listing.details .item .item-name {
@@ -1687,7 +1682,6 @@
   }
 
   #listing.details .item .mobile-item-more {
-    grid-area: more;
     position: static;
     display: inline-flex;
   }
@@ -1721,11 +1715,6 @@
   #listing.mosaic .item-quick-actions {
     top: 8px;
     right: 8px;
-  }
-
-  #listing.mosaic .risk-badge {
-    top: 10px;
-    left: 10px;
   }
 
   #listing.mosaic .item-icon-button {

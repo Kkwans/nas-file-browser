@@ -1471,15 +1471,6 @@ nav.sidebar .favorite-item.drag-over-bottom {
     place-items: center;
   }
 
-  #listing.details .details-mobile-list .item-visual .risk-badge {
-    grid-area: auto;
-    width: 11px;
-    height: 11px;
-    margin: 0;
-    top: 4px;
-    left: 4px;
-  }
-
   #listing.details .details-mobile-list .item-quick-actions {
     display: contents;
   }
@@ -1633,12 +1624,6 @@ nav.sidebar .favorite-item.drag-over-bottom {
 @media (max-width: 480px) {
   #listing {
     padding: 8px 10px 86px;
-  }
-
-  #listing.mosaic .risk-badge {
-    width: 8px;
-    height: 8px;
-    padding: 0;
   }
 }
 

@@ -1,8 +1,10 @@
 import { fetchURL } from "./utils";
+import type { RiskLevel } from "@/types/file";
 
 export interface SubDir {
   path: string;
   name: string;
+  risk: RiskLevel;
 }
 
 export interface Volume {

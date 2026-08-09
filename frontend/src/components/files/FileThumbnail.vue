@@ -30,6 +30,11 @@
     >
       <i class="material-icons" aria-hidden="true">refresh</i>
     </button>
+    <RiskResourceIcon
+      v-else-if="nonLowRiskLevel"
+      :is-dir="isDir"
+      :level="nonLowRiskLevel"
+    />
     <i v-else class="material-icons file-type-icon" aria-hidden="true"></i>
   </span>
 </template>
@@ -43,6 +48,8 @@ import {
   extractVideoFrame,
   type ThumbnailRequest,
 } from "@/utils/thumbnailScheduler";
+import RiskResourceIcon from "@/components/files/RiskResourceIcon.vue";
+import type { RiskLevel } from "@/types/file";
 
 const props = defineProps<{
   name: string;
@@ -51,6 +58,8 @@ const props = defineProps<{
   modified: string;
   size: number;
   enabled: boolean;
+  isDir: boolean;
+  riskLevel?: RiskLevel;
   readOnly?: boolean;
 }>();
 
@@ -68,6 +77,10 @@ const status = ref<ThumbnailStatus>("idle");
 const displaySource = ref("");
 let observer: IntersectionObserver | null = null;
 let request: ThumbnailRequest | null = null;
+const normalizedRiskLevel = computed(() => props.riskLevel ?? "low");
+const nonLowRiskLevel = computed<Exclude<RiskLevel, "low"> | null>(() =>
+  normalizedRiskLevel.value === "low" ? null : normalizedRiskLevel.value
+);
 
 const isMedia = computed(
   () =>

@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kkwans/nas-file-browser/backend/risk"
 	"github.com/Kkwans/nas-file-browser/backend/search"
 )
 
@@ -35,11 +36,12 @@ var excludedSearchDirectories = map[string]struct{}{
 }
 
 type searchResult struct {
-	Dir      bool   `json:"dir"`
-	Path     string `json:"path"`
-	Name     string `json:"name"`
-	Size     int64  `json:"size"`
-	Modified string `json:"modified"`
+	Dir       bool       `json:"dir"`
+	Path      string     `json:"path"`
+	Name      string     `json:"name"`
+	Size      int64      `json:"size"`
+	Modified  string     `json:"modified"`
+	RiskLevel risk.Level `json:"riskLevel"`
 }
 
 type searchStreamEvent struct {
@@ -141,7 +143,8 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	}, func(foundPath string, file os.FileInfo) error {
 		result := searchResult{
 			Dir: file.IsDir(), Path: foundPath, Name: file.Name(), Size: file.Size(),
-			Modified: file.ModTime().UTC().Format(time.RFC3339),
+			Modified:  file.ModTime().UTC().Format(time.RFC3339),
+			RiskLevel: risk.Classify(path.Join(scopePath, foundPath)),
 		}
 		results = append(results, result)
 		select {

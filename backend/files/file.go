@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/afero"
 
 	fberrors "github.com/Kkwans/nas-file-browser/backend/errors"
+	"github.com/Kkwans/nas-file-browser/backend/risk"
 	"github.com/Kkwans/nas-file-browser/backend/rules"
 )
 
@@ -45,6 +46,7 @@ type FileInfo struct {
 	IsDir      bool              `json:"isDir"`
 	IsSymlink  bool              `json:"isSymlink"`
 	Type       string            `json:"type"`
+	RiskLevel  risk.Level        `json:"riskLevel"`
 	Subtitles  []string          `json:"subtitles,omitempty"`
 	Content    string            `json:"content,omitempty"`
 	Checksums  map[string]string `json:"checksums,omitempty"`
@@ -124,6 +126,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 			IsSymlink: IsSymlink(info.Mode()),
 			Size:      info.Size(),
 			Extension: filepath.Ext(info.Name()),
+			RiskLevel: risk.Classify(opts.Path),
 			Token:     opts.Token,
 		}
 	}
@@ -159,6 +162,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 		IsDir:     info.IsDir(),
 		Size:      info.Size(),
 		Extension: filepath.Ext(info.Name()),
+		RiskLevel: risk.Classify(opts.Path),
 		Token:     opts.Token,
 	}
 
@@ -437,6 +441,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool, calcImgRe
 			IsSymlink:  isSymlink,
 			Extension:  ext,
 			Path:       fPath,
+			RiskLevel:  risk.Classify(fPath),
 			currentDir: dir,
 		}
 

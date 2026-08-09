@@ -37,15 +37,10 @@
         :modified="modified"
         :size="size"
         :enabled="enableThumbs"
+        :is-dir="isDir"
+        :risk-level="normalizedRiskLevel"
         :read-only="readOnly"
       />
-      <span
-        v-if="isDir && riskLevel !== 'low'"
-        class="risk-badge"
-        :class="'risk-' + riskLevel"
-        :title="riskTitle"
-        :aria-label="riskTitle"
-      ></span>
     </div>
 
     <div v-if="fieldVisibility.quickActions" class="item-controls" @click.stop>
@@ -89,6 +84,7 @@
       <div class="name">
         <div class="item-title-row">
           <span class="item-name">{{ name }}</span>
+          <RiskIndicator v-if="inlineRiskLevel" :level="inlineRiskLevel" />
         </div>
         <div
           v-if="renderTagSlot"
@@ -268,7 +264,6 @@
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
-import { useCategoriesStore } from "@/stores/categories";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
 
@@ -292,7 +287,12 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
 import FileThumbnail from "@/components/files/FileThumbnail.vue";
-import type { ConflictingResource, MoveCopyItem } from "@/types/file";
+import RiskIndicator from "@/components/files/RiskIndicator.vue";
+import type {
+  ConflictingResource,
+  MoveCopyItem,
+  RiskLevel,
+} from "@/types/file";
 
 const touches = ref<number>(0);
 
@@ -325,6 +325,7 @@ const props = defineProps<{
   index: number;
   readOnly?: boolean;
   path: string;
+  riskLevel?: RiskLevel;
   visibleKeys?: string[];
   registerItem?: (key: string, element: HTMLElement | null) => void;
 }>();
@@ -332,7 +333,6 @@ const props = defineProps<{
 const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
-const categoriesStore = useCategoriesStore();
 const favoritesStore = useFavoritesStore();
 const tagsStore = useTagsStore();
 const fieldVisibility = computed(() =>
@@ -366,15 +366,15 @@ const canDrop = computed(() => {
   return true;
 });
 
-const riskLevel = computed(() => {
-  if (!props.isDir || !props.path) return "low";
-  return categoriesStore.getRiskLevel(props.path);
-});
-
-const riskTitle = computed(() => {
-  if (riskLevel.value === "high") return "高危操作";
-  if (riskLevel.value === "medium") return "中危操作";
-  return "";
+const normalizedRiskLevel = computed(() => props.riskLevel ?? "low");
+const inlineRiskLevel = computed<Exclude<RiskLevel, "low"> | null>(() => {
+  const level = normalizedRiskLevel.value;
+  return level !== "low" &&
+    enableThumbs &&
+    !props.readOnly &&
+    (props.type === "image" || props.type === "video")
+    ? level
+    : null;
 });
 
 const isFavorited = computed(() => {

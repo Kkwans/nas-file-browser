@@ -116,47 +116,6 @@ export const useCategoriesStore = defineStore("categories", () => {
     return regex.test(cleanPath);
   }
 
-  // Get risk level for a path
-  function getRiskLevel(path: string): "high" | "medium" | "low" {
-    const cleaned = path.replace(/\/+$/, "");
-
-    const highRiskPrefixes = [
-      "/volume1/@docker",
-      "/volume1/@appstore",
-      "/volume1/@home",
-      "/volume1/@tmp",
-      "/volume1/@upload",
-      "/volume2/@docker",
-      "/volume2/@appstore",
-      "/volume2/@home",
-      "/etc",
-      "/usr",
-      "/var",
-      "/bin",
-      "/sbin",
-      "/boot",
-      "/dev",
-      "/proc",
-      "/sys",
-    ];
-
-    const mediumRiskPrefixes = [
-      "/volume1/Docker",
-      "/volume2/Docker",
-      "/volume1/@search",
-      "/volume1/@thumbnail",
-      "/volume1/@RecentlyScan",
-    ];
-
-    for (const prefix of highRiskPrefixes) {
-      if (cleaned.startsWith(prefix)) return "high";
-    }
-    for (const prefix of mediumRiskPrefixes) {
-      if (cleaned.startsWith(prefix)) return "medium";
-    }
-    return "low";
-  }
-
   async function fetchCategories() {
     loading.value = true;
     try {
@@ -176,7 +135,6 @@ export const useCategoriesStore = defineStore("categories", () => {
     categories,
     loading,
     classifyPath,
-    getRiskLevel,
     fetchCategories,
   };
 });

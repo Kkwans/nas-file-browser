@@ -38,7 +38,6 @@ import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
-import { useCategoriesStore } from "@/stores/categories";
 import { useTrashStore } from "@/stores/trash";
 import type { TrashItem } from "@/api/trash";
 const $showError = inject<IToastError>("$showError")!;
@@ -57,28 +56,28 @@ const { reload, preselect } = storeToRefs(fileStore);
 const submit = async () => {
   buttons.loading("delete");
 
-  // Check risk level for selected items before deleting
-  if (isListing.value && selectedCount.value > 0) {
-    const categoriesStore = useCategoriesStore();
-    for (const item of selectedItems.value) {
-      if (item.isDir && item.path) {
-        const risk = categoriesStore.getRiskLevel(item.path);
-        if (risk === "high" || risk === "medium") {
-          buttons.done("delete");
-          showHover({
-            prompt: "risk-confirm",
-            props: {
-              riskLevel: risk,
-              targetPath: item.path,
-              actionType: "delete",
-              onconfirm: () => {
-                executeDelete();
-              },
-            },
-          });
-          return;
-        }
-      }
+  const candidates =
+    isListing.value && selectedCount.value > 0
+      ? selectedItems.value
+      : !isListing.value && req.value
+        ? [req.value]
+        : [];
+  for (const item of candidates) {
+    const risk = item.riskLevel ?? "low";
+    if (risk === "high" || risk === "medium") {
+      buttons.done("delete");
+      showHover({
+        prompt: "risk-confirm",
+        props: {
+          riskLevel: risk,
+          targetPath: item.path,
+          actionType: "delete",
+          onconfirm: () => {
+            executeDelete();
+          },
+        },
+      });
+      return;
     }
   }
 

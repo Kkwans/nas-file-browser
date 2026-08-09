@@ -62,7 +62,6 @@ import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useAuthStore } from "@/stores/auth";
-import { useCategoriesStore } from "@/stores/categories";
 import FileList from "./FileList.vue";
 import type { MoveCopyItem, ConflictResult } from "@/types/file";
 import { files as api } from "@/api";
@@ -93,24 +92,21 @@ const move = async (event: Event) => {
   event.preventDefault();
 
   // Check risk level before moving
-  const categoriesStore = useCategoriesStore();
   for (const item of selectedItems.value) {
-    if (item.isDir && item.path) {
-      const risk = categoriesStore.getRiskLevel(item.path);
-      if (risk === "high" || risk === "medium") {
-        showHover({
-          prompt: "risk-confirm",
-          props: {
-            riskLevel: risk,
-            targetPath: item.path,
-            actionType: "move",
-            onconfirm: () => {
-              executeMove();
-            },
+    const risk = item.riskLevel ?? "low";
+    if (risk === "high" || risk === "medium") {
+      showHover({
+        prompt: "risk-confirm",
+        props: {
+          riskLevel: risk,
+          targetPath: item.path,
+          actionType: "move",
+          onconfirm: () => {
+            executeMove();
           },
-        });
-        return;
-      }
+        },
+      });
+      return;
     }
   }
 

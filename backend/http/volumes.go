@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Kkwans/nas-file-browser/backend/risk"
 	"github.com/shirou/gopsutil/v4/disk"
 )
 
@@ -23,8 +24,9 @@ type Volume struct {
 
 // SubDir represents a notable subdirectory within a volume.
 type SubDir struct {
-	Path string `json:"path"`
-	Name string `json:"name"`
+	Path string     `json:"path"`
+	Name string     `json:"name"`
+	Risk risk.Level `json:"risk"`
 }
 
 // knownSubDirs returns the list of notable subdirectories for a given volume.
@@ -75,7 +77,7 @@ func knownSubDirs(serverRoot, volumePath string) []SubDir {
 		virtualPath := filepath.Join(volumePath, d.suffix)
 		hostPath := filepath.Join(serverRoot, strings.TrimPrefix(virtualPath, string(filepath.Separator)))
 		if info, err := os.Stat(hostPath); err == nil && info.IsDir() {
-			result = append(result, SubDir{Path: virtualPath, Name: d.name})
+			result = append(result, SubDir{Path: virtualPath, Name: d.name, Risk: risk.Classify(virtualPath)})
 		}
 	}
 	return result

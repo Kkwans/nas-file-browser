@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/Kkwans/nas-file-browser/backend/risk"
 )
 
 func TestDiscoverVolumesUsesConfiguredRootAndVirtualPaths(t *testing.T) {
@@ -42,7 +44,7 @@ func TestDiscoverVolumesUsesConfiguredRootAndVirtualPaths(t *testing.T) {
 	if primary.Name != "存储卷 1" || primary.Type != "system" {
 		t.Fatalf("primary volume = %#v", primary)
 	}
-	if !reflect.DeepEqual(primary.SubDirs, []SubDir{{Path: "/volume1/Project", Name: "Project"}}) {
+	if !reflect.DeepEqual(primary.SubDirs, []SubDir{{Path: "/volume1/Project", Name: "Project", Risk: risk.Low}}) {
 		t.Fatalf("primary subdirectories = %#v", primary.SubDirs)
 	}
 

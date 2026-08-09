@@ -36,20 +36,16 @@
             :modified="modified"
             :size="size"
             :enabled="enableThumbs"
+            :is-dir="isDir"
+            :risk-level="normalizedRiskLevel"
             :read-only="readOnly"
           />
-          <span
-            v-if="isDir && riskLevel !== 'low'"
-            class="risk-badge"
-            :class="'risk-' + riskLevel"
-            :title="riskTitle"
-            :aria-label="riskTitle"
-          ></span>
         </div>
         <div class="details-name-content">
           <div class="name">
             <div class="item-title-row">
               <span class="item-name">{{ name }}</span>
+              <RiskIndicator v-if="inlineRiskLevel" :level="inlineRiskLevel" />
             </div>
             <div v-if="pathTags.length" class="item-tag-list">
               <span
@@ -183,8 +179,8 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import TagPicker from "@/components/TagPicker.vue";
 import FileThumbnail from "@/components/files/FileThumbnail.vue";
+import RiskIndicator from "@/components/files/RiskIndicator.vue";
 import { useAuthStore } from "@/stores/auth";
-import { useCategoriesStore } from "@/stores/categories";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -201,11 +197,11 @@ import {
   shouldOpenDetailedRowFromClick,
   shouldSuppressTouchContextMenu,
 } from "@/utils/layoutContract";
+import type { RiskLevel } from "@/types/file";
 
 const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
 const authStore = useAuthStore();
-const categoriesStore = useCategoriesStore();
 const favoritesStore = useFavoritesStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
@@ -222,6 +218,7 @@ const props = defineProps<{
   index: number;
   readOnly?: boolean;
   path: string;
+  riskLevel?: RiskLevel;
   visibleKeys?: string[];
   registerItem?: (key: string, element: HTMLElement | null) => void;
 }>();
@@ -246,17 +243,16 @@ onBeforeUnmount(() => {
   if (mobileTapTimer !== null) window.clearTimeout(mobileTapTimer);
   if (touchResetTimer !== null) window.clearTimeout(touchResetTimer);
 });
-const riskLevel = computed(() => {
-  if (!props.isDir || !props.path) return "low";
-  return categoriesStore.getRiskLevel(props.path);
+const normalizedRiskLevel = computed(() => props.riskLevel ?? "low");
+const inlineRiskLevel = computed<Exclude<RiskLevel, "low"> | null>(() => {
+  const level = normalizedRiskLevel.value;
+  return level !== "low" &&
+    enableThumbs &&
+    !props.readOnly &&
+    (props.type === "image" || props.type === "video")
+    ? level
+    : null;
 });
-const riskTitle = computed(() =>
-  riskLevel.value === "high"
-    ? "高风险操作"
-    : riskLevel.value === "medium"
-      ? "中风险操作"
-      : ""
-);
 const isFavorited = computed(() =>
   props.path ? favoritesStore.isFavorite(props.path) : false
 );

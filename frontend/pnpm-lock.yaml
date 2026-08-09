@@ -16,6 +16,9 @@ importers:
       '@chenfengyuan/vue-number-input':
         specifier: ^2.0.1
         version: 2.0.1(vue@3.5.34(typescript@5.9.3))
+      '@lucide/vue':
+        specifier: 1.30.0
+        version: 1.30.0(vue@3.5.34(typescript@5.9.3))
       '@vueuse/core':
         specifier: ^14.0.0
         version: 14.3.0(vue@3.5.34(typescript@5.9.3))
@@ -453,6 +456,11 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@lucide/vue@1.30.0':
+    resolution: {integrity: sha512-EF+N6eH/zaaZN0EY0y0URvKjMAj4QUeVtdDeFxjWHjhXihve/pBge+ahaeXLtqa1np0Ax5vsZEIsOTcsGZwPNQ==}
+    peerDependencies:
+      vue: '>=3.0.1'
 
   '@napi-rs/wasm-runtime@1.1.4':
     resolution: {integrity: sha512-3NQNNgA1YSlJb/kMH1ildASP9HW7/7kYnRI2szWJaofaS1hWmbGI4H+d3+22aGzXXN9IJ+n+GiFVcGipJP18ow==}
@@ -2495,6 +2503,10 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@lucide/vue@1.30.0(vue@3.5.34(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.34(typescript@5.9.3)
 
   '@napi-rs/wasm-runtime@1.1.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:

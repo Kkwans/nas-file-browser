@@ -443,6 +443,7 @@ main .spinner .bounce2 {
   #previewer header.media-preview-header .action {
     width: 44px;
     height: 44px;
+    flex: 0 0 44px;
   }
 
   #previewer > .preview-nav {

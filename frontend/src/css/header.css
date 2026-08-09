@@ -720,7 +720,7 @@ html.dark header .breadcrumbs a:hover {
     background: var(--surfacePrimary, #fff);
   }
 
-  #dropdown.active {
+  header > .header-trailing #dropdown.active {
     transform: translateY(0) scale(1);
   }
 

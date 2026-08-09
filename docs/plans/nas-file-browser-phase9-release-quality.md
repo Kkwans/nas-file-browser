@@ -80,6 +80,16 @@ Phase 9 是原 P0–P2 完成后的发布质量修订。按 R-P0、R-P1、R-P2 �
 - 视觉比较使用相同 viewport 和稳定状态；发现问题在当前优先级内修复并重新提交、推送、部署、验收。
 - 禁止强推、rebase、amend、清理镜像或删除用户文件。始终保留 `.codex-tmp/`、`database/` 和同步冲突 Compose 文件。
 
+## 实施与验收记录（2026-08-09）
+
+- Phase 9A–9F 已按 R-P0、R-P1、R-P2 顺序完成；管理员 NAS 原生根目录、媒体 Chrome、面包屑、统一风险分类、侧栏图标轨、特殊前缀偏好、存储工具、任务中心、操作历史和全站触控精修均已上线。
+- 当前 NAS 运行镜像为 `nas-file-browser:2026.8.9-phase9f-touch-r8`；Compose 配置有效，容器状态为 `running/healthy`，首页返回完整 HTML，最近启动日志无错误。
+- Frontend 最终验证：ESLint 零 warning、typecheck 通过、Vitest `57 files / 231 tests` 通过；r8 production build 通过。Backend `go test ./...` 通过。
+- GitHub `master@4e6ca03b` 的 Docs 与 Continuous Integration 均通过；CI 覆盖 Frontend/Backend lint、Frontend tests、`go test -race ./...`、生产构建和 Docker 镜像构建。
+- TX5pro 最终发布矩阵覆盖 29 个稳定页面状态，包括桌面、窄容器、390px 手机、Light/Dark、文件、搜索、最近访问、回收站、任务、历史、存储工具、设置、侧栏和媒体预览；结果为 `29/29` 通过，无横向溢出、残留加载态、过小触控目标、运行时错误或外部资源请求。
+- 最终证据保存在 `.codex-tmp/phase9-evidence/phase9f-release-audit/20260809T143117Z/`；该目录属于本地验收产物，不纳入 Git。
+- 未删除用户文件、数据库、旧镜像或回滚备份；`.codex-tmp/`、`database/` 和同步冲突 Compose 文件保持原样未跟踪。
+
 ## 回滚
 
 - 每次部署使用明确不可变镜像标签并保留上一版本。

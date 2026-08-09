@@ -180,7 +180,7 @@ onMounted(() => nextTick(() => confirmButton.value?.focus()));
 
 .task-batch-dialog__heading {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 40px;
+  grid-template-columns: 42px minmax(0, 1fr) 44px;
   align-items: start;
   gap: 12px;
 }
@@ -215,6 +215,8 @@ onMounted(() => nextTick(() => confirmButton.value?.focus()));
 }
 
 .task-batch-dialog__close {
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   color: var(--textPrimary);
@@ -311,7 +313,7 @@ onMounted(() => nextTick(() => confirmButton.value?.focus()));
 
 .task-batch-dialog__actions button {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 7px;

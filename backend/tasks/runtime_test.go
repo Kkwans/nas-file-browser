@@ -62,7 +62,7 @@ func TestRuntimeCancellationStopsWorker(t *testing.T) {
 		t.Fatal(err)
 	}
 	canceled := waitForTaskStatus(t, backend, task.ID, StatusCanceled)
-	if !canceled.CanRetry() || canceled.Error == "" {
+	if canceled.CanRetry() || canceled.Error == "" {
 		t.Fatalf("canceled task = %#v", canceled)
 	}
 }

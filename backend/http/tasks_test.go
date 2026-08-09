@@ -40,10 +40,11 @@ func TestTaskHTTPVisibilityAndCancellation(t *testing.T) {
 	if strings.Contains(response.Body.String(), "allUsers") {
 		t.Fatalf("task replay args leaked: %s", response.Body.String())
 	}
-	var visible []*tasks.Task
-	if err := json.Unmarshal(response.Body.Bytes(), &visible); err != nil {
+	var listed taskListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
 		t.Fatal(err)
 	}
+	visible := listed.Items
 	if len(visible) != 1 || visible[0].ID != memberTask.ID {
 		t.Fatalf("member tasks = %#v", visible)
 	}
@@ -61,9 +62,10 @@ func TestTaskHTTPVisibilityAndCancellation(t *testing.T) {
 	if response.Code != http.StatusOK {
 		t.Fatalf("admin list status = %d body=%s", response.Code, response.Body.String())
 	}
-	if err := json.Unmarshal(response.Body.Bytes(), &visible); err != nil {
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
 		t.Fatal(err)
 	}
+	visible = listed.Items
 	if len(visible) != 2 {
 		t.Fatalf("admin tasks = %#v", visible)
 	}
@@ -77,6 +79,111 @@ func TestTaskHTTPVisibilityAndCancellation(t *testing.T) {
 	}
 	if canceled.Status != tasks.StatusCanceled {
 		t.Fatalf("canceled task = %#v", canceled)
+	}
+}
+
+func TestTaskFiltersPaginationArchiveAndBatchContract(t *testing.T) {
+	h := newTrashHTTPHarness(t,
+		users.User{Username: "admin", Perm: users.Permissions{Admin: true, Delete: true}},
+		users.User{Username: "member", Perm: users.Permissions{Delete: true}},
+	)
+	admin := trashHTTPUserByName(t, h, "admin")
+	member := trashHTTPUserByName(t, h, "member")
+	runtime, err := tasks.NewRuntime(h.storage.Tasks)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	create := func(title string, status tasks.Status) *tasks.Task {
+		t.Helper()
+		task, err := h.storage.Tasks.New(member.ID, member.Username, tasks.TypeTrashClear, title, json.RawMessage(`{"allUsers":false}`), "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		task.Status = status
+		if status != tasks.StatusQueued && status != tasks.StatusRunning {
+			task.FinishedAt = time.Now().UnixMilli()
+		}
+		if err := h.storage.Tasks.Update(task); err != nil {
+			t.Fatal(err)
+		}
+		return task
+	}
+	failed := create("failed task", tasks.StatusFailed)
+	canceled := create("canceled task", tasks.StatusCanceled)
+	completed := create("completed task", tasks.StatusCompleted)
+
+	response := h.request(t, member.ID, taskListHandler, http.MethodGet, "/tasks?status=failed,interrupted", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("attention list status = %d body=%s", response.Code, response.Body.String())
+	}
+	var listed taskListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if listed.Total != 1 || len(listed.Items) != 1 || listed.Items[0].ID != failed.ID {
+		t.Fatalf("attention list = %#v", listed)
+	}
+	if listed.Counts.All != 3 || listed.Counts.Attention != 1 || listed.Counts.Canceled != 1 || listed.Counts.Completed != 1 {
+		t.Fatalf("task counts = %#v", listed.Counts)
+	}
+
+	response = h.request(t, member.ID, taskListHandler, http.MethodGet, "/tasks?limit=1", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("first page status = %d body=%s", response.Code, response.Body.String())
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if listed.Total != 3 || len(listed.Items) != 1 || listed.NextCursor == "" {
+		t.Fatalf("first page = %#v", listed)
+	}
+	firstID := listed.Items[0].ID
+	response = h.request(t, member.ID, taskListHandler, http.MethodGet, "/tasks?limit=1&cursor="+listed.NextCursor, nil, nil)
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if len(listed.Items) != 1 || listed.Items[0].ID == firstID {
+		t.Fatalf("second page = %#v", listed)
+	}
+
+	response = h.request(t, member.ID, taskRetryHandler(runtime), http.MethodPost, "/tasks/"+canceled.ID+"/retry", nil, map[string]string{"id": canceled.ID})
+	if response.Code != http.StatusConflict {
+		t.Fatalf("canceled retry status = %d body=%s", response.Code, response.Body.String())
+	}
+	response = h.request(t, member.ID, taskArchiveHandler(true), http.MethodPost, "/tasks/"+canceled.ID+"/archive", nil, map[string]string{"id": canceled.ID})
+	if response.Code != http.StatusOK {
+		t.Fatalf("archive status = %d body=%s", response.Code, response.Body.String())
+	}
+	response = h.request(t, member.ID, taskListHandler, http.MethodGet, "/tasks?archived=true", nil, nil)
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if listed.Total != 1 || listed.Items[0].ID != canceled.ID || listed.Counts.Archived != 1 {
+		t.Fatalf("archived list = %#v", listed)
+	}
+
+	mismatch := `{"action":"archive","filters":{"statuses":["failed"],"archived":false},"expectedCount":2}`
+	response = h.request(t, member.ID, taskBatchHandler(runtime), http.MethodPost, "/tasks/batch", strings.NewReader(mismatch), nil)
+	if response.Code != http.StatusConflict || !strings.Contains(response.Body.String(), `"actualCount":1`) {
+		t.Fatalf("batch mismatch status = %d body=%s", response.Code, response.Body.String())
+	}
+	archive := `{"action":"archive","filters":{"statuses":["failed"],"archived":false},"expectedCount":1}`
+	response = h.request(t, member.ID, taskBatchHandler(runtime), http.MethodPost, "/tasks/batch", strings.NewReader(archive), nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("batch archive status = %d body=%s", response.Code, response.Body.String())
+	}
+	stored, err := h.storage.Tasks.Get(member.ID, failed.ID, false)
+	if err != nil || stored.ArchivedAt == 0 {
+		t.Fatalf("batch archived task = %#v err=%v", stored, err)
+	}
+
+	response = h.request(t, admin.ID, taskListHandler, http.MethodGet, "/tasks?user=member&text=completed", nil, nil)
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if listed.Total != 1 || listed.Items[0].ID != completed.ID || len(listed.Owners) != 1 || listed.Owners[0] != member.Username {
+		t.Fatalf("admin filtered list = %#v", listed)
 	}
 }
 

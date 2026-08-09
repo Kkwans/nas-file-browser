@@ -26,7 +26,7 @@ func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
 		ID: "task", UserID: 7, OwnerName: "owner",
 		Type: tasks.TypeTrashClear, Title: "清空回收站",
 		Status: tasks.StatusFailed, CreatedAt: 10, StartedAt: 11,
-		FinishedAt: 12, TotalItems: 4, ProcessedItems: 2,
+		FinishedAt: 12, ArchivedAt: 13, TotalItems: 4, ProcessedItems: 2,
 		TotalBytes: 100, ProcessedBytes: 50, Error: "disk failure",
 		Args: json.RawMessage(`{"all":false}`), Result: json.RawMessage(`{"groups":2}`),
 	}
@@ -44,6 +44,7 @@ func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
 
 	loaded.StartedAt = 0
 	loaded.FinishedAt = 0
+	loaded.ArchivedAt = 0
 	loaded.TotalItems = 0
 	loaded.ProcessedItems = 0
 	loaded.TotalBytes = 0
@@ -58,7 +59,7 @@ func TestTaskBackendPersistsReplayAndClearsProgressFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.StartedAt != 0 || loaded.FinishedAt != 0 || loaded.TotalItems != 0 || loaded.Error != "" || len(loaded.Result) != 0 {
+	if loaded.StartedAt != 0 || loaded.FinishedAt != 0 || loaded.ArchivedAt != 0 || loaded.TotalItems != 0 || loaded.Error != "" || len(loaded.Result) != 0 {
 		t.Fatalf("zero fields were not persisted: %#v", loaded)
 	}
 }

@@ -9,6 +9,9 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   cancel: vi.fn(),
   retry: vi.fn(),
+  archive: vi.fn(),
+  unarchive: vi.fn(),
+  batch: vi.fn(),
 }));
 
 vi.mock("@/api/tasks", () => mocks);
@@ -38,7 +41,19 @@ describe("tasks store", () => {
   });
 
   it("loads and orders recorded tasks", async () => {
-    mocks.list.mockResolvedValue([task("older", "completed", 1)]);
+    mocks.list.mockResolvedValue({
+      items: [task("older", "completed", 1)],
+      total: 1,
+      counts: {
+        all: 1,
+        active: 0,
+        attention: 0,
+        canceled: 0,
+        completed: 1,
+        archived: 0,
+      },
+      owners: ["owner"],
+    });
     const store = useTasksStore();
     await store.load();
     store.record(task("newer", "running", 2));

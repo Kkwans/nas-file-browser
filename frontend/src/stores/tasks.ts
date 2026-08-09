@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import * as api from "@/api/tasks";
-import type { TaskItem } from "@/api/tasks";
+import type {
+  TaskBatchAction,
+  TaskItem,
+  TaskListCounts,
+  TaskListFilter,
+} from "@/api/tasks";
 
 const activeStatuses = new Set<TaskItem["status"]>(["queued", "running"]);
 
@@ -10,18 +15,70 @@ export const useTasksStore = defineStore("tasks", {
     loading: boolean;
     loaded: boolean;
     error: string;
-  } => ({ items: [], loading: false, loaded: false, error: "" }),
+    total: number;
+    nextCursor: string;
+    owners: string[];
+    counts: TaskListCounts;
+    currentFilter: TaskListFilter;
+  } => ({
+    items: [],
+    loading: false,
+    loaded: false,
+    error: "",
+    total: 0,
+    nextCursor: "",
+    owners: [],
+    counts: {
+      all: 0,
+      active: 0,
+      attention: 0,
+      canceled: 0,
+      completed: 0,
+      archived: 0,
+    },
+    currentFilter: {},
+  }),
   getters: {
     activeItems: (state) =>
       state.items.filter((item) => activeStatuses.has(item.status)),
   },
   actions: {
-    async load() {
+    async load(filter: TaskListFilter = {}) {
       this.loading = true;
       this.error = "";
       try {
-        this.items = await api.list();
+        const response = await api.list(filter);
+        this.items = response.items;
+        this.total = response.total;
+        this.nextCursor = response.nextCursor ?? "";
+        this.owners = response.owners;
+        this.counts = response.counts;
+        this.currentFilter = { ...filter, statuses: filter.statuses?.slice() };
         this.loaded = true;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : String(error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    async loadMore() {
+      if (!this.nextCursor || this.loading) return;
+      this.loading = true;
+      this.error = "";
+      try {
+        const response = await api.list({
+          ...this.currentFilter,
+          cursor: this.nextCursor,
+        });
+        const known = new Set(this.items.map((item) => item.id));
+        this.items.push(
+          ...response.items.filter((item) => !known.has(item.id))
+        );
+        this.nextCursor = response.nextCursor ?? "";
+        this.total = response.total;
+        this.owners = response.owners;
+        this.counts = response.counts;
       } catch (error) {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
@@ -44,6 +101,21 @@ export const useTasksStore = defineStore("tasks", {
       const item = await api.retry(id);
       this.record(item);
       return item;
+    },
+    async archive(id: string) {
+      const item = await api.archive(id);
+      this.record(item);
+      return item;
+    },
+    async unarchive(id: string) {
+      const item = await api.unarchive(id);
+      this.record(item);
+      return item;
+    },
+    async batch(action: TaskBatchAction, expectedCount: number) {
+      const result = await api.batch(action, this.currentFilter, expectedCount);
+      for (const item of result.created ?? []) this.record(item);
+      return result;
     },
     async waitForTerminal(id: string, interval = 750): Promise<TaskItem> {
       for (;;) {

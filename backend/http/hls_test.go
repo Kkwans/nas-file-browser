@@ -90,7 +90,7 @@ func TestMediaHLSHTTPIsExplicitMergedPrivateAndServesAssets(t *testing.T) {
 	}
 }
 
-func TestMediaHLSCancelAndExplicitTaskRetry(t *testing.T) {
+func TestMediaHLSCancelDoesNotOfferRetry(t *testing.T) {
 	h := newTrashHTTPHarness(t, users.User{Username: "owner", Perm: users.Permissions{Download: true}})
 	owner := firstTrashHTTPUser(h)
 	if err := afero.WriteFile(h.fs[owner.ID], "/slow.mp4", []byte("video fixture"), 0o600); err != nil {
@@ -118,20 +118,9 @@ func TestMediaHLSCancelAndExplicitTaskRetry(t *testing.T) {
 	waitForHLSHTTPState(t, service, started.ID, owner.ID, hls.StateCanceled)
 
 	retryResponse := h.request(t, owner.ID, taskRetryHandler(runtime, service), http.MethodPost, "/tasks/"+started.TaskID+"/retry", nil, map[string]string{"id": started.TaskID})
-	if retryResponse.Code != http.StatusAccepted {
+	if retryResponse.Code != http.StatusConflict {
 		t.Fatalf("retry status = %d body=%s", retryResponse.Code, retryResponse.Body.String())
 	}
-	var retry tasks.Task
-	if err := json.Unmarshal(retryResponse.Body.Bytes(), &retry); err != nil {
-		t.Fatal(err)
-	}
-	if retry.Type != tasks.TypeMediaHLS || retry.RetryOf != started.TaskID || retry.ID == started.TaskID {
-		t.Fatalf("retry = %#v", retry)
-	}
-	if _, err := runtime.Cancel(owner.ID, retry.ID, false); err != nil {
-		t.Fatal(err)
-	}
-	waitForHTTPTask(t, h, retry.ID, tasks.StatusCanceled)
 }
 
 func newHTTPHLSService(t *testing.T, slow bool) *hls.Service {

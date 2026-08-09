@@ -22,14 +22,6 @@ type trashClearTaskArgs struct {
 	AllUsers bool `json:"allUsers"`
 }
 
-var taskListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	all, err := d.store.Tasks.List(d.user.ID, d.user.Perm.Admin)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	return renderJSON(w, r, all)
-})
-
 var taskGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	task, err := d.store.Tasks.Get(d.user.ID, mux.Vars(r)["id"], d.user.Perm.Admin)
 	if err != nil {
@@ -55,52 +47,60 @@ func taskRetryHandler(runtime *tasks.Runtime, hlsServices ...*hls.Service) handl
 		if err != nil {
 			return taskErrorStatus(err), err
 		}
-		if !original.CanRetry() {
-			return http.StatusConflict, tasks.ErrState
-		}
-		if !d.user.Perm.Admin && !canRunTaskType(d.user, original.Type) {
-			return http.StatusForbidden, fmt.Errorf("没有重试此任务的权限")
-		}
-
-		owner, err := d.store.Users.Get(d.server.Root, original.UserID)
+		retry, status, err := retryExistingTask(runtime, d, original, hlsServices...)
 		if err != nil {
-			return http.StatusConflict, fmt.Errorf("任务所有者已不可用: %w", err)
-		}
-		var retry *tasks.Task
-		if original.Type == tasks.TypeMediaHLS {
-			if len(hlsServices) == 0 || hlsServices[0] == nil {
-				return http.StatusConflict, fmt.Errorf("兼容播放服务不可用")
-			}
-			var args mediaHLSTaskArgs
-			if err := json.Unmarshal(original.Args, &args); err != nil {
-				return http.StatusConflict, fmt.Errorf("任务参数损坏: %w", err)
-			}
-			input, status, err := mediaHLSInput(d, owner, args.Path)
-			if err != nil {
-				return status, err
-			}
-			_, created, reserveErr := hlsServices[0].Reserve(input, func(job hls.Job) (string, error) {
-				retry, err = enqueueMediaHLSTask(runtime, d, owner, hlsServices[0], job, original.ID)
-				if err != nil {
-					return "", err
-				}
-				return retry.ID, nil
-			})
-			if reserveErr != nil {
-				return taskErrorStatus(reserveErr), reserveErr
-			}
-			if !created || retry == nil {
-				return http.StatusConflict, fmt.Errorf("该视频已有可用或正在执行的兼容播放任务")
-			}
-		} else {
-			retry, err = enqueueTask(runtime, d, owner, original.Type, original.Title, original.Args, original.ID)
-		}
-		if err != nil {
-			return taskErrorStatus(err), err
+			return status, err
 		}
 		recordHistory(d, "task.retry", original.Title, retry.ID, history.StatusSubmitted)
 		return renderJSONStatus(w, retry, http.StatusAccepted)
 	})
+}
+
+func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hlsServices ...*hls.Service) (*tasks.Task, int, error) {
+	if !original.CanRetry() {
+		return nil, http.StatusConflict, tasks.ErrState
+	}
+	if !d.user.Perm.Admin && !canRunTaskType(d.user, original.Type) {
+		return nil, http.StatusForbidden, fmt.Errorf("没有重试此任务的权限")
+	}
+
+	owner, err := d.store.Users.Get(d.server.Root, original.UserID)
+	if err != nil {
+		return nil, http.StatusConflict, fmt.Errorf("任务所有者已不可用: %w", err)
+	}
+	var retry *tasks.Task
+	if original.Type == tasks.TypeMediaHLS {
+		if len(hlsServices) == 0 || hlsServices[0] == nil {
+			return nil, http.StatusConflict, fmt.Errorf("兼容播放服务不可用")
+		}
+		var args mediaHLSTaskArgs
+		if err := json.Unmarshal(original.Args, &args); err != nil {
+			return nil, http.StatusConflict, fmt.Errorf("任务参数损坏: %w", err)
+		}
+		input, status, err := mediaHLSInput(d, owner, args.Path)
+		if err != nil {
+			return nil, status, err
+		}
+		_, created, reserveErr := hlsServices[0].Reserve(input, func(job hls.Job) (string, error) {
+			retry, err = enqueueMediaHLSTask(runtime, d, owner, hlsServices[0], job, original.ID)
+			if err != nil {
+				return "", err
+			}
+			return retry.ID, nil
+		})
+		if reserveErr != nil {
+			return nil, taskErrorStatus(reserveErr), reserveErr
+		}
+		if !created || retry == nil {
+			return nil, http.StatusConflict, fmt.Errorf("该视频已有可用或正在执行的兼容播放任务")
+		}
+	} else {
+		retry, err = enqueueTask(runtime, d, owner, original.Type, original.Title, original.Args, original.ID)
+	}
+	if err != nil {
+		return nil, taskErrorStatus(err), err
+	}
+	return retry, http.StatusAccepted, nil
 }
 
 func enqueueTrashClearTask(runtime *tasks.Runtime, d *data) (*tasks.Task, error) {

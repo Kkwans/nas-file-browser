@@ -2,7 +2,7 @@
   <div id="tasks-page" class="activity-page">
     <header-bar show-menu show-logo>
       <div class="activity-header-title">
-        <i class="material-icons" aria-hidden="true">pending_actions</i>
+        <app-icon name="tasks" :size="24" />
         <div>
           <strong>任务中心</strong>
           <span>{{ summaryLabel }}</span>
@@ -12,10 +12,11 @@
         <button
           type="button"
           class="activity-header-action"
+          :class="{ 'is-loading': tasksStore.loading }"
           :disabled="tasksStore.loading"
           @click="load()"
         >
-          <i class="material-icons" aria-hidden="true">refresh</i>
+          <app-icon name="refresh" :size="19" />
           刷新
         </button>
       </template>
@@ -24,33 +25,35 @@
     <main class="activity-workspace">
       <nav class="activity-switcher" aria-label="任务与历史">
         <router-link to="/tasks" aria-current="page">
-          <i class="material-icons" aria-hidden="true">pending_actions</i>
+          <app-icon name="tasks" :size="18" />
           任务中心
         </router-link>
         <router-link to="/history">
-          <i class="material-icons" aria-hidden="true">history</i>
+          <app-icon name="history" :size="18" />
           操作历史
         </router-link>
       </nav>
 
-      <section class="activity-intro" aria-labelledby="tasks-title">
-        <div class="activity-intro-mark" aria-hidden="true">
-          <span>{{ tasksStore.activeItems.length }}</span>
-          <small>ACTIVE</small>
-        </div>
+      <section class="task-overview" aria-labelledby="tasks-title">
         <div>
-          <h1 id="tasks-title">只展示真实任务状态</h1>
-          <p>
-            长操作会保留进度与结果。服务重启后任务标记为已中断，由你决定是否重试。
-          </p>
+          <h1 id="tasks-title">后台任务</h1>
+          <p>运行中任务展示真实进度；失败和中断任务由你决定是否重试。</p>
         </div>
-        <span class="activity-polling-state">
-          <i class="material-icons" aria-hidden="true">sync</i>
-          页面打开时自动刷新
+        <span class="task-overview__state">
+          <span :class="{ active: tasksStore.counts.active > 0 }"></span>
+          {{
+            tasksStore.counts.active
+              ? `${tasksStore.counts.active} 项进行中`
+              : "当前空闲"
+          }}
         </span>
       </section>
 
-      <div class="activity-toolbar" role="group" aria-label="筛选任务">
+      <div
+        class="activity-toolbar task-status-tabs"
+        role="group"
+        aria-label="筛选任务状态"
+      >
         <button
           v-for="option in filters"
           :key="option.id"
@@ -63,11 +66,102 @@
         </button>
       </div>
 
+      <form class="task-filter-bar" @submit.prevent="applyFilters">
+        <label class="task-filter-bar__search">
+          <app-icon name="search" :size="18" />
+          <span class="sr-only">搜索任务</span>
+          <input
+            v-model="filterDraft.text"
+            type="search"
+            placeholder="搜索标题、任务类型或错误信息"
+          />
+        </label>
+        <select
+          v-model="filterDraft.type"
+          aria-label="任务类型"
+          @change="applyFilters"
+        >
+          <option value="">全部类型</option>
+          <option
+            v-for="option in taskTypes"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+        <button type="submit" class="primary">筛选</button>
+        <details class="task-filter-more">
+          <summary>更多筛选</summary>
+          <div>
+            <label v-if="authStore.user?.perm.admin">
+              <span>用户</span>
+              <input
+                v-model="filterDraft.user"
+                type="text"
+                placeholder="用户名或用户 ID"
+              />
+            </label>
+            <label>
+              <span>开始日期</span>
+              <input v-model="filterDraft.from" type="date" />
+            </label>
+            <label>
+              <span>结束日期</span>
+              <input v-model="filterDraft.to" type="date" />
+            </label>
+            <button type="button" @click="resetFilters">清除附加筛选</button>
+          </div>
+        </details>
+      </form>
+
+      <section
+        v-if="showBatchActions"
+        class="task-batch-bar"
+        aria-label="批量任务操作"
+      >
+        <div>
+          <strong
+            >{{ tasksStore.total }} 项{{
+              activeFilter === "attention" ? "需处理任务" : "归档任务"
+            }}</strong
+          >
+          <span>操作范围为当前全部筛选结果，不只限于本页。</span>
+        </div>
+        <div>
+          <button
+            v-if="activeFilter === 'attention'"
+            type="button"
+            class="primary"
+            @click="beginBatch('retry')"
+          >
+            <app-icon name="retry" :size="18" />
+            一键处理
+          </button>
+          <button
+            v-if="activeFilter === 'attention'"
+            type="button"
+            @click="beginBatch('archive')"
+          >
+            <app-icon name="archive" :size="18" />
+            一键归档
+          </button>
+          <button
+            v-if="activeFilter === 'archived'"
+            type="button"
+            @click="beginBatch('unarchive')"
+          >
+            <app-icon name="archive-restore" :size="18" />
+            恢复当前筛选
+          </button>
+        </div>
+      </section>
+
       <section
         v-if="tasksStore.error"
         class="activity-state activity-state--error"
       >
-        <i class="material-icons" aria-hidden="true">cloud_off</i>
+        <app-icon name="circle-x" :size="24" />
         <div>
           <strong>无法读取任务</strong>
           <p>{{ tasksStore.error }}</p>
@@ -83,50 +177,59 @@
         <div v-for="index in 4" :key="index" class="activity-skeleton"></div>
       </section>
 
-      <section v-else-if="visibleTasks.length === 0" class="activity-empty">
-        <div aria-hidden="true"><i class="material-icons">task_alt</i></div>
+      <section v-else-if="tasksStore.items.length === 0" class="activity-empty">
+        <div aria-hidden="true">
+          <app-icon name="circle-check" :size="28" />
+        </div>
         <h2>
-          {{ tasksStore.items.length ? "此筛选下没有任务" : "还没有后台任务" }}
+          {{
+            tasksStore.counts.all || tasksStore.counts.archived
+              ? "此筛选下没有任务"
+              : "还没有后台任务"
+          }}
         </h2>
         <p>回收站清空、分析、兼容播放和其他长操作会出现在这里。</p>
       </section>
 
-      <section v-else class="activity-list" aria-label="任务列表">
+      <section v-else class="activity-list task-list" aria-label="任务列表">
         <article
-          v-for="task in visibleTasks"
+          v-for="task in tasksStore.items"
+          :id="`task-${task.id}`"
           :key="task.id"
-          class="task-card"
-          :class="`task-card--${task.status}`"
+          class="task-row"
         >
-          <div class="task-card-rail" aria-hidden="true"></div>
-          <div class="task-card-main">
-            <div class="task-card-heading">
-              <div class="task-icon" :class="`task-icon--${task.status}`">
-                <i class="material-icons" aria-hidden="true">{{
-                  taskIcon(task.status)
-                }}</i>
-              </div>
-              <div>
-                <strong>{{ task.title }}</strong>
-                <span>{{ statusLabel(task.status) }}</span>
-              </div>
+          <span class="task-icon" :class="`task-icon--${task.status}`">
+            <app-icon :name="taskIcon(task.status)" :size="20" />
+          </span>
+
+          <div class="task-row__content">
+            <div class="task-row__heading">
+              <strong>{{ task.title }}</strong>
+              <span
+                class="task-status"
+                :class="`task-status--${task.status}`"
+                >{{ statusLabel(task.status) }}</span
+              >
             </div>
             <div class="task-card-meta">
-              <span>
-                <i class="material-icons" aria-hidden="true">schedule</i>
-                {{ taskTime(task) }}
-              </span>
-              <span v-if="authStore.user?.perm.admin">
-                <i class="material-icons" aria-hidden="true">person_outline</i>
-                {{ task.ownerName || `用户 ${task.userId}` }}
-              </span>
-              <span v-if="task.retryOf">
-                <i class="material-icons" aria-hidden="true">replay</i>
-                重试任务
-              </span>
+              <span
+                ><app-icon name="clock" :size="14" />{{ taskTime(task) }}</span
+              >
+              <span v-if="authStore.user?.perm.admin"
+                ><app-icon name="user" :size="14" />{{
+                  task.ownerName || `用户 ${task.userId}`
+                }}</span
+              >
+              <span>{{ typeLabel(task.type) }}</span>
+              <span v-if="task.retryOf"
+                ><app-icon name="retry" :size="14" />重试任务</span
+              >
             </div>
 
-            <div v-if="task.totalItems > 0" class="task-progress">
+            <div
+              v-if="isActive(task.status) && task.totalItems > 0"
+              class="task-progress"
+            >
               <div>
                 <span
                   >已处理 {{ task.processedItems }} /
@@ -140,18 +243,29 @@
                 :aria-label="`${task.title}进度`"
               ></progress>
             </div>
-            <p v-else class="task-progress-pending">
-              <i class="material-icons" aria-hidden="true">hourglass_top</i>
+            <p v-else-if="isActive(task.status)" class="task-progress-pending">
               {{
                 task.status === "queued"
                   ? "正在等待可用执行槽"
-                  : "尚无可量化进度"
+                  : "任务正在执行，暂时没有可量化进度"
               }}
             </p>
             <p v-if="task.error" class="task-error">
-              <i class="material-icons" aria-hidden="true">error_outline</i>
-              {{ task.error }}
+              <app-icon name="circle-x" :size="15" />{{ task.error }}
             </p>
+            <details class="task-row__details">
+              <summary>详细信息</summary>
+              <dl>
+                <div>
+                  <dt>任务 ID</dt>
+                  <dd>{{ task.id }}</dd>
+                </div>
+                <div>
+                  <dt>创建时间</dt>
+                  <dd>{{ exactTime(task.createdAt) }}</dd>
+                </div>
+              </dl>
+            </details>
           </div>
 
           <div class="task-card-actions">
@@ -161,90 +275,108 @@
               :disabled="busyIds.has(task.id)"
               @click="cancelTask(task)"
             >
-              <i class="material-icons" aria-hidden="true">stop_circle</i>
-              {{ busyIds.has(task.id) ? "正在提交…" : "取消" }}
+              <app-icon name="circle-x" :size="17" />取消
             </button>
             <button
-              v-if="canRetry(task.status)"
+              v-if="canRetry(task)"
               type="button"
               class="primary"
               :disabled="busyIds.has(task.id)"
               @click="retryTask(task)"
             >
-              <i class="material-icons" aria-hidden="true">replay</i>
-              {{ busyIds.has(task.id) ? "正在提交…" : "重试" }}
+              <app-icon name="retry" :size="17" />重试
             </button>
             <router-link
-              v-if="
-                task.status === 'completed' &&
-                task.type === 'analysis.duplicates'
-              "
+              v-if="resultRoute(task)"
               class="primary"
-              :to="{ path: '/analysis', query: { task: task.id } }"
+              :to="resultRoute(task)!"
             >
-              <i class="material-icons" aria-hidden="true">fact_check</i>
-              查看结果
+              <app-icon :name="resultIcon(task.type)" :size="17" />查看结果
             </router-link>
-            <router-link
-              v-if="
-                task.status === 'completed' && task.type === 'analysis.storage'
-              "
-              class="primary"
-              :to="{
-                path: '/analysis',
-                query: { tool: 'storage', task: task.id },
-              }"
+            <button
+              v-if="task.archivedAt"
+              type="button"
+              :disabled="busyIds.has(task.id)"
+              @click="restoreTask(task)"
             >
-              <i class="material-icons" aria-hidden="true">donut_large</i>
-              查看结果
-            </router-link>
-            <router-link
-              v-if="
-                task.status === 'completed' && task.type === 'archive.extract'
-              "
-              class="primary"
-              :to="{ path: '/archive', query: { task: task.id } }"
+              <app-icon name="archive-restore" :size="17" />恢复
+            </button>
+            <button
+              v-else-if="canArchive(task)"
+              type="button"
+              :disabled="busyIds.has(task.id)"
+              @click="archiveTask(task)"
             >
-              <i class="material-icons" aria-hidden="true">folder_zip</i>
-              查看结果
-            </router-link>
-            <span
-              v-if="
-                !canCancel(task.status) &&
-                !canRetry(task.status) &&
-                !(
-                  task.status === 'completed' &&
-                  task.type === 'analysis.duplicates'
-                ) &&
-                !(
-                  task.status === 'completed' &&
-                  task.type === 'analysis.storage'
-                ) &&
-                !(
-                  task.status === 'completed' && task.type === 'archive.extract'
-                )
-              "
-              class="task-finished"
-            >
-              <i class="material-icons" aria-hidden="true">check</i>
-              已结束
-            </span>
+              <app-icon name="archive" :size="17" />归档
+            </button>
           </div>
         </article>
+
+        <button
+          v-if="tasksStore.nextCursor"
+          type="button"
+          class="task-load-more"
+          :disabled="tasksStore.loading"
+          @click="loadMore"
+        >
+          {{
+            tasksStore.loading
+              ? "正在加载…"
+              : `继续加载（已显示 ${tasksStore.items.length} / ${tasksStore.total}）`
+          }}
+        </button>
       </section>
     </main>
+
+    <task-batch-dialog
+      v-if="batchContext"
+      :action="batchContext.action"
+      :count="batchContext.count"
+      :owners="batchContext.owners"
+      :busy="batchBusy"
+      :result="batchResult"
+      @close="closeBatch"
+      @confirm="confirmBatch"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, reactive, ref } from "vue";
+import {
+  computed,
+  inject,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
+import type { RouteLocationRaw } from "vue-router";
 import dayjs from "dayjs";
 import HeaderBar from "@/components/header/HeaderBar.vue";
-import type { TaskItem, TaskStatus } from "@/api/tasks";
+import TaskBatchDialog from "@/components/tasks/TaskBatchDialog.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
+import * as taskApi from "@/api/tasks";
+import { StatusError } from "@/api/utils";
+import type {
+  TaskBatchAction,
+  TaskBatchResponse,
+  TaskItem,
+  TaskListFilter,
+  TaskStatus,
+  TaskType,
+} from "@/api/tasks";
 import { useAuthStore } from "@/stores/auth";
 import { useTasksStore } from "@/stores/tasks";
 
-type TaskFilter = "all" | "active" | "attention" | "completed";
+type TaskFilter =
+  | "all"
+  | "active"
+  | "attention"
+  | "canceled"
+  | "completed"
+  | "archived";
 
 const authStore = useAuthStore();
 const tasksStore = useTasksStore();
@@ -252,57 +384,139 @@ const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const activeFilter = ref<TaskFilter>("all");
 const busyIds = reactive(new Set<string>());
+const filterDraft = reactive({
+  text: "",
+  type: "" as TaskType | "",
+  user: "",
+  from: "",
+  to: "",
+});
+const appliedFilter = reactive({
+  text: "",
+  type: "" as TaskType | "",
+  user: "",
+  from: "",
+  to: "",
+});
+const batchContext = ref<{
+  action: TaskBatchAction;
+  count: number;
+  owners: string[];
+  filter: TaskListFilter;
+} | null>(null);
+const batchResult = ref<TaskBatchResponse | null>(null);
+const batchBusy = ref(false);
 let pollingTimer: number | undefined;
 
-const visibleTasks = computed(() =>
-  tasksStore.items.filter((task) => {
-    if (activeFilter.value === "active") return canCancel(task.status);
-    if (activeFilter.value === "attention") return canRetry(task.status);
-    if (activeFilter.value === "completed") return task.status === "completed";
-    return true;
-  })
-);
+const taskTypes: Array<{ value: TaskType; label: string }> = [
+  { value: "trash.clear", label: "回收站清理" },
+  { value: "analysis.duplicates", label: "重复文件分析" },
+  { value: "analysis.storage", label: "空间分析" },
+  { value: "archive.extract", label: "压缩包解压" },
+  { value: "media.hls", label: "兼容播放" },
+];
 
 const filters = computed(() => [
-  { id: "all" as const, label: "全部", count: tasksStore.items.length },
-  {
-    id: "active" as const,
-    label: "进行中",
-    count: tasksStore.activeItems.length,
-  },
+  { id: "all" as const, label: "全部", count: tasksStore.counts.all },
+  { id: "active" as const, label: "进行中", count: tasksStore.counts.active },
   {
     id: "attention" as const,
     label: "需处理",
-    count: tasksStore.items.filter((task) => canRetry(task.status)).length,
+    count: tasksStore.counts.attention,
+  },
+  {
+    id: "canceled" as const,
+    label: "已取消",
+    count: tasksStore.counts.canceled,
   },
   {
     id: "completed" as const,
     label: "已完成",
-    count: tasksStore.items.filter((task) => task.status === "completed")
-      .length,
+    count: tasksStore.counts.completed,
+  },
+  {
+    id: "archived" as const,
+    label: "已归档",
+    count: tasksStore.counts.archived,
   },
 ]);
 
 const summaryLabel = computed(() =>
-  tasksStore.activeItems.length
-    ? `${tasksStore.activeItems.length} 项进行中`
-    : `${tasksStore.items.length} 项任务`
+  tasksStore.counts.active
+    ? `${tasksStore.counts.active} 项进行中`
+    : `${tasksStore.counts.all} 项未归档任务`
 );
+const showBatchActions = computed(
+  () =>
+    tasksStore.total > 0 &&
+    (activeFilter.value === "attention" || activeFilter.value === "archived")
+);
+
+function viewFilter(): TaskListFilter {
+  const filter: TaskListFilter = {
+    archived: activeFilter.value === "archived",
+    limit: 30,
+  };
+  if (activeFilter.value === "active") filter.statuses = ["queued", "running"];
+  if (activeFilter.value === "attention")
+    filter.statuses = ["failed", "interrupted"];
+  if (activeFilter.value === "canceled") filter.statuses = ["canceled"];
+  if (activeFilter.value === "completed") filter.statuses = ["completed"];
+  if (appliedFilter.text.trim()) filter.text = appliedFilter.text.trim();
+  if (appliedFilter.type) filter.type = appliedFilter.type;
+  if (authStore.user?.perm.admin && appliedFilter.user.trim())
+    filter.user = appliedFilter.user.trim();
+  if (appliedFilter.from)
+    filter.from = new Date(`${appliedFilter.from}T00:00:00`).getTime();
+  if (appliedFilter.to)
+    filter.to = new Date(`${appliedFilter.to}T23:59:59.999`).getTime();
+  return filter;
+}
 
 async function load(showError = true) {
   try {
-    await tasksStore.load();
+    await tasksStore.load(viewFilter());
   } catch (error) {
     if (showError) $showError(error as Error, false);
   }
 }
 
-async function cancelTask(task: TaskItem) {
+async function loadMore() {
+  try {
+    await tasksStore.loadMore();
+  } catch (error) {
+    $showError(error as Error, false);
+  }
+}
+
+function applyFilters() {
+  Object.assign(appliedFilter, filterDraft);
+  void load();
+}
+
+function resetFilters() {
+  Object.assign(filterDraft, {
+    text: "",
+    type: "",
+    user: "",
+    from: "",
+    to: "",
+  });
+  Object.assign(appliedFilter, filterDraft);
+  void load();
+}
+
+async function withTaskBusy(
+  task: TaskItem,
+  action: () => Promise<unknown>,
+  message: string
+) {
   if (busyIds.has(task.id)) return;
   busyIds.add(task.id);
   try {
-    await tasksStore.cancel(task.id);
-    $showSuccess("取消请求已提交");
+    await action();
+    await load(false);
+    $showSuccess(message);
   } catch (error) {
     $showError(error as Error, false);
   } finally {
@@ -310,27 +524,95 @@ async function cancelTask(task: TaskItem) {
   }
 }
 
-async function retryTask(task: TaskItem) {
-  if (busyIds.has(task.id)) return;
-  busyIds.add(task.id);
+function cancelTask(task: TaskItem) {
+  return withTaskBusy(task, () => tasksStore.cancel(task.id), "取消请求已提交");
+}
+
+function retryTask(task: TaskItem) {
+  return withTaskBusy(
+    task,
+    async () => {
+      await tasksStore.retry(task.id);
+      activeFilter.value = "active";
+    },
+    "重试任务已提交"
+  );
+}
+
+function archiveTask(task: TaskItem) {
+  return withTaskBusy(task, () => tasksStore.archive(task.id), "任务已归档");
+}
+
+function restoreTask(task: TaskItem) {
+  return withTaskBusy(task, () => tasksStore.unarchive(task.id), "任务已恢复");
+}
+
+function beginBatch(action: TaskBatchAction) {
+  batchResult.value = null;
+  batchContext.value = {
+    action,
+    count: tasksStore.total,
+    owners: tasksStore.owners.slice(),
+    filter: {
+      ...tasksStore.currentFilter,
+      statuses: tasksStore.currentFilter.statuses?.slice(),
+      cursor: undefined,
+    },
+  };
+}
+
+async function confirmBatch() {
+  const context = batchContext.value;
+  if (!context || batchBusy.value) return;
+  batchBusy.value = true;
   try {
-    await tasksStore.retry(task.id);
-    activeFilter.value = "active";
-    $showSuccess("重试任务已提交");
+    batchResult.value = await taskApi.batch(
+      context.action,
+      context.filter,
+      context.count
+    );
+    await load(false);
   } catch (error) {
-    $showError(error as Error, false);
+    if (error instanceof StatusError && error.status === 409) {
+      closeBatch();
+      await load(false);
+      $showError(
+        new Error("筛选结果在确认期间发生变化，请核对新数量后重新操作。"),
+        false
+      );
+    } else {
+      $showError(error as Error, false);
+    }
   } finally {
-    busyIds.delete(task.id);
+    batchBusy.value = false;
   }
+}
+
+function closeBatch() {
+  if (batchBusy.value) return;
+  batchContext.value = null;
+  batchResult.value = null;
 }
 
 function canCancel(status: TaskStatus) {
   return status === "queued" || status === "running";
 }
 
-function canRetry(status: TaskStatus) {
+function isActive(status: TaskStatus) {
+  return canCancel(status);
+}
+
+function canRetry(task: TaskItem) {
   return (
-    status === "failed" || status === "canceled" || status === "interrupted"
+    !task.archivedAt &&
+    (task.status === "failed" || task.status === "interrupted")
+  );
+}
+
+function canArchive(task: TaskItem) {
+  return (
+    !task.archivedAt &&
+    ["completed", "failed", "canceled", "interrupted"].includes(task.status)
   );
 }
 
@@ -343,37 +625,68 @@ function progressPercent(task: TaskItem) {
 }
 
 function statusLabel(status: TaskStatus) {
-  const labels: Record<TaskStatus, string> = {
-    queued: "排队中",
-    running: "正在执行",
-    completed: "已完成",
-    failed: "执行失败",
-    canceled: "已取消",
-    interrupted: "已中断",
-  };
-  return labels[status];
+  return (
+    {
+      queued: "排队中",
+      running: "正在执行",
+      completed: "已完成",
+      failed: "执行失败",
+      canceled: "已取消",
+      interrupted: "已中断",
+    } satisfies Record<TaskStatus, string>
+  )[status];
 }
 
-function taskIcon(status: TaskStatus) {
-  const icons: Record<TaskStatus, string> = {
-    queued: "hourglass_top",
-    running: "sync",
-    completed: "task_alt",
-    failed: "error_outline",
-    canceled: "cancel",
-    interrupted: "power_settings_new",
-  };
-  return icons[status];
+function taskIcon(status: TaskStatus): AppIconName {
+  return (
+    {
+      queued: "clock",
+      running: "loader",
+      completed: "circle-check",
+      failed: "circle-x",
+      canceled: "circle-x",
+      interrupted: "retry",
+    } satisfies Record<TaskStatus, AppIconName>
+  )[status];
 }
 
 function taskTime(task: TaskItem) {
-  const timestamp = task.finishedAt || task.startedAt || task.createdAt;
-  return dayjs(timestamp).fromNow();
+  return dayjs(task.finishedAt || task.startedAt || task.createdAt).fromNow();
 }
+
+function exactTime(timestamp: number) {
+  return dayjs(timestamp).format("YYYY-MM-DD HH:mm:ss");
+}
+
+function typeLabel(type: TaskType) {
+  return taskTypes.find((item) => item.value === type)?.label ?? type;
+}
+
+function resultRoute(task: TaskItem): RouteLocationRaw | null {
+  if (task.status !== "completed") return null;
+  if (task.type === "analysis.duplicates")
+    return { path: "/analysis", query: { task: task.id } };
+  if (task.type === "analysis.storage")
+    return { path: "/analysis", query: { tool: "storage", task: task.id } };
+  if (task.type === "archive.extract")
+    return { path: "/archive", query: { task: task.id } };
+  return null;
+}
+
+function resultIcon(type: TaskType): AppIconName {
+  if (type === "analysis.duplicates") return "analysis-duplicates";
+  if (type === "analysis.storage") return "analysis-storage";
+  if (type === "archive.extract") return "archive";
+  return "tasks";
+}
+
+watch(activeFilter, () => void load());
 
 onMounted(() => {
   void load();
-  pollingTimer = window.setInterval(() => void load(false), 2500);
+  pollingTimer = window.setInterval(() => {
+    if (!batchContext.value) void load(false);
+  }, 5000);
 });
 
 onUnmounted(() => {

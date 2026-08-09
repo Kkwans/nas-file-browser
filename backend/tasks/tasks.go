@@ -48,6 +48,7 @@ type Task struct {
 	CreatedAt      int64           `json:"createdAt" storm:"index"`
 	StartedAt      int64           `json:"startedAt,omitempty"`
 	FinishedAt     int64           `json:"finishedAt,omitempty"`
+	ArchivedAt     int64           `json:"archivedAt,omitempty" storm:"index"`
 	TotalItems     int             `json:"totalItems"`
 	ProcessedItems int             `json:"processedItems"`
 	TotalBytes     int64           `json:"totalBytes"`
@@ -73,7 +74,14 @@ func (task *Task) CanCancel() bool {
 }
 
 func (task *Task) CanRetry() bool {
-	return task != nil && (task.Status == StatusFailed || task.Status == StatusCanceled || task.Status == StatusInterrupted)
+	return task != nil && task.ArchivedAt == 0 && (task.Status == StatusFailed || task.Status == StatusInterrupted)
+}
+
+func (task *Task) CanArchive() bool {
+	if task == nil || task.ArchivedAt != 0 {
+		return false
+	}
+	return task.Status == StatusCompleted || task.Status == StatusFailed || task.Status == StatusCanceled || task.Status == StatusInterrupted
 }
 
 type StorageBackend interface {

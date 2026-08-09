@@ -19,6 +19,7 @@ type taskRecord struct {
 	CreatedAt      int64        `storm:"index"`
 	StartedAt      int64
 	FinishedAt     int64
+	ArchivedAt     int64 `storm:"index"`
 	TotalItems     int
 	ProcessedItems int
 	TotalBytes     int64
@@ -72,6 +73,7 @@ func (backend taskBackend) Update(task *tasks.Task) error {
 	// clearable when a task is retried or a diagnostic is resolved.
 	for field, value := range map[string]interface{}{
 		"StartedAt": task.StartedAt, "FinishedAt": task.FinishedAt,
+		"ArchivedAt": task.ArchivedAt,
 		"TotalItems": task.TotalItems, "ProcessedItems": task.ProcessedItems,
 		"TotalBytes": task.TotalBytes, "ProcessedBytes": task.ProcessedBytes,
 		"Error":  task.Error,
@@ -90,6 +92,7 @@ func newTaskRecord(task *tasks.Task) *taskRecord {
 		Type: task.Type, Title: task.Title, Status: task.Status,
 		CreatedAt: task.CreatedAt, StartedAt: task.StartedAt,
 		FinishedAt: task.FinishedAt, TotalItems: task.TotalItems,
+		ArchivedAt:     task.ArchivedAt,
 		ProcessedItems: task.ProcessedItems, TotalBytes: task.TotalBytes,
 		ProcessedBytes: task.ProcessedBytes, Error: task.Error,
 		RetryOf: task.RetryOf, Args: string(task.Args), Result: string(task.Result),
@@ -102,6 +105,7 @@ func (record *taskRecord) task() *tasks.Task {
 		Type: record.Type, Title: record.Title, Status: record.Status,
 		CreatedAt: record.CreatedAt, StartedAt: record.StartedAt,
 		FinishedAt: record.FinishedAt, TotalItems: record.TotalItems,
+		ArchivedAt:     record.ArchivedAt,
 		ProcessedItems: record.ProcessedItems, TotalBytes: record.TotalBytes,
 		ProcessedBytes: record.ProcessedBytes, Error: record.Error,
 		RetryOf: record.RetryOf, Args: json.RawMessage(record.Args), Result: json.RawMessage(record.Result),

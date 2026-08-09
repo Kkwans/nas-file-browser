@@ -85,9 +85,12 @@ func NewHandler(
 	api.Handle("/trash/{id}", monkey(trashDeleteHandler, "")).Methods("DELETE")
 
 	api.Handle("/tasks", monkey(taskListHandler, "")).Methods("GET")
+	api.Handle("/tasks/batch", monkey(taskBatchHandler(taskRuntime, hlsService), "")).Methods("POST")
 	api.Handle("/tasks/{id}", monkey(taskGetHandler, "")).Methods("GET")
 	api.Handle("/tasks/{id}/cancel", monkey(taskCancelHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/tasks/{id}/retry", monkey(taskRetryHandler(taskRuntime, hlsService), "")).Methods("POST")
+	api.Handle("/tasks/{id}/archive", monkey(taskArchiveHandler(true), "")).Methods("POST")
+	api.Handle("/tasks/{id}/unarchive", monkey(taskArchiveHandler(false), "")).Methods("POST")
 	api.Handle("/analysis/duplicates", monkey(duplicateAnalysisStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/storage", monkey(storageAnalysisStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/recent", monkey(analysisRecentHandler, "")).Methods("GET")

@@ -3,6 +3,7 @@ package fbhttp
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -32,17 +33,69 @@ func TestHistoryHTTPIsPrivateEvenForAdmin(t *testing.T) {
 	if strings.Contains(response.Body.String(), "member.txt") || strings.Contains(response.Body.String(), "userId") {
 		t.Fatalf("private history leaked: %s", response.Body.String())
 	}
-	var entries []*history.Entry
-	if err := json.Unmarshal(response.Body.Bytes(), &entries); err != nil {
+	var listed historyListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
 		t.Fatal(err)
 	}
-	if len(entries) != 1 || entries[0].Target != "/admin.txt" {
-		t.Fatalf("admin private history = %#v", entries)
+	if listed.Total != 1 || len(listed.Items) != 1 || listed.Items[0].Target != "/admin.txt" {
+		t.Fatalf("admin private history = %#v", listed)
 	}
 
 	response = h.request(t, admin.ID, historyListHandler, http.MethodGet, "/history?limit=invalid", nil, nil)
 	if response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid limit status = %d body=%s", response.Code, response.Body.String())
+	}
+}
+
+func TestHistoryHTTPFiltersAndPaginates(t *testing.T) {
+	h := newTrashHTTPHarness(t, users.User{Username: "member"})
+	member := trashHTTPUserByName(t, h, "member")
+	first, err := h.storage.History.Record(member.ID, "file.rename", "/docs/report.md", "/docs/draft.md", history.StatusSuccess)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.storage.History.Record(member.ID, "file.delete", "/tmp/failed.txt", "", history.StatusFailed); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.storage.History.Record(member.ID, "analysis.storage", "/media", "", history.StatusSubmitted); err != nil {
+		t.Fatal(err)
+	}
+
+	response := h.request(t, member.ID, historyListHandler, http.MethodGet, "/history?limit=1", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("first page status = %d body=%s", response.Code, response.Body.String())
+	}
+	var firstPage historyListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &firstPage); err != nil {
+		t.Fatal(err)
+	}
+	if firstPage.Total != 3 || len(firstPage.Items) != 1 || firstPage.NextCursor == "" {
+		t.Fatalf("first page = %#v", firstPage)
+	}
+	response = h.request(t, member.ID, historyListHandler, http.MethodGet, "/history?limit=1&cursor="+firstPage.NextCursor, nil, nil)
+	var secondPage historyListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &secondPage); err != nil {
+		t.Fatal(err)
+	}
+	if len(secondPage.Items) != 1 || secondPage.Items[0].ID == firstPage.Items[0].ID {
+		t.Fatalf("second page = %#v", secondPage)
+	}
+
+	filterURL := fmt.Sprintf("/history?text=report&action=file.rename&status=success&from=%d&to=%d", first.CreatedAt, first.CreatedAt)
+	response = h.request(t, member.ID, historyListHandler, http.MethodGet, filterURL, nil, nil)
+	var filtered historyListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &filtered); err != nil {
+		t.Fatal(err)
+	}
+	if filtered.Total != 1 || len(filtered.Items) != 1 || filtered.Items[0].ID != first.ID {
+		t.Fatalf("filtered history = %#v", filtered)
+	}
+
+	for _, invalidURL := range []string{"/history?status=unknown", "/history?cursor=invalid", "/history?limit=101"} {
+		response = h.request(t, member.ID, historyListHandler, http.MethodGet, invalidURL, nil, nil)
+		if response.Code != http.StatusBadRequest {
+			t.Fatalf("invalid query %s status = %d", invalidURL, response.Code)
+		}
 	}
 }
 

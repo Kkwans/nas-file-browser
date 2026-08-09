@@ -45,6 +45,7 @@ import {
   Tags,
   Trash2,
   UserRound,
+  Upload,
   Wrench,
   X,
 } from "@lucide/vue";
@@ -97,6 +98,7 @@ export const appIcons = {
   tasks: ListChecks,
   trash: Trash2,
   user: UserRound,
+  upload: Upload,
   x: X,
 } satisfies Record<string, Component>;
 

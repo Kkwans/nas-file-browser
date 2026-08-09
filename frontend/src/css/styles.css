@@ -425,18 +425,23 @@ main .spinner .bounce2 {
 
 @media (max-width: 736px) {
   #previewer header.media-preview-header {
-    height: 64px;
+    height: 68px;
     padding: 8px 10px 12px;
   }
 
   #previewer header.media-preview-header > .header-center {
     flex: 1 1 auto;
-    max-width: calc(100vw - 60px);
-    height: 44px;
+    max-width: calc(100vw - 64px);
+    height: 48px;
   }
 
   #previewer header.media-preview-header > .header-trailing {
-    flex: 0 0 40px;
+    flex: 0 0 44px;
+    height: 48px;
+  }
+
+  #previewer header.media-preview-header .action {
+    width: 44px;
     height: 44px;
   }
 

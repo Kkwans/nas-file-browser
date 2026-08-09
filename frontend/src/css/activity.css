@@ -1562,6 +1562,7 @@
   }
 
   .activity-toolbar button {
+    min-height: 44px;
     justify-content: space-between;
   }
 
@@ -1597,6 +1598,15 @@
 
   .task-filter-bar > select {
     grid-column: 1 / -1;
+  }
+
+  .task-filter-bar__search,
+  .task-filter-bar > select,
+  .task-filter-bar > button,
+  .task-filter-more > summary,
+  .task-filter-more input,
+  .task-filter-more button {
+    min-height: 44px;
   }
 
   .task-filter-more,

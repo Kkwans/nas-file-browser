@@ -596,5 +596,16 @@ const addPrefix = () => {
     justify-content: flex-start;
     flex-wrap: wrap;
   }
+
+  .prefix-state-button,
+  .prefix-icon-button,
+  .prefix-add-row input,
+  .prefix-add-row .button {
+    min-height: 44px;
+  }
+
+  .prefix-icon-button {
+    min-width: 44px;
+  }
 }
 </style>

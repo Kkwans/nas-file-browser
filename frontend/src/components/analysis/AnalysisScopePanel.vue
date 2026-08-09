@@ -421,6 +421,11 @@ function updateRootConfirmed(event: Event) {
     padding: 15px;
   }
 
+  .analysis-run-panel__input input,
+  .analysis-run-panel__input button {
+    min-height: 44px;
+  }
+
   .analysis-run-panel__footer {
     align-items: stretch;
     flex-direction: column;

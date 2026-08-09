@@ -648,6 +648,15 @@ onUnmounted(() => {
 }
 
 @media (max-width: 736px) {
+  .search-page-input {
+    height: 2.75rem;
+  }
+
+  .search-page-actions button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
   .search-page-content {
     padding: 0.75rem;
   }
@@ -666,6 +675,7 @@ onUnmounted(() => {
 
   .search-shortcuts button {
     flex: 0 0 auto;
+    min-height: 2.75rem;
   }
 }
 </style>

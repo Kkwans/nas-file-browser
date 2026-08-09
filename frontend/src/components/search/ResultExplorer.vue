@@ -570,9 +570,12 @@ function emitAction(action: ExplorerResultAction) {
 
   .result-explorer-scope button {
     flex: 1;
+    min-height: 2.75rem;
   }
 
   .result-explorer-back {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     padding-inline: 0.625rem;
   }
 

@@ -880,10 +880,10 @@ nav.sidebar .sidebar-rail-logout {
   nav.sidebar .sidebar-section-header .section-action-btn,
   nav.sidebar .sidebar-group-actions,
   nav.sidebar .sidebar-group-actions .section-action-btn {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
   }
 
   nav.sidebar .sidebar-module .favorite-group-header,

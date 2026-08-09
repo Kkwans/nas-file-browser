@@ -168,6 +168,11 @@ func TestTaskFiltersPaginationArchiveAndBatchContract(t *testing.T) {
 	if response.Code != http.StatusConflict || !strings.Contains(response.Body.String(), `"actualCount":1`) {
 		t.Fatalf("batch mismatch status = %d body=%s", response.Code, response.Body.String())
 	}
+	zeroMismatch := `{"action":"archive","filters":{"statuses":["failed"],"archived":false,"text":"missing"},"expectedCount":1}`
+	response = h.request(t, member.ID, taskBatchHandler(runtime), http.MethodPost, "/tasks/batch", strings.NewReader(zeroMismatch), nil)
+	if response.Code != http.StatusConflict || !strings.Contains(response.Body.String(), `"actualCount":0`) {
+		t.Fatalf("zero batch mismatch status = %d body=%s", response.Code, response.Body.String())
+	}
 	archive := `{"action":"archive","filters":{"statuses":["failed"],"archived":false},"expectedCount":1}`
 	response = h.request(t, member.ID, taskBatchHandler(runtime), http.MethodPost, "/tasks/batch", strings.NewReader(archive), nil)
 	if response.Code != http.StatusOK {

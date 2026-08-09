@@ -69,7 +69,7 @@ type taskBatchResponse struct {
 	Matched   int                `json:"matched"`
 	Succeeded int                `json:"succeeded"`
 	Skipped   int                `json:"skipped"`
-	Actual    int                `json:"actualCount,omitempty"`
+	Actual    int                `json:"actualCount"`
 	Created   []*tasks.Task      `json:"created,omitempty"`
 	Failures  []taskBatchFailure `json:"failures,omitempty"`
 }

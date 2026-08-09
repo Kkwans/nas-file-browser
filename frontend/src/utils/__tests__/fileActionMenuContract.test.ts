@@ -23,6 +23,7 @@ describe("文件操作区契约", () => {
   it("详细网格使用底部操作条，触屏始终可达", () => {
     const itemSource = readSource("components/files/ListingItem.vue");
     const listingStyles = readSource("css/listing.css");
+    const workspaceStyles = readSource("css/workspace-ui.css");
 
     expect(itemSource).toContain("v-if=\"viewMode === 'mosaic'\"");
     expect(itemSource).toContain('@select="runFileAction"');
@@ -31,6 +32,12 @@ describe("文件操作区契约", () => {
     );
     expect(listingStyles).toMatch(
       /@media \(hover: none\), \(pointer: coarse\)[\s\S]*\.file-action-menu-host\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s
+    );
+    expect(workspaceStyles).toMatch(
+      /#listing\.mosaic \.item-icon-button\s*\{[^}]*width:\s*44px;[^}]*min-width:\s*44px;[^}]*height:\s*44px;/s
+    );
+    expect(workspaceStyles).toMatch(
+      /#listing\.details \.details-mobile-list \.item-icon-button,[\s\S]*?width:\s*44px;[\s\S]*?min-width:\s*44px;[\s\S]*?height:\s*44px;/s
     );
   });
 

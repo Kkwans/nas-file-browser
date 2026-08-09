@@ -1468,9 +1468,9 @@ nav.sidebar .favorite-item.drag-over-bottom {
   #listing.details .details-mobile-list .item-icon-button,
   #listing.details .details-mobile-list .mobile-item-more {
     display: grid;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
     place-items: center;
     padding: 0;
     border: 0;
@@ -1562,8 +1562,8 @@ nav.sidebar .favorite-item.drag-over-bottom {
 
   #listing.mosaic .item {
     grid-template-rows: 82px minmax(0, 1fr);
-    min-height: 226px;
-    padding: 10px 8px 48px;
+    min-height: 234px;
+    padding: 10px 8px 58px;
     border-radius: 11px;
   }
 
@@ -1584,9 +1584,9 @@ nav.sidebar .favorite-item.drag-over-bottom {
   }
 
   #listing.mosaic .item-icon-button {
-    width: 30px;
-    min-width: 30px;
-    height: 30px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
     border-radius: 7px;
   }
 

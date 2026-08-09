@@ -12,6 +12,9 @@ services:
     ports:
       - "8888:80"
     volumes:
+      - type: bind
+        source: /
+        target: /srv
       - /volume1:/volume1
       - /volume2:/volume2
       - /mnt:/mnt
@@ -24,7 +27,7 @@ services:
     environment:
       - UGREEN_SMB_SHARE_CONFIG=/run/ugreen/smbshare.conf
       - FB_DATABASE=/database/filebrowser.db
-      - FB_ROOT=/
+      - FB_ROOT=/srv
       - FB_LOGLEVEL=info
       - FB_HLS_CACHE_DIR=/cache/hls
       - FB_HLS_CACHE_MAX_BYTES=10737418240

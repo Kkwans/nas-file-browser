@@ -746,7 +746,11 @@ const canLogout = computed(
 const systemOptions = computed<
   Array<{ id: SystemOptionId; icon: string; label: string }>
 >(() => [
-  { id: "files", icon: "folder", label: "我的文件" },
+  {
+    id: "files",
+    icon: user.value?.perm?.admin ? "dns" : "folder",
+    label: user.value?.perm?.admin ? "NAS 根目录" : "我的文件",
+  },
   { id: "search", icon: "search", label: "搜索" },
   { id: "recent", icon: "schedule", label: "最近访问" },
   { id: "trash", icon: "delete_outline", label: "回收站" },

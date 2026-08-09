@@ -1,6 +1,7 @@
 package fbhttp
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -27,7 +28,7 @@ type SubDir struct {
 }
 
 // knownSubDirs returns the list of notable subdirectories for a given volume.
-func knownSubDirs(volumePath string) []SubDir {
+func knownSubDirs(serverRoot, volumePath string) []SubDir {
 	dirs := []struct {
 		suffix string
 		name   string
@@ -71,9 +72,10 @@ func knownSubDirs(volumePath string) []SubDir {
 
 	result := make([]SubDir, 0, len(dirs))
 	for _, d := range dirs {
-		p := filepath.Join(volumePath, d.suffix)
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
-			result = append(result, SubDir{Path: p, Name: d.name})
+		virtualPath := filepath.Join(volumePath, d.suffix)
+		hostPath := filepath.Join(serverRoot, strings.TrimPrefix(virtualPath, string(filepath.Separator)))
+		if info, err := os.Stat(hostPath); err == nil && info.IsDir() {
+			result = append(result, SubDir{Path: virtualPath, Name: d.name})
 		}
 	}
 	return result
@@ -96,30 +98,27 @@ func volumeType(path string) string {
 func volumeName(path string) string {
 	base := filepath.Base(path)
 	switch {
+	case strings.HasPrefix(base, "volumeUSB"):
+		return "USB 存储 " + strings.TrimPrefix(base, "volumeUSB")
 	case base == "volume1":
 		return "存储卷 1"
 	case base == "volume2":
 		return "存储卷 2"
 	case strings.HasPrefix(base, "volume"):
 		return "存储卷 " + strings.TrimPrefix(base, "volume")
-	case strings.HasPrefix(base, "volumeUSB"):
-		return "USB 存储 " + strings.TrimPrefix(base, "volumeUSB")
 	default:
 		return base
 	}
 }
 
-var volumesHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.user.Perm.Admin {
-		return http.StatusForbidden, fmt.Errorf("没有访问权限")
-	}
-
+func discoverVolumes(ctx context.Context, serverRoot string) ([]Volume, error) {
 	volumes := make([]Volume, 0, 8)
 
-	// Scan /volume* directories at root
-	entries, err := os.ReadDir("/")
+	// Scan the configured server root. API paths stay virtual (for example
+	// /volume1) even when the host root is mounted at /srv in the container.
+	entries, err := os.ReadDir(serverRoot)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("读取根目录失败: %w", err)
+		return nil, fmt.Errorf("读取根目录失败: %w", err)
 	}
 
 	for _, entry := range entries {
@@ -131,28 +130,42 @@ var volumesHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *da
 			continue
 		}
 
-		fullPath := "/" + name
+		virtualPath := "/" + name
+		hostPath := filepath.Join(serverRoot, name)
 
 		// Skip Docker internal overlay paths
-		if strings.Contains(fullPath, "@docker") {
+		if strings.Contains(virtualPath, "@docker") {
 			continue
 		}
 
 		vol := Volume{
-			Path:    fullPath,
-			Name:    volumeName(fullPath),
-			Type:    volumeType(fullPath),
-			SubDirs: knownSubDirs(fullPath),
+			Path:    virtualPath,
+			Name:    volumeName(virtualPath),
+			Type:    volumeType(virtualPath),
+			SubDirs: knownSubDirs(serverRoot, virtualPath),
 		}
 
 		// Get disk usage for this volume
-		usage, err := disk.UsageWithContext(r.Context(), fullPath)
+		usage, err := disk.UsageWithContext(ctx, hostPath)
 		if err == nil {
 			vol.TotalSpace = usage.Total
 			vol.UsedSpace = usage.Used
 		}
 
 		volumes = append(volumes, vol)
+	}
+
+	return volumes, nil
+}
+
+var volumesHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	if !d.user.Perm.Admin {
+		return http.StatusForbidden, fmt.Errorf("没有访问权限")
+	}
+
+	volumes, err := discoverVolumes(r.Context(), d.server.Root)
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
 	return renderJSON(w, r, volumes)

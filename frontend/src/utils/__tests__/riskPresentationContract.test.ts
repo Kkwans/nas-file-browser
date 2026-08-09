@@ -63,6 +63,9 @@ describe("risk presentation contract", () => {
   it("removes frontend classification and every legacy overlay dot", () => {
     expect(categoriesStoreSource).not.toContain("getRiskLevel");
     expect(listingStyles).not.toContain("risk-badge");
+    expect(listingStyles).toMatch(
+      /#listing \.file-thumbnail > \.risk-resource-icon \{[\s\S]*?display: grid;[\s\S]*?place-items: center;/
+    );
     expect(workspaceStyles).not.toContain("risk-badge");
     expect(listingItemSource).not.toContain("risk-badge");
     expect(detailedRowSource).not.toContain("risk-badge");

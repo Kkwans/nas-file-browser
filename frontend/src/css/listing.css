@@ -139,7 +139,6 @@
 
 #listing .file-thumbnail > img,
 #listing .file-thumbnail > .file-type-icon,
-#listing .file-thumbnail > .risk-resource-icon,
 #listing .file-thumbnail > .thumbnail-placeholder {
   display: block;
   width: 100%;
@@ -158,18 +157,21 @@
   line-height: 1;
 }
 
-#listing .risk-resource-icon {
+#listing .file-thumbnail > .risk-resource-icon {
   box-sizing: border-box;
   display: grid;
   width: 100%;
   height: 100%;
   place-items: center;
   color: currentColor;
+  line-height: 1;
 }
 
-#listing .risk-resource-icon > .app-icon {
+#listing .file-thumbnail > .risk-resource-icon > .app-icon {
+  display: block;
   width: 82%;
   height: 82%;
+  margin: auto;
   stroke: currentColor;
   filter: drop-shadow(0 1px 1px rgb(15 23 42 / 10%));
 }

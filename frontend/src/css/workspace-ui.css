@@ -1221,7 +1221,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
   .listing-search {
     width: 100%;
     min-width: 0;
-    height: 36px;
+    height: 44px;
     padding: 0 4px;
     border-color: var(--borderPrimary, #dbe2ea);
     border-radius: 9px;
@@ -1239,10 +1239,11 @@ nav.sidebar .favorite-item.drag-over-bottom {
     text-align: left;
   }
 
-  .listing-search-submit {
-    width: 28px;
-    min-width: 28px;
-    height: 28px;
+  .listing-search-submit,
+  .listing-search-clear {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
   }
 
   .breadcrumbs {

@@ -668,11 +668,6 @@ html.dark header .breadcrumbs a:hover {
     line-height: 1;
   }
 
-  header #search:not(.active) #input,
-  header #search:not(.active) #input input {
-    min-height: 44px;
-  }
-
   header > .header-trailing {
     gap: 0.375em;
   }

@@ -29,4 +29,13 @@ describe("存储工具无障碍契约", () => {
     expect(analysisSource).toContain("<span>03</span>");
     expect(analysisSource).not.toContain('class="analysis-hero"');
   });
+
+  it("运行面板不复用会触发全局定位规则的 header 元素", () => {
+    expect(scopePanelSource).toContain(
+      '<div class="analysis-run-panel__header">'
+    );
+    expect(scopePanelSource).not.toContain(
+      '<header class="analysis-run-panel__header">'
+    );
+  });
 });

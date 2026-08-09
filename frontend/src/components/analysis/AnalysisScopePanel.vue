@@ -1,6 +1,6 @@
 <template>
   <section class="analysis-run-panel" aria-labelledby="analysis-title">
-    <header class="analysis-run-panel__header">
+    <div class="analysis-run-panel__header">
       <span class="analysis-run-panel__mark" aria-hidden="true">
         <AppIcon :name="content.icon" :size="24" />
       </span>
@@ -12,7 +12,7 @@
         <AppIcon name="shield-check" :size="16" />
         只读 · 并发 1
       </span>
-    </header>
+    </div>
 
     <div class="analysis-run-panel__body">
       <div class="analysis-run-panel__step">

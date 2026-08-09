@@ -151,6 +151,46 @@
   background: color-mix(in srgb, var(--blue) 10%, transparent);
 }
 
+.recent-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 12px;
+  background: var(--surfacePrimary);
+}
+
+.recent-summary-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 9%, transparent);
+}
+
+.recent-summary-icon .material-icons {
+  font-size: 20px;
+}
+
+.recent-summary h1 {
+  margin: 0;
+  color: var(--textSecondary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.recent-summary p {
+  margin: 2px 0 0;
+  color: var(--textPrimary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .recent-list {
   display: grid;
   gap: 8px;
@@ -225,6 +265,14 @@
 }
 
 @media (max-width: 640px) {
+  .recent-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .recent-summary .activity-private-state {
+    grid-column: 2;
+  }
+
   .recent-entry {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }

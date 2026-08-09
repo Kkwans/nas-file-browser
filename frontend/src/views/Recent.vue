@@ -22,19 +22,13 @@
     </header-bar>
 
     <main class="activity-workspace">
-      <section class="activity-intro" aria-labelledby="recent-title">
-        <div
-          class="activity-intro-mark activity-intro-mark--recent"
-          aria-hidden="true"
-        >
-          <span>100</span>
-          <small>MAX</small>
+      <section class="recent-summary" aria-labelledby="recent-title">
+        <div class="recent-summary-icon" aria-hidden="true">
+          <i class="material-icons">history</i>
         </div>
         <div>
-          <h1 id="recent-title">回到刚刚处理的内容</h1>
-          <p>
-            只记录成功进入的目录，以及成功打开或预览的文件；同一路径只保留最新一次。
-          </p>
+          <h1 id="recent-title">接着上次的位置</h1>
+          <p>最多保留 100 项成功访问记录，同一路径只显示最新一次。</p>
         </div>
         <span class="activity-private-state">
           <i class="material-icons" aria-hidden="true">lock_outline</i>

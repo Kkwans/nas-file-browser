@@ -105,7 +105,7 @@ header > .header-center {
 
 /* Breadcrumb ------------------------------------------------------------ */
 .breadcrumbs {
-  top: 3.5rem;
+  top: calc(3.5rem + 10px);
   z-index: 800;
   box-sizing: border-box;
   width: auto;
@@ -1256,7 +1256,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
   }
 
   .breadcrumbs {
-    top: 48px;
+    top: calc(48px + 8px);
     height: 44px;
     margin: 8px 10px 2px;
     padding-inline: 6px;

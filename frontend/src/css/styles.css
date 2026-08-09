@@ -199,15 +199,86 @@ main .spinner .bounce2 {
   z-index: 19999;
 }
 
-#previewer header > .action i {
+#previewer header .action i {
   color: #fff;
   text-shadow: 1px 1px 1px #000000;
 }
 
-#previewer header > title {
+#previewer header title {
   color: #fff;
   white-space: nowrap;
   text-shadow: 1px 1px 1px #000000;
+}
+
+#previewer header.media-preview-header {
+  box-sizing: border-box;
+  height: 72px;
+  padding: 10px 16px 18px;
+  align-items: flex-start;
+  gap: 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.72) 0%,
+    rgba(0, 0, 0, 0.34) 64%,
+    transparent 100%
+  );
+}
+
+#previewer header.media-preview-header > .header-leading {
+  display: none;
+}
+
+#previewer header.media-preview-header > .header-center {
+  position: static;
+  left: auto;
+  flex: 0 1 min(48rem, calc(100vw - 27rem));
+  width: auto;
+  max-width: min(48rem, calc(100vw - 27rem));
+  height: 44px;
+  min-width: 0;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 3px 5px;
+  transform: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(12, 16, 22, 0.62);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(12px) saturate(115%);
+}
+
+#previewer header.media-preview-header > .header-center title {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 10px 0 4px;
+  overflow: hidden;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: left;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+#previewer header.media-preview-header > .header-trailing {
+  height: 44px;
+  align-items: center;
+}
+
+#previewer header.media-preview-header .action {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+}
+
+#previewer header.media-preview-header .action i {
+  display: block;
+  padding: 0;
+  line-height: 1;
 }
 
 @media (min-width: 738px) {
@@ -293,36 +364,100 @@ main .spinner .bounce2 {
   color: rgba(255, 255, 255, 0.5);
 }
 
-#previewer > button {
-  margin: 0;
+#previewer > .preview-nav {
   position: fixed;
   top: 50%;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  margin: 0;
+  padding: 0;
   transform: translateY(-50%);
   background-color: rgba(80, 80, 80, 0.5);
   color: white;
   border-radius: 50%;
   cursor: pointer;
   border: 0;
-  margin: 0;
-  padding: 0;
-  transition: 0.2s ease all;
+  transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.12s ease;
 }
 
-#previewer > button.hidden {
+#previewer > .preview-nav:hover {
+  background-color: rgba(92, 92, 92, 0.78);
+}
+
+#previewer > .preview-nav:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+#previewer > .preview-nav:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+#previewer > .preview-nav.hidden {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 
-#previewer > button > i {
-  padding: 0.4em;
+#previewer > .preview-nav > i {
+  display: block;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 32px;
+  line-height: 32px;
+  transform: translateY(1px);
 }
 
-#previewer > button:first-of-type {
-  left: 0.5em;
+#previewer > .preview-nav--previous {
+  left: 12px;
 }
 
-#previewer > button:last-of-type {
-  right: 0.5em;
+#previewer > .preview-nav--next {
+  right: 12px;
+}
+
+@media (max-width: 736px) {
+  #previewer header.media-preview-header {
+    height: 64px;
+    padding: 8px 10px 12px;
+  }
+
+  #previewer header.media-preview-header > .header-center {
+    flex: 1 1 auto;
+    max-width: calc(100vw - 60px);
+    height: 44px;
+  }
+
+  #previewer header.media-preview-header > .header-trailing {
+    flex: 0 0 40px;
+    height: 44px;
+  }
+
+  #previewer > .preview-nav {
+    width: 44px;
+    height: 44px;
+  }
+
+  #previewer > .preview-nav--previous {
+    left: 8px;
+  }
+
+  #previewer > .preview-nav--next {
+    right: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #previewer > .preview-nav {
+    transition: none;
+  }
 }
 
 #previewer .spinner {

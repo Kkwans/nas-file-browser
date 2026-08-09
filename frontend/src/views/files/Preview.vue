@@ -7,7 +7,10 @@
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
-    <header-bar v-if="isPdf || isEpub || isCsv || showNav || mediaInfoOpen">
+    <header-bar
+      v-if="isPdf || isEpub || isCsv || showNav || mediaInfoOpen"
+      :class="{ 'media-preview-header': isUnifiedMedia }"
+    >
       <action icon="close" label="关闭" @action="close()" />
       <title>{{ name }}</title>
       <action
@@ -164,21 +167,29 @@
       @click="prev"
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasPrevious || !showNav }"
+      :class="[
+        'preview-nav',
+        'preview-nav--previous',
+        { hidden: !hasPrevious || !showNav },
+      ]"
       aria-label="上一个"
       title="上一个"
     >
-      <i class="material-icons">chevron_left</i>
+      <i class="material-icons" aria-hidden="true">chevron_left</i>
     </button>
     <button
       @click="next"
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasNext || !showNav }"
+      :class="[
+        'preview-nav',
+        'preview-nav--next',
+        { hidden: !hasNext || !showNav },
+      ]"
       aria-label="下一个"
       title="下一个"
     >
-      <i class="material-icons">chevron_right</i>
+      <i class="material-icons" aria-hidden="true">chevron_right</i>
     </button>
     <link rel="prefetch" :href="previousRaw" />
     <link rel="prefetch" :href="nextRaw" />

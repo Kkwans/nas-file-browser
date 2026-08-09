@@ -429,6 +429,7 @@
               v-bind:view-mode="currentViewMode"
               v-bind:size="item.size"
               v-bind:path="item.path"
+              v-bind:risk-level="item.riskLevel"
               :visible-keys="visibleItemKeys"
               :register-item="registerItem"
             >
@@ -454,6 +455,7 @@
               v-bind:view-mode="currentViewMode"
               v-bind:size="item.size"
               v-bind:path="item.path"
+              v-bind:risk-level="item.riskLevel"
               :visible-keys="visibleItemKeys"
               :register-item="registerItem"
             >

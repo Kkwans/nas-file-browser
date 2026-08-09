@@ -21,6 +21,10 @@ const detailedRowSource = readFileSync(
   new URL("../../components/files/DetailedTableRow.vue", import.meta.url),
   "utf8"
 );
+const fileListingSource = readFileSync(
+  new URL("../../views/files/FileListing.vue", import.meta.url),
+  "utf8"
+);
 const categoriesStoreSource = readFileSync(
   new URL("../../stores/categories.ts", import.meta.url),
   "utf8"
@@ -51,6 +55,9 @@ describe("risk presentation contract", () => {
     expect(thumbnailSource).toContain("<RiskResourceIcon");
     expect(listingItemSource).toContain("<RiskIndicator");
     expect(detailedRowSource).toContain("<RiskIndicator");
+    expect(
+      fileListingSource.match(/v-bind:risk-level="item\.riskLevel"/g)
+    ).toHaveLength(2);
   });
 
   it("removes frontend classification and every legacy overlay dot", () => {

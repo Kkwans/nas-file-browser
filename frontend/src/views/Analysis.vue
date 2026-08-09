@@ -2,143 +2,35 @@
   <div id="analysis-page" class="analysis-page">
     <header-bar show-menu show-logo>
       <div class="analysis-header-title">
-        <i class="material-icons" aria-hidden="true">data_usage</i>
+        <AppIcon name="chart-storage" :size="23" />
         <div>
           <strong>存储工具</strong>
-          <span>{{ toolSubtitle }}</span>
+          <span>主动、只读、低并发</span>
         </div>
       </div>
       <template #actions>
         <router-link class="analysis-header-action" to="/tasks">
-          <i class="material-icons" aria-hidden="true">pending_actions</i>
+          <AppIcon name="tasks" :size="19" />
           任务中心
         </router-link>
       </template>
     </header-bar>
 
     <main class="analysis-workspace">
-      <nav class="analysis-tool-tabs" aria-label="选择存储工具">
-        <button
-          type="button"
-          :class="{ 'is-active': activeTool === 'duplicates' }"
-          :aria-current="activeTool === 'duplicates' ? 'page' : undefined"
-          @click="selectTool('duplicates')"
-        >
-          <i class="material-icons" aria-hidden="true">content_copy</i>
-          <span>
-            <strong>重复文件</strong>
-            <small>分级哈希确认相同内容</small>
-          </span>
-        </button>
-        <button
-          type="button"
-          :class="{ 'is-active': activeTool === 'storage' }"
-          :aria-current="activeTool === 'storage' ? 'page' : undefined"
-          @click="selectTool('storage')"
-        >
-          <i class="material-icons" aria-hidden="true">donut_large</i>
-          <span>
-            <strong>空间分布</strong>
-            <small>目录大小与大文件排行</small>
-          </span>
-        </button>
-      </nav>
+      <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
 
-      <section class="analysis-hero" aria-labelledby="analysis-title">
-        <div class="analysis-hero-icon" aria-hidden="true">
-          <i class="material-icons">{{ toolIcon }}</i>
-        </div>
-        <div>
-          <p class="analysis-eyebrow">{{ toolEyebrow }}</p>
-          <h1 id="analysis-title">{{ toolTitle }}</h1>
-          <p v-if="activeTool === 'duplicates'">
-            先按大小缩小范围，再比较文件首尾样本，最后使用完整 SHA-256
-            确认。扫描只读，不会自动删除或修改任何文件。
-          </p>
-          <p v-else>
-            只读取目录与文件元数据，汇总所选范围的实际占用，并列出最大的目录和文件。每次都由你主动开始，不保留可能过期的统计缓存。
-          </p>
-        </div>
-        <span class="analysis-safety-badge">
-          <i class="material-icons" aria-hidden="true">verified_user</i>
-          全局并发 1
-        </span>
-      </section>
-
-      <section class="analysis-scope-card" aria-labelledby="scope-title">
-        <div class="analysis-section-title">
-          <div>
-            <span>01</span>
-            <div>
-              <h2 id="scope-title">选择扫描范围</h2>
-              <p>支持文件或目录；父目录已包含的子路径会自动合并。</p>
-            </div>
-          </div>
-          <small>{{ scopes.length }} / 32</small>
-        </div>
-
-        <form class="analysis-scope-input" @submit.prevent="addScope">
-          <i class="material-icons" aria-hidden="true">folder_open</i>
-          <input
-            v-model="scopeInput"
-            type="text"
-            autocomplete="off"
-            placeholder="例如 /照片/2026"
-            aria-label="添加扫描路径"
-          />
-          <button type="submit" :disabled="!scopeInput.trim()">添加范围</button>
-        </form>
-
-        <div
-          v-if="scopes.length"
-          class="analysis-scope-list"
-          aria-label="已选扫描范围"
-        >
-          <span v-for="scope in scopes" :key="scope">
-            <i class="material-icons" aria-hidden="true">folder</i>
-            <b :title="scope">{{ scope }}</b>
-            <button
-              type="button"
-              :aria-label="`移除 ${scope}`"
-              @click="removeScope(scope)"
-            >
-              <i class="material-icons" aria-hidden="true">close</i>
-            </button>
-          </span>
-        </div>
-        <div v-else class="analysis-scope-empty">
-          <i class="material-icons" aria-hidden="true">touch_app</i>
-          <span
-            >尚未选择范围。可在文件列表中选中项目后点击“分析”，也可在此输入路径。</span
-          >
-        </div>
-
-        <label v-if="includesRoot" class="analysis-root-confirm">
-          <input v-model="rootConfirmed" type="checkbox" />
-          <span>
-            <strong>确认扫描整个可访问范围</strong>
-            根目录可能唤醒更多磁盘并持续较长时间；你可以随时在任务中心取消。
-          </span>
-        </label>
-
-        <div class="analysis-start-row">
-          <p>
-            <i class="material-icons" aria-hidden="true">info</i>
-            不会后台定时扫描；每次都必须由你主动开始。
-          </p>
-          <button
-            type="button"
-            class="analysis-primary-action"
-            :disabled="!canStart"
-            @click="startScan"
-          >
-            <i class="material-icons" aria-hidden="true">{{
-              toolActionIcon
-            }}</i>
-            {{ starting ? "正在提交…" : toolActionLabel }}
-          </button>
-        </div>
-      </section>
+      <AnalysisScopePanel
+        v-model:scope-input="scopeInput"
+        v-model:root-confirmed="rootConfirmed"
+        :tool="activeTool"
+        :scopes="scopes"
+        :includes-root="includesRoot"
+        :can-start="canStart"
+        :starting="starting"
+        @add="addScope"
+        @remove="removeScope"
+        @start="startScan"
+      />
 
       <section v-if="currentTask" class="analysis-task-card" aria-live="polite">
         <div class="analysis-task-icon" :class="`is-${currentTask.status}`">
@@ -193,7 +85,7 @@
       <template v-if="report && activeTool === 'duplicates'">
         <section class="analysis-results-heading">
           <div>
-            <span>02</span>
+            <span>03</span>
             <div>
               <h2>确认结果</h2>
               <p>{{ completedTime }} · {{ report.scopes.join("、") }}</p>
@@ -295,7 +187,7 @@
       <template v-if="storageReport && activeTool === 'storage'">
         <section class="analysis-results-heading">
           <div>
-            <span>02</span>
+            <span>03</span>
             <div>
               <h2>空间分布</h2>
               <p>
@@ -450,7 +342,7 @@
       <section v-if="recentTasks.length" class="analysis-recent-tasks">
         <div class="analysis-section-title">
           <div>
-            <span>03</span>
+            <span>最近</span>
             <div>
               <h2>最近扫描</h2>
               <p>结果属于发起任务的用户；管理员任务中心可查看任务状态。</p>
@@ -485,7 +377,10 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import AnalysisScopePanel from "@/components/analysis/AnalysisScopePanel.vue";
+import AnalysisToolSwitcher from "@/components/analysis/AnalysisToolSwitcher.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import * as analysisApi from "@/api/analysis";
 import * as taskApi from "@/api/tasks";
 import type { DuplicateReport, StorageReport } from "@/api/analysis";
@@ -499,8 +394,7 @@ import { encodePath } from "@/utils/url";
 import { resourceOpenRoute } from "@/utils/archivePath";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
-
-type AnalysisTool = "duplicates" | "storage";
+import type { AnalysisTool } from "@/utils/analysisTools";
 
 const route = useRoute();
 const router = useRouter();
@@ -523,26 +417,6 @@ let disposed = false;
 let taskLoadSequence = 0;
 
 const includesRoot = computed(() => scopes.value.includes("/"));
-const toolSubtitle = computed(() =>
-  activeTool.value === "storage" ? "空间分布 · 主动扫描" : "重复文件 · 主动扫描"
-);
-const toolIcon = computed(() =>
-  activeTool.value === "storage" ? "donut_large" : "content_copy"
-);
-const toolEyebrow = computed(() =>
-  activeTool.value === "storage" ? "STORAGE MAP" : "DUPLICATE FINDER"
-);
-const toolTitle = computed(() =>
-  activeTool.value === "storage"
-    ? "看清空间花在哪里，再决定如何整理"
-    : "确认内容相同，而不只是名称相似"
-);
-const toolActionIcon = computed(() =>
-  activeTool.value === "storage" ? "query_stats" : "manage_search"
-);
-const toolActionLabel = computed(() =>
-  activeTool.value === "storage" ? "开始分析空间" : "开始查找重复文件"
-);
 const isTaskActive = computed(
   () =>
     currentTask.value?.status === "queued" ||
@@ -870,9 +744,8 @@ onBeforeUnmount(() => {
   gap: 1px;
 }
 
-.analysis-header-title > .material-icons {
+.analysis-header-title > .app-icon {
   color: var(--blue);
-  font-size: 25px;
 }
 
 .analysis-header-title strong {
@@ -913,121 +786,6 @@ onBeforeUnmount(() => {
   padding: 18px 0 56px;
 }
 
-.analysis-tool-tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 5px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
-  background: var(--surfaceSecondary);
-}
-
-.analysis-tool-tabs button {
-  display: flex;
-  min-width: 0;
-  min-height: 54px;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border: 0;
-  border-radius: 9px;
-  color: var(--textPrimary);
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-}
-
-.analysis-tool-tabs button:hover,
-.analysis-tool-tabs button:focus-visible {
-  outline: none;
-  background: var(--hover);
-}
-
-.analysis-tool-tabs button:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--focus-ring);
-}
-
-.analysis-tool-tabs button.is-active {
-  color: var(--blue);
-  background: var(--surfacePrimary);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-}
-
-.analysis-tool-tabs > button > .material-icons {
-  font-size: 22px;
-}
-
-.analysis-tool-tabs button > span {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-}
-
-.analysis-tool-tabs strong {
-  color: var(--textSecondary);
-  font-size: 12px;
-}
-
-.analysis-tool-tabs small {
-  overflow: hidden;
-  color: var(--textPrimary);
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.analysis-hero {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px;
-  padding: 22px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 16px;
-  background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-}
-
-.analysis-hero-icon {
-  display: grid;
-  width: 58px;
-  height: 58px;
-  place-items: center;
-  border-radius: 15px;
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 11%, transparent);
-}
-
-.analysis-hero-icon .material-icons {
-  font-size: 29px;
-}
-
-.analysis-eyebrow {
-  margin: 0 0 5px;
-  color: var(--blue);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-}
-
-.analysis-hero h1 {
-  margin: 0;
-  color: var(--textSecondary);
-  font-size: 20px;
-  line-height: 1.3;
-}
-
-.analysis-hero p:last-child {
-  max-width: 720px;
-  margin: 7px 0 0;
-  color: var(--textPrimary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.analysis-safety-badge,
 .analysis-readonly-chip {
   display: inline-flex;
   align-items: center;
@@ -1039,15 +797,6 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
-.analysis-safety-badge {
-  padding: 7px 10px;
-}
-
-.analysis-safety-badge .material-icons {
-  font-size: 16px;
-}
-
-.analysis-scope-card,
 .analysis-task-card,
 .analysis-error,
 .analysis-recent-tasks {
@@ -1055,10 +804,6 @@ onBeforeUnmount(() => {
   border: 1px solid var(--borderPrimary);
   border-radius: 14px;
   background: var(--surfacePrimary);
-}
-
-.analysis-scope-card {
-  padding: 18px;
 }
 
 .analysis-section-title,
@@ -1109,34 +854,6 @@ onBeforeUnmount(() => {
   font-size: 11px;
 }
 
-.analysis-scope-input {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 9px;
-  margin-top: 14px;
-  padding: 5px 5px 5px 11px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
-  background: var(--surfaceSecondary);
-}
-
-.analysis-scope-input > .material-icons {
-  color: var(--textPrimary);
-  font-size: 19px;
-}
-
-.analysis-scope-input input {
-  min-width: 0;
-  min-height: 38px;
-  border: 0;
-  outline: 0;
-  color: var(--textSecondary);
-  background: transparent;
-}
-
-.analysis-scope-input button,
-.analysis-primary-action,
 .analysis-cancel-action {
   border: 0;
   border-radius: 8px;
@@ -1144,155 +861,9 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
-.analysis-scope-input button {
-  min-height: 38px;
-  padding: 0 14px;
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 10%, var(--surfacePrimary));
-}
-
-.analysis-scope-input button:disabled,
-.analysis-primary-action:disabled,
 .analysis-cancel-action:disabled {
   cursor: not-allowed;
   opacity: 0.45;
-}
-
-.analysis-scope-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 11px;
-}
-
-.analysis-scope-list > span {
-  display: inline-grid;
-  grid-template-columns: auto minmax(0, auto) auto;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  min-height: 34px;
-  padding: 0 5px 0 9px;
-  border: 1px solid color-mix(in srgb, var(--blue) 20%, var(--borderPrimary));
-  border-radius: 8px;
-  color: var(--textSecondary);
-  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
-  font-size: 11px;
-}
-
-.analysis-scope-list > span > .material-icons {
-  color: var(--blue);
-  font-size: 16px;
-}
-
-.analysis-scope-list b {
-  overflow: hidden;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.analysis-scope-list button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  border: 0;
-  border-radius: 6px;
-  color: var(--textPrimary);
-  background: transparent;
-  cursor: pointer;
-}
-
-.analysis-scope-list button:hover {
-  color: var(--red);
-  background: var(--hover);
-}
-
-.analysis-scope-list button .material-icons {
-  font-size: 16px;
-}
-
-.analysis-scope-empty {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 11px;
-  padding: 10px 12px;
-  border: 1px dashed var(--borderPrimary);
-  border-radius: 9px;
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-
-.analysis-scope-empty .material-icons {
-  font-size: 18px;
-}
-
-.analysis-root-confirm {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 12px;
-  padding: 11px 12px;
-  border: 1px solid
-    color-mix(in srgb, var(--icon-orange) 28%, var(--borderPrimary));
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--icon-orange) 6%, transparent);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.analysis-root-confirm input {
-  width: 17px;
-  height: 17px;
-  margin-top: 2px;
-}
-
-.analysis-root-confirm span {
-  display: grid;
-  gap: 2px;
-}
-
-.analysis-root-confirm strong {
-  color: var(--textSecondary);
-}
-
-.analysis-start-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 14px;
-}
-
-.analysis-start-row p {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-
-.analysis-start-row p .material-icons {
-  font-size: 16px;
-}
-
-.analysis-primary-action {
-  display: inline-flex;
-  min-height: 42px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 16px;
-  color: white;
-  background: var(--blue);
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--blue) 24%, transparent);
-}
-
-.analysis-primary-action .material-icons {
-  font-size: 19px;
 }
 
 .analysis-task-card {
@@ -1888,31 +1459,12 @@ onBeforeUnmount(() => {
     padding-top: 12px;
   }
 
-  .analysis-hero {
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: 16px;
-  }
-
-  .analysis-safety-badge {
-    grid-column: 2;
-    justify-self: start;
-  }
-
   .analysis-summary-grid {
     grid-template-columns: 1fr;
   }
 
   .storage-rankings {
     grid-template-columns: 1fr;
-  }
-
-  .analysis-start-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .analysis-primary-action {
-    width: 100%;
   }
 
   .analysis-task-card {
@@ -1932,36 +1484,6 @@ onBeforeUnmount(() => {
     justify-content: center;
     padding: 0;
     font-size: 0;
-  }
-
-  .analysis-hero-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .analysis-tool-tabs button {
-    min-height: 46px;
-    padding: 7px 9px;
-  }
-
-  .analysis-tool-tabs small {
-    display: none;
-  }
-
-  .analysis-hero h1 {
-    font-size: 16px;
-  }
-
-  .analysis-scope-card {
-    padding: 14px;
-  }
-
-  .analysis-scope-input {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .analysis-scope-input button {
-    grid-column: 1 / -1;
   }
 
   .analysis-results-heading {

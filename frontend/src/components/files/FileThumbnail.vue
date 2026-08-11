@@ -7,6 +7,7 @@
   >
     <img
       v-if="displaySource"
+      ref="thumbnailImage"
       :src="displaySource"
       alt=""
       width="256"
@@ -43,6 +44,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { files as api } from "@/api";
 import type { ResourceItem } from "@/types/file";
+import { useLayoutStore } from "@/stores/layout";
 import {
   browserVideoThumbnailScheduler,
   extractVideoFrame,
@@ -72,6 +74,7 @@ type ThumbnailStatus =
   | "error";
 
 const container = ref<HTMLElement | null>(null);
+const thumbnailImage = ref<HTMLImageElement | null>(null);
 const visible = ref(false);
 const status = ref<ThumbnailStatus>("idle");
 const displaySource = ref("");
@@ -98,6 +101,7 @@ const item = computed(
 );
 const imagePreviewUrl = computed(() => api.getPreviewURL(item.value, "thumb"));
 const rawVideoUrl = computed(() => api.getDownloadURL(item.value, true));
+const layoutStore = useLayoutStore();
 const statusTitle = computed(() => {
   if (status.value === "queued") return "缩略图已排队";
   if (status.value === "generating") return "正在生成缩略图";
@@ -108,6 +112,7 @@ const statusTitle = computed(() => {
 
 function start() {
   if (
+    layoutStore.loading ||
     !visible.value ||
     !isMedia.value ||
     displaySource.value ||
@@ -142,16 +147,23 @@ function start() {
     });
 }
 
+function cancelActiveLoad() {
+  request?.cancel();
+  request = null;
+  // Removing the attribute aborts a native image request without starting a
+  // new request for the current document (which assigning src="" can do).
+  thumbnailImage.value?.removeAttribute("src");
+  displaySource.value = "";
+  status.value = "idle";
+}
+
 function handleImageError() {
   displaySource.value = "";
   status.value = "error";
 }
 
 function retry() {
-  request?.cancel();
-  request = null;
-  displaySource.value = "";
-  status.value = "idle";
+  cancelActiveLoad();
   start();
 }
 
@@ -162,20 +174,27 @@ watch(visible, (next) => {
     status.value === "generating" ||
     status.value === "fallback"
   ) {
-    request?.cancel();
-    request = null;
-    displaySource.value = "";
-    status.value = "idle";
+    cancelActiveLoad();
   }
 });
+
+// Files.vue sets this shared loading flag before replacing the directory
+// resource. Canceling here releases native <img> connections while the new
+// resource request is in flight, instead of letting off-screen thumbnails
+// delay the preview request.
+watch(
+  () => layoutStore.loading,
+  (loading) => {
+    if (loading) cancelActiveLoad();
+    else start();
+  },
+  { flush: "sync" }
+);
 
 watch(
   () => [props.path, props.modified, props.size],
   () => {
-    request?.cancel();
-    request = null;
-    displaySource.value = "";
-    status.value = "idle";
+    cancelActiveLoad();
     start();
   }
 );

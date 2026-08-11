@@ -127,6 +127,9 @@
           :src="previewUrl"
           :fileName="name"
           :fileSizeBytes="fileStore.req?.size || 0"
+          :directSrc="directUrl"
+          :downloadSrc="downloadUrl"
+          @ready="onCurrentImageReady"
         />
         <AudioPreview v-else-if="fileStore.req?.type == 'audio'" :name="name" />
         <VideoPlayer
@@ -191,8 +194,7 @@
     >
       <i class="material-icons" aria-hidden="true">chevron_right</i>
     </button>
-    <link rel="prefetch" :href="previousRaw" />
-    <link rel="prefetch" :href="nextRaw" />
+    <link v-if="nextPrefetchEnabled" rel="prefetch" :href="nextRaw" />
     <MediaInfoPanel
       v-if="isUnifiedMedia && fileStore.req"
       :open="mediaInfoOpen"
@@ -315,8 +317,9 @@ const showNav = ref<boolean>(true);
 const navTimeout = ref<null | number>(null);
 const hoverNav = ref<boolean>(false);
 const autoPlay = ref<boolean>(false);
-const previousRaw = ref<string>("");
 const nextRaw = ref<string>("");
+const currentImageReady = ref(false);
+const nextPrefetchEnabled = ref(false);
 const csvContent = ref<ArrayBuffer | string>("");
 const csvError = ref<string>("");
 const mediaInfoOpen = ref(false);
@@ -324,6 +327,65 @@ const isFullscreen = ref(false);
 const favoritePending = ref(false);
 
 const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
+
+let previewGeneration = 0;
+let prefetchTimeout: number | null = null;
+let prefetchIdleId: number | null = null;
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout: number }
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+const cancelNextPrefetch = () => {
+  if (prefetchTimeout !== null) {
+    window.clearTimeout(prefetchTimeout);
+    prefetchTimeout = null;
+  }
+  const idleWindow = window as IdleWindow;
+  if (prefetchIdleId !== null && idleWindow.cancelIdleCallback) {
+    idleWindow.cancelIdleCallback(prefetchIdleId);
+    prefetchIdleId = null;
+  }
+};
+
+const resetMediaPrefetch = () => {
+  previewGeneration += 1;
+  cancelNextPrefetch();
+  currentImageReady.value = false;
+  nextPrefetchEnabled.value = false;
+  nextRaw.value = "";
+};
+
+const scheduleNextPrefetch = () => {
+  cancelNextPrefetch();
+  if (!currentImageReady.value || !nextRaw.value) return;
+  const generation = previewGeneration;
+  const enable = () => {
+    prefetchTimeout = null;
+    prefetchIdleId = null;
+    if (generation === previewGeneration && nextRaw.value) {
+      nextPrefetchEnabled.value = true;
+    }
+  };
+  const idleWindow = window as IdleWindow;
+  if (idleWindow.requestIdleCallback) {
+    prefetchIdleId = idleWindow.requestIdleCallback(enable, { timeout: 2000 });
+  } else {
+    // Keep older browsers from competing with the current image's decode and
+    // paint; this is the idle fallback when requestIdleCallback is absent.
+    prefetchTimeout = window.setTimeout(enable, 400);
+  }
+};
+
+const onCurrentImageReady = () => {
+  if (fileStore.req?.type !== "image") return;
+  currentImageReady.value = true;
+  scheduleNextPrefetch();
+};
 
 const $showError = inject<IToastError>("$showError")!;
 
@@ -394,8 +456,9 @@ const videoOptions = computed(() => {
 });
 
 watch(route, () => {
+  resetMediaPrefetch();
   mediaInfoOpen.value = false;
-  updatePreview();
+  updatePreview(previewGeneration);
   toggleNavigation();
 });
 
@@ -404,10 +467,11 @@ onMounted(async () => {
   window.addEventListener("keydown", key);
   document.addEventListener("fullscreenchange", onFullscreenChange);
   listing.value = fileStore.oldReq?.items ?? null;
-  updatePreview();
+  updatePreview(previewGeneration);
 });
 
 onBeforeUnmount(() => {
+  cancelNextPrefetch();
   window.removeEventListener("keydown", key);
   document.removeEventListener("fullscreenchange", onFullscreenChange);
 });
@@ -471,7 +535,7 @@ const key = (event: KeyboardEvent) => {
     close();
   }
 };
-const updatePreview = async () => {
+const updatePreview = async (generation = previewGeneration) => {
   if (player.value && player.value.paused && !player.value.ended) {
     autoPlay.value = false;
   }
@@ -499,11 +563,14 @@ const updatePreview = async () => {
     try {
       const path = url.removeLastDir(route.path);
       const res = await api.fetch(path);
+      if (generation !== previewGeneration) return;
       listing.value = res.items;
     } catch (e: any) {
       $showError(e);
     }
   }
+
+  if (generation !== previewGeneration) return;
 
   syncAudioQueue();
 
@@ -518,7 +585,6 @@ const updatePreview = async () => {
       for (let j = i - 1; j >= 0; j--) {
         if (mediaTypes.includes(listing.value[j].type)) {
           previousLink.value = listing.value[j].url;
-          previousRaw.value = prefetchUrl(listing.value[j]);
           break;
         }
       }
@@ -526,6 +592,7 @@ const updatePreview = async () => {
         if (mediaTypes.includes(listing.value[j].type)) {
           nextLink.value = listing.value[j].url;
           nextRaw.value = prefetchUrl(listing.value[j]);
+          if (currentImageReady.value) scheduleNextPrefetch();
           break;
         }
       }
@@ -562,7 +629,11 @@ const prefetchUrl = (item: ResourceItem) => {
     : api.getPreviewURL(item, "big");
 };
 
-const toggleSize = () => (fullSize.value = !fullSize.value);
+const toggleSize = () => {
+  fullSize.value = !fullSize.value;
+  resetMediaPrefetch();
+  void updatePreview(previewGeneration);
+};
 
 const toggleCurrentFavorite = async () => {
   const current = fileStore.req;

@@ -2,6 +2,7 @@
   <div
     class="image-ex-container"
     ref="container"
+    :data-status="imageStatus"
     @touchstart="touchStart"
     @touchmove="touchMove"
     @dblclick="zoomAuto"
@@ -13,9 +14,24 @@
     @mouseleave="showUI = false"
   >
     <!-- Loading spinner -->
-    <div v-if="!imageLoaded" class="image-viewer-loading">
+    <div v-if="imageStatus === 'loading'" class="image-viewer-loading">
       <div class="spinner-ring"></div>
       <div class="spinner-text">加载中...</div>
+    </div>
+
+    <div
+      v-else-if="imageStatus === 'error'"
+      class="image-viewer-error"
+      role="alert"
+    >
+      <div class="image-viewer-error-title">图片加载失败</div>
+      <div class="image-viewer-error-actions">
+        <button type="button" @click.stop="retryImage">重试</button>
+        <a v-if="directSrc" :href="directSrc" target="_blank" rel="noopener">
+          直接打开
+        </a>
+        <a v-if="downloadSrc" :href="downloadSrc" download>下载</a>
+      </div>
     </div>
 
     <!-- Image info (top-right) -->
@@ -83,6 +99,7 @@
       class="image-ex-img image-ex-img-center"
       ref="imgex"
       @load="onLoad"
+      @error="onError"
       :alt="fileName"
     />
   </div>
@@ -101,6 +118,8 @@ interface IProps {
   zoomStep?: number;
   fileName?: string;
   fileSizeBytes?: number;
+  directSrc?: string;
+  downloadSrc?: string;
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -109,7 +128,12 @@ const props = withDefaults(defineProps<IProps>(), {
   zoomStep: () => 0.25,
   fileName: () => "",
   fileSizeBytes: () => 0,
+  directSrc: () => "",
+  downloadSrc: () => "",
 });
+const emit = defineEmits<{
+  ready: [];
+}>();
 
 const scale = ref<number>(1);
 const rotation = ref<number>(0);
@@ -120,7 +144,9 @@ const touches = ref<number>(0);
 const lastTouchDistance = ref<number | null>(0);
 const moveDisabled = ref<boolean>(false);
 const disabledTimer = ref<number | null>(null);
-const imageLoaded = ref<boolean>(false);
+type ImageStatus = "loading" | "ready" | "error";
+const imageStatus = ref<ImageStatus>("loading");
+const imageLoaded = computed(() => imageStatus.value === "ready");
 const showUI = ref<boolean>(true);
 const naturalWidth = ref<number>(0);
 const naturalHeight = ref<number>(0);
@@ -137,6 +163,12 @@ const minScale = ref<number>(0.25);
 // Refs
 const imgex = ref<HTMLImageElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
+let tiffRequest: XMLHttpRequest | null = null;
+let loadToken = 0;
+let loadTimeout: number | null = null;
+const IMAGE_LOAD_TIMEOUT_MS = 30_000;
+
+const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 
 // Computed
 const fileSize = computed(() => {
@@ -145,9 +177,7 @@ const fileSize = computed(() => {
 });
 
 onMounted(() => {
-  if (!decodeUTIF() && imgex.value !== null) {
-    imgex.value.src = props.src;
-  }
+  loadImage();
 
   props.classList.forEach((className) =>
     container.value !== null ? container.value.classList.add(className) : ""
@@ -170,6 +200,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  cancelImageLoad();
   window.removeEventListener("resize", onResize);
   window.removeEventListener("keydown", onKeyDown);
   document.removeEventListener("mouseup", onMouseUp);
@@ -178,13 +209,9 @@ onBeforeUnmount(() => {
 watch(
   () => props.src,
   () => {
-    if (!decodeUTIF() && imgex.value !== null) {
-      imgex.value.src = props.src;
-    }
-
+    loadImage();
     scale.value = 1;
     rotation.value = 0;
-    imageLoaded.value = false;
     setZoom();
     setCenter();
   }
@@ -220,28 +247,113 @@ const onKeyDown = (e: KeyboardEvent) => {
   }
 };
 
-// Modified from UTIF.replaceIMG
-const decodeUTIF = () => {
-  const sufs = ["tif", "tiff", "dng", "cr2", "nef"];
-  if (document?.location?.pathname === undefined) {
-    return;
+const cancelImageLoad = () => {
+  loadToken += 1;
+  if (loadTimeout !== null) {
+    window.clearTimeout(loadTimeout);
+    loadTimeout = null;
   }
-  const suff =
-    document.location.pathname.split(".")?.pop()?.toLowerCase() ?? "";
+  const request = tiffRequest;
+  tiffRequest = null;
+  if (request) {
+    const index = UTIF._xhrs.indexOf(request);
+    if (index >= 0) {
+      UTIF._xhrs.splice(index, 1);
+      UTIF._imgs.splice(index, 1);
+    }
+    request.abort();
+  }
+  imgex.value?.removeAttribute("src");
+};
 
-  if (sufs.indexOf(suff) == -1) return false;
+const armLoadTimeout = (token: number) => {
+  if (loadTimeout !== null) window.clearTimeout(loadTimeout);
+  loadTimeout = window.setTimeout(() => {
+    if (token === loadToken) failImageLoad(token);
+  }, IMAGE_LOAD_TIMEOUT_MS);
+};
+
+const sourceExtension = () =>
+  props.src.split(/[?#]/, 1)[0].split(".").pop()?.toLowerCase() ?? "";
+
+// Modified from UTIF.replaceIMG. Keep the existing decoder, but retain the
+// request handle so route changes can abort a large TIFF/RAW download.
+const decodeUTIF = (token: number) => {
+  if (!tiffSuffixes.has(sourceExtension()) || imgex.value === null) {
+    return false;
+  }
   const xhr = new XMLHttpRequest();
+  tiffRequest = xhr;
   UTIF._xhrs.push(xhr);
   UTIF._imgs.push(imgex.value);
   xhr.open("GET", props.src);
   xhr.responseType = "arraybuffer";
-  xhr.onload = UTIF._imgLoaded;
+  xhr.onload = (event) => {
+    if (token !== loadToken || tiffRequest !== xhr) return;
+    tiffRequest = null;
+    try {
+      UTIF._imgLoaded.call(xhr, event);
+    } catch {
+      onError();
+    }
+  };
+  xhr.onerror = () => {
+    if (token === loadToken) failImageLoad(token);
+  };
+  xhr.onabort = () => {
+    if (token === loadToken) imageStatus.value = "loading";
+  };
   xhr.send();
   return true;
 };
 
+const loadImage = () => {
+  cancelImageLoad();
+  const token = loadToken;
+  imageStatus.value = "loading";
+  if (imgex.value === null) return;
+  armLoadTimeout(token);
+  if (!decodeUTIF(token)) {
+    imgex.value.src = props.src;
+  }
+};
+
+const failImageLoad = (token = loadToken) => {
+  if (token !== loadToken || imageStatus.value !== "loading") return;
+  // Invalidate the callback token before aborting so XHR's onabort handler
+  // cannot turn the terminal error state back into loading.
+  loadToken += 1;
+  if (loadTimeout !== null) {
+    window.clearTimeout(loadTimeout);
+    loadTimeout = null;
+  }
+  if (tiffRequest) {
+    const request = tiffRequest;
+    tiffRequest = null;
+    const index = UTIF._xhrs.indexOf(request);
+    if (index >= 0) {
+      UTIF._xhrs.splice(index, 1);
+      UTIF._imgs.splice(index, 1);
+    }
+    request.abort();
+  }
+  imgex.value?.removeAttribute("src");
+  imageStatus.value = "error";
+};
+
+const onError = () => failImageLoad();
+
+const retryImage = () => {
+  loadImage();
+};
+
 const onLoad = () => {
-  imageLoaded.value = true;
+  if (loadTimeout !== null) {
+    window.clearTimeout(loadTimeout);
+    loadTimeout = null;
+  }
+  imageStatus.value = "ready";
+  emit("ready");
 
   if (imgex.value === null) {
     return;
@@ -506,5 +618,40 @@ const pxStringToNumber = (style: string) => {
   left: 0;
   top: 0;
   transition: transform 0.1s ease;
+}
+
+.image-viewer-error {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 2;
+  display: grid;
+  gap: 0.75rem;
+  min-width: 14rem;
+  padding: 1rem 1.25rem;
+  color: #fff;
+  text-align: center;
+  background: rgb(20 20 24 / 88%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 0.75rem;
+  transform: translate(-50%, -50%);
+}
+
+.image-viewer-error-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.image-viewer-error-actions button,
+.image-viewer-error-actions a {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  background: rgb(255 255 255 / 12%);
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.65rem;
 }
 </style>

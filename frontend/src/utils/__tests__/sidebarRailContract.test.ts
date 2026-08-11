@@ -55,6 +55,32 @@ describe("桌面侧边栏图标轨契约", () => {
     expect(iconRegistrySource).toContain('from "@lucide/vue"');
   });
 
+  it("展开侧栏与图标轨使用稳定的视觉尺寸而不缩小点击区", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const sectionHeaderSource = readSource(
+      "components/sidebar/SidebarSectionHeader.vue"
+    );
+    const groupHeaderSource = readSource(
+      "components/sidebar/SidebarGroupHeader.vue"
+    );
+    const cssSource = readSource("css/sidebar-refinement.css");
+    const iconRegistrySource = readSource("components/ui/iconRegistry.ts");
+
+    expect(cssSource).toContain("--sidebar-primary-icon-size: 1.25rem");
+    expect(cssSource).toContain("--sidebar-primary-icon-column: 1.75rem");
+    expect(cssSource).toMatch(
+      /\.sidebar-rail-action\s*\{[^}]*width:\s*2\.75rem;[^}]*height:\s*2\.75rem;/s
+    );
+    expect(sectionHeaderSource).toContain('name="chevron-right"');
+    expect(groupHeaderSource).toContain('name="chevron-right"');
+    expect(sectionHeaderSource).not.toContain("expand_more");
+    expect(groupHeaderSource).not.toContain("expand_more");
+    expect(sidebarSource).toContain('aria-label="新建收藏分组"');
+    expect(sidebarSource).toContain('aria-label="清空收藏夹"');
+    expect(iconRegistrySource).toContain("file: File");
+    expect(iconRegistrySource).not.toContain("file: Files");
+  });
+
   it("移动端保持完整抽屉并关闭桌面图标轨", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSource("css/sidebar-refinement.css");

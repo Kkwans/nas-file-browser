@@ -17,9 +17,13 @@
         :aria-label="expanded ? `收起${label}` : `展开${label}`"
         @click="$emit('toggle')"
       >
-        <i class="material-icons section-arrow" :class="{ expanded }"
-          >expand_more</i
-        >
+        <AppIcon
+          class="section-arrow"
+          name="chevron-right"
+          :class="{ expanded }"
+          :size="18"
+          :stroke-width="2"
+        />
       </button>
     </div>
   </div>

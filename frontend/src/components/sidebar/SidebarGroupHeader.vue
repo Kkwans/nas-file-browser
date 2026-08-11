@@ -29,12 +29,13 @@
     <span class="sidebar-group-actions">
       <slot name="actions"></slot>
     </span>
-    <i
-      class="material-icons category-arrow"
+    <AppIcon
+      class="category-arrow"
+      name="chevron-right"
       :class="{ expanded }"
-      aria-hidden="true"
-      >expand_more</i
-    >
+      :size="18"
+      :stroke-width="2"
+    />
   </div>
 </template>
 

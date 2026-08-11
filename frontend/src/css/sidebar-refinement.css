@@ -1,6 +1,8 @@
 /* PC 侧边栏最终契约：统一基线、统一层级、稳定滚动槽和低干扰调整边界。 */
 nav.sidebar {
   --sidebar-inline-gutter: 0.75rem;
+  --sidebar-primary-icon-column: 1.75rem;
+  --sidebar-primary-icon-size: 1.25rem;
   box-sizing: border-box;
   padding: 0.5rem 0 0;
   overflow-y: auto;
@@ -283,10 +285,9 @@ nav.sidebar .sidebar-module .category-group-header {
 }
 
 nav.sidebar .sidebar-module .favorites-ungrouped-drop-zone > .favorite-item {
-  grid-template-columns: var(--sidebar-level-two-icon-column) minmax(
-      0,
-      1fr
-    ) 1.75rem;
+  grid-template-columns:
+    var(--sidebar-level-two-icon-column) minmax(0, 1fr)
+    1.75rem;
   column-gap: 0.375rem;
   padding-inline: 0.625rem 0.375rem !important;
 }
@@ -301,10 +302,9 @@ nav.sidebar
 
 nav.sidebar .sidebar-module .favorite-group-header,
 nav.sidebar .sidebar-module .category-group-header {
-  grid-template-columns: var(--sidebar-level-two-icon-column) minmax(
-      0,
-      1fr
-    ) auto 2.125rem 1.5rem;
+  grid-template-columns:
+    var(--sidebar-level-two-icon-column) minmax(0, 1fr)
+    auto 2.125rem 1.5rem;
   padding-left: 0.625rem;
 }
 
@@ -473,10 +473,12 @@ nav.sidebar .sidebar-collapse-control:focus-visible {
 nav.sidebar .sidebar-command > .app-icon,
 nav.sidebar .sidebar-section-header .section-toggle > .app-icon,
 nav.sidebar .sidebar-personalized-stack > #logout > .app-icon {
-  flex: 0 0 1.75rem;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin: 0;
+  flex: 0 0 var(--sidebar-primary-icon-size);
+  width: var(--sidebar-primary-icon-size);
+  height: var(--sidebar-primary-icon-size);
+  margin-inline: calc(
+    (var(--sidebar-primary-icon-column) - var(--sidebar-primary-icon-size)) / 2
+  );
   color: var(--textSecondary, #64748b);
 }
 
@@ -486,6 +488,26 @@ nav.sidebar .sidebar-section-header .section-toggle > .app-icon {
 
 nav.sidebar .sidebar-section-header--favorite .section-toggle > .app-icon {
   color: #d97706;
+}
+
+nav.sidebar .sidebar-section-header .section-action-btn > .app-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: auto;
+}
+
+nav.sidebar
+  .sidebar-module
+  .favorite-group-header
+  > .favorite-group-icon.app-icon {
+  width: var(--sidebar-level-two-icon-size);
+  height: var(--sidebar-level-two-icon-size);
+  justify-self: center;
+}
+
+nav.sidebar .section-arrow.expanded,
+nav.sidebar .category-arrow.expanded {
+  transform: rotate(90deg);
 }
 
 nav.sidebar .sidebar-personalized-stack > #logout {
@@ -889,10 +911,9 @@ nav.sidebar .sidebar-rail-logout {
   nav.sidebar .sidebar-module .favorite-group-header,
   nav.sidebar .sidebar-module .category-group-header {
     min-height: 54px;
-    grid-template-columns: var(--sidebar-level-two-icon-column) minmax(
-        0,
-        1fr
-      ) auto 44px 1.5rem;
+    grid-template-columns:
+      var(--sidebar-level-two-icon-column) minmax(0, 1fr)
+      auto 44px 1.5rem;
   }
 }
 

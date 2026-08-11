@@ -399,18 +399,20 @@
                 class="section-action-btn"
                 type="button"
                 title="新建分组"
+                aria-label="新建收藏分组"
                 @click.stop.prevent="showCreateGroup = !showCreateGroup"
               >
-                <i class="material-icons">create_new_folder</i>
+                <AppIcon name="folder-new" :size="18" />
               </button>
               <button
                 v-if="favoritesStore.sortedFavorites.length > 0"
                 class="section-action-btn"
                 type="button"
                 title="清空收藏夹"
+                aria-label="清空收藏夹"
                 @click.stop.prevent="showClearFavoritesConfirm = true"
               >
-                <i class="material-icons">delete_sweep</i>
+                <AppIcon name="trash" :size="18" />
               </button>
             </template>
           </SidebarSectionHeader>
@@ -443,11 +445,20 @@
                 @keyup.escape="showCreateGroup = false"
                 ref="groupInputRef"
               />
-              <button @click="createGroup" :disabled="!newGroupName.trim()">
-                <i class="material-icons">check</i>
+              <button
+                type="button"
+                aria-label="确认新建分组"
+                @click="createGroup"
+                :disabled="!newGroupName.trim()"
+              >
+                <AppIcon name="circle-check" :size="18" />
               </button>
-              <button @click="showCreateGroup = false">
-                <i class="material-icons">close</i>
+              <button
+                type="button"
+                aria-label="取消新建分组"
+                @click="showCreateGroup = false"
+              >
+                <AppIcon name="x" :size="18" />
               </button>
             </div>
             <!-- Empty state -->
@@ -556,9 +567,10 @@
                     class="section-action-btn"
                     type="button"
                     title="删除分组"
+                    :aria-label="`删除分组 ${group.name}`"
                     @click.stop.prevent="deleteGroup(group.id)"
                   >
-                    <i class="material-icons">close</i>
+                    <AppIcon name="x" :size="18" />
                   </button>
                 </template>
               </SidebarGroupHeader>
@@ -634,9 +646,10 @@
                 class="section-action-btn"
                 type="button"
                 title="管理标签"
+                aria-label="管理标签"
                 @click.stop.prevent="openTagManager"
               >
-                <i class="material-icons">settings</i>
+                <AppIcon name="settings" :size="18" />
               </button>
             </template>
           </SidebarSectionHeader>

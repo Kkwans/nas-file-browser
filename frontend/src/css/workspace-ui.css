@@ -1272,6 +1272,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
   }
 
   header > .header-trailing #dropdown {
+    display: block;
     top: 54px;
     right: 8px;
     width: 238px;
@@ -1302,7 +1303,15 @@ nav.sidebar .favorite-item.drag-over-bottom {
     width: 100%;
   }
 
-  #dropdown .action {
+  header > .header-trailing #dropdown > div {
+    display: block;
+    width: 100%;
+  }
+
+  header > .header-trailing #dropdown .action {
+    display: flex;
+    width: 100%;
+    height: auto;
     min-height: 42px;
     padding: 0 10px;
     border-radius: 8px;
@@ -1637,6 +1646,14 @@ nav.sidebar .favorite-item.drag-over-bottom {
     top: 48px;
     width: min(86vw, 320px) !important;
     padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 736px) {
+  header > .header-trailing > #more {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
   }
 }
 

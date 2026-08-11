@@ -25,6 +25,7 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain("isKnownIncompatibleVideo(props.path)");
     expect(videoPlayerSource).toContain("const initialSource");
     expect(videoPlayerSource).toContain("? {}\n      : {");
+    expect(videoPlayerSource).not.toContain("<source />");
     expect(videoPlayerSource).toContain(
       'player.value.on("play", applyPendingResume)'
     );

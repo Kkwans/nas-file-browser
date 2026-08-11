@@ -15,7 +15,6 @@
       playsinline
       preload="metadata"
     >
-      <source />
       <track
         v-for="(sub, index) in subtitles"
         :key="index"

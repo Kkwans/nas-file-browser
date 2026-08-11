@@ -41,6 +41,7 @@ describe("文件工具栏图标契约", () => {
   it("桌面点击区和图形尺寸彼此独立", () => {
     const headerCss = readSource("css/header.css");
     const contextCss = readSource("css/context-menu.css");
+    const workspaceCss = readSource("css/workspace-ui.css");
 
     expect(headerCss).toMatch(
       /header \.action\s*\{[^}]*width:\s*2\.5rem;[^}]*height:\s*2\.5rem;/s
@@ -49,5 +50,14 @@ describe("文件工具栏图标契约", () => {
       /header \.action > \.app-icon\s*\{[^}]*width:\s*1\.25rem;[^}]*height:\s*1\.25rem;/s
     );
     expect(contextCss).toContain(".context-menu .action > .app-icon");
+    expect(contextCss).toMatch(
+      /\.context-menu \.action > \.app-icon\s*\{[^}]*width:\s*18px;[^}]*height:\s*18px;/s
+    );
+    expect(workspaceCss).toMatch(
+      /@media \(max-width: 899px\)[\s\S]*header > \.header-trailing > #more\s*\{[^}]*display:\s*inline-grid;[^}]*width:\s*40px;/
+    );
+    expect(workspaceCss).toContain(
+      "header > .header-trailing #dropdown.active"
+    );
   });
 });

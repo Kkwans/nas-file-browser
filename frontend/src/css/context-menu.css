@@ -67,9 +67,9 @@
 
 .context-menu .action > .app-icon {
   box-sizing: border-box;
-  flex: 0 0 1.15rem;
-  width: 1.15rem;
-  height: 1.15rem;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .context-menu .action:hover i,

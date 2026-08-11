@@ -39,18 +39,24 @@ func (backend playbackBackend) Save(entry *playback.Entry) error {
 
 func (backend playbackBackend) Update(entry *playback.Entry) error {
 	record := newPlaybackRecord(entry)
-	if err := backend.db.Update(record); err != nil {
+	transaction, err := backend.db.Begin(true)
+	if err != nil {
 		return err
 	}
-	for field, value := range map[string]interface{}{
-		"Position": entry.Position,
-		"Duration": entry.Duration,
-	} {
-		if err := backend.db.UpdateField(&playbackRecord{ID: entry.ID}, field, value); err != nil {
-			return err
-		}
+	defer func() { _ = transaction.Rollback() }()
+	if err := transaction.Update(record); err != nil {
+		return err
 	}
-	return nil
+	// Storm's Update deliberately skips zero values.  Force the playback
+	// fields in the same writable transaction so seeking to 0 and a zero
+	// duration are persisted atomically with the rest of the record.
+	if err := transaction.UpdateField(&playbackRecord{ID: entry.ID}, "Position", entry.Position); err != nil {
+		return err
+	}
+	if err := transaction.UpdateField(&playbackRecord{ID: entry.ID}, "Duration", entry.Duration); err != nil {
+		return err
+	}
+	return transaction.Commit()
 }
 
 func (backend playbackBackend) Delete(id string) error {

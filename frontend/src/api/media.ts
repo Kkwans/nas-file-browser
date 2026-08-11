@@ -9,6 +9,36 @@ export interface PlaybackPosition {
   exists: boolean;
 }
 
+type PlaybackWaiter = {
+  resolve: (value: PlaybackPosition | void) => void;
+  reject: (reason?: unknown) => void;
+};
+
+type PlaybackMutation =
+  | {
+      kind: "put";
+      path: string;
+      position: number;
+      duration: number;
+      waiters: PlaybackWaiter[];
+    }
+  | {
+      kind: "delete";
+      path: string;
+      waiters: PlaybackWaiter[];
+    };
+
+type PlaybackQueue = {
+  running: boolean;
+  operations: PlaybackMutation[];
+};
+
+// Playback updates are frequent while a video is playing.  Keep the queue
+// per path so another video remains responsive, and coalesce only contiguous
+// PUTs.  A DELETE stays in the operation list as a strict ordering barrier:
+// PUTs submitted after it can never overtake it.
+const playbackQueues = new Map<string, PlaybackQueue>();
+
 export interface MediaInformation {
   path: string;
   name: string;
@@ -65,17 +95,97 @@ export async function savePlayback(
   position: number,
   duration: number
 ): Promise<PlaybackPosition> {
-  return fetchJSON<PlaybackPosition>("/api/media/playback", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path, position, duration }),
+  return enqueuePlaybackMutation<PlaybackPosition>(path, {
+    kind: "put",
+    path,
+    position,
+    duration,
+    waiters: [],
   });
 }
 
-export async function clearPlayback(path: string): Promise<void> {
-  await fetchURL(`/api/media/playback?path=${encodeURIComponent(path)}`, {
-    method: "DELETE",
+export function clearPlayback(path: string): Promise<void> {
+  return enqueuePlaybackMutation<void>(path, {
+    kind: "delete",
+    path,
+    waiters: [],
   });
+}
+
+function enqueuePlaybackMutation<T extends PlaybackPosition | void>(
+  path: string,
+  mutation: PlaybackMutation
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const queue = playbackQueues.get(path) ?? {
+      running: false,
+      operations: [],
+    };
+    playbackQueues.set(path, queue);
+
+    const tail = queue.operations[queue.operations.length - 1];
+    if (mutation.kind === "put" && tail?.kind === "put") {
+      // Every caller waiting on the coalesced operation receives the response
+      // for the newest position rather than an obsolete intermediate value.
+      tail.position = mutation.position;
+      tail.duration = mutation.duration;
+      tail.waiters.push({
+        resolve: (value) => resolve(value as T),
+        reject,
+      });
+    } else {
+      mutation.waiters.push({
+        resolve: (value) => resolve(value as T),
+        reject,
+      });
+      queue.operations.push(mutation);
+    }
+    runPlaybackQueue(path, queue);
+  });
+}
+
+function runPlaybackQueue(path: string, queue: PlaybackQueue) {
+  if (queue.running) return;
+  const mutation = queue.operations.shift();
+  if (!mutation) {
+    playbackQueues.delete(path);
+    return;
+  }
+
+  queue.running = true;
+  const request =
+    mutation.kind === "put"
+      ? fetchJSON<PlaybackPosition>("/api/media/playback", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: mutation.path,
+            position: mutation.position,
+            duration: mutation.duration,
+          }),
+        })
+      : fetchURL(
+          `/api/media/playback?path=${encodeURIComponent(mutation.path)}`,
+          { method: "DELETE" }
+        ).then(() => undefined);
+
+  void request
+    .then((value) => {
+      mutation.waiters.forEach((waiter) => {
+        if (mutation.kind === "put") {
+          waiter.resolve(value as PlaybackPosition);
+        } else {
+          waiter.resolve(undefined);
+        }
+      });
+    })
+    .catch((error: unknown) => {
+      mutation.waiters.forEach((waiter) => waiter.reject(error));
+    })
+    .finally(() => {
+      queue.running = false;
+      runPlaybackQueue(path, queue);
+    });
 }
 
 export function getMediaInformation(

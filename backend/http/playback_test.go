@@ -91,3 +91,31 @@ func TestPlaybackHTTPValidationAndExplicitClear(t *testing.T) {
 		t.Fatalf("cleared status = %d body=%s", response.Code, response.Body.String())
 	}
 }
+
+type playbackCountingFs struct {
+	afero.Fs
+	openCalls int
+}
+
+func (fs *playbackCountingFs) Open(name string) (afero.File, error) {
+	fs.openCalls++
+	return fs.Fs.Open(name)
+}
+
+func TestPlaybackHTTPKnownVideoExtensionDoesNotReadHeaderOrScanParent(t *testing.T) {
+	h := newTrashHTTPHarness(t, users.User{Username: "owner", Perm: users.Permissions{Download: true}})
+	owner := firstTrashHTTPUser(h)
+	if err := afero.WriteFile(h.fs[owner.ID], "/film.mp4", []byte("video"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	counting := &playbackCountingFs{Fs: h.fs[owner.ID]}
+	h.fs[owner.ID] = counting
+
+	response := h.request(t, owner.ID, playbackGetHandler, http.MethodGet, "/media/playback?path=/film.mp4", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("known video status = %d body=%s", response.Code, response.Body.String())
+	}
+	if counting.openCalls != 0 {
+		t.Fatalf("known video opened %d times while reading playback identity", counting.openCalls)
+	}
+}

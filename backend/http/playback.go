@@ -94,12 +94,32 @@ func playbackFile(d *data, value string) (*files.FileInfo, string, int, error) {
 	value = pathmeta.Clean(value)
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs: d.user.Fs, Path: value, Modify: d.user.Perm.Modify,
-		Expand: true, ReadHeader: d.server.TypeDetectionByHeader, Checker: d,
+		// Playback only needs a permission check and the file identity.  Do not
+		// expand the resource here: expansion reads the file header and scans
+		// the parent directory for subtitles, which makes every position poll
+		// contend with the NAS filesystem.
+		Expand: false, Checker: d,
 	})
 	if err != nil {
 		return nil, "", errToStatus(err), err
 	}
-	if file.IsDir || file.Type != "video" {
+	if file.IsDir {
+		return nil, "", http.StatusBadRequest, fmt.Errorf("播放位置仅适用于视频文件")
+	}
+	file.DetectTypeFromExt()
+	// Extension detection covers normal video formats without touching the
+	// file.  Keep the old header-based fallback for files whose extension is
+	// not registered as a video, so unusual containers remain supported.
+	if file.Type == "blob" {
+		file, err = files.NewFileInfo(&files.FileOptions{
+			Fs: d.user.Fs, Path: value, Modify: d.user.Perm.Modify,
+			Expand: true, ReadHeader: d.server.TypeDetectionByHeader, Checker: d,
+		})
+		if err != nil {
+			return nil, "", errToStatus(err), err
+		}
+	}
+	if file.Type != "video" {
 		return nil, "", http.StatusBadRequest, fmt.Errorf("播放位置仅适用于视频文件")
 	}
 	identity := "v1:" + strconv.FormatInt(file.Size, 10) + ":" + strconv.FormatInt(file.ModTime.UnixNano(), 10)

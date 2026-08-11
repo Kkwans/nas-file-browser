@@ -13,6 +13,7 @@ import {
   getHLSPlayback,
   getMediaInformation,
   getPlayback,
+  type PlaybackPosition,
   savePlayback,
   startHLSPlayback,
 } from "./media";
@@ -49,6 +50,146 @@ describe("媒体 API", () => {
       "/api/media/playback?path=%2Fvideo.mp4",
       { method: "DELETE" }
     );
+  });
+
+  it("合并同一路径连续保存，并让后续调用跟随最新请求", async () => {
+    const pending: Array<{
+      resolve: (value: PlaybackPosition) => void;
+      reject: (reason?: unknown) => void;
+    }> = [];
+    mocks.fetchJSON.mockImplementation(() => {
+      return new Promise<PlaybackPosition>((resolve, reject) => {
+        pending.push({ resolve, reject });
+      });
+    });
+
+    const firstRequest = savePlayback("/video.mp4", 10, 100);
+    const secondRequest = savePlayback("/video.mp4", 20, 100);
+    const latestRequest = savePlayback("/video.mp4", 30, 100);
+    expect(mocks.fetchJSON).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(mocks.fetchJSON.mock.calls[0][1].body)).toMatchObject({
+      position: 10,
+    });
+
+    pending[0].resolve({
+      path: "/video.mp4",
+      identity: "v1:1:1",
+      position: 10,
+      duration: 100,
+      updatedAt: 1,
+      exists: true,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mocks.fetchJSON).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(mocks.fetchJSON.mock.calls[1][1].body)).toMatchObject({
+      position: 30,
+    });
+
+    const finalResponse = {
+      path: "/video.mp4",
+      identity: "v1:1:1",
+      position: 30,
+      duration: 100,
+      updatedAt: 2,
+      exists: true,
+    };
+    pending[1].resolve(finalResponse);
+    await expect(firstRequest).resolves.toMatchObject({ position: 10 });
+    await expect(secondRequest).resolves.toEqual(finalResponse);
+    await expect(latestRequest).resolves.toEqual(finalResponse);
+  });
+
+  it("首个保存失败后仍继续发送同路径最新位置", async () => {
+    const pending: Array<{
+      resolve: (value: PlaybackPosition) => void;
+      reject: (reason?: unknown) => void;
+    }> = [];
+    mocks.fetchJSON.mockImplementation(() => {
+      return new Promise<PlaybackPosition>((resolve, reject) => {
+        pending.push({ resolve, reject });
+      });
+    });
+
+    const first = savePlayback("/video.mp4", 10, 100);
+    const latest = savePlayback("/video.mp4", 20, 100);
+    pending[0].reject(new Error("network down"));
+    await expect(first).rejects.toThrow("network down");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mocks.fetchJSON).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(mocks.fetchJSON.mock.calls[1][1].body)).toMatchObject({
+      position: 20,
+    });
+    pending[1].resolve({
+      path: "/video.mp4",
+      identity: "v1:1:1",
+      position: 20,
+      duration: 100,
+      updatedAt: 2,
+      exists: true,
+    });
+    await expect(latest).resolves.toMatchObject({ position: 20 });
+  });
+
+  it("以删除请求作为严格屏障，且不同路径互不阻塞", async () => {
+    const savePending: Array<{
+      resolve: (value: PlaybackPosition) => void;
+      reject: (reason?: unknown) => void;
+    }> = [];
+    const deletePending: Array<{
+      resolve: (value: Response) => void;
+      reject: (reason?: unknown) => void;
+    }> = [];
+    mocks.fetchJSON.mockImplementation(() => {
+      return new Promise<PlaybackPosition>((resolve, reject) => {
+        savePending.push({ resolve, reject });
+      });
+    });
+    mocks.fetchURL.mockImplementation(() => {
+      return new Promise<Response>((resolve, reject) => {
+        deletePending.push({ resolve, reject });
+      });
+    });
+
+    const response = (position: number): PlaybackPosition => ({
+      path: "/video.mp4",
+      identity: "v1:1:1",
+      position,
+      duration: 100,
+      updatedAt: position,
+      exists: true,
+    });
+    const first = savePlayback("/video.mp4", 1, 100);
+    const beforeDelete = savePlayback("/video.mp4", 2, 100);
+    const cleared = clearPlayback("/video.mp4");
+    const afterDelete = savePlayback("/video.mp4", 3, 100);
+    const otherPath = savePlayback("/other.mp4", 4, 100);
+
+    expect(mocks.fetchJSON).toHaveBeenCalledTimes(2);
+    expect(mocks.fetchURL).not.toHaveBeenCalled();
+    savePending[1].resolve(response(4));
+    await expect(otherPath).resolves.toMatchObject({ position: 4 });
+
+    savePending[0].resolve(response(1));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mocks.fetchJSON).toHaveBeenCalledTimes(3);
+    expect(JSON.parse(mocks.fetchJSON.mock.calls[2][1].body)).toMatchObject({
+      position: 2,
+    });
+    savePending[2].resolve(response(2));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mocks.fetchURL).toHaveBeenCalledTimes(1);
+    deletePending[0].resolve(new Response(null));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mocks.fetchJSON).toHaveBeenCalledTimes(4);
+    expect(JSON.parse(mocks.fetchJSON.mock.calls[3][1].body)).toMatchObject({
+      position: 3,
+    });
+    savePending[3].resolve(response(3));
+
+    await expect(first).resolves.toMatchObject({ position: 1 });
+    await expect(beforeDelete).resolves.toMatchObject({ position: 2 });
+    await expect(cleared).resolves.toBeUndefined();
+    await expect(afterDelete).resolves.toMatchObject({ position: 3 });
   });
 
   it("只有显式调用才创建、轮询或取消兼容播放任务", async () => {

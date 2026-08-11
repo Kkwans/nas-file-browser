@@ -228,6 +228,7 @@ let lastTap = 0;
 let compatibilityPollTimer: number | null = null;
 let compatibilityRequest = 0;
 let activeHLSURL = "";
+const PLAYBACK_SAVE_INTERVAL_MS = 8_000;
 let gesture:
   | {
       pointerId: number;
@@ -654,7 +655,8 @@ function errorMessage(error: unknown) {
 }
 
 function onTimeUpdate() {
-  if (Date.now() - lastSavedAt >= 2000) void persistPlayback(false);
+  if (Date.now() - lastSavedAt >= PLAYBACK_SAVE_INTERVAL_MS)
+    void persistPlayback(false);
 }
 
 async function persistPlayback(force: boolean, path = props.path) {

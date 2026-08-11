@@ -2,6 +2,7 @@
   <div
     ref="stage"
     class="media-video-stage"
+    :class="{ 'media-video-stage--awaiting-source': !sourceAttached }"
     :style="{ '--video-brightness': brightness }"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
@@ -217,6 +218,7 @@ const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
 const hlsActive = ref(false);
+const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));
 const gestureHud = ref<{
   icon: string;
   value: string;
@@ -270,6 +272,7 @@ watch(
     player.value.pause();
     player.value.reset();
     if (!isKnownIncompatibleVideo(nextPath)) {
+      sourceAttached.value = true;
       player.value.src({
         src: nextSource,
         type: getVideoSourceType(nextSource, nextPath),
@@ -639,6 +642,7 @@ function activateHLSPlayback(playlistURL: string) {
   const playbackRate = currentPlayer.playbackRate();
   activeHLSURL = playlistURL;
   hlsActive.value = true;
+  sourceAttached.value = true;
   pendingResume = null;
 
   // Reset a failed direct-play tech before selecting the generated HLS source.
@@ -684,6 +688,7 @@ function tryDirectPlayback() {
   hlsActive.value = false;
   directPlaybackFailed.value = false;
   compatibilityNetworkError.value = "";
+  sourceAttached.value = true;
   currentPlayer.src({
     src: props.source,
     type: getVideoSourceType(props.source, props.path),
@@ -707,6 +712,7 @@ function resetCompatibility(path: string) {
   directPlaybackFailed.value = false;
   hlsActive.value = false;
   activeHLSURL = "";
+  sourceAttached.value = !isKnownIncompatibleVideo(path);
   compatibilityPanelOpen.value = isKnownIncompatibleVideo(path);
 }
 
@@ -937,6 +943,16 @@ const languageImports: LanguageImports = {
 .video-max {
   width: 100%;
   height: 100%;
+}
+
+.media-video-stage--awaiting-source :deep(.video-js) {
+  pointer-events: none;
+}
+
+.media-video-stage--awaiting-source :deep(.vjs-big-play-button),
+.media-video-stage--awaiting-source :deep(.vjs-control-bar),
+.media-video-stage--awaiting-source :deep(.vjs-loading-spinner) {
+  display: none !important;
 }
 
 .media-video-stage :deep(.vjs-tech) {

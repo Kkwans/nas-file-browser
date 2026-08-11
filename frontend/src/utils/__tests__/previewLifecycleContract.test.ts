@@ -27,6 +27,12 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain("? {}\n      : {");
     expect(videoPlayerSource).not.toContain("<source />");
     expect(videoPlayerSource).toContain(
+      "'media-video-stage--awaiting-source': !sourceAttached"
+    );
+    expect(videoPlayerSource).toContain(
+      ".media-video-stage--awaiting-source :deep(.vjs-big-play-button)"
+    );
+    expect(videoPlayerSource).toContain(
       'player.value.on("play", applyPendingResume)'
     );
   });

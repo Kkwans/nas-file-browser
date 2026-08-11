@@ -35,40 +35,40 @@
         <template v-if="!isMobile">
           <action
             v-if="headerButtons.share"
-            icon="share"
+            app-icon="share"
             label="分享"
             show="share"
           />
           <action
             v-if="headerButtons.rename"
-            icon="mode_edit"
+            app-icon="rename"
             label="重命名"
             show="rename"
           />
           <action
             v-if="headerButtons.copy"
             id="copy-button"
-            icon="content_copy"
+            app-icon="copy"
             label="复制文件"
             show="copy"
           />
           <action
             v-if="headerButtons.move"
             id="move-button"
-            icon="forward"
+            app-icon="move"
             label="移动文件"
             show="move"
           />
           <action
             v-if="headerButtons.analyze"
-            icon="data_usage"
+            app-icon="analysis"
             label="分析"
             @action="analyzeSelection"
           />
           <action
             v-if="headerButtons.delete"
             id="delete-button"
-            icon="delete"
+            app-icon="trash"
             label="删除"
             show="delete"
           />
@@ -76,7 +76,7 @@
 
         <action
           v-if="headerButtons.shell"
-          icon="code"
+          app-icon="terminal"
           label="终端"
           @action="layoutStore.toggleShell"
         />
@@ -87,7 +87,7 @@
           ref="viewDropdownRef"
         >
           <action
-            :icon="viewIcon"
+            :app-icon="viewAppIcon"
             label="切换视图"
             @action="toggleViewDropdown"
           />
@@ -144,7 +144,7 @@
           :class="{ open: showSortDropdown }"
           ref="sortDropdownRef"
         >
-          <action icon="sort" label="排序" @action="toggleSortDropdown" />
+          <action app-icon="sort" label="排序" @action="toggleSortDropdown" />
           <div v-if="showSortDropdown" class="dropdown-menu">
             <button
               class="dropdown-back"
@@ -179,21 +179,21 @@
         </div>
         <action
           v-if="headerButtons.download"
-          icon="file_download"
+          app-icon="download"
           label="下载"
           @action="download"
           :counter="fileStore.selectedCount"
         />
         <action
           v-if="headerButtons.upload"
-          icon="file_upload"
+          app-icon="upload"
           id="upload-button"
           label="上传"
           @action="uploadFunc"
         />
-        <action icon="info" label="详细信息" show="info" />
+        <action app-icon="info" label="详细信息" show="info" />
         <action
-          icon="check_circle"
+          app-icon="select"
           label="多选"
           @action="toggleMultipleSelection"
         />
@@ -210,44 +210,44 @@
       <span v-if="fileStore.selectedCount > 0" class="selection-count">
         已选 {{ fileStore.selectedCount }} 项
       </span>
-      <action icon="select_all" label="全选" @action="selectAll" />
+      <action app-icon="select" label="全选" @action="selectAll" />
       <action
         v-if="headerButtons.share"
-        icon="share"
+        app-icon="share"
         label="分享"
         show="share"
       />
       <action
         v-if="headerButtons.rename"
-        icon="mode_edit"
+        app-icon="rename"
         label="重命名"
         show="rename"
       />
       <action
         v-if="headerButtons.copy"
-        icon="content_copy"
+        app-icon="copy"
         label="复制"
         show="copy"
       />
       <action
         v-if="headerButtons.move"
-        icon="forward"
+        app-icon="move"
         label="移动"
         show="move"
       />
       <action
         v-if="headerButtons.analyze"
-        icon="data_usage"
+        app-icon="analysis"
         label="分析"
         @action="analyzeSelection"
       />
       <action
         v-if="headerButtons.delete"
-        icon="delete"
+        app-icon="trash"
         label="删除"
         show="delete"
       />
-      <action icon="close" label="取消选择" @action="clearSelection" />
+      <action app-icon="x" label="取消选择" @action="clearSelection" />
     </div>
 
     <div v-if="layoutStore.loading" class="loading-skeleton-wrapper">
@@ -640,50 +640,50 @@
         >
           <action
             v-if="headerButtons.share"
-            icon="share"
+            app-icon="share"
             label="分享"
             show="share"
           />
           <action
             v-if="headerButtons.rename"
-            icon="mode_edit"
+            app-icon="rename"
             label="重命名"
             show="rename"
           />
           <action
             v-if="headerButtons.copy"
             id="copy-button"
-            icon="content_copy"
+            app-icon="copy"
             label="复制文件"
             show="copy"
           />
           <action
             v-if="headerButtons.move"
             id="move-button"
-            icon="forward"
+            app-icon="move"
             label="移动文件"
             show="move"
           />
           <action
             v-if="headerButtons.delete"
             id="delete-button"
-            icon="delete"
+            app-icon="trash"
             label="删除"
             show="delete"
           />
           <action
             v-if="headerButtons.download"
-            icon="file_download"
+            app-icon="download"
             label="下载"
             @action="download"
           />
           <action
             v-if="headerButtons.analyze"
-            icon="data_usage"
+            app-icon="analysis"
             label="分析"
             @action="analyzeSelection"
           />
-          <action icon="info" label="详细信息" show="info" />
+          <action app-icon="info" label="详细信息" show="info" />
         </context-menu>
 
         <input
@@ -827,6 +827,7 @@ import { Base64 } from "js-base64";
 
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 import Item from "@/components/files/ListingItem.vue";
 import DetailedTableRow from "@/components/files/DetailedTableRow.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
@@ -1056,14 +1057,14 @@ const listingClass = computed(() => ({
     : {}),
 }));
 
-const viewIcon = computed(() => {
-  const icons: Record<string, string> = {
-    mosaic: "grid_view",
-    "compact-grid": "grid_on",
-    details: "table_rows",
-    "compact-list": "view_headline",
+const viewAppIcon = computed<AppIconName>(() => {
+  const icons: Record<ViewModeType, AppIconName> = {
+    mosaic: "view-mosaic",
+    "compact-grid": "view-compact-grid",
+    details: "view-details",
+    "compact-list": "view-compact-list",
   };
-  return icons[currentViewMode.value] || "grid_view";
+  return icons[currentViewMode.value];
 });
 
 const headerButtons = computed(() => {

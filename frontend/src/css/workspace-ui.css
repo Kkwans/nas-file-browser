@@ -1392,9 +1392,16 @@ nav.sidebar .favorite-item.drag-over-bottom {
     border-radius: 9px;
   }
 
-  #file-selection .action i {
+  #file-selection .action i,
+  #file-selection .action > .app-icon {
     padding: 8px;
     font-size: 20px;
+  }
+
+  #file-selection .action > .app-icon {
+    box-sizing: content-box;
+    width: 20px;
+    height: 20px;
   }
 
   #file-selection .action span {

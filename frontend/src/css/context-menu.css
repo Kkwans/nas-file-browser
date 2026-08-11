@@ -41,7 +41,9 @@
   gap: 0.6em;
   margin: 0.1em 0.3em;
   border-radius: 0.35em;
-  transition: 0.12s ease background-color, 0.1s ease transform;
+  transition:
+    0.12s ease background-color,
+    0.1s ease transform;
   cursor: pointer;
 }
 
@@ -55,14 +57,23 @@
   transition-duration: 0.05s;
 }
 
-.context-menu .action i {
+.context-menu .action i,
+.context-menu .action > .app-icon {
   font-size: 1.15em;
   padding: 0.1em;
   color: var(--textSecondary, #666);
   transition: color 0.15s;
 }
 
-.context-menu .action:hover i {
+.context-menu .action > .app-icon {
+  box-sizing: border-box;
+  flex: 0 0 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.context-menu .action:hover i,
+.context-menu .action:hover > .app-icon {
   color: var(--blue, #2196f3);
 }
 
@@ -83,7 +94,7 @@ html.dark .context-menu {
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow:
     0 12px 36px rgba(0, 0, 0, 0.35),
-    0 4px 12px rgba(0, 0, 0, 0.20);
+    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 :root.dark .context-menu .action:hover,
@@ -92,11 +103,15 @@ html.dark .context-menu .action:hover {
 }
 
 :root.dark .context-menu .action i,
-html.dark .context-menu .action i {
+html.dark .context-menu .action i,
+:root.dark .context-menu .action > .app-icon,
+html.dark .context-menu .action > .app-icon {
   color: rgba(255, 255, 255, 0.5);
 }
 
 :root.dark .context-menu .action:hover i,
-html.dark .context-menu .action:hover i {
+html.dark .context-menu .action:hover i,
+:root.dark .context-menu .action:hover > .app-icon,
+html.dark .context-menu .action:hover > .app-icon {
   color: var(--blue, #42a5f5);
 }

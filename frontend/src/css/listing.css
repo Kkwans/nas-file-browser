@@ -2035,7 +2035,8 @@
     min-height: 40px;
   }
 
-  #file-selection .action i {
+  #file-selection .action i,
+  #file-selection .action > .app-icon {
     padding: 8px;
   }
 

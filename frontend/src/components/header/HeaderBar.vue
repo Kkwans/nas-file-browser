@@ -5,7 +5,8 @@
       <Action
         v-if="showMenu"
         class="menu-button"
-        icon="menu"
+        app-icon="menu"
+        :icon-size="22"
         label="切换侧边栏"
         @action="layoutStore.toggleTransient('sidebar')"
       />
@@ -29,7 +30,8 @@
       <Action
         v-if="ifActionsSlot"
         id="more"
-        icon="more_vert"
+        app-icon="more"
+        :icon-size="22"
         label="更多"
         @action="layoutStore.toggleTransient('more')"
       />

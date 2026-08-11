@@ -116,10 +116,15 @@ main .spinner .bounce2 {
   cursor: not-allowed;
 }
 
-.action i {
+.action i,
+.action > .app-icon {
   padding: 0.4em;
   transition: 0.1s ease-in-out all;
   border-radius: 50%;
+}
+
+.action > .app-icon {
+  box-sizing: content-box;
 }
 
 .action:hover {

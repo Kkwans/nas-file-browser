@@ -131,6 +131,11 @@ header .menu-button {
 /* === ACTION BUTTONS === */
 
 header .action {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  padding: 0;
   border-radius: 0.5em;
   transition:
     background-color 0.15s ease,
@@ -139,7 +144,8 @@ header .action {
   position: relative;
 }
 
-header .action i {
+header .action i,
+header .action > .app-icon {
   padding: 0.45em;
   border-radius: 0.5em;
   font-size: 1.25em;
@@ -150,12 +156,20 @@ header .action i {
     transform 0.12s ease;
 }
 
+header .action > .app-icon {
+  box-sizing: border-box;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+}
+
 header .action:hover {
   background-color: var(--hover);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
-header .action:hover i {
+header .action:hover i,
+header .action:hover > .app-icon {
   transform: scale(1.06);
   color: var(--blue);
 }
@@ -187,7 +201,8 @@ header .action.active {
   background-color: rgba(33, 150, 243, 0.1);
 }
 
-header .action.active i {
+header .action.active i,
+header .action.active > .app-icon {
   color: var(--blue);
 }
 
@@ -240,7 +255,8 @@ header .action.active i {
   background-color: var(--hover);
 }
 
-#dropdown .action i {
+#dropdown .action i,
+#dropdown .action > .app-icon {
   font-size: 1.2em;
   margin-right: 0.5em;
 }
@@ -279,11 +295,13 @@ header .action.active i {
   }
 
   header > .header-trailing #dropdown .action {
-    width: auto;
+    width: 2.5rem;
+    height: 2.5rem;
     padding: 0;
   }
 
-  header > .header-trailing #dropdown .action i {
+  header > .header-trailing #dropdown .action i,
+  header > .header-trailing #dropdown .action > .app-icon {
     margin-right: 0;
   }
 }
@@ -764,7 +782,8 @@ html.dark header .breadcrumbs a:hover {
     font-size: 0.875em;
   }
 
-  #dropdown .action i {
+  #dropdown .action i,
+  #dropdown .action > .app-icon {
     font-size: 1.25em;
   }
 

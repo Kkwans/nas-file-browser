@@ -90,6 +90,7 @@ func init() {
 	flags.String("password", "", "hashed password for the first user when using quick setup")
 	flags.Uint32("socketPerm", 0666, "unix socket file permissions")
 	flags.String("cacheDir", "", "file cache directory (disabled if empty)")
+	flags.Uint64("cacheMaxBytes", uint64(diskcache.DefaultMaxBytes), "file preview cache limit in bytes")
 	flags.String("redisCacheUrl", "", "redis cache URL (for multi-instance deployments), e.g. redis://user:pass@host:port")
 	flags.Int("imageProcessors", 1, "image processors count")
 	flags.Int("videoPreviewProcessors", 1, "FFmpeg video cover processors count (1-2)")
@@ -195,10 +196,17 @@ user created with the credentials from options "username" and "password".`,
 		var fileCache diskcache.Interface = diskcache.NewNoOp()
 		cacheDir := v.GetString("cacheDir")
 		if cacheDir != "" {
+			cacheMaxBytes := v.GetUint64("cacheMaxBytes")
+			if cacheMaxBytes == 0 || cacheMaxBytes > uint64(^uint64(0)>>1) {
+				return errors.New("file preview cache limit must be a positive int64 byte count")
+			}
 			if err := os.MkdirAll(cacheDir, 0700); err != nil {
 				return fmt.Errorf("can't make directory %s: %w", cacheDir, err)
 			}
-			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
+			fileCache, err = diskcache.NewBounded(afero.NewOsFs(), cacheDir, int64(cacheMaxBytes))
+			if err != nil {
+				return fmt.Errorf("can't initialize file preview cache: %w", err)
+			}
 		}
 
 		redisCacheURL := v.GetString("redisCacheUrl")

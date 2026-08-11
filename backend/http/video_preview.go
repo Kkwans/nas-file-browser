@@ -43,8 +43,9 @@ func (s *ffmpegPreviewService) create(ctx context.Context, file *files.FileInfo)
 	command := exec.CommandContext(ctx, ffmpegPath,
 		"-hide_banner", "-loglevel", "error",
 		"-ss", "0.1", "-i", file.RealPath(),
-		"-frames:v", "1",
+		"-map", "0:v:0", "-an", "-sn", "-dn", "-frames:v", "1",
 		"-vf", "scale=256:256:force_original_aspect_ratio=decrease",
+		"-threads", "1", "-filter_threads", "1",
 		"-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
 	)
 	command.Stdout = &output
@@ -75,28 +76,22 @@ func handleVideoPreview(
 	}
 
 	cacheKey := previewCacheKey(file, previewSize)
-	preview, ok, err := fileCache.Load(r.Context(), cacheKey)
+	preview, ok, err := loadPreviewCache(r.Context(), fileCache, cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if ok && !validCachedPreview(preview) {
-		_ = fileCache.Delete(r.Context(), cacheKey)
-		ok = false
-	}
 	if !ok {
 		preview, err = coordinator.Do(r.Context(), cacheKey, func(ctx context.Context) ([]byte, error) {
-			if cached, exists, loadErr := fileCache.Load(ctx, cacheKey); loadErr != nil {
+			if cached, exists, loadErr := loadPreviewCache(ctx, fileCache, cacheKey); loadErr != nil {
 				return nil, loadErr
-			} else if exists && validCachedPreview(cached) {
+			} else if exists {
 				return cached, nil
 			}
 			generated, generateErr := ffmpeg.create(ctx, file)
 			if generateErr != nil {
 				return nil, generateErr
 			}
-			if storeErr := fileCache.Store(ctx, cacheKey, generated); storeErr != nil {
-				return nil, storeErr
-			}
+			storePreviewCache(ctx, fileCache, cacheKey, generated)
 			return generated, nil
 		})
 		if err != nil {

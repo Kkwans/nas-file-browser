@@ -53,6 +53,7 @@ filebrowser [flags]
   -a, --address string                 address to listen on (default "127.0.0.1")
   -b, --baseURL string                 base url
       --cacheDir string                file cache directory (disabled if empty)
+      --cacheMaxBytes uint             file preview cache limit in bytes (default 2147483648)
   -t, --cert string                    tls certificate
   -c, --config string                  config file path
   -d, --database string                database path (default "./filebrowser.db")

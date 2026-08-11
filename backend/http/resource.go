@@ -435,7 +435,10 @@ func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) e
 	for _, previewSizeName := range PreviewSizeNames() {
 		size, _ := ParsePreviewSize(previewSizeName)
 		if err := fileCache.Delete(ctx, previewCacheKey(file, size)); err != nil {
-			return err
+			if ctxErr := context.Cause(ctx); ctxErr != nil {
+				return ctxErr
+			}
+			log.Printf("WARNING: 清理 %s 的预览缓存失败，文件操作仍继续: %v", file.Path, err)
 		}
 	}
 

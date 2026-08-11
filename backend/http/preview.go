@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -203,19 +204,15 @@ func handleImagePreview(
 	}
 
 	cacheKey := previewCacheKey(file, previewSize)
-	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
+	resizedImage, ok, err := loadPreviewCache(r.Context(), fileCache, cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if ok && !validCachedPreview(resizedImage) {
-		_ = fileCache.Delete(r.Context(), cacheKey)
-		ok = false
-	}
 	if !ok {
 		resizedImage, err = coordinator.Do(r.Context(), cacheKey, func(ctx context.Context) ([]byte, error) {
-			if cached, exists, loadErr := fileCache.Load(ctx, cacheKey); loadErr != nil {
+			if cached, exists, loadErr := loadPreviewCache(ctx, fileCache, cacheKey); loadErr != nil {
 				return nil, loadErr
-			} else if exists && validCachedPreview(cached) {
+			} else if exists {
 				return cached, nil
 			}
 			return createPreview(ctx, imgSvc, fileCache, file, previewSize)
@@ -268,11 +265,38 @@ func createPreview(ctx context.Context, imgSvc ImgService, fileCache FileCache,
 	if err := imgSvc.Resize(ctx, fd, width, height, buf, options...); err != nil {
 		return nil, err
 	}
-	if err := fileCache.Store(ctx, previewCacheKey(file, previewSize), buf.Bytes()); err != nil {
-		return nil, err
-	}
+	// A preview is still useful when the disposable cache is temporarily
+	// unavailable. Cache failures must not turn a successful resize into a 5xx.
+	storePreviewCache(ctx, fileCache, previewCacheKey(file, previewSize), buf.Bytes())
 
 	return buf.Bytes(), nil
+}
+
+func loadPreviewCache(ctx context.Context, fileCache FileCache, key string) ([]byte, bool, error) {
+	value, exists, err := fileCache.Load(ctx, key)
+	if err != nil {
+		if ctxErr := context.Cause(ctx); ctxErr != nil {
+			return nil, false, ctxErr
+		}
+		log.Printf("WARNING: 读取预览缓存失败，按未命中处理: %v", err)
+		return nil, false, nil
+	}
+	if !exists {
+		return nil, false, nil
+	}
+	if validCachedPreview(value) {
+		return value, true, nil
+	}
+	if deleteErr := fileCache.Delete(ctx, key); deleteErr != nil && context.Cause(ctx) == nil {
+		log.Printf("WARNING: 清理损坏的预览缓存失败: %v", deleteErr)
+	}
+	return nil, false, nil
+}
+
+func storePreviewCache(ctx context.Context, fileCache FileCache, key string, value []byte) {
+	if err := fileCache.Store(ctx, key, value); err != nil && context.Cause(ctx) == nil {
+		log.Printf("WARNING: 写入预览缓存失败，本次预览仍继续返回: %v", err)
+	}
 }
 
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {

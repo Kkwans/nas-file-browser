@@ -9,18 +9,35 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/spf13/afero"
 )
 
 type FileCache struct {
-	fs afero.Fs
+	fs       afero.Fs
+	maxBytes int64
+
+	capacity struct {
+		sync.Mutex
+		entries    map[string]cacheEntry
+		totalBytes int64
+		lastAccess int64
+	}
 
 	scopedLocks struct {
 		sync.Mutex
 		locks map[string]*scopedLock
 	}
+}
+
+type cacheEntry struct {
+	path       string
+	size       int64
+	lastAccess int64
 }
 
 type scopedLock struct {
@@ -34,9 +51,30 @@ func New(fs afero.Fs, root string) *FileCache {
 	}
 }
 
+// NewBounded creates a cache with an on-disk size ceiling. Existing entries
+// are indexed once at startup and least-recently-used entries are evicted when
+// a successful write crosses the limit.
+func NewBounded(fs afero.Fs, root string, maxBytes int64) (*FileCache, error) {
+	if maxBytes <= 0 {
+		return nil, fmt.Errorf("cache limit must be positive")
+	}
+	cache := &FileCache{fs: afero.NewBasePathFs(fs, root), maxBytes: maxBytes}
+	cache.capacity.entries = make(map[string]cacheEntry)
+	if err := cache.loadEntries(); err != nil {
+		return nil, err
+	}
+	cache.capacity.Lock()
+	cache.pruneLocked("")
+	cache.capacity.Unlock()
+	return cache, nil
+}
+
 func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
 	if err := ctx.Err(); err != nil {
 		return err
+	}
+	if f.maxBytes > 0 && int64(len(value)) > f.maxBytes {
+		return nil
 	}
 	unlock := f.lockKey(key)
 	defer unlock()
@@ -68,9 +106,6 @@ func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := temporary.Sync(); err != nil {
-		return err
-	}
 	if err := temporary.Close(); err != nil {
 		return err
 	}
@@ -78,6 +113,7 @@ func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
 		return err
 	}
 	committed = true
+	f.recordStore(fileName, int64(len(value)))
 	return nil
 }
 
@@ -99,6 +135,7 @@ func (f *FileCache) Load(ctx context.Context, key string) (value []byte, exist b
 	if err != nil {
 		return nil, false, err
 	}
+	f.recordAccess(f.getFileName(key), int64(len(value)))
 	return value, true, nil
 }
 
@@ -116,7 +153,109 @@ func (f *FileCache) Delete(ctx context.Context, key string) error {
 	if err := f.fs.Remove(fileName); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
+	f.forget(fileName)
 	return nil
+}
+
+func (f *FileCache) loadEntries() error {
+	return afero.Walk(f.fs, ".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() || !info.Mode().IsRegular() {
+			return nil
+		}
+		if strings.HasPrefix(filepath.Base(path), ".cache-") {
+			return f.fs.Remove(path)
+		}
+		access := info.ModTime().UnixNano()
+		f.capacity.entries[path] = cacheEntry{path: path, size: info.Size(), lastAccess: access}
+		f.capacity.totalBytes += info.Size()
+		if access > f.capacity.lastAccess {
+			f.capacity.lastAccess = access
+		}
+		return nil
+	})
+}
+
+func (f *FileCache) recordStore(path string, size int64) {
+	if f.maxBytes <= 0 {
+		return
+	}
+	f.capacity.Lock()
+	if previous, exists := f.capacity.entries[path]; exists {
+		f.capacity.totalBytes -= previous.size
+	}
+	entry := cacheEntry{path: path, size: size, lastAccess: f.nextAccessLocked()}
+	f.capacity.entries[path] = entry
+	f.capacity.totalBytes += size
+	f.pruneLocked(path)
+	f.capacity.Unlock()
+}
+
+func (f *FileCache) recordAccess(path string, size int64) {
+	if f.maxBytes <= 0 {
+		return
+	}
+	f.capacity.Lock()
+	entry, exists := f.capacity.entries[path]
+	if !exists {
+		entry = cacheEntry{path: path, size: size}
+		f.capacity.totalBytes += size
+	}
+	entry.lastAccess = f.nextAccessLocked()
+	f.capacity.entries[path] = entry
+	f.pruneLocked(path)
+	f.capacity.Unlock()
+}
+
+func (f *FileCache) forget(path string) {
+	if f.maxBytes <= 0 {
+		return
+	}
+	f.capacity.Lock()
+	if entry, exists := f.capacity.entries[path]; exists {
+		f.capacity.totalBytes -= entry.size
+		delete(f.capacity.entries, path)
+	}
+	f.capacity.Unlock()
+}
+
+func (f *FileCache) nextAccessLocked() int64 {
+	now := time.Now().UnixNano()
+	if now <= f.capacity.lastAccess {
+		now = f.capacity.lastAccess + 1
+	}
+	f.capacity.lastAccess = now
+	return now
+}
+
+func (f *FileCache) pruneLocked(protectPath string) {
+	if f.capacity.totalBytes <= f.maxBytes {
+		return
+	}
+	candidates := make([]cacheEntry, 0, len(f.capacity.entries))
+	for _, entry := range f.capacity.entries {
+		if entry.path != protectPath {
+			candidates = append(candidates, entry)
+		}
+	}
+	sort.Slice(candidates, func(left, right int) bool {
+		if candidates[left].lastAccess == candidates[right].lastAccess {
+			return candidates[left].path < candidates[right].path
+		}
+		return candidates[left].lastAccess < candidates[right].lastAccess
+	})
+	for _, candidate := range candidates {
+		if f.capacity.totalBytes <= f.maxBytes {
+			break
+		}
+		if err := f.fs.Remove(candidate.path); err != nil && !errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		f.capacity.totalBytes -= candidate.size
+		delete(f.capacity.entries, candidate.path)
+	}
 }
 
 func (f *FileCache) open(key string) (afero.File, bool, error) {

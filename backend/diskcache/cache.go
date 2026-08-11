@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+const DefaultMaxBytes = int64(2 << 30)
+
 type Interface interface {
 	Store(ctx context.Context, key string, value []byte) error
 	Load(ctx context.Context, key string) (value []byte, exist bool, err error)

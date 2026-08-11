@@ -2,6 +2,8 @@
   <span
     class="risk-inline-indicator"
     :class="`risk-inline-indicator--${level}`"
+    role="img"
+    :aria-label="label"
     :title="label"
   >
     <AppIcon :name="iconName" :size="13" :stroke-width="2" />

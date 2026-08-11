@@ -68,4 +68,30 @@ describe("risk presentation contract", () => {
     expect(listingItemSource).not.toContain("risk-badge");
     expect(detailedRowSource).not.toContain("risk-badge");
   });
+
+  it("keeps media risk semantics visible in compact lists", () => {
+    expect(listingStyles).not.toMatch(
+      /#listing\.compact-list[^}]*\.risk-inline-indicator\s*\{[^}]*display:\s*none/s
+    );
+    expect(listingStyles).toMatch(
+      /#listing\.compact-list \.risk-inline-indicator\s*\{[^}]*width:\s*22px/s
+    );
+    expect(listingItemSource).toContain("inlineRiskLevel");
+  });
+
+  it("uses one inherited resource icon size contract across responsive layouts", () => {
+    expect(listingStyles).toContain("--resource-icon-size: 64px");
+    expect(listingStyles).toMatch(
+      /#listing \.file-thumbnail\s*\{[^}]*width:\s*var\(--resource-icon-size\);[^}]*height:\s*var\(--resource-icon-size\)/s
+    );
+    expect(listingStyles).toMatch(
+      /#listing\.details \.item\s*\{[^}]*--resource-icon-size:\s*52px/s
+    );
+    expect(listingStyles).toMatch(
+      /#listing\.mosaic \.item\s*\{[^}]*--resource-icon-size:\s*80px/s
+    );
+    expect(listingStyles).toMatch(
+      /#listing\.compact-grid \.item\s*\{[^}]*--resource-icon-size:\s*64px/s
+    );
+  });
 });

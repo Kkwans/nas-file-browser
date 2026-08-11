@@ -153,8 +153,8 @@ describe("侧边栏分组交互契约", () => {
 
     expect(cssSource).toContain("--sidebar-level-two-icon-column: 1.75rem");
     expect(cssSource).toContain("--sidebar-level-two-icon-size: 1.375rem");
-    expect(compactCss).toContain(
-      ".favorites-ungrouped-drop-zone > .favorite-item { grid-template-columns: var(--sidebar-level-two-icon-column) minmax( 0, 1fr ) 1.75rem;"
+    expect(compactCss).toMatch(
+      /\.favorites-ungrouped-drop-zone > \.favorite-item \{ grid-template-columns: var\(--sidebar-level-two-icon-column\) minmax\(\s*0,\s*1fr\s*\) 1\.75rem;/
     );
     expect(compactCss).toMatch(
       /\.favorites-ungrouped-drop-zone > \.favorite-item > \.favorite-icon:not\(\.favorite-drag-handle\),.*\.favorite-group-header > \.favorite-group-icon \{[^}]*width: var\(--sidebar-level-two-icon-column\);[^}]*height: var\(--sidebar-level-two-icon-column\);[^}]*font-size: var\(--sidebar-level-two-icon-size\) !important;/

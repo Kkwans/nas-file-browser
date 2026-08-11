@@ -5,6 +5,7 @@ dist
 .codex-go-cache
 .codex-go-mod-cache
 .codex-go-tmp
+.codex-tmp
 /config
 /database
 /docker-compose*.yml

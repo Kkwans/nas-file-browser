@@ -43,7 +43,10 @@
       @pointerdown.stop
     >
       <i class="material-icons">history</i>
-      <span>已从 {{ formatMediaTime(restoredPosition) }} 继续</span>
+      <span
+        >{{ resumeApplied ? "已从" : "将从" }}
+        {{ formatMediaTime(restoredPosition) }} 继续</span
+      >
       <button type="button" @click.stop="restartFromBeginning">从头播放</button>
     </div>
 
@@ -174,6 +177,10 @@ import {
   shouldShowResumePosition,
   type VideoGestureAxis,
 } from "@/utils/videoGestures";
+import {
+  getVideoSourceType,
+  isKnownIncompatibleVideo,
+} from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
@@ -203,6 +210,7 @@ const stage = ref<HTMLDivElement | null>(null);
 const player = ref<Player | null>(null);
 const brightness = ref(1);
 const restoredPosition = ref(0);
+const resumeApplied = ref(false);
 const progressMessage = ref("");
 const compatibilityPanelOpen = ref(isKnownIncompatibleVideo(props.path));
 const compatibilityBusy = ref(false);
@@ -228,6 +236,12 @@ let lastTap = 0;
 let compatibilityPollTimer: number | null = null;
 let compatibilityRequest = 0;
 let activeHLSURL = "";
+let pendingResume: {
+  path: string;
+  position: number;
+  request: number;
+  waiting: boolean;
+} | null = null;
 const PLAYBACK_SAVE_INTERVAL_MS = 8_000;
 let gesture:
   | {
@@ -248,12 +262,21 @@ watch(
   ([nextPath, nextSource], previous) => {
     if (!player.value || !previous) return;
     void persistPlayback(true, previous[0]);
+    pendingResume = null;
     restoredPosition.value = 0;
+    resumeApplied.value = false;
     brightness.value = 1;
     suppressPersistenceUntil = 0;
     resetCompatibility(nextPath);
-    player.value.src({ src: nextSource, type: getSourceType(nextSource) });
-    player.value.load();
+    player.value.pause();
+    player.value.reset();
+    if (!isKnownIncompatibleVideo(nextPath)) {
+      player.value.src({
+        src: nextSource,
+        type: getVideoSourceType(nextSource, nextPath),
+      });
+      player.value.load();
+    }
     void restorePlayback(nextPath);
   }
 );
@@ -279,20 +302,26 @@ async function initVideoPlayer() {
     if (disposed || !videoPlayer.value) return;
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);
+    const initialSource = isKnownIncompatibleVideo(props.path)
+      ? {}
+      : {
+          sources: {
+            src: props.source,
+            type: getVideoSourceType(props.source, props.path),
+          },
+        };
     player.value = videojs(
       videoPlayer.value,
-      getOptions(
-        props.options,
-        { language: code },
-        { sources: { src: props.source, type: getSourceType(props.source) } },
-        { playbackRates: [0.5, 1, 1.5, 2, 2.5, 3] }
-      )
+      getOptions(props.options, { language: code }, initialSource, {
+        playbackRates: [0.5, 1, 1.5, 2, 2.5, 3],
+      })
     );
     player.value.on("timeupdate", onTimeUpdate);
     player.value.on("pause", () => void persistPlayback(true));
     player.value.on("seeked", () => void persistPlayback(true));
     player.value.on("ended", () => void persistPlayback(true));
     player.value.on("error", onPlayerError);
+    player.value.on("play", applyPendingResume);
     player.value.on("playing", onPlayerPlaying);
     await restorePlayback(props.path);
   } catch (error) {
@@ -320,20 +349,59 @@ function getOptions(...sources: Record<string, unknown>[]) {
 
 async function restorePlayback(path: string) {
   const request = ++progressRequest;
+  pendingResume = null;
   try {
     const saved = await mediaApi.getPlayback(path);
     if (request !== progressRequest || path !== props.path || !saved.exists)
       return;
     restoredPosition.value = saved.position;
-    const apply = () => {
-      if (!player.value || request !== progressRequest) return;
-      player.value.currentTime(saved.position);
-      lastSavedPosition = saved.position;
-    };
-    if ((player.value?.readyState() ?? 0) >= 1) apply();
-    else player.value?.one("loadedmetadata", apply);
+    lastSavedPosition = saved.position;
+    if (shouldShowResumePosition(saved.position)) {
+      pendingResume = {
+        path,
+        position: saved.position,
+        request,
+        waiting: false,
+      };
+    }
   } catch {
     showProgressMessage("续播位置暂时无法读取");
+  }
+}
+
+function applyPendingResume() {
+  const resume = pendingResume;
+  const currentPlayer = player.value;
+  if (
+    !resume ||
+    !currentPlayer ||
+    resume.request !== progressRequest ||
+    resume.path !== props.path
+  ) {
+    return;
+  }
+  const apply = () => {
+    if (
+      !player.value ||
+      pendingResume !== resume ||
+      resume.request !== progressRequest ||
+      resume.path !== props.path
+    ) {
+      return;
+    }
+    const current = player.value.currentTime() || 0;
+    pendingResume = null;
+    if (current <= 0.5) {
+      player.value.currentTime(resume.position);
+      resumeApplied.value = true;
+    } else {
+      restoredPosition.value = 0;
+    }
+  };
+  if (currentPlayer.readyState() >= 1) apply();
+  else if (!resume.waiting) {
+    resume.waiting = true;
+    currentPlayer.one("loadedmetadata", apply);
   }
 }
 
@@ -572,6 +640,7 @@ function activateHLSPlayback(playlistURL: string) {
   const playbackRate = currentPlayer.playbackRate();
   activeHLSURL = playlistURL;
   hlsActive.value = true;
+  pendingResume = null;
 
   // Reset a failed direct-play tech before selecting the generated HLS source.
   currentPlayer.pause();
@@ -592,7 +661,10 @@ function activateHLSPlayback(playlistURL: string) {
         false
       );
     });
-    if (resumeAt > 0) currentPlayer.currentTime(resumeAt);
+    if (resumeAt > 0) {
+      currentPlayer.currentTime(resumeAt);
+      resumeApplied.value = true;
+    }
   });
   playVideo(currentPlayer);
 }
@@ -613,7 +685,10 @@ function tryDirectPlayback() {
   hlsActive.value = false;
   directPlaybackFailed.value = false;
   compatibilityNetworkError.value = "";
-  currentPlayer.src({ src: props.source, type: getSourceType(props.source) });
+  currentPlayer.src({
+    src: props.source,
+    type: getVideoSourceType(props.source, props.path),
+  });
   currentPlayer.load();
   compatibilityPanelOpen.value = false;
 }
@@ -636,13 +711,6 @@ function resetCompatibility(path: string) {
   compatibilityPanelOpen.value = isKnownIncompatibleVideo(path);
 }
 
-function isKnownIncompatibleVideo(path: string) {
-  const extension = path.split("?")[0].split(".").pop()?.toLowerCase();
-  return Boolean(
-    extension && ["mkv", "avi", "flv", "wmv", "rm", "rmvb"].includes(extension)
-  );
-}
-
 function formatCacheSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   if (bytes < 1024 * 1024 * 1024)
@@ -662,6 +730,7 @@ function onTimeUpdate() {
 async function persistPlayback(force: boolean, path = props.path) {
   const currentPlayer = player.value;
   if (!currentPlayer || !path || Date.now() < suppressPersistenceUntil) return;
+  if (pendingResume?.path === path) return;
   const position = currentPlayer.currentTime();
   const duration = currentPlayer.duration();
   if (
@@ -685,7 +754,9 @@ async function persistPlayback(force: boolean, path = props.path) {
 }
 
 async function restartFromBeginning() {
+  pendingResume = null;
   restoredPosition.value = 0;
+  resumeApplied.value = false;
   lastSavedPosition = 0;
   suppressPersistenceUntil = Date.now() + 1000;
   player.value?.currentTime(0);
@@ -826,12 +897,6 @@ function onPointerUp(event: PointerEvent) {
 
 function onPointerCancel() {
   gesture = undefined;
-}
-
-function getSourceType(source: string) {
-  const extension = source ? source.split("?")[0].split(".").pop() : "";
-  if (extension?.toLowerCase() === "mkv") return "video/mp4";
-  return "";
 }
 
 function subLabel(subUrl: string) {

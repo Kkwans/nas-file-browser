@@ -16,7 +16,7 @@
     <component
       v-else-if="currentView"
       :is="currentView"
-      :key="route.fullPath"
+      :key="currentViewKey"
     ></component>
     <div v-else>
       <h2 class="message delayed">
@@ -91,6 +91,15 @@ const currentView = computed(() => {
   } else {
     return Preview;
   }
+});
+
+// Keep the current view alive while the next route is still loading. Keying by
+// route.fullPath remounted the old preview immediately, which briefly requested
+// the previous media before the new resource metadata arrived.
+const currentViewKey = computed(() => {
+  if (!fileStore.req) return "loading";
+  const mode = route.query.edit === "true" ? "edit" : "view";
+  return `${fileStore.req.path}:${mode}`;
 });
 
 // Define hooks

@@ -36,4 +36,23 @@ describe("媒体预览生命周期契约", () => {
       'player.value.on("play", applyPendingResume)'
     );
   });
+
+  it("大图生成期间先显示真实缩略图占位", () => {
+    const previewSource = readFileSync(
+      fileURLToPath(new URL("../../views/files/Preview.vue", import.meta.url)),
+      "utf8"
+    );
+    const imageSource = readFileSync(
+      fileURLToPath(
+        new URL("../../components/files/ExtendedImage.vue", import.meta.url)
+      ),
+      "utf8"
+    );
+    expect(previewSource).toContain(':placeholder-src="imagePlaceholderUrl"');
+    expect(previewSource).toContain('getPreviewURL(fileStore.req, "thumb")');
+    expect(imageSource).toContain("imageStatus === 'loading'");
+    expect(imageSource).toContain(
+      'class="image-ex-img image-ex-img-placeholder"'
+    );
+  });
 });

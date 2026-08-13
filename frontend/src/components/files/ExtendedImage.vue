@@ -34,6 +34,15 @@
       </div>
     </div>
 
+    <img
+      v-if="placeholderSrc && imageStatus === 'loading'"
+      class="image-ex-img image-ex-img-placeholder"
+      :src="placeholderSrc"
+      alt=""
+      aria-hidden="true"
+      decoding="async"
+    />
+
     <!-- Image info (top-right) -->
     <div class="image-viewer-info" :class="{ visible: showUI && imageLoaded }">
       <div v-if="naturalWidth && naturalHeight" class="info-tag">
@@ -118,6 +127,7 @@ interface IProps {
   zoomStep?: number;
   fileName?: string;
   fileSizeBytes?: number;
+  placeholderSrc?: string;
   directSrc?: string;
   downloadSrc?: string;
 }
@@ -128,6 +138,7 @@ const props = withDefaults(defineProps<IProps>(), {
   zoomStep: () => 0.25,
   fileName: () => "",
   fileSizeBytes: () => 0,
+  placeholderSrc: () => "",
   directSrc: () => "",
   downloadSrc: () => "",
 });
@@ -612,6 +623,18 @@ const pxStringToNumber = (style: string) => {
   transform: translate(-50%, -50%);
   position: absolute;
   transition: none;
+}
+
+.image-ex-img-placeholder {
+  left: 50%;
+  top: 50%;
+  max-width: 100%;
+  max-height: 100%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  filter: blur(1px);
+  opacity: 0.82;
+  pointer-events: none;
 }
 
 .image-ex-img-ready {

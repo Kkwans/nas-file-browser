@@ -125,6 +125,7 @@
         <ExtendedImage
           v-else-if="fileStore.req?.type == 'image'"
           :src="previewUrl"
+          :placeholder-src="imagePlaceholderUrl"
           :fileName="name"
           :fileSizeBytes="fileStore.req?.size || 0"
           :directSrc="directUrl"
@@ -424,6 +425,11 @@ const previewUrl = computed(() => {
   }
 
   return api.getDownloadURL(fileStore.req, true);
+});
+
+const imagePlaceholderUrl = computed(() => {
+  if (fileStore.req?.type !== "image") return "";
+  return api.getPreviewURL(fileStore.req, "thumb");
 });
 
 const isPdf = computed(() => fileStore.req?.extension.toLowerCase() == ".pdf");

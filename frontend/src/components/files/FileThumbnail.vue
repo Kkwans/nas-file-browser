@@ -36,7 +36,14 @@
       :is-dir="isDir"
       :level="nonLowRiskLevel"
     />
-    <i v-else class="material-icons file-type-icon" aria-hidden="true"></i>
+    <AppIcon
+      v-else
+      class="file-type-icon app-resource-icon"
+      :name="resourceIconName"
+      :size="64"
+      :stroke-width="1.85"
+      aria-hidden="true"
+    />
   </span>
 </template>
 
@@ -52,6 +59,8 @@ import {
 } from "@/utils/thumbnailScheduler";
 import RiskResourceIcon from "@/components/files/RiskResourceIcon.vue";
 import type { RiskLevel } from "@/types/file";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { getResourceIconName } from "@/utils/fileIcons";
 
 const props = defineProps<{
   name: string;
@@ -81,6 +90,9 @@ const displaySource = ref("");
 let observer: IntersectionObserver | null = null;
 let request: ThumbnailRequest | null = null;
 const normalizedRiskLevel = computed(() => props.riskLevel ?? "low");
+const resourceIconName = computed(() =>
+  getResourceIconName(props.name, props.type, props.isDir)
+);
 const nonLowRiskLevel = computed<Exclude<RiskLevel, "low"> | null>(() =>
   normalizedRiskLevel.value === "low" ? null : normalizedRiskLevel.value
 );

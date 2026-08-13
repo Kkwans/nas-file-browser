@@ -1,7 +1,80 @@
 /**
- * Shared file icon utility - maps file extensions to Material Icons.
- * Used by SearchPage, Sidebar, QuickPreview, and other components.
+ * Shared file icon utility - maps file extensions to the legacy Material
+ * names used by older surfaces. The listing uses getResourceIconName below
+ * so its primary resource icon can use the local AppIcon family instead.
  */
+
+import type { AppIconName } from "@/components/ui/iconRegistry";
+
+const APP_ICON_EXTENSIONS: Record<string, AppIconName> = {
+  // Keep the extension mapping intentionally semantic rather than mirroring
+  // every legacy Material glyph. Unknown extensions use the neutral file icon.
+  pdf: "file-text",
+  doc: "file-text",
+  docx: "file-text",
+  txt: "file-text",
+  md: "file-text",
+  mdx: "file-text",
+  rtf: "file-text",
+  odt: "file-text",
+  pages: "file-text",
+  xls: "file-spreadsheet",
+  xlsx: "file-spreadsheet",
+  csv: "file-spreadsheet",
+  ods: "file-spreadsheet",
+  numbers: "file-spreadsheet",
+  tsv: "file-spreadsheet",
+  ppt: "file-text",
+  pptx: "file-text",
+  odp: "file-text",
+  keynote: "file-text",
+  zip: "file-archive",
+  rar: "file-archive",
+  "7z": "file-archive",
+  tar: "file-archive",
+  gz: "file-archive",
+  bz2: "file-archive",
+  xz: "file-archive",
+  zst: "file-archive",
+  lz4: "file-archive",
+  cab: "file-archive",
+};
+
+/**
+ * Return the semantic local icon used by the primary file listing.
+ *
+ * Media items still render their real thumbnail before this function is used;
+ * this function only controls the fallback/native resource icon. Keeping the
+ * mapping here makes all four listing layouts use the same icon family and
+ * avoids another CSS pseudo-element classification table.
+ */
+export function getResourceIconName(
+  fileName: string,
+  type: string,
+  isDir = false
+): AppIconName {
+  if (isDir || type === "dir") return "folder";
+  if (type === "image") return "file-image";
+  if (type === "video") return "file-video";
+  if (type === "audio") return "file-music";
+  if (type === "text" || type === "textImmutable" || type === "pdf") {
+    return "file-text";
+  }
+
+  const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+  if (APP_ICON_EXTENSIONS[extension]) return APP_ICON_EXTENSIONS[extension];
+
+  // Code and configuration are common in NAS folders even when the backend
+  // reports them as a generic blob during directory listing.
+  if (
+    /^(c|cc|cpp|cs|css|go|h|hpp|html?|java|js|jsx|json|kt|lua|php|py|rb|rs|scss|sh|sql|ts|tsx|vue|xml|ya?ml|toml|conf|ini|env)$/.test(
+      extension
+    )
+  ) {
+    return "file-code";
+  }
+  return "file-type";
+}
 
 const EXT_ICON_MAP: Record<string, string> = {
   // Documents

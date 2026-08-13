@@ -198,6 +198,24 @@
   line-height: 1;
 }
 
+#listing .file-thumbnail > .app-resource-icon {
+  box-sizing: border-box;
+  width: 82%;
+  height: 82%;
+  color: var(--listing-icon, var(--listing-accent));
+  stroke: currentColor;
+  stroke-width: 1.85;
+  overflow: visible;
+}
+
+#listing .file-thumbnail > .app-resource-icon:hover {
+  color: color-mix(
+    in srgb,
+    var(--listing-accent) 84%,
+    var(--textPrimary, #1f2937)
+  );
+}
+
 #listing .file-thumbnail > .risk-resource-icon {
   box-sizing: border-box;
   display: grid;

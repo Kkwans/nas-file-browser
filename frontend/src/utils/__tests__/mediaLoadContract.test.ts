@@ -53,4 +53,11 @@ describe("media loading contract", () => {
     expect(failSource).toContain("loadToken += 1");
     expect(failSource).toContain("request.abort()");
   });
+
+  it("prioritizes the full preview while retaining a real thumbnail placeholder", () => {
+    expect(imageSource).toContain('fetchpriority="high"');
+    expect(imageSource).toContain('loading="eager"');
+    expect(imageSource).toContain('fetchpriority="low"');
+    expect(imageSource).toContain('loading="lazy"');
+  });
 });

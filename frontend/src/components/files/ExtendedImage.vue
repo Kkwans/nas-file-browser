@@ -41,6 +41,8 @@
       alt=""
       aria-hidden="true"
       decoding="async"
+      fetchpriority="low"
+      loading="lazy"
     />
 
     <!-- Image info (top-right) -->
@@ -109,6 +111,9 @@
       ref="imgex"
       @load="onLoad"
       @error="onError"
+      decoding="async"
+      fetchpriority="high"
+      loading="eager"
       :alt="fileName"
     />
   </div>

@@ -60,6 +60,9 @@ describe("文件工具栏图标契约", () => {
       "header > .header-trailing #dropdown.active"
     );
     expect(workspaceCss).toMatch(
+      /header > \.header-trailing #dropdown\s*\{[^}]*position:\s*fixed;[^}]*display:\s*block;/s
+    );
+    expect(workspaceCss).toMatch(
       /header > \.header-trailing #dropdown > div\s*\{[^}]*display:\s*block;[^}]*width:\s*100%;/s
     );
     expect(workspaceCss).toMatch(

@@ -139,6 +139,46 @@ func TestFFmpegPreviewWorkerBounds(t *testing.T) {
 	}
 }
 
+func TestFFmpegImagePreviewWorkerBoundsAndPolicy(t *testing.T) {
+	if got := cap(newFFmpegImagePreviewService(0).workers); got != 1 {
+		t.Fatalf("default image worker count = %d, want 1", got)
+	}
+	if got := cap(newFFmpegImagePreviewService(99).workers); got != 1 {
+		t.Fatalf("image worker count must stay globally bounded at 1, got %d", got)
+	}
+
+	largeJPEG := &files.FileInfo{Extension: ".jpg", Size: ffmpegImagePreviewMinBytes}
+	if !shouldUseFFmpegImagePreview(largeJPEG, PreviewSizeBig) {
+		t.Fatal("large JPEG big preview should use FFmpeg")
+	}
+	if !shouldUseFFmpegImagePreview(largeJPEG, PreviewSizeThumb) {
+		t.Fatal("large JPEG thumbnail should use FFmpeg")
+	}
+	for _, file := range []*files.FileInfo{
+		{Extension: ".png", Size: ffmpegImagePreviewMinBytes},
+		{Extension: ".jpg", Size: ffmpegImagePreviewMinBytes - 1},
+		{Extension: ".jpg", Size: ffmpegImagePreviewMinBytes},
+	} {
+		if file.Extension == ".jpg" && file.Size == ffmpegImagePreviewMinBytes {
+			continue
+		}
+		if shouldUseFFmpegImagePreview(file, PreviewSizeBig) {
+			t.Fatalf("FFmpeg image policy unexpectedly selected %+v", file)
+		}
+	}
+}
+
+func TestFFmpegImageFilterPreservesPreviewGeometry(t *testing.T) {
+	filter, quality, err := ffmpegImageFilter(PreviewSizeBig)
+	if err != nil || filter != "scale=1080:1080:force_original_aspect_ratio=decrease" || quality != "3" {
+		t.Fatalf("big filter = %q, quality = %q, error = %v", filter, quality, err)
+	}
+	filter, quality, err = ffmpegImageFilter(PreviewSizeThumb)
+	if err != nil || filter != "scale=256:256:force_original_aspect_ratio=increase,crop=256:256" || quality != "5" {
+		t.Fatalf("thumb filter = %q, quality = %q, error = %v", filter, quality, err)
+	}
+}
+
 func TestPreviewCoordinatorBoundsFailureCooldownEntries(t *testing.T) {
 	coordinator := newPreviewCoordinator()
 	coordinator.Lock()

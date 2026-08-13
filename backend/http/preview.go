@@ -143,6 +143,7 @@ func (c *previewCoordinator) releaseWaiter(flight *previewFlight, canceled bool)
 func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool, videoPreviewWorkers int) handleFunc {
 	coordinator := newPreviewCoordinator()
 	ffmpeg := newFFmpegPreviewService(videoPreviewWorkers)
+	ffmpegImage := newFFmpegImagePreviewService(1)
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Download {
 			return http.StatusAccepted, nil
@@ -170,7 +171,7 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 
 		switch file.Type {
 		case "image":
-			return handleImagePreview(w, r, imgSvc, fileCache, coordinator, file, previewSize, enableThumbnails, resizePreview)
+			return handleImagePreview(w, r, imgSvc, ffmpegImage, fileCache, coordinator, file, previewSize, enableThumbnails, resizePreview)
 		case "video":
 			return handleVideoPreview(w, r, fileCache, coordinator, ffmpeg, file, previewSize)
 		default:
@@ -183,6 +184,7 @@ func handleImagePreview(
 	w http.ResponseWriter,
 	r *http.Request,
 	imgSvc ImgService,
+	ffmpegImage *ffmpegImagePreviewService,
 	fileCache FileCache,
 	coordinator *previewCoordinator,
 	file *files.FileInfo,
@@ -215,7 +217,7 @@ func handleImagePreview(
 			} else if exists {
 				return cached, nil
 			}
-			return createPreview(ctx, imgSvc, fileCache, file, previewSize)
+			return createImagePreview(ctx, imgSvc, ffmpegImage, fileCache, file, previewSize)
 		})
 		if err != nil {
 			if errors.Is(err, errPreviewCoolingDown) {
@@ -232,6 +234,28 @@ func handleImagePreview(
 	http.ServeContent(w, r, file.Name, file.ModTime, bytes.NewReader(resizedImage))
 
 	return 0, nil
+}
+
+func createImagePreview(
+	ctx context.Context,
+	imgSvc ImgService,
+	ffmpegImage *ffmpegImagePreviewService,
+	fileCache FileCache,
+	file *files.FileInfo,
+	previewSize PreviewSize,
+) ([]byte, error) {
+	if ffmpegImage != nil && shouldUseFFmpegImagePreview(file, previewSize) {
+		generated, err := ffmpegImage.create(ctx, file, previewSize)
+		if err == nil {
+			storePreviewCache(ctx, fileCache, previewCacheKey(file, previewSize), generated)
+			return generated, nil
+		}
+		if ctxErr := context.Cause(ctx); ctxErr != nil {
+			return nil, ctxErr
+		}
+		log.Printf("WARNING: FFmpeg 图片预览失败，回退 Go 解码: %v", err)
+	}
+	return createPreview(ctx, imgSvc, fileCache, file, previewSize)
 }
 
 func createPreview(ctx context.Context, imgSvc ImgService, fileCache FileCache,

@@ -2,12 +2,15 @@ package fbhttp
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
+	"mime"
 	"net/http"
 	"net/url"
 	gopath "path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/mholt/archives"
@@ -16,6 +19,47 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/fileutils"
 	"github.com/Kkwans/nas-file-browser/backend/users"
 )
+
+// Browsers commonly request bytes=0- when opening an inline video. If the
+// container metadata is at the end of a large file, ServeContent would honor
+// that open-ended range by sending the entire file before the browser can
+// request the tail metadata. Keep each open-ended inline video request
+// bounded; the browser will issue follow-up ranges as needed for playback.
+const inlineVideoRangeChunkSize int64 = 2 * 1024 * 1024
+
+func boundInlineVideoRange(r *http.Request, file *files.FileInfo) {
+	if r.URL.Query().Get("inline") != "true" || !isInlineVideoFile(file.Name) {
+		return
+	}
+
+	rangeHeader := strings.TrimSpace(r.Header.Get("Range"))
+	if !strings.HasPrefix(rangeHeader, "bytes=") {
+		return
+	}
+	spec := strings.TrimPrefix(rangeHeader, "bytes=")
+	if strings.Contains(spec, ",") || !strings.HasSuffix(spec, "-") {
+		return
+	}
+	start, err := strconv.ParseInt(strings.TrimSuffix(spec, "-"), 10, 64)
+	if err != nil || start < 0 {
+		return
+	}
+	end := start + inlineVideoRangeChunkSize - 1
+	r.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
+}
+
+func isInlineVideoFile(name string) bool {
+	extension := strings.ToLower(filepath.Ext(name))
+	if strings.HasPrefix(mime.TypeByExtension(extension), "video/") {
+		return true
+	}
+	switch extension {
+	case ".mkv", ".avi", ".flv", ".wmv", ".rm", ".rmvb", ".ts", ".m2ts":
+		return true
+	default:
+		return false
+	}
+}
 
 func slashClean(name string) string {
 	if name == "" || name[0] != '/' {
@@ -219,6 +263,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo
 	setContentDisposition(w, r, file)
 	w.Header().Add("Content-Security-Policy", `script-src 'none';`)
 	w.Header().Set("Cache-Control", "private")
+	boundInlineVideoRange(r, file)
 	http.ServeContent(w, r, file.Name, file.ModTime, fd)
 	return 0, nil
 }

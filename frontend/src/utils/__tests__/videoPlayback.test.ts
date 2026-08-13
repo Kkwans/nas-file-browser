@@ -8,6 +8,7 @@ describe("视频播放源策略", () => {
     expect(isKnownIncompatibleVideo("/movie/demo.avi?download=true")).toBe(
       true
     );
+    expect(isKnownIncompatibleVideo("/movie/demo.MOV")).toBe(true);
     expect(isKnownIncompatibleVideo("/movie/demo.mp4")).toBe(false);
     expect(isKnownIncompatibleVideo("/movie/mkv-not-extension.mp4")).toBe(
       false

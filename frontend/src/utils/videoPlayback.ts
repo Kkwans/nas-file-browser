@@ -5,6 +5,10 @@ const KNOWN_INCOMPATIBLE_VIDEO_EXTENSIONS = new Set([
   "wmv",
   "rm",
   "rmvb",
+  // Chrome on TX5 rejects the QuickTime container before issuing a media
+  // request; show the explicit compatibility-playback action instead of
+  // leaving the player in an apparent loading state.
+  "mov",
 ]);
 
 const VIDEO_MIME_TYPES: Record<string, string> = {

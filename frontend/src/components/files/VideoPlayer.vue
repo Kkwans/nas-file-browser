@@ -38,6 +38,33 @@
     </div>
 
     <div
+      v-if="showVideoLoadOverlay"
+      class="media-video-status"
+      :class="`media-video-status--${videoLoadState}`"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="media-video-status__indicator" aria-hidden="true"></span>
+      <strong>
+        {{ videoLoadState === "stalled" ? "视频读取较慢" : "正在加载视频" }}
+      </strong>
+      <small>
+        {{
+          videoLoadState === "stalled"
+            ? "网络或 NAS 正在准备下一段数据"
+            : "正在连接视频源，请稍候"
+        }}
+      </small>
+      <button
+        v-if="videoLoadState === 'stalled'"
+        type="button"
+        @click.stop="retryVideoSource"
+      >
+        重新加载
+      </button>
+    </div>
+
+    <div
       v-if="shouldShowResumePosition(restoredPosition)"
       class="media-resume-chip"
       role="status"
@@ -222,6 +249,11 @@ const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
 const hlsActive = ref(false);
 const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));
+type VideoLoadState = "idle" | "loading" | "stalled" | "ready" | "error";
+const videoLoadState = ref<VideoLoadState>(
+  sourceAttached.value ? "loading" : "idle"
+);
+const loadingOverlayVisible = ref(false);
 const gestureHud = ref<{
   icon: string;
   value: string;
@@ -239,6 +271,7 @@ let tapTimer: number | null = null;
 let lastTap = 0;
 let compatibilityPollTimer: number | null = null;
 let compatibilityRequest = 0;
+let loadStateTimer: number | null = null;
 let activeHLSURL = "";
 let pendingResume: {
   path: string;
@@ -292,6 +325,7 @@ onBeforeUnmount(() => {
   if (messageTimer) window.clearTimeout(messageTimer);
   if (hudTimer) window.clearTimeout(hudTimer);
   if (tapTimer) window.clearTimeout(tapTimer);
+  clearLoadStateTimer();
   stopCompatibilityPolling();
   compatibilityRequest++;
   player.value?.dispose();
@@ -327,7 +361,12 @@ async function initVideoPlayer() {
     player.value.on("ended", () => void persistPlayback(true));
     player.value.on("error", onPlayerError);
     player.value.on("play", applyPendingResume);
+    player.value.on("loadstart", beginVideoLoading);
+    player.value.on("canplay", onVideoReady);
+    player.value.on("waiting", onVideoWaiting);
+    player.value.on("stalled", onVideoWaiting);
     player.value.on("playing", onPlayerPlaying);
+    if (sourceAttached.value) beginVideoLoading();
     await restorePlayback(props.path);
   } catch (error) {
     console.error("Error initializing video player:", error);
@@ -533,6 +572,7 @@ const downloadFallbackSource = computed(
 const directFallbackSource = computed(() => props.directSource || props.source);
 
 function onPlayerError() {
+  setVideoLoadState("error");
   if (hlsActive.value) {
     compatibilityNetworkError.value = "兼容视频流暂时中断，可重试或下载原文件";
   } else {
@@ -542,9 +582,74 @@ function onPlayerError() {
 }
 
 function onPlayerPlaying() {
+  setVideoLoadState("ready");
   if (!hlsActive.value) return;
   compatibilityNetworkError.value = "";
   compatibilityPanelOpen.value = false;
+}
+
+const showVideoLoadOverlay = computed(
+  () =>
+    loadingOverlayVisible.value &&
+    sourceAttached.value &&
+    !compatibilityPanelOpen.value &&
+    !directPlaybackFailed.value &&
+    (videoLoadState.value === "loading" || videoLoadState.value === "stalled")
+);
+
+function clearLoadStateTimer() {
+  if (loadStateTimer !== null) {
+    window.clearTimeout(loadStateTimer);
+    loadStateTimer = null;
+  }
+}
+
+function beginVideoLoading() {
+  if (!sourceAttached.value || disposed) return;
+  setVideoLoadState("loading");
+}
+
+function onVideoReady() {
+  setVideoLoadState("ready");
+}
+
+function onVideoWaiting() {
+  if (videoLoadState.value !== "error") setVideoLoadState("stalled");
+}
+
+function setVideoLoadState(next: VideoLoadState) {
+  videoLoadState.value = next;
+  clearLoadStateTimer();
+  if (next !== "loading" && next !== "stalled") {
+    loadingOverlayVisible.value = false;
+    return;
+  }
+  loadingOverlayVisible.value = false;
+  loadStateTimer = window.setTimeout(
+    () => {
+      loadStateTimer = null;
+      if (videoLoadState.value === next && !disposed) {
+        loadingOverlayVisible.value = true;
+      }
+    },
+    next === "stalled" ? 320 : 240
+  );
+}
+
+function retryVideoSource() {
+  const currentPlayer = player.value;
+  if (!currentPlayer || !sourceAttached.value) return;
+  const source = hlsActive.value ? activeHLSURL : props.source;
+  if (!source) return;
+  beginVideoLoading();
+  currentPlayer.pause();
+  currentPlayer.src({
+    src: source,
+    type: hlsActive.value
+      ? "application/x-mpegURL"
+      : getVideoSourceType(props.source, props.path),
+  });
+  currentPlayer.load();
 }
 
 async function startCompatibilityPlayback() {
@@ -646,6 +751,7 @@ function activateHLSPlayback(playlistURL: string) {
   activeHLSURL = playlistURL;
   hlsActive.value = true;
   sourceAttached.value = true;
+  beginVideoLoading();
   pendingResume = null;
 
   // Reset a failed direct-play tech before selecting the generated HLS source.
@@ -692,6 +798,7 @@ function tryDirectPlayback() {
   directPlaybackFailed.value = false;
   compatibilityNetworkError.value = "";
   sourceAttached.value = true;
+  beginVideoLoading();
   currentPlayer.src({
     src: props.source,
     type: getVideoSourceType(props.source, props.path),
@@ -716,6 +823,9 @@ function resetCompatibility(path: string) {
   hlsActive.value = false;
   activeHLSURL = "";
   sourceAttached.value = !isKnownIncompatibleVideo(path);
+  videoLoadState.value = sourceAttached.value ? "loading" : "idle";
+  loadingOverlayVisible.value = false;
+  clearLoadStateTimer();
   compatibilityPanelOpen.value = isKnownIncompatibleVideo(path);
 }
 
@@ -961,6 +1071,88 @@ const languageImports: LanguageImports = {
 .media-video-stage :deep(.vjs-tech) {
   filter: brightness(var(--video-brightness));
   transition: filter 120ms ease-out;
+}
+
+.media-video-status {
+  position: absolute;
+  z-index: 12;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  min-width: 238px;
+  max-width: calc(100% - 32px);
+  justify-items: center;
+  gap: 5px;
+  padding: 15px 18px 14px;
+  color: #f5f8ff;
+  text-align: center;
+  pointer-events: none;
+  background: rgb(7 10 16 / 82%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 15px;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 30%);
+  backdrop-filter: blur(14px);
+  transform: translate(-50%, -50%);
+}
+
+.media-video-status--stalled {
+  border-color: rgb(255 193 102 / 34%);
+}
+
+.media-video-status__indicator {
+  width: 22px;
+  height: 22px;
+  margin-bottom: 2px;
+  border: 2px solid rgb(255 255 255 / 24%);
+  border-top-color: #9bc9ff;
+  border-radius: 50%;
+  animation: media-video-status-spin 0.9s linear infinite;
+}
+
+.media-video-status--stalled .media-video-status__indicator {
+  border-top-color: #ffc166;
+}
+
+.media-video-status strong {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.media-video-status small {
+  color: rgb(235 242 255 / 68%);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.media-video-status button {
+  min-height: 34px;
+  margin-top: 4px;
+  padding: 0 12px;
+  color: #061321;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  pointer-events: auto;
+  background: #a8d0ff;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.media-video-status button:hover {
+  background: #c0dcff;
+}
+
+.media-video-status button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+@keyframes media-video-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .media-gesture-hud {
@@ -1265,6 +1457,11 @@ const languageImports: LanguageImports = {
 }
 
 @media (max-width: 736px) {
+  .media-video-status {
+    min-width: 210px;
+    padding: 13px 15px 12px;
+  }
+
   .media-resume-chip {
     top: calc(3rem + 12px);
     max-width: calc(100% - 24px);
@@ -1304,6 +1501,10 @@ const languageImports: LanguageImports = {
 @media (prefers-reduced-motion: reduce) {
   .media-video-stage :deep(.vjs-tech) {
     transition: none;
+  }
+
+  .media-video-status__indicator {
+    animation: none;
   }
 
   .media-compatibility-card,

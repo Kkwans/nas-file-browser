@@ -71,4 +71,16 @@ describe("media loading contract", () => {
     expect(videoSource).toContain(':poster="poster || undefined"');
     expect(videoSource).toContain("poster?: string;");
   });
+
+  it("exposes a delayed loading and stalled recovery state for video", () => {
+    expect(videoSource).toContain("showVideoLoadOverlay");
+    expect(videoSource).toContain('role="status"');
+    expect(videoSource).toContain('videoLoadState === "stalled"');
+    expect(videoSource).toContain("retryVideoSource");
+    expect(videoSource).toContain('player.value.on("waiting", onVideoWaiting)');
+    expect(videoSource).toContain('player.value.on("stalled", onVideoWaiting)');
+    expect(videoSource).toContain('player.value.on("canplay", onVideoReady)');
+    expect(videoSource).toContain('next === "stalled" ? 320 : 240');
+    expect(videoSource).toContain("prefers-reduced-motion: reduce");
+  });
 });

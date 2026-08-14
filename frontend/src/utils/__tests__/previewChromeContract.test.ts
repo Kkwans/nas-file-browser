@@ -35,7 +35,7 @@ describe("preview chrome contract", () => {
       /#previewer > \.preview-nav \{[\s\S]*?width: 48px;[\s\S]*?height: 48px;[\s\S]*?place-items: center;/
     );
     expect(previewStyles).toMatch(
-      /#previewer > \.preview-nav > i \{[\s\S]*?line-height: 32px;[\s\S]*?translateY\(1px\);/
+      /#previewer > \.preview-nav > i \{[\s\S]*?display: grid;[\s\S]*?place-items: center;[\s\S]*?line-height: 1;[\s\S]*?translateY\(2px\);/
     );
   });
 

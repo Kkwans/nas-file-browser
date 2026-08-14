@@ -81,6 +81,15 @@ describe("桌面侧边栏图标轨契约", () => {
     expect(iconRegistrySource).not.toContain("file: Files");
   });
 
+  it("展开侧栏共享外边界且不继承 action 图标的额外 padding", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toContain("--sidebar-inline-gutter: 0.5rem");
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.action > \.app-icon,[\s\S]*?nav\.sidebar \.action > \.material-icons\s*\{[\s\S]*?box-sizing:\s*border-box;[\s\S]*?padding:\s*0;/s
+    );
+  });
+
   it("移动端保持完整抽屉并关闭桌面图标轨", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSource("css/sidebar-refinement.css");

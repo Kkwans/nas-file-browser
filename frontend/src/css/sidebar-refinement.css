@@ -1,6 +1,6 @@
 /* PC 侧边栏最终契约：统一基线、统一层级、稳定滚动槽和低干扰调整边界。 */
 nav.sidebar {
-  --sidebar-inline-gutter: 0.75rem;
+  --sidebar-inline-gutter: 0.5rem;
   --sidebar-primary-icon-column: 1.75rem;
   --sidebar-primary-icon-size: 1.25rem;
   box-sizing: border-box;
@@ -480,6 +480,17 @@ nav.sidebar .sidebar-personalized-stack > #logout > .app-icon {
     (var(--sidebar-primary-icon-column) - var(--sidebar-primary-icon-size)) / 2
   );
   color: var(--textSecondary, #64748b);
+}
+
+/*
+ * 全局 `.action > .app-icon` 为圆形操作图标保留了旧 padding，会让侧栏图标
+ * 占据 31–36px 盒子，偏离 20px 图标与 28px/34px 网格列的契约。点击区由
+ * 父按钮负责，图标本身使用声明尺寸。
+ */
+nav.sidebar .action > .app-icon,
+nav.sidebar .action > .material-icons {
+  box-sizing: border-box;
+  padding: 0;
 }
 
 nav.sidebar .sidebar-section-header .section-toggle > .app-icon {

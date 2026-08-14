@@ -13,6 +13,10 @@ const previewSource = readFileSync(
   new URL("../../views/files/Preview.vue", import.meta.url),
   "utf8"
 );
+const videoSource = readFileSync(
+  new URL("../../components/files/VideoPlayer.vue", import.meta.url),
+  "utf8"
+);
 
 describe("media loading contract", () => {
   it("releases listing image connections while the resource is loading", () => {
@@ -59,5 +63,12 @@ describe("media loading contract", () => {
     expect(imageSource).toContain('loading="eager"');
     expect(imageSource).toContain('fetchpriority="low"');
     expect(imageSource).toContain('loading="lazy"');
+  });
+
+  it("uses a real server poster only for directly playable videos", () => {
+    expect(previewSource).toContain(':poster="videoPosterUrl"');
+    expect(previewSource).toContain("isKnownIncompatibleVideo(resource.path)");
+    expect(videoSource).toContain(':poster="poster || undefined"');
+    expect(videoSource).toContain("poster?: string;");
   });
 });

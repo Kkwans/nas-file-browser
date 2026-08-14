@@ -138,6 +138,7 @@
           ref="player"
           :path="fileStore.req.path"
           :source="previewUrl"
+          :poster="videoPosterUrl"
           :download-source="downloadUrl"
           :direct-source="directUrl"
           :subtitles="subtitles"
@@ -237,6 +238,7 @@ import {
   directoryAudioQueue,
   favoriteGroupAudioQueue,
 } from "@/utils/audioQueue";
+import { isKnownIncompatibleVideo } from "@/utils/videoPlayback";
 
 const ExtendedImage = defineAsyncComponent(
   () => import("@/components/files/ExtendedImage.vue")
@@ -430,6 +432,14 @@ const previewUrl = computed(() => {
 const imagePlaceholderUrl = computed(() => {
   if (fileStore.req?.type !== "image") return "";
   return api.getPreviewURL(fileStore.req, "thumb");
+});
+
+const videoPosterUrl = computed(() => {
+  const resource = fileStore.req;
+  if (!resource || resource.type !== "video") return "";
+  // 不为浏览器无法直接播放的格式提前触发封面请求；用户点击兼容播放后再生成。
+  if (isKnownIncompatibleVideo(resource.path)) return "";
+  return api.getPreviewURL(resource, "thumb");
 });
 
 const isPdf = computed(() => fileStore.req?.extension.toLowerCase() == ".pdf");

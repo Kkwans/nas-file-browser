@@ -15,6 +15,7 @@
       controls
       playsinline
       preload="metadata"
+      :poster="poster || undefined"
     >
       <track
         v-for="(sub, index) in subtitles"
@@ -192,6 +193,7 @@ const props = withDefaults(
   defineProps<{
     path: string;
     source: string;
+    poster?: string;
     downloadSource?: string;
     directSource?: string;
     subtitles?: string[];
@@ -200,6 +202,7 @@ const props = withDefaults(
   {
     subtitles: () => [],
     options: () => ({}),
+    poster: "",
     downloadSource: "",
     directSource: "",
   }

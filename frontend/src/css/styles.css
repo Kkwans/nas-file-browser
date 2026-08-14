@@ -411,13 +411,15 @@ main .spinner .bounce2 {
 }
 
 #previewer > .preview-nav > i {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 32px;
   height: 32px;
   padding: 0;
   font-size: 32px;
-  line-height: 32px;
-  transform: translateY(1px);
+  line-height: 1;
+  /* Material chevrons sit optically high inside their font box. */
+  transform: translateY(2px);
 }
 
 #previewer > .preview-nav--previous {

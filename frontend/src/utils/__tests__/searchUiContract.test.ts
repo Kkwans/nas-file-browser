@@ -28,4 +28,14 @@ describe("search UI contract", () => {
     expect(filters).toContain('icon: "file-image"');
     expect(filters).toContain('icon: "file-code"');
   });
+
+  it("keeps mobile type shortcuts in the page flow instead of horizontal clipping", () => {
+    const searchPage = readFileSync(
+      resolve(process.cwd(), "src/views/SearchPage.vue"),
+      "utf8"
+    );
+
+    expect(searchPage).toContain("flex-wrap: wrap");
+    expect(searchPage).not.toContain("overflow-x: auto");
+  });
 });

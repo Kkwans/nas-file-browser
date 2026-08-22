@@ -606,6 +606,7 @@ onUnmounted(() => {
 .search-shortcuts {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   width: min(76rem, 100%);
   gap: 0.5rem;
   margin: 0 auto 1rem;
@@ -670,7 +671,7 @@ onUnmounted(() => {
   }
 
   .search-shortcuts {
-    overflow-x: auto;
+    align-content: flex-start;
   }
 
   .search-shortcuts > span {

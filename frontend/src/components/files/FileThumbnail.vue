@@ -29,7 +29,7 @@
       title="重试生成缩略图"
       @click.stop="retry"
     >
-      <i class="material-icons" aria-hidden="true">refresh</i>
+      <AppIcon name="refresh" :size="18" />
     </button>
     <RiskResourceIcon
       v-else-if="nonLowRiskLevel"

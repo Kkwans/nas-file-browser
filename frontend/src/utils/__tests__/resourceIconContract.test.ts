@@ -17,6 +17,8 @@ const listingStyles = readFileSync(
 describe("列表资源图标契约", () => {
   it("普通资源使用 AppIcon，不再依赖列表内 Material 字体伪元素", () => {
     expect(thumbnailSource).toContain("getResourceIconName");
+    expect(thumbnailSource).not.toContain("material-icons");
+    expect(thumbnailSource).toContain('<AppIcon name="refresh"');
     expect(thumbnailSource).toContain(
       'class="file-type-icon app-resource-icon"'
     );

@@ -370,19 +370,22 @@ header .action.active > .app-icon {
 }
 
 #search.active i,
+#search.active .app-icon,
 #search.active input {
   color: var(--textPrimary);
 }
 
 #search #input > .action,
-#search #input > i {
+#search #input > i,
+#search #input > .app-icon {
   margin-right: 0.5em;
   user-select: none;
   color: var(--iconTertiary);
   transition: color 0.2s ease;
 }
 
-#search #input:focus-within > i {
+#search #input:focus-within > i,
+#search #input:focus-within > .app-icon {
   color: var(--blue);
 }
 
@@ -468,10 +471,20 @@ html[dir="rtl"] #search #result ul > * {
   color: var(--iconTertiary);
 }
 
+#search.active #result .app-icon {
+  color: var(--iconTertiary);
+}
+
 #search.active #result > p > i {
   text-align: center;
   margin: 0 auto;
   display: table;
+}
+
+#search.active #result > p > .app-icon {
+  text-align: center;
+  margin: 0 auto;
+  display: block;
 }
 
 #search.active #result ul li a {
@@ -489,6 +502,11 @@ html[dir="rtl"] #search #result ul > * {
 #search.active #result ul li a i {
   margin-right: 0.5em;
   font-size: 1.1em;
+}
+
+#search.active #result ul li a > .app-icon {
+  margin-right: 0.5em;
+  flex: 0 0 auto;
 }
 
 /* Search filter boxes */
@@ -554,6 +572,11 @@ html[dir="rtl"] #search .boxes h3 {
 #search .boxes i {
   color: #fff !important;
   font-size: 2.5em;
+  margin-bottom: 0.25em;
+}
+
+#search .boxes .app-icon {
+  color: #fff !important;
   margin-bottom: 0.25em;
 }
 

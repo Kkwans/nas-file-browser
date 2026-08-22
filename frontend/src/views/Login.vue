@@ -33,12 +33,13 @@
 
       <div v-if="recaptcha" id="recaptcha"></div>
       <button class="button button--block" type="submit" :disabled="loading">
-        <i
+        <AppIcon
           v-if="loading"
-          class="material-icons spin"
-          style="font-size: 1em; margin-right: 0.5em"
-          >autorenew</i
-        >
+          name="loader"
+          class="spin login-loading-icon"
+          :size="16"
+          :stroke-width="2"
+        />
         {{ createMode ? "注册" : "登录" }}
       </button>
 
@@ -62,6 +63,7 @@ import {
 } from "@/utils/constants";
 import { inject, onMounted, ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import AppIcon from "@/components/ui/AppIcon.vue";
 
 const createMode = ref<boolean>(false);
 const loading = ref<boolean>(false);

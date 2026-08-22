@@ -8,10 +8,10 @@
         :aria-label="closeButtonTitle"
         :title="closeButtonTitle"
       >
-        <i v-if="ongoing" class="material-icons">stop_circle</i>
-        <i v-else class="material-icons">arrow_back</i>
+        <AppIcon v-if="ongoing" name="circle-stop" :size="20" />
+        <AppIcon v-else name="arrow-left" :size="20" />
       </button>
-      <i v-else class="material-icons">search</i>
+      <AppIcon v-else name="search" :size="20" />
       <input
         type="text"
         @keyup.exact="keyup"
@@ -22,12 +22,7 @@
         aria-label="搜索"
         placeholder="搜索"
       />
-      <i
-        v-show="ongoing"
-        class="material-icons spin"
-        style="display: inline-block"
-        >autorenew
-      </i>
+      <AppIcon v-show="ongoing" name="loader" class="spin" :size="18" />
       <span style="margin-top: 5px" v-show="results.length > 0">
         {{ results.length }}
       </span>
@@ -50,7 +45,7 @@
                   @click="init('type:' + k)"
                   :aria-label="getSearchLabel(v.label)"
                 >
-                  <i class="material-icons">{{ v.icon }}</i>
+                  <AppIcon :name="v.icon" :size="34" />
                   <p>{{ getSearchLabel(v.label) }}</p>
                 </div>
               </div>
@@ -60,7 +55,10 @@
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in filteredResults" :key="k">
             <router-link v-on:click="close" :to="s.url ?? '#'">
-              <i class="material-icons">{{ getFileIcon(s.path, s.dir) }}</i>
+              <AppIcon
+                :name="getResourceIconName(s.name, '', s.dir)"
+                :size="20"
+              />
               <span>./{{ s.path }}</span>
             </router-link>
           </li>
@@ -76,7 +74,9 @@ import { useLayoutStore } from "@/stores/layout";
 
 import url from "@/utils/url";
 import { search } from "@/api";
-import { getFileIcon } from "@/utils/fileIcons";
+import { getResourceIconName } from "@/utils/fileIcons";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 import type { SearchResult } from "@/types/file";
 import { computed, inject, onMounted, ref, watch, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
@@ -93,10 +93,10 @@ function getSearchLabel(label: string): string {
 }
 
 const boxes = {
-  image: { label: "images", icon: "insert_photo" },
-  audio: { label: "music", icon: "volume_up" },
-  video: { label: "video", icon: "movie" },
-  pdf: { label: "pdf", icon: "picture_as_pdf" },
+  image: { label: "images", icon: "file-image" as AppIconName },
+  audio: { label: "music", icon: "file-music" as AppIconName },
+  video: { label: "video", icon: "file-video" as AppIconName },
+  pdf: { label: "pdf", icon: "file-text" as AppIconName },
 };
 
 const layoutStore = useLayoutStore();

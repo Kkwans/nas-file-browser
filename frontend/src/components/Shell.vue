@@ -13,7 +13,7 @@
     <div @click="focus" class="shell__content" ref="scrollable">
       <div v-for="(c, index) in content" :key="index" class="shell__result">
         <div class="shell__prompt">
-          <i class="material-icons">chevron_right</i>
+          <AppIcon name="chevron-right" :size="18" />
         </div>
         <pre class="shell__text">{{ c.text }}</pre>
       </div>
@@ -23,7 +23,7 @@
         :class="{ 'shell__result--hidden': !canInput }"
       >
         <div class="shell__prompt">
-          <i class="material-icons">chevron_right</i>
+          <AppIcon name="chevron-right" :size="18" />
         </div>
         <pre
           tabindex="0"
@@ -54,6 +54,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { commands } from "@/api";
 import { throttle } from "lodash-es";
 import { theme } from "@/utils/constants";
+import AppIcon from "@/components/ui/AppIcon.vue";
 
 interface ShellResult {
   text: string;

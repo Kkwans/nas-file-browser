@@ -105,8 +105,10 @@
   color: #1a7f37;
 }
 
-.markdown-code-copy i {
-  font-size: 1rem;
+.markdown-code-copy-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 :where(.md_preview, .vditor-reset.vditor-preview--content)

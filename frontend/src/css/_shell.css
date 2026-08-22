@@ -65,7 +65,7 @@ body.rtl .shell-content {
 
 .shell__text,
 .shell__prompt,
-.shell__prompt i {
+.shell__prompt .app-icon {
   font-size: inherit;
 }
 
@@ -73,7 +73,7 @@ body.rtl .shell-content {
   width: 1.2rem;
 }
 
-.shell__prompt i {
+.shell__prompt .app-icon {
   color: var(--blue);
 }
 

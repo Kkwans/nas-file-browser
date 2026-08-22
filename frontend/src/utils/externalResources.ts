@@ -1,11 +1,13 @@
 /** Locally bundled Markdown resources shared by Editor and Quick Preview. */
 
 import { staticURL } from "@/utils/constants";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import {
   getMarkdownCodeSource,
   renderMarkdownCodeLines,
   resolveMarkdownCodeLanguage,
 } from "@/utils/markdownCode";
+import { createVNode, render } from "vue";
 
 let vditorCSSPromise: Promise<unknown> | null = null;
 let vditorJSPromise: Promise<void> | null = null;
@@ -148,6 +150,12 @@ export function highlightAndAnnotateCodeBlocks(
         toolbar.className = "markdown-code-toolbar";
         pre.prepend(toolbar);
       }
+      const previousCopyIcon = toolbar.querySelector<HTMLElement>(
+        ".markdown-code-copy-icon"
+      );
+      if (previousCopyIcon) {
+        render(null, previousCopyIcon);
+      }
       toolbar.replaceChildren();
 
       if (lang) {
@@ -161,8 +169,11 @@ export function highlightAndAnnotateCodeBlocks(
       copy.type = "button";
       copy.className = "markdown-code-copy";
       copy.setAttribute("aria-label", "复制代码");
-      copy.innerHTML =
-        '<i class="material-icons" aria-hidden="true">content_copy</i>';
+      const copyIcon = document.createElement("span");
+      copyIcon.className = "markdown-code-copy-icon";
+      copyIcon.setAttribute("aria-hidden", "true");
+      render(createVNode(AppIcon, { name: "copy", size: 16 }), copyIcon);
+      copy.append(copyIcon);
       copy.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(rawText);

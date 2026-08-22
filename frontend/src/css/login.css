@@ -181,6 +181,12 @@
   letter-spacing: 0.02em;
 }
 
+#login .login-loading-icon {
+  display: inline-block;
+  margin-right: 0.5em;
+  vertical-align: -0.2em;
+}
+
 #login .button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 24px rgba(33, 150, 243, 0.3);

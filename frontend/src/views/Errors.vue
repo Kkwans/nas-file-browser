@@ -3,7 +3,7 @@
     <header-bar v-if="showHeader" showMenu showLogo />
 
     <section class="message error-state" role="alert" aria-live="assertive">
-      <i class="material-icons" aria-hidden="true">{{ info.icon }}</i>
+      <AppIcon :name="info.icon" :size="44" />
       <h2>{{ info.message }}</h2>
       <p>{{ info.detail }}</p>
       <button
@@ -20,31 +20,33 @@
 
 <script setup lang="ts">
 import HeaderBar from "@/components/header/HeaderBar.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 import { computed } from "vue";
 const errors: {
   [key: number]: {
-    icon: string;
+    icon: AppIconName;
     message: string;
     detail: string;
   };
 } = {
   0: {
-    icon: "cloud_off",
+    icon: "cloud-off",
     message: "无法连接到服务器",
     detail: "请检查网络连接或服务状态，然后重试。",
   },
   403: {
-    icon: "error",
+    icon: "circle-alert",
     message: "没有权限访问此路径",
     detail: "当前账号无权读取该文件或目录。",
   },
   404: {
-    icon: "gps_off",
+    icon: "locate-fixed",
     message: "路径不存在",
     detail: "文件或目录可能已被移动、重命名或删除。",
   },
   500: {
-    icon: "error_outline",
+    icon: "circle-alert",
     message: "读取文件失败",
     detail: "服务器未能完成请求，请稍后重试。",
   },

@@ -33,4 +33,29 @@ describe("本地图标表面契约", () => {
     expect(registrySource).toContain('"list-ordered": ListOrdered');
     expect(registrySource).toContain("resolveLegacyAppIcon");
   });
+
+  it("搜索、Shell、错误页和登录页不再渲染 Material 字体图标", () => {
+    const searchSource = readSource("components/Search.vue");
+    const shellSource = readSource("components/Shell.vue");
+    const errorsSource = readSource("views/Errors.vue");
+    const loginSource = readSource("views/Login.vue");
+    const markdownSource = readSource("utils/externalResources.ts");
+
+    for (const source of [
+      searchSource,
+      shellSource,
+      errorsSource,
+      loginSource,
+      markdownSource,
+    ]) {
+      expect(source).not.toContain("material-icons");
+    }
+
+    expect(searchSource).toContain('name="search"');
+    expect(searchSource).toContain("getResourceIconName");
+    expect(shellSource).toContain('<AppIcon name="chevron-right"');
+    expect(errorsSource).toContain("AppIconName");
+    expect(loginSource).toContain('name="loader"');
+    expect(markdownSource).toContain("AppIcon");
+  });
 });

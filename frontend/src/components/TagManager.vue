@@ -16,7 +16,7 @@
         title="关闭"
         @click="close"
       >
-        <i class="material-icons" aria-hidden="true">close</i>
+        <AppIcon name="x" :size="20" />
       </button>
     </header>
 
@@ -36,7 +36,7 @@
           :disabled="!canCreateTag"
           @click="createTag"
         >
-          <i class="material-icons" aria-hidden="true">add</i>
+          <AppIcon name="plus" :size="18" />
           创建标签
         </button>
       </div>
@@ -57,12 +57,11 @@
           :aria-pressed="isSameColor(newTagColor, color)"
           @click="newTagColor = color"
         >
-          <i
+          <AppIcon
             v-if="isSameColor(newTagColor, color)"
-            class="material-icons"
-            aria-hidden="true"
-            >check</i
-          >
+            name="circle-check"
+            :size="16"
+          />
         </button>
         <label
           class="color-swatch custom-swatch"
@@ -71,7 +70,7 @@
           aria-label="自定义颜色"
         >
           <span class="custom-swatch-center" aria-hidden="true">
-            <i class="material-icons">colorize</i>
+            <AppIcon name="color-picker" :size="14" />
           </span>
           <input
             v-model="newTagColor"
@@ -111,7 +110,7 @@
             title="编辑标签"
             @click="startEdit(tag)"
           >
-            <i class="material-icons" aria-hidden="true">edit</i>
+            <AppIcon name="rename" :size="18" />
           </button>
           <button
             class="icon-button danger-button"
@@ -119,7 +118,7 @@
             title="删除标签"
             @click="confirmDelete(tag)"
           >
-            <i class="material-icons" aria-hidden="true">delete</i>
+            <AppIcon name="trash" :size="18" />
           </button>
         </div>
 
@@ -140,7 +139,7 @@
               title="保存"
               @click="saveEdit(tag.id)"
             >
-              <i class="material-icons" aria-hidden="true">check</i>
+              <AppIcon name="circle-check" :size="18" />
             </button>
             <button
               class="icon-button"
@@ -148,7 +147,7 @@
               title="取消"
               @click="cancelEdit"
             >
-              <i class="material-icons" aria-hidden="true">close</i>
+              <AppIcon name="x" :size="18" />
             </button>
           </div>
 
@@ -168,12 +167,11 @@
               :aria-pressed="isSameColor(editColor, color)"
               @click="editColor = color"
             >
-              <i
+              <AppIcon
                 v-if="isSameColor(editColor, color)"
-                class="material-icons"
-                aria-hidden="true"
-                >check</i
-              >
+                name="circle-check"
+                :size="14"
+              />
             </button>
             <label
               class="color-swatch custom-swatch small"
@@ -182,7 +180,7 @@
               aria-label="自定义颜色"
             >
               <span class="custom-swatch-center" aria-hidden="true">
-                <i class="material-icons">colorize</i>
+                <AppIcon name="color-picker" :size="12" />
               </span>
               <input
                 v-model="editColor"
@@ -225,6 +223,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { TAG_COLORS, type Tag, useTagsStore } from "@/stores/tags";
 import { isTagColorAvailable, normalizeTagColor } from "@/utils/tagColors";
 
@@ -449,8 +448,9 @@ function close() {
   opacity: 0.45;
 }
 
-.primary-button .material-icons {
-  font-size: 1.125rem;
+.primary-button .app-icon {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .color-grid {
@@ -498,8 +498,9 @@ function close() {
   opacity: 0.24;
 }
 
-.color-swatch .material-icons {
-  font-size: 1rem;
+.color-swatch .app-icon {
+  width: 1rem;
+  height: 1rem;
   text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
 }
 
@@ -536,9 +537,10 @@ function close() {
   pointer-events: none;
 }
 
-.custom-swatch-center .material-icons {
+.custom-swatch-center .app-icon {
   color: var(--textSecondary, #64748b);
-  font-size: 0.875rem;
+  width: 0.875rem;
+  height: 0.875rem;
   text-shadow: none;
 }
 
@@ -546,8 +548,9 @@ function close() {
   inset: 3px;
 }
 
-.custom-swatch.small .custom-swatch-center .material-icons {
-  font-size: 0.75rem;
+.custom-swatch.small .custom-swatch-center .app-icon {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .custom-swatch > input {
@@ -653,8 +656,9 @@ function close() {
   background: #ecfdf3;
 }
 
-.icon-button .material-icons {
-  font-size: 1.25rem;
+.icon-button .app-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .tag-edit-panel {
@@ -673,8 +677,9 @@ function close() {
   height: 1.75rem;
 }
 
-.color-swatch.small .material-icons {
-  font-size: 0.8125rem;
+.color-swatch.small .app-icon {
+  width: 0.8125rem;
+  height: 0.8125rem;
 }
 
 .delete-confirmation {

@@ -9,7 +9,7 @@
           @click="openManager"
           title="管理标签"
         >
-          <i class="material-icons">settings</i>
+          <AppIcon name="settings" :size="18" />
         </button>
         <button
           class="tag-picker-close"
@@ -17,7 +17,7 @@
           @click="closePicker"
           title="关闭"
         >
-          <i class="material-icons">close</i>
+          <AppIcon name="x" :size="18" />
         </button>
       </div>
     </div>
@@ -35,13 +35,19 @@
       >
         <span class="tag-dot" :style="{ background: tag.color }"></span>
         <span class="tag-name">{{ tag.name }}</span>
-        <i v-if="isAssigned(tag.id)" class="material-icons tag-check">check</i>
+        <AppIcon
+          v-if="isAssigned(tag.id)"
+          name="circle-check"
+          class="tag-check"
+          :size="16"
+        />
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { useTagsStore } from "@/stores/tags";
 const props = defineProps<{
   path: string;
@@ -141,8 +147,9 @@ function closePicker() {
   background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 
-.tag-picker-manage .material-icons {
-  font-size: 1.25rem;
+.tag-picker-manage .app-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .tag-picker-empty {
@@ -206,7 +213,6 @@ function closePicker() {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  font-size: 1rem;
   color: #fff;
   background: var(--blue, #1677ff);
 }

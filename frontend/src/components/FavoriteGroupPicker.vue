@@ -7,7 +7,7 @@
         @click="createNew"
         title="新建分组"
       >
-        <i class="material-icons">add</i>
+        <AppIcon name="plus" :size="16" />
       </button>
     </div>
     <!-- Quick add (no group) -->
@@ -16,11 +16,14 @@
       :class="{ active: currentGroupId === '' }"
       @click="assignTo('')"
     >
-      <i class="material-icons">star</i>
+      <AppIcon name="star" :size="17" />
       <span class="fav-group-name">{{ "未分组" }}</span>
-      <i v-if="currentGroupId === ''" class="material-icons fav-group-check"
-        >check</i
-      >
+      <AppIcon
+        v-if="currentGroupId === ''"
+        name="circle-check"
+        class="fav-group-check"
+        :size="16"
+      />
     </button>
     <!-- Existing groups -->
     <button
@@ -30,15 +33,18 @@
       :class="{ active: currentGroupId === group.id }"
       @click="assignTo(group.id)"
     >
-      <i class="material-icons" :style="{ color: group.color || 'var(--blue)' }"
-        >folder</i
-      >
+      <AppIcon
+        name="folder"
+        :size="17"
+        :style="{ color: group.color || 'var(--blue)' }"
+      />
       <span class="fav-group-name">{{ group.name }}</span>
-      <i
+      <AppIcon
         v-if="currentGroupId === group.id"
-        class="material-icons fav-group-check"
-        >check</i
-      >
+        name="circle-check"
+        class="fav-group-check"
+        :size="16"
+      />
     </button>
     <!-- Create new group inline -->
     <div v-if="showCreate" class="fav-group-create">
@@ -50,10 +56,10 @@
         ref="createInput"
       />
       <button @click="confirmCreate" :disabled="!newGroupName.trim()">
-        <i class="material-icons">check</i>
+        <AppIcon name="circle-check" :size="16" />
       </button>
       <button @click="cancelCreate">
-        <i class="material-icons">close</i>
+        <AppIcon name="x" :size="16" />
       </button>
     </div>
     <!-- Remove from favorites -->
@@ -62,7 +68,7 @@
       class="fav-group-picker-item fav-group-remove"
       @click="remove"
     >
-      <i class="material-icons">star_border</i>
+      <AppIcon name="star-off" :size="17" />
       <span class="fav-group-name">{{ "取消收藏" }}</span>
     </button>
   </div>
@@ -70,6 +76,7 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { useFavoritesStore } from "@/stores/favorites";
 
 const props = defineProps<{
@@ -169,8 +176,9 @@ async function confirmCreate() {
   background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 
-.fav-group-picker-manage .material-icons {
-  font-size: 0.875em;
+.fav-group-picker-manage .app-icon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .fav-group-picker-item {
@@ -195,8 +203,9 @@ async function confirmCreate() {
   background: rgba(255, 193, 7, 0.08);
 }
 
-.fav-group-picker-item .material-icons {
-  font-size: 1em;
+.fav-group-picker-item .app-icon {
+  width: 1rem;
+  height: 1rem;
   color: var(--textSecondary, #888);
 }
 
@@ -209,7 +218,8 @@ async function confirmCreate() {
 }
 
 .fav-group-check {
-  font-size: 0.875em !important;
+  width: 1rem !important;
+  height: 1rem !important;
   color: var(--blue, #2196f3) !important;
 }
 
@@ -218,7 +228,7 @@ async function confirmCreate() {
   color: var(--icon-red, #da4453);
 }
 
-.fav-group-remove .material-icons {
+.fav-group-remove .app-icon {
   color: var(--icon-red, #da4453) !important;
 }
 
@@ -264,8 +274,9 @@ async function confirmCreate() {
   cursor: default;
 }
 
-.fav-group-create button .material-icons {
-  font-size: 0.875em;
+.fav-group-create button .app-icon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 /* Dark mode */

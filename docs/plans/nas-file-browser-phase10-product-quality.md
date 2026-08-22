@@ -166,3 +166,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 代码回滚使用新增反向提交，不改写 Git 历史。
 - Compose、缓存配置或数据库结构变更前创建明确备份，保留上一运行镜像。
 - 验收失败时恢复上一镜像、Compose 和必要数据库备份，并重复相同健康检查；不得用清理用户数据换取恢复。
+
+### 2026-08-23 目录选择器本地图标与 r5 部署
+
+- 复现来源：复制、移动和搜索结果操作弹窗的 `FileList.vue` 仍通过 `::before` 加载 Material Icons 的 `folder` 字体，导致目录选择器与文件列表的本地图标语义和尺寸不一致。
+- 实现范围：`frontend/src/components/prompts/FileList.vue` 改为复用 `AppIcon name="folder"`；`frontend/src/css/prompts.css` 与 `frontend/src/css/dashboard.css` 移除目录选择器的 Material 字体伪元素，统一 SVG 间距、颜色和选中态。
+- 验证：新增 `fileListIconContract.test.ts`，旧实现先失败，修复后聚焦测试 `1/1`；Frontend typecheck、目标 ESLint `--max-warnings=0`、全量 Vitest `87 files / 292 tests` 通过；CI `32597275565` 与 Docs `32597275575` 均成功。
+- 发布：NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-filelist-icons-r5` 成功；Compose 配置校验通过；部署提交 `32fd3dd0 chore(deploy): 发布目录选择器图标修复镜像` 已推送 `master`。仅重建 `filebrowser` 服务，容器为 `healthy`，本机 `127.0.0.1:8888` 返回 `200`。
+- TX5pro 只读浏览器报告 `20260822T204913Z`：桌面/手机移动弹窗均实际打开目录选择器，各检查 `28` 个目录项和 `28` 个本地图标（约 `19×19px`），Material 图标为 `0`，横向溢出为 `0`，未授权写请求为 `0`；取消弹窗退出，未修改 NAS 数据。

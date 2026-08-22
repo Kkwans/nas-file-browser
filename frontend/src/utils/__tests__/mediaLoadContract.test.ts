@@ -61,15 +61,25 @@ describe("media loading contract", () => {
   it("prioritizes the full preview while retaining a real thumbnail placeholder", () => {
     expect(imageSource).toContain('fetchpriority="high"');
     expect(imageSource).toContain('loading="eager"');
-    expect(imageSource).toContain('fetchpriority="low"');
-    expect(imageSource).toContain('loading="lazy"');
+    expect(imageSource).toContain(
+      'class="image-ex-img image-ex-img-placeholder"'
+    );
+    expect(imageSource).toContain('@load="onPlaceholderLoad"');
+  });
+
+  it("先完成真实缩略图，再启动大图请求", () => {
+    expect(imageSource).toContain("onPlaceholderLoad");
+    expect(imageSource).toContain("startFullImageLoad");
+    expect(imageSource).toContain("PLACEHOLDER_MAX_WAIT_MS");
+    expect(imageSource).toContain("placeholderFailed");
   });
 
   it("uses a real server poster only for directly playable videos", () => {
     expect(previewSource).toContain(':poster="videoPosterUrl"');
     expect(previewSource).toContain("isKnownIncompatibleVideo(resource.path)");
-    expect(videoSource).toContain(':poster="poster || undefined"');
+    expect(videoSource).toContain(':poster="posterSource || undefined"');
     expect(videoSource).toContain("poster?: string;");
+    expect(videoSource).toContain("loadPosterAfterVideoReady");
   });
 
   it("exposes a delayed loading and stalled recovery state for video", () => {

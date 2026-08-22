@@ -15,7 +15,7 @@
       controls
       playsinline
       preload="metadata"
-      :poster="poster || undefined"
+      :poster="posterSource || undefined"
     >
       <track
         v-for="(sub, index) in subtitles"
@@ -240,6 +240,7 @@ const props = withDefaults(
 const videoPlayer = ref<HTMLVideoElement | null>(null);
 const stage = ref<HTMLDivElement | null>(null);
 const player = ref<Player | null>(null);
+const posterSource = ref("");
 const brightness = ref(1);
 const restoredPosition = ref(0);
 const resumeApplied = ref(false);
@@ -304,6 +305,7 @@ watch(
     pendingResume = null;
     restoredPosition.value = 0;
     resumeApplied.value = false;
+    posterSource.value = "";
     brightness.value = 1;
     suppressPersistenceUntil = 0;
     resetCompatibility(nextPath);
@@ -318,6 +320,14 @@ watch(
       player.value.load();
     }
     void restorePlayback(nextPath);
+  }
+);
+
+watch(
+  () => props.poster,
+  () => {
+    posterSource.value = "";
+    if (videoLoadState.value === "ready") loadPosterAfterVideoReady();
   }
 );
 
@@ -613,6 +623,15 @@ function beginVideoLoading() {
 
 function onVideoReady() {
   setVideoLoadState("ready");
+  loadPosterAfterVideoReady();
+}
+
+// Poster generation can invoke FFmpeg and read a large video from the NAS.
+// Wait until the browser has its first playable frame so the poster cannot
+// compete with the initial metadata/range requests.
+function loadPosterAfterVideoReady() {
+  if (!props.poster || posterSource.value === props.poster || disposed) return;
+  posterSource.value = props.poster;
 }
 
 function onVideoWaiting() {
@@ -825,6 +844,7 @@ function resetCompatibility(path: string) {
   hlsActive.value = false;
   activeHLSURL = "";
   sourceAttached.value = !isKnownIncompatibleVideo(path);
+  posterSource.value = "";
   videoLoadState.value = sourceAttached.value ? "loading" : "idle";
   loadingOverlayVisible.value = false;
   clearLoadStateTimer();

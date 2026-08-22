@@ -35,14 +35,16 @@
     </div>
 
     <img
-      v-if="placeholderSrc && placeholderVisible && imageStatus === 'loading'"
+      v-if="placeholderSrc && imageStatus === 'loading' && !placeholderFailed"
       class="image-ex-img image-ex-img-placeholder"
       :src="placeholderSrc"
       alt=""
       aria-hidden="true"
       decoding="async"
-      fetchpriority="low"
-      loading="lazy"
+      fetchpriority="high"
+      loading="eager"
+      @load="onPlaceholderLoad"
+      @error="onPlaceholderError"
     />
 
     <!-- Image info (top-right) -->
@@ -164,7 +166,8 @@ const moveDisabled = ref<boolean>(false);
 const disabledTimer = ref<number | null>(null);
 type ImageStatus = "loading" | "ready" | "error";
 const imageStatus = ref<ImageStatus>("loading");
-const placeholderVisible = ref(false);
+const placeholderFailed = ref(false);
+const fullLoadStarted = ref(false);
 const imageLoaded = computed(() => imageStatus.value === "ready");
 const showUI = ref<boolean>(true);
 const naturalWidth = ref<number>(0);
@@ -187,7 +190,9 @@ let loadToken = 0;
 let loadTimeout: number | null = null;
 let placeholderTimer: number | null = null;
 const IMAGE_LOAD_TIMEOUT_MS = 30_000;
-const PLACEHOLDER_DELAY_MS = 220;
+// Give the real thumbnail a short head start so the first paint does not wait
+// behind the much more expensive 1080px preview on the single-image queue.
+const PLACEHOLDER_MAX_WAIT_MS = 650;
 
 const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 
@@ -270,7 +275,8 @@ const onKeyDown = (e: KeyboardEvent) => {
 
 const cancelImageLoad = () => {
   loadToken += 1;
-  placeholderVisible.value = false;
+  placeholderFailed.value = false;
+  fullLoadStarted.value = false;
   if (placeholderTimer !== null) {
     window.clearTimeout(placeholderTimer);
     placeholderTimer = null;
@@ -333,6 +339,31 @@ const decodeUTIF = (token: number) => {
   return true;
 };
 
+const startFullImageLoad = (token: number) => {
+  if (
+    token !== loadToken ||
+    fullLoadStarted.value ||
+    imageStatus.value !== "loading" ||
+    imgex.value === null
+  ) {
+    return;
+  }
+  fullLoadStarted.value = true;
+  armLoadTimeout(token);
+  if (!decodeUTIF(token)) {
+    imgex.value.src = props.src;
+  }
+};
+
+const onPlaceholderLoad = () => {
+  startFullImageLoad(loadToken);
+};
+
+const onPlaceholderError = () => {
+  placeholderFailed.value = true;
+  startFullImageLoad(loadToken);
+};
+
 const loadImage = () => {
   cancelImageLoad();
   const token = loadToken;
@@ -341,14 +372,10 @@ const loadImage = () => {
   if (props.placeholderSrc) {
     placeholderTimer = window.setTimeout(() => {
       placeholderTimer = null;
-      if (token === loadToken && imageStatus.value === "loading") {
-        placeholderVisible.value = true;
-      }
-    }, PLACEHOLDER_DELAY_MS);
-  }
-  armLoadTimeout(token);
-  if (!decodeUTIF(token)) {
-    imgex.value.src = props.src;
+      startFullImageLoad(token);
+    }, PLACEHOLDER_MAX_WAIT_MS);
+  } else {
+    startFullImageLoad(token);
   }
 };
 
@@ -365,7 +392,7 @@ const failImageLoad = (token = loadToken) => {
     window.clearTimeout(placeholderTimer);
     placeholderTimer = null;
   }
-  placeholderVisible.value = false;
+  placeholderFailed.value = true;
   if (tiffRequest) {
     const request = tiffRequest;
     tiffRequest = null;
@@ -395,7 +422,7 @@ const onLoad = () => {
     window.clearTimeout(placeholderTimer);
     placeholderTimer = null;
   }
-  placeholderVisible.value = false;
+  placeholderFailed.value = false;
   imageStatus.value = "ready";
   emit("ready");
 

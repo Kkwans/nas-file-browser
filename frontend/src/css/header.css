@@ -595,7 +595,7 @@ header .breadcrumbs .chevron {
   font-size: 0.75em;
 }
 
-header .breadcrumbs .chevron i {
+header .breadcrumbs .chevron .app-icon {
   font-size: 1.125em;
 }
 
@@ -608,8 +608,8 @@ header .breadcrumbs > span:first-child {
   border-radius: 0.5em;
 }
 
-header .breadcrumbs > a:first-child i,
-header .breadcrumbs > span:first-child i {
+header .breadcrumbs > a:first-child .app-icon,
+header .breadcrumbs > span:first-child .app-icon {
   font-size: 1.25em;
 }
 

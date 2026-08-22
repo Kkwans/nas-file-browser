@@ -37,6 +37,7 @@ describe("media icon semantics", () => {
     for (const relativePath of [
       "components/files/GlobalAudioPlayer.vue",
       "components/DropdownModal.vue",
+      "components/Breadcrumbs.vue",
     ]) {
       const source = readFileSync(resolve(sourceRoot, relativePath), "utf8");
       expect(source).not.toContain("material-icons");

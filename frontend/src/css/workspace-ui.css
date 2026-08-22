@@ -151,7 +151,7 @@ header > .header-center {
   line-height: 1;
 }
 
-.breadcrumbs > a:first-child .material-icons {
+.breadcrumbs > a:first-child .app-icon {
   display: block;
   line-height: 1;
 }
@@ -167,7 +167,7 @@ header > .header-center {
   color: var(--textSecondary, #8a96a3);
 }
 
-.breadcrumbs .chevron .material-icons {
+.breadcrumbs .chevron .app-icon {
   font-size: 19px;
 }
 

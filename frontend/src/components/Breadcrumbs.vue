@@ -1,13 +1,11 @@
 <template>
   <div class="breadcrumbs">
     <component :is="element" :to="base || ''" aria-label="首页" title="首页">
-      <i class="material-icons">home</i>
+      <AppIcon name="home" :size="20" />
     </component>
 
     <span v-for="(link, index) in items" :key="index">
-      <span class="chevron"
-        ><i class="material-icons">keyboard_arrow_right</i></span
-      >
+      <span class="chevron"><AppIcon name="chevron-right" :size="18" /></span>
       <component :is="element" :to="link.url">{{ link.name }}</component>
     </span>
   </div>
@@ -17,6 +15,7 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import type { BreadCrumb } from "@/types/file";
+import AppIcon from "@/components/ui/AppIcon.vue";
 const route = useRoute();
 
 const props = defineProps<{

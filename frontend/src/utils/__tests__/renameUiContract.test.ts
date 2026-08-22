@@ -22,5 +22,7 @@ describe("重命名弹窗 UI 契约", () => {
     expect(source).toContain('class="card floating rename-card"');
     expect(styles).toContain(".rename-card .card-action button");
     expect(styles).toContain("min-height: 44px;");
+    expect(styles).toContain(".rename-apply-rule");
+    expect(styles).toMatch(/\.rename-apply-rule[\s\S]*?min-height:\s*44px;/);
   });
 });

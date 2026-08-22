@@ -1121,7 +1121,7 @@ html.dark .quick-preview-loading {
 }
 
 .rename-apply-rule {
-  min-height: 2.45rem;
+  min-height: 44px;
   flex-shrink: 0;
 }
 

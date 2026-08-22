@@ -338,6 +338,33 @@ nav.sidebar .sidebar-module .favorite-group > .favorite-item:focus-visible {
   margin-inline: 1.5rem 0 !important;
 }
 
+/* 收藏项使用与文件列表相同的本地线性图标，避免 Material 字体图标的
+ * 行高和字形基线让文件夹图标看起来偏大、偏低。按钮仍负责完整命中区。 */
+nav.sidebar .favorite-item > .favorite-icon {
+  box-sizing: border-box;
+  display: inline-grid;
+  flex: 0 0 var(--sidebar-level-two-icon-column);
+  width: var(--sidebar-level-two-icon-column);
+  height: var(--sidebar-level-two-icon-column);
+  place-items: center;
+  margin: 0;
+  color: var(--blue, #1677ff) !important;
+}
+
+nav.sidebar .favorite-item > .favorite-icon.favorite-drag-handle {
+  display: none !important;
+}
+
+nav.sidebar .favorite-item > .favorite-remove {
+  box-sizing: border-box;
+  display: inline-grid;
+  flex: 0 0 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  padding: 0;
+}
+
 nav.sidebar .sidebar-resize-handle {
   position: absolute;
   top: 0;

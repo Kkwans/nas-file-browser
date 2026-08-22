@@ -505,24 +505,32 @@
                   @drop.stop="onFavDropOnItem($event, fav.id)"
                   @dragend="onFavDragEnd"
                 >
-                  <i class="material-icons favorite-icon favorite-drag-handle"
-                    >drag_indicator</i
-                  >
-                  <i class="material-icons favorite-icon">{{
-                    favoriteIcon(fav.name)
-                  }}</i>
+                  <AppIcon
+                    class="favorite-icon favorite-drag-handle"
+                    name="drag"
+                    :size="18"
+                    :stroke-width="2"
+                  />
+                  <AppIcon
+                    class="favorite-icon"
+                    :name="favoriteIcon(fav.name)"
+                    :size="20"
+                    :stroke-width="1.9"
+                  />
                   <div class="favorite-info">
                     <span class="favorite-name">{{ fav.name }}</span>
                     <span class="favorite-path" v-if="fav.path !== fav.name">{{
                       fav.path
                     }}</span>
                   </div>
-                  <i
-                    class="material-icons favorite-remove"
+                  <AppIcon
+                    class="favorite-remove"
+                    name="x"
+                    :size="18"
+                    :stroke-width="2"
                     title="取消收藏"
                     @click.stop.prevent="removeFavorite(fav.id)"
-                    >close</i
-                  >
+                  />
                 </button>
               </template>
             </div>
@@ -589,24 +597,32 @@
                   @drop.stop="onFavDropOnItem($event, fav.id)"
                   @dragend="onFavDragEnd"
                 >
-                  <i class="material-icons favorite-icon favorite-drag-handle"
-                    >drag_indicator</i
-                  >
-                  <i class="material-icons favorite-icon">{{
-                    favoriteIcon(fav.name)
-                  }}</i>
+                  <AppIcon
+                    class="favorite-icon favorite-drag-handle"
+                    name="drag"
+                    :size="18"
+                    :stroke-width="2"
+                  />
+                  <AppIcon
+                    class="favorite-icon"
+                    :name="favoriteIcon(fav.name)"
+                    :size="20"
+                    :stroke-width="1.9"
+                  />
                   <div class="favorite-info">
                     <span class="favorite-name">{{ fav.name }}</span>
                     <span class="favorite-path" v-if="fav.path !== fav.name">{{
                       fav.path
                     }}</span>
                   </div>
-                  <i
-                    class="material-icons favorite-remove"
+                  <AppIcon
+                    class="favorite-remove"
+                    name="x"
+                    :size="18"
+                    :stroke-width="2"
                     title="取消收藏"
                     @click.stop.prevent="removeFavorite(fav.id)"
-                    >close</i
-                  >
+                  />
                 </button>
                 <div
                   v-if="
@@ -942,7 +958,7 @@ import AppIcon from "@/components/ui/AppIcon.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 
 import * as auth from "@/utils/auth";
-import { getFileIcon, isFileByExtension } from "@/utils/fileIcons";
+import { getResourceIconName, isFileByExtension } from "@/utils/fileIcons";
 import {
   getFavoriteDropPosition,
   type FavoriteDropPosition,
@@ -1562,7 +1578,9 @@ const removeFavorite = (id: string) => {
 };
 
 const favoriteIcon = (name: string) => {
-  return isFileByExtension(name) ? getFileIcon(name) : "folder";
+  return isFileByExtension(name)
+    ? getResourceIconName(name, "", false)
+    : ("folder" as const);
 };
 
 const clearAllFavorites = async () => {

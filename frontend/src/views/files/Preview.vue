@@ -127,6 +127,7 @@
           :src="previewUrl"
           :placeholder-src="imagePlaceholderUrl"
           :placeholder-is-full="isLargeJpegPreview"
+          :fallback-placeholder-src="imageFallbackPlaceholderUrl"
           :fileName="name"
           :fileSizeBytes="fileStore.req?.size || 0"
           :directSrc="directUrl"
@@ -451,6 +452,11 @@ const isLargeJpegPreview = computed(() => {
     resource.size >= LARGE_JPEG_PREVIEW_MIN_BYTES &&
     (extension === ".jpg" || extension === ".jpeg")
   );
+});
+
+const imageFallbackPlaceholderUrl = computed(() => {
+  if (!isLargeJpegPreview.value || !fileStore.req) return "";
+  return api.getPreviewURL(fileStore.req, "thumb");
 });
 
 const videoPosterUrl = computed(() => {

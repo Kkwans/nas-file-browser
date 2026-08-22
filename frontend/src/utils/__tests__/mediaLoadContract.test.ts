@@ -89,6 +89,21 @@ describe("media loading contract", () => {
     expect(errorSource).toContain("placeholderIsFull");
   });
 
+  it("大图原图回退期间保留可见的普通缩略图", () => {
+    expect(imageSource).toContain("fallbackPlaceholderSrc");
+    expect(imageSource).toContain("placeholderUsingFallback");
+    expect(imageSource).toContain("props.fallbackPlaceholderSrc");
+    expect(imageSource).toContain(
+      "imageStatus === 'loading' && !placeholderUsingFallback"
+    );
+    expect(previewSource).toContain(
+      ':fallback-placeholder-src="imageFallbackPlaceholderUrl"'
+    );
+    expect(previewSource).toContain(
+      'api.getPreviewURL(fileStore.req, "thumb")'
+    );
+  });
+
   it("uses a real server poster only for directly playable videos", () => {
     expect(previewSource).toContain(':poster="videoPosterUrl"');
     expect(previewSource).toContain("isKnownIncompatibleVideo(resource.path)");

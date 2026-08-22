@@ -14,7 +14,10 @@
     @mouseleave="showUI = false"
   >
     <!-- Loading spinner -->
-    <div v-if="imageStatus === 'loading'" class="image-viewer-loading">
+    <div
+      v-if="imageStatus === 'loading' && !placeholderUsingFallback"
+      class="image-viewer-loading"
+    >
       <div class="spinner-ring"></div>
       <div class="spinner-text">加载中...</div>
     </div>
@@ -140,6 +143,8 @@ interface IProps {
   placeholderSrc?: string;
   /** The placeholder URL already contains the full preview bytes. */
   placeholderIsFull?: boolean;
+  /** A lightweight thumbnail to keep visible while the original is loading. */
+  fallbackPlaceholderSrc?: string;
   directSrc?: string;
   downloadSrc?: string;
 }
@@ -152,6 +157,7 @@ const props = withDefaults(defineProps<IProps>(), {
   fileSizeBytes: () => 0,
   placeholderSrc: () => "",
   placeholderIsFull: false,
+  fallbackPlaceholderSrc: () => "",
   directSrc: () => "",
   downloadSrc: () => "",
 });
@@ -171,6 +177,7 @@ const disabledTimer = ref<number | null>(null);
 type ImageStatus = "loading" | "ready" | "error";
 const imageStatus = ref<ImageStatus>("loading");
 const placeholderFailed = ref(false);
+const placeholderUsingFallback = ref(false);
 const fullLoadStarted = ref(false);
 const imageLoaded = computed(() => imageStatus.value === "ready");
 const showUI = ref<boolean>(true);
@@ -285,6 +292,7 @@ const onKeyDown = (e: KeyboardEvent) => {
 const cancelImageLoad = () => {
   loadToken += 1;
   placeholderFailed.value = false;
+  placeholderUsingFallback.value = false;
   fullLoadStarted.value = false;
   if (placeholderTimer !== null) {
     window.clearTimeout(placeholderTimer);
@@ -381,18 +389,34 @@ const startRawImageFallback = (token: number) => {
   }
   fullLoadStarted.value = true;
   armLoadTimeout(token);
-  // Removing the warm request's source lets the browser cancel the server
-  // coordinator when a cold decode has not produced a response in time.
-  placeholderImage.value?.removeAttribute("src");
-  placeholderFailed.value = true;
+  if (props.fallbackPlaceholderSrc) {
+    // Keep a regular cached thumbnail visible while the original is fetched.
+    // The warm coordinator may continue server-side, but it no longer blocks
+    // the first useful paint or the raw fallback request.
+    placeholderUsingFallback.value = true;
+    placeholderFailed.value = false;
+    if (placeholderImage.value) {
+      placeholderImage.value.src = props.fallbackPlaceholderSrc;
+    }
+  } else {
+    // Removing the warm request's source lets the browser cancel the server
+    // coordinator when a cold decode has not produced a response in time.
+    placeholderImage.value?.removeAttribute("src");
+    placeholderFailed.value = true;
+  }
   imgex.value.src = props.directSrc || props.src;
 };
 
 const onPlaceholderLoad = () => {
+  if (placeholderUsingFallback.value) return;
   startFullImageLoad(loadToken);
 };
 
 const onPlaceholderError = () => {
+  if (placeholderUsingFallback.value) {
+    placeholderFailed.value = true;
+    return;
+  }
   if (props.placeholderIsFull) {
     startRawImageFallback(loadToken);
     return;

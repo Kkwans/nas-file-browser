@@ -469,7 +469,7 @@
               "
               class="section-empty"
             >
-              <i class="material-icons">star_border</i>
+              <AppIcon name="star" :size="20" :stroke-width="1.9" />
               <span>暂无收藏目录</span>
             </div>
             <!-- Ungrouped favorites -->
@@ -671,7 +671,7 @@
           </SidebarSectionHeader>
           <template v-if="!collapsedSections.tags">
             <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
-              <i class="material-icons">turned_in_not</i>
+              <AppIcon name="tag" :size="20" :stroke-width="1.9" />
               <span>暂无标签，创建一个吧</span>
             </div>
             <button
@@ -693,11 +693,13 @@
               @drop.stop="onPreferenceDrop('tagOrder', tag.id)"
               @dragend="clearSidebarDrag"
             >
-              <i
-                class="material-icons tag-filter-dot"
+              <AppIcon
+                class="tag-filter-dot"
+                name="tag"
+                :size="18"
+                :stroke-width="1.9"
                 :style="{ color: tag.color }"
-                >label</i
-              >
+              />
               <span class="tag-filter-name">{{ tag.name }}</span>
               <span class="tag-filter-count">{{ tag.paths.length }}</span>
             </button>
@@ -706,7 +708,7 @@
               class="action tag-filter-clear"
               @click="clearTagFilter"
             >
-              <i class="material-icons">filter_list_off</i>
+              <AppIcon name="filter-clear" :size="18" :stroke-width="1.9" />
               <span>清除筛选</span>
             </button>
           </template>
@@ -846,9 +848,13 @@
                   @drop.stop="onCategoryPathDrop(group, p.path)"
                   @dragend="clearSidebarDrag"
                 >
-                  <i class="material-icons" :class="'risk-' + p.risk">{{
-                    riskIcon(p.risk)
-                  }}</i>
+                  <AppIcon
+                    class="category-path-risk-icon"
+                    :class="'risk-' + p.risk"
+                    :name="riskIcon(p.risk)"
+                    :size="18"
+                    :stroke-width="1.9"
+                  />
                   <div class="category-path-info">
                     <span class="category-path-name">{{ p.name }}</span>
                     <span
@@ -898,7 +904,7 @@
         aria-label="登录"
         title="登录"
       >
-        <i class="material-icons">exit_to_app</i>
+        <AppIcon name="login" :size="20" />
         <span>登录</span>
       </router-link>
 
@@ -909,7 +915,7 @@
         aria-label="注册"
         title="注册"
       >
-        <i class="material-icons">person_add</i>
+        <AppIcon name="user-add" :size="20" />
         <span>注册</span>
       </router-link>
     </template>
@@ -962,6 +968,7 @@ import type { AppIconName } from "@/components/ui/iconRegistry";
 
 import * as auth from "@/utils/auth";
 import { getResourceIconName, isFileByExtension } from "@/utils/fileIcons";
+import { resolveRiskIcon } from "@/utils/sidebarIconSemantics";
 import {
   getFavoriteDropPosition,
   type FavoriteDropPosition,
@@ -1560,9 +1567,7 @@ const toggleSection = (id: keyof typeof collapsedSections) => {
 };
 
 const riskIcon = (risk: string) => {
-  if (risk === "high") return "warning";
-  if (risk === "medium") return "info";
-  return "check_circle";
+  return resolveRiskIcon(risk);
 };
 
 const navigateVolume = (path: string, favoriteGroupId = "") => {

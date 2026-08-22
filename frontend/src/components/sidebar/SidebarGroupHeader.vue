@@ -10,20 +10,12 @@
     @keydown.space.prevent="$emit('toggle')"
   >
     <AppIcon
-      v-if="appIcon"
       class="favorite-group-icon"
-      :name="appIcon"
+      :name="appIcon ?? resolveCategoryIcon(icon)"
       :size="21"
       :stroke-width="1.9"
       :style="{ color }"
     />
-    <i
-      v-else
-      class="material-icons favorite-group-icon"
-      :style="{ color }"
-      aria-hidden="true"
-      >{{ icon }}</i
-    >
     <span class="group-name">{{ label }}</span>
     <span class="category-count">{{ count }}</span>
     <span class="sidebar-group-actions">
@@ -42,6 +34,7 @@
 <script setup lang="ts">
 import AppIcon from "@/components/ui/AppIcon.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
+import { resolveCategoryIcon } from "@/utils/sidebarIconSemantics";
 
 withDefaults(
   defineProps<{

@@ -1494,6 +1494,12 @@ html[dir="rtl"] .favorite-info {
   opacity: 0.5;
 }
 
+.section-empty > .app-icon {
+  flex: 0 0 1.25rem;
+  color: var(--textSecondary, #64748b);
+  opacity: 0.68;
+}
+
 /* --- Section Action Button (header right) --- */
 .section-action-btn {
   background: none;
@@ -1597,6 +1603,11 @@ html[dir="rtl"] .tags-header {
   font-size: 0.85em !important;
 }
 
+.tag-filter-item > .tag-filter-dot {
+  align-self: center;
+  justify-self: center;
+}
+
 .tag-filter-item {
   padding-top: 0.35em !important;
   padding-bottom: 0.35em !important;
@@ -1636,6 +1647,10 @@ html[dir="rtl"] .tags-header {
 
 .tag-filter-clear .material-icons {
   font-size: 1.1em !important;
+  color: var(--icon-red, #da4453);
+}
+
+.tag-filter-clear > .app-icon {
   color: var(--icon-red, #da4453);
 }
 
@@ -1847,6 +1862,11 @@ html[dir="rtl"] .categories-header {
 
 .category-path-item i {
   font-size: 1.1em !important;
+}
+
+.category-path-item > .category-path-risk-icon {
+  align-self: center;
+  justify-self: center;
 }
 
 .category-path-info {

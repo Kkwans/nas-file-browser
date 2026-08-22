@@ -393,6 +393,10 @@ const onPlaceholderLoad = () => {
 };
 
 const onPlaceholderError = () => {
+  if (props.placeholderIsFull) {
+    startRawImageFallback(loadToken);
+    return;
+  }
   placeholderFailed.value = true;
   startFullImageLoad(loadToken);
 };

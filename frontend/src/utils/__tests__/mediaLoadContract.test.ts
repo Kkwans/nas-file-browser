@@ -80,6 +80,15 @@ describe("media loading contract", () => {
     );
   });
 
+  it("预热大图失败时回退到原图而不是重复请求失败地址", () => {
+    const errorStart = imageSource.indexOf("const onPlaceholderError");
+    const errorEnd = imageSource.indexOf("const loadImage", errorStart);
+    const errorSource = imageSource.slice(errorStart, errorEnd);
+    expect(errorStart).toBeGreaterThanOrEqual(0);
+    expect(errorSource).toContain("startRawImageFallback");
+    expect(errorSource).toContain("placeholderIsFull");
+  });
+
   it("uses a real server poster only for directly playable videos", () => {
     expect(previewSource).toContain(':poster="videoPosterUrl"');
     expect(previewSource).toContain("isKnownIncompatibleVideo(resource.path)");

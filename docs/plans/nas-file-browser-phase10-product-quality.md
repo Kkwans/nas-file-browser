@@ -223,3 +223,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 视频回归报告 `20260822T223349Z`：同一视频在约 `0.835s` 达到 `durationchange/loadedmetadata/canplay`，`readyState=4`、保持暂停、运行时错误 `0`。全量 Frontend Vitest `87 files / 294 tests` 通过；typecheck、lint 已在提交前通过。
 - 移动端报告同样覆盖 `390×844`：`78.jpg` 最终 `ready`、无横向溢出和运行时错误，原图响应约 `1.65s`，整页 ready 约 `5.12s`。移动端接收约 `54.25 MB` 原图是已知带宽/内存成本，后续需评估按设备能力选择更小的服务端回退规格。
 - 该策略优先解决“冷盘等待期间页面卡住”的用户体验，不把原图回退误报成冷盘解码本身已变快；原图传输会增加单次带宽和浏览器内存占用，后续继续观察移动端大图设备的资源压力。
+
+### 2026-08-23 大 JPEG 预热失败回退与 r11 验收
+
+- 根因补充：`warm=big` 预热请求如果快速返回错误，原实现的 `onPlaceholderError` 仍会把失败的预热 URL 交给大图加载器，导致错误状态直接终止，未使用已经存在的原图兜底路径。
+- 先新增媒体加载契约测试并在旧实现上确认失败；修复后 `onPlaceholderError` 对 `placeholderIsFull` 走 `startRawImageFallback`，普通缩略图仍保持原有大图路径。聚焦媒体契约 `8/8`、全量 Frontend Vitest `87 files / 295 tests`、typecheck、lint 均通过。
+- 源码提交 `32110dc0` 已推送，GitHub CI `32603460906` 与 Docs `32603460926` 均成功。NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-media-placeholder-fallback-r11`（arm64，镜像 ID `sha256:6699cbbb0eaa5adef6da4718733ba92f1120fa10567a7466afab71ec5fa338e1`）；Compose 部署提交 `9a78cc9d` 已推送，CI `32603863440` 成功。仅重建 `filebrowser` 服务，容器 `running/healthy`，本机 HTTP `200`，r10 保留作回滚。
+- TX5pro 真实浏览器错误路径报告 `20260822T225607Z`：使用 `/tmp/nfb-acceptance-placeholder-error.jpg` 的受控损坏 JPEG，先发出 `/api/preview/thumb?...warm=big`，随后实际发出 `/api/raw/...` 并收到 `200 image/jpeg`；页面无控制台错误，最终进入明确的 `error` 状态而非假加载。测试文件已从 NAS `/tmp` 移除。
+- TX5pro 真实浏览器正常冷路径报告 `20260822T225623Z`：`78.jpg` 仍按 `warm=big` → 原图回退链路打开，最终 `ready`、`6048×8064`、无控制台错误；相邻 `77.jpg` 的 `/preview/big` 仍是成功后的低优先级预取，不属于目标重复解码。该证据确认错误回退修复没有破坏现有大图冷启动策略。

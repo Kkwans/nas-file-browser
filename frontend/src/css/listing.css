@@ -236,11 +236,11 @@
   filter: drop-shadow(0 1px 1px rgb(15 23 42 / 10%));
 }
 
-#listing .risk-resource-icon--medium {
+#listing .file-thumbnail > .risk-resource-icon.risk-resource-icon--medium {
   color: #a15c07;
 }
 
-#listing .risk-resource-icon--high {
+#listing .file-thumbnail > .risk-resource-icon.risk-resource-icon--high {
   color: #c4323a;
 }
 

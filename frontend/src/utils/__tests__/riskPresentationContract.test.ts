@@ -79,6 +79,15 @@ describe("risk presentation contract", () => {
     expect(listingItemSource).toContain("inlineRiskLevel");
   });
 
+  it("keeps native risk icon colors above the shared thumbnail color rule", () => {
+    expect(listingStyles).toMatch(
+      /#listing \.file-thumbnail > \.risk-resource-icon\.risk-resource-icon--medium\s*\{[^}]*color:/s
+    );
+    expect(listingStyles).toMatch(
+      /#listing \.file-thumbnail > \.risk-resource-icon\.risk-resource-icon--high\s*\{[^}]*color:/s
+    );
+  });
+
   it("uses one inherited resource icon size contract across responsive layouts", () => {
     expect(listingStyles).toContain("--resource-icon-size: 64px");
     expect(listingStyles).toMatch(

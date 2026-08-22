@@ -35,7 +35,7 @@
     </div>
 
     <img
-      v-if="placeholderSrc && imageStatus === 'loading'"
+      v-if="placeholderSrc && placeholderVisible && imageStatus === 'loading'"
       class="image-ex-img image-ex-img-placeholder"
       :src="placeholderSrc"
       alt=""
@@ -164,6 +164,7 @@ const moveDisabled = ref<boolean>(false);
 const disabledTimer = ref<number | null>(null);
 type ImageStatus = "loading" | "ready" | "error";
 const imageStatus = ref<ImageStatus>("loading");
+const placeholderVisible = ref(false);
 const imageLoaded = computed(() => imageStatus.value === "ready");
 const showUI = ref<boolean>(true);
 const naturalWidth = ref<number>(0);
@@ -184,7 +185,9 @@ const container = ref<HTMLDivElement | null>(null);
 let tiffRequest: XMLHttpRequest | null = null;
 let loadToken = 0;
 let loadTimeout: number | null = null;
+let placeholderTimer: number | null = null;
 const IMAGE_LOAD_TIMEOUT_MS = 30_000;
+const PLACEHOLDER_DELAY_MS = 220;
 
 const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 
@@ -267,6 +270,11 @@ const onKeyDown = (e: KeyboardEvent) => {
 
 const cancelImageLoad = () => {
   loadToken += 1;
+  placeholderVisible.value = false;
+  if (placeholderTimer !== null) {
+    window.clearTimeout(placeholderTimer);
+    placeholderTimer = null;
+  }
   if (loadTimeout !== null) {
     window.clearTimeout(loadTimeout);
     loadTimeout = null;
@@ -330,6 +338,14 @@ const loadImage = () => {
   const token = loadToken;
   imageStatus.value = "loading";
   if (imgex.value === null) return;
+  if (props.placeholderSrc) {
+    placeholderTimer = window.setTimeout(() => {
+      placeholderTimer = null;
+      if (token === loadToken && imageStatus.value === "loading") {
+        placeholderVisible.value = true;
+      }
+    }, PLACEHOLDER_DELAY_MS);
+  }
   armLoadTimeout(token);
   if (!decodeUTIF(token)) {
     imgex.value.src = props.src;
@@ -345,6 +361,11 @@ const failImageLoad = (token = loadToken) => {
     window.clearTimeout(loadTimeout);
     loadTimeout = null;
   }
+  if (placeholderTimer !== null) {
+    window.clearTimeout(placeholderTimer);
+    placeholderTimer = null;
+  }
+  placeholderVisible.value = false;
   if (tiffRequest) {
     const request = tiffRequest;
     tiffRequest = null;
@@ -370,6 +391,11 @@ const onLoad = () => {
     window.clearTimeout(loadTimeout);
     loadTimeout = null;
   }
+  if (placeholderTimer !== null) {
+    window.clearTimeout(placeholderTimer);
+    placeholderTimer = null;
+  }
+  placeholderVisible.value = false;
   imageStatus.value = "ready";
   emit("ready");
 

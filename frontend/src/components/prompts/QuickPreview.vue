@@ -2,9 +2,12 @@
   <div class="card floating quick-preview-card">
     <div class="quick-preview-header">
       <div class="quick-preview-info">
-        <i class="material-icons file-type-icon" :class="fileTypeClass">{{
-          fileIcon
-        }}</i>
+        <AppIcon
+          :name="fileIcon"
+          class="file-type-icon"
+          :class="fileTypeClass"
+          :size="24"
+        />
         <span class="quick-preview-name">{{ item.name }}</span>
         <span class="quick-preview-meta"
           >{{ humanSize }} · {{ humanTime }}</span
@@ -19,7 +22,7 @@
           title="上一个"
           aria-label="上一个"
         >
-          <i class="material-icons" aria-hidden="true">chevron_left</i>
+          <AppIcon name="chevron-left" :size="20" />
         </button>
         <button
           class="quick-preview-btn"
@@ -29,7 +32,7 @@
           title="下一个"
           aria-label="下一个"
         >
-          <i class="material-icons" aria-hidden="true">chevron_right</i>
+          <AppIcon name="chevron-right" :size="20" />
         </button>
         <button
           v-if="authStore.user?.perm.download"
@@ -39,7 +42,7 @@
           title="下载"
           aria-label="下载"
         >
-          <i class="material-icons" aria-hidden="true">file_download</i>
+          <AppIcon name="download" :size="19" />
         </button>
         <button
           class="quick-preview-btn"
@@ -48,7 +51,7 @@
           title="打开文件"
           aria-label="打开文件"
         >
-          <i class="material-icons" aria-hidden="true">open_in_new</i>
+          <AppIcon name="external-link" :size="19" />
         </button>
         <button
           class="quick-preview-btn close-btn"
@@ -57,7 +60,7 @@
           title="关闭"
           aria-label="关闭"
         >
-          <i class="material-icons" aria-hidden="true">close</i>
+          <AppIcon name="x" :size="20" />
         </button>
       </div>
     </div>
@@ -86,7 +89,7 @@
       />
       <!-- Audio -->
       <div v-else-if="item.type === 'audio'" class="quick-preview-audio-wrap">
-        <i class="material-icons audio-icon" aria-hidden="true">audiotrack</i>
+        <AppIcon name="audio-lines" class="audio-icon" :size="64" />
         <audio
           :key="item.path"
           :src="directUrl"
@@ -120,7 +123,7 @@
       ><code>{{ textContent }}</code></pre>
       <!-- Blob (no preview) -->
       <div v-else class="quick-preview-no-preview">
-        <i class="material-icons">feedback</i>
+        <AppIcon name="circle-alert" :size="48" />
         <span>此文件无法预览。</span>
       </div>
     </div>
@@ -145,7 +148,9 @@ import { useAuthStore } from "@/stores/auth";
 import { files as api } from "@/api";
 import type { ResourceItem } from "@/types/file";
 import { filesize } from "@/utils";
-import { getFileIcon, isTextFile } from "@/utils/fileIcons";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
+import { getResourceIconName, isTextFile } from "@/utils/fileIcons";
 import {
   findAdjacentQuickPreviewItem,
   getQuickPreviewItems,
@@ -191,19 +196,9 @@ const isText = computed(() =>
   isTextFile(item.value.type || "", item.value.extension)
 );
 
-const fileIcon = computed(() => {
-  const typeIcons: Record<string, string> = {
-    image: "image",
-    video: "movie",
-    audio: "volume_up",
-    pdf: "description",
-    text: "description",
-    textImmutable: "description",
-    blob: "insert_drive_file",
-    invalid_link: "link_off",
-  };
-  return typeIcons[item.value.type] || getFileIcon(item.value.name || "");
-});
+const fileIcon = computed<AppIconName>(() =>
+  getResourceIconName(item.value.name || "", item.value.type || "blob")
+);
 
 const fileTypeClass = computed(() => {
   const classes: Record<string, string> = {

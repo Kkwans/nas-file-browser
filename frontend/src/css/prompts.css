@@ -732,7 +732,8 @@ html.dark .risk-confirm-details {
 }
 
 .file-type-icon {
-  font-size: 1.3em;
+  width: 1.5rem;
+  height: 1.5rem;
   flex-shrink: 0;
 }
 
@@ -765,6 +766,8 @@ html.dark .risk-confirm-details {
   background: none;
   border: none;
   cursor: pointer;
+  min-width: 40px;
+  min-height: 40px;
   padding: 0.35em;
   border-radius: 0.375em;
   display: flex;
@@ -797,8 +800,9 @@ html.dark .risk-confirm-details {
   background: rgba(229, 57, 53, 0.08);
 }
 
-.quick-preview-btn i {
-  font-size: 1.2em;
+.quick-preview-btn > .app-icon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .quick-preview-body {
@@ -834,7 +838,8 @@ html.dark .risk-confirm-details {
 }
 
 .audio-icon {
-  font-size: 4em;
+  width: 4rem;
+  height: 4rem;
   opacity: 0.3;
   color: var(--icon-yellow, #ff0);
 }
@@ -922,8 +927,9 @@ html.dark .quick-preview-body:has(.quick-preview-markdown) {
   opacity: 0.5;
 }
 
-.quick-preview-no-preview i {
-  font-size: 3em;
+.quick-preview-no-preview > .app-icon {
+  width: 3rem;
+  height: 3rem;
 }
 
 .quick-preview-loading {

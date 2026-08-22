@@ -118,7 +118,7 @@ describe("Markdown 编辑器交互契约", () => {
       /@media \(max-width: 899px\)[\s\S]*?#editor-container > header > \.header-leading,[\s\S]*?#editor-container > header > \.header-trailing\s*\{[\s\S]*flex-basis:\s*44px;/
     );
     expect(workspaceStyles).toMatch(
-      /#editor-container > header > \.header-leading > \.action,[\s\S]*?#editor-container > header > \.header-trailing \.header-mobile-actions > \.action\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/
+      /#editor-container > header > \.header-center > \.action,[\s\S]*?#editor-container > header > \.header-trailing \.header-mobile-actions > \.action\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/
     );
   });
 

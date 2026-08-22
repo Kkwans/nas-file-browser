@@ -1216,7 +1216,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
     flex-basis: 44px;
   }
 
-  #editor-container > header > .header-leading > .action,
+  #editor-container > header > .header-center > .action,
   #editor-container > header > .header-trailing .header-mobile-actions > .action {
     width: 44px;
     height: 44px;

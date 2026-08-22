@@ -4,12 +4,12 @@
       <template v-for="(item, index) in path" :key="index">
         /
         <span class="path-item">
-          <span
-            v-if="isDir === true || index < path.length - 1"
-            class="material-icons"
-            >folder
+          <span v-if="isDir === true || index < path.length - 1">
+            <AppIcon name="folder" :size="14" :stroke-width="1.9" />
           </span>
-          <span v-else class="material-icons">insert_drive_file</span>
+          <span v-else>
+            <AppIcon name="file" :size="14" :stroke-width="1.9" />
+          </span>
           {{ item }}
         </span>
       </template>
@@ -22,6 +22,7 @@ import { ref, computed, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { useFileStore } from "@/stores/file";
 import url from "@/utils/url";
+import AppIcon from "@/components/ui/AppIcon.vue";
 
 const fileStore = useFileStore();
 const route = useRoute();
@@ -86,6 +87,8 @@ watch(path, () => {
 }
 
 .path-item > span {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.9em;
 }
 </style>

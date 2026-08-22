@@ -221,4 +221,5 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 源码提交 `0d3797a8` 已推送，GitHub CI `32602471305` success；部署提交 `035a2607` 已推送。NAS 本机构建 `nas-file-browser:2026.8.23-phase10-media-raw-fallback-r10`（arm64，镜像 ID `sha256:99e4eecd80ea858d5424681d2459ed0cc61c6d99c7eebc6ef5862f02e26d2638`），Compose 校验通过，仅重建 `filebrowser`，容器 `running/healthy`，本机 HTTP `200`，r9 保留作回滚。
 - TX5pro 冷路径报告 `20260822T223337Z`：未命中预览缓存的 `78.jpg` 在 `650ms` 后取消 `/preview/thumb?...warm=big`，NAS 日志记录 `context canceled`；目标原图 `/api/raw/.../78.jpg` 首字节约 `5ms`、完整 `56.9 MB` 响应约 `1.60s`，页面总 ready `3.14s`，最终尺寸 `6048×8064`，控制台错误 `0`。同次报告的 `/preview/big` 只属于相邻 `77.jpg` 预取，目标未触发缩放大图。
 - 视频回归报告 `20260822T223349Z`：同一视频在约 `0.835s` 达到 `durationchange/loadedmetadata/canplay`，`readyState=4`、保持暂停、运行时错误 `0`。全量 Frontend Vitest `87 files / 294 tests` 通过；typecheck、lint 已在提交前通过。
+- 移动端报告同样覆盖 `390×844`：`78.jpg` 最终 `ready`、无横向溢出和运行时错误，原图响应约 `1.65s`，整页 ready 约 `5.12s`。移动端接收约 `54.25 MB` 原图是已知带宽/内存成本，后续需评估按设备能力选择更小的服务端回退规格。
 - 该策略优先解决“冷盘等待期间页面卡住”的用户体验，不把原图回退误报成冷盘解码本身已变快；原图传输会增加单次带宽和浏览器内存占用，后续继续观察移动端大图设备的资源压力。

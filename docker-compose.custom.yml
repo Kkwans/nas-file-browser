@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.23-phase10-media-warm-cache-r12
+    image: nas-file-browser:2026.8.23-phase10-media-raw-feedback-r13
     build:
       context: .
       dockerfile: Dockerfile.custom

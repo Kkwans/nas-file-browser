@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.23-phase10-media-raw-fallback-r10
+    image: nas-file-browser:2026.8.23-phase10-media-placeholder-fallback-r11
     build:
       context: .
       dockerfile: Dockerfile.custom

@@ -2,7 +2,7 @@
   <div id="archive-page" class="archive-page">
     <header-bar show-menu show-logo>
       <div class="archive-header-title">
-        <i class="material-icons" aria-hidden="true">folder_zip</i>
+        <AppIcon name="file-archive" :size="25" />
         <div>
           <strong>压缩包浏览</strong>
           <span>{{ archiveName || "只读查看并选择性解压" }}</span>
@@ -14,13 +14,11 @@
           class="archive-header-action"
           :to="parentRoute"
         >
-          <i class="material-icons" aria-hidden="true">arrow_back</i>
+          <AppIcon name="arrow-left" :size="18" />
           返回所在目录
         </router-link>
         <router-link class="archive-header-action" :to="taskReturnRoute">
-          <i class="material-icons" aria-hidden="true">{{
-            taskReturnId ? "arrow_back" : "pending_actions"
-          }}</i>
+          <AppIcon :name="taskReturnId ? 'arrow-left' : 'tasks'" :size="18" />
           {{ taskReturnId ? "返回原任务" : "任务中心" }}
         </router-link>
       </template>
@@ -29,7 +27,7 @@
     <main class="archive-workspace">
       <section class="archive-hero" aria-labelledby="archive-title">
         <div class="archive-hero-mark" aria-hidden="true">
-          <i class="material-icons">inventory_2</i>
+          <AppIcon name="archive" :size="30" />
         </div>
         <div>
           <p class="archive-eyebrow">SAFE ARCHIVE BROWSER</p>
@@ -39,13 +37,13 @@
           </p>
         </div>
         <span class="archive-safety-badge">
-          <i class="material-icons" aria-hidden="true">verified_user</i>
+          <AppIcon name="shield-check" :size="18" />
           路径穿越保护
         </span>
       </section>
 
       <section v-if="loading" class="archive-state" aria-live="polite">
-        <i class="material-icons archive-spin" aria-hidden="true">sync</i>
+        <AppIcon name="loader" class="archive-spin" :size="24" />
         <div>
           <strong>正在读取压缩包目录</strong>
           <p>大型 TAR 或压缩 TAR 需要顺序扫描，请稍候。</p>
@@ -57,7 +55,7 @@
         class="archive-state archive-state--error"
         role="alert"
       >
-        <i class="material-icons" aria-hidden="true">error_outline</i>
+        <AppIcon name="circle-alert" :size="24" />
         <div>
           <strong>无法打开压缩包</strong>
           <p>{{ loadError }}</p>
@@ -95,7 +93,7 @@
         </section>
 
         <section v-if="listing.truncated" class="archive-warning" role="alert">
-          <i class="material-icons" aria-hidden="true">gpp_bad</i>
+          <AppIcon name="risk-high" :size="22" />
           <div>
             <strong>压缩包超过安全限制，已停止继续读取</strong>
             <p>{{ listing.limitReason }}。在确认完整内容前不会允许解压。</p>
@@ -127,7 +125,7 @@
             </div>
             <div class="archive-browser-actions">
               <label>
-                <i class="material-icons" aria-hidden="true">search</i>
+                <AppIcon name="search" :size="18" />
                 <input
                   v-model.trim="filter"
                   type="search"
@@ -179,9 +177,12 @@
                   "
                   @click="toggleExpanded(row.path)"
                 >
-                  <i class="material-icons" aria-hidden="true">{{
-                    expanded.has(row.path) ? "expand_more" : "chevron_right"
-                  }}</i>
+                  <AppIcon
+                    :name="
+                      expanded.has(row.path) ? 'chevron-down' : 'chevron-right'
+                    "
+                    :size="19"
+                  />
                 </button>
                 <span v-else class="archive-expand-spacer"></span>
                 <label>
@@ -192,9 +193,7 @@
                     :aria-label="`选择 ${row.path}`"
                     @change="toggleSelected(row)"
                   />
-                  <i class="material-icons" aria-hidden="true">{{
-                    row.isDir ? "folder" : "insert_drive_file"
-                  }}</i>
+                  <AppIcon :name="entryIcon(row)" :size="20" />
                   <span :title="row.path">
                     <strong>{{ row.name }}</strong>
                     <small>{{ row.path }}</small>
@@ -214,7 +213,7 @@
             </div>
           </div>
           <div v-else class="archive-empty-filter">
-            <i class="material-icons" aria-hidden="true">search_off</i>
+            <AppIcon name="filter-clear" :size="22" />
             没有匹配“{{ filter }}”的条目
           </div>
           <button
@@ -242,7 +241,7 @@
           <label class="archive-destination">
             <span>目标目录</span>
             <div>
-              <i class="material-icons" aria-hidden="true">drive_file_move</i>
+              <AppIcon name="move" :size="19" />
               <input
                 v-model.trim="destination"
                 type="text"
@@ -254,7 +253,7 @@
           </label>
           <div class="archive-extract-footer">
             <p>
-              <i class="material-icons" aria-hidden="true">info</i>
+              <AppIcon name="info" :size="16" />
               解压任务全局并发 1，可在任务中心取消或显式重试。
             </p>
             <button
@@ -263,7 +262,7 @@
               :disabled="!canExtract"
               @click="startExtraction"
             >
-              <i class="material-icons" aria-hidden="true">unarchive</i>
+              <AppIcon name="archive-restore" :size="18" />
               {{ starting ? "正在提交…" : "解压所选项目" }}
             </button>
           </div>
@@ -272,7 +271,7 @@
 
       <section v-if="currentTask" class="archive-task" aria-live="polite">
         <div class="archive-task-icon" :class="`is-${currentTask.status}`">
-          <i class="material-icons" aria-hidden="true">{{ taskIcon }}</i>
+          <AppIcon :name="taskIcon" :size="22" />
         </div>
         <div>
           <strong>{{ currentTask.title }}</strong>
@@ -308,7 +307,7 @@
         aria-labelledby="result-title"
       >
         <div class="archive-result-mark" aria-hidden="true">
-          <i class="material-icons">task_alt</i>
+          <AppIcon name="circle-check" :size="24" />
         </div>
         <div>
           <small>EXTRACTION COMPLETE</small>
@@ -332,7 +331,7 @@
         </div>
         <router-link :to="destinationRoute">
           打开目标目录
-          <i class="material-icons" aria-hidden="true">arrow_forward</i>
+          <AppIcon name="arrow-right" :size="17" />
         </router-link>
       </section>
     </main>
@@ -343,6 +342,7 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import HeaderBar from "@/components/header/HeaderBar.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import * as archiveApi from "@/api/archive";
 import * as taskApi from "@/api/tasks";
 import type { ArchiveExtractReport, ArchiveListing } from "@/api/archive";
@@ -350,6 +350,7 @@ import type { TaskItem, TaskStatus } from "@/api/tasks";
 import { useAuthStore } from "@/stores/auth";
 import { useTasksStore } from "@/stores/tasks";
 import { useRecentStore } from "@/stores/recent";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 import {
   buildArchiveTree,
   flattenArchiveTree,
@@ -362,6 +363,7 @@ import {
 import { encodePath } from "@/utils/url";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
+import { getResourceIconName } from "@/utils/fileIcons";
 
 const route = useRoute();
 const router = useRouter();
@@ -450,16 +452,16 @@ const taskProgress = computed(() => {
 const taskStatusLabel = computed(() =>
   currentTask.value ? taskStatus(currentTask.value.status) : ""
 );
-const taskIcon = computed(() => {
-  const icons: Record<TaskStatus, string> = {
-    queued: "hourglass_top",
-    running: "sync",
-    completed: "task_alt",
-    failed: "error_outline",
-    canceled: "cancel",
-    interrupted: "power_settings_new",
+const taskIcon = computed<AppIconName>(() => {
+  const icons: Record<TaskStatus, AppIconName> = {
+    queued: "hourglass",
+    running: "loader",
+    completed: "circle-check",
+    failed: "circle-alert",
+    canceled: "circle-x",
+    interrupted: "retry",
   };
-  return currentTask.value ? icons[currentTask.value.status] : "pending";
+  return currentTask.value ? icons[currentTask.value.status] : "hourglass";
 });
 const parentRoute = computed(() => filesRoute(parentPath(archivePath.value)));
 const destinationRoute = computed(() =>
@@ -727,6 +729,10 @@ function formatModified(value: number) {
   return dayjs(value).format("YYYY-MM-DD HH:mm");
 }
 
+function entryIcon(row: ArchiveTreeRow): AppIconName {
+  return getResourceIconName(row.name, row.isDir ? "dir" : "blob", row.isDir);
+}
+
 onMounted(loadFromRoute);
 onBeforeUnmount(() => {
   disposed = true;
@@ -753,9 +759,10 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 1px;
 }
-.archive-header-title > .material-icons {
+.archive-header-title > .app-icon {
   color: var(--icon-orange);
-  font-size: 25px;
+  width: 25px;
+  height: 25px;
 }
 .archive-header-title strong {
   font-size: 15px;
@@ -809,8 +816,9 @@ onBeforeUnmount(() => {
   color: var(--icon-orange);
   background: color-mix(in srgb, var(--icon-orange) 11%, transparent);
 }
-.archive-hero-mark .material-icons {
-  font-size: 30px;
+.archive-hero-mark .app-icon {
+  width: 30px;
+  height: 30px;
 }
 .archive-eyebrow {
   margin: 0 0 5px;
@@ -842,8 +850,9 @@ onBeforeUnmount(() => {
   font-size: 11px;
   font-weight: 700;
 }
-.archive-safety-badge .material-icons {
-  font-size: 16px;
+.archive-safety-badge .app-icon {
+  width: 16px;
+  height: 16px;
 }
 .archive-state,
 .archive-warning,
@@ -860,9 +869,10 @@ onBeforeUnmount(() => {
   gap: 12px;
   padding: 17px;
 }
-.archive-state > .material-icons {
+.archive-state > .app-icon {
   color: var(--blue);
-  font-size: 27px;
+  width: 27px;
+  height: 27px;
 }
 .archive-state strong,
 .archive-state p,
@@ -890,7 +900,7 @@ onBeforeUnmount(() => {
   background: var(--surfaceSecondary);
   cursor: pointer;
 }
-.archive-state--error > .material-icons {
+.archive-state--error > .app-icon {
   color: var(--red);
 }
 .archive-spin {
@@ -927,8 +937,9 @@ onBeforeUnmount(() => {
   padding: 13px 15px;
   color: var(--icon-orange);
 }
-.archive-warning .material-icons {
-  font-size: 23px;
+.archive-warning .app-icon {
+  width: 23px;
+  height: 23px;
 }
 .archive-warning strong,
 .archive-warning p {
@@ -1035,9 +1046,10 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   background: var(--surfaceSecondary);
 }
-.archive-browser-actions label .material-icons {
+.archive-browser-actions label .app-icon {
   color: var(--textPrimary);
-  font-size: 17px;
+  width: 17px;
+  height: 17px;
 }
 .archive-browser-actions input {
   width: 170px;
@@ -1114,8 +1126,9 @@ onBeforeUnmount(() => {
 .archive-expand:hover {
   background: var(--hover);
 }
-.archive-expand .material-icons {
-  font-size: 19px;
+.archive-expand .app-icon {
+  width: 19px;
+  height: 19px;
 }
 .archive-entry-name > label {
   display: grid;
@@ -1131,9 +1144,10 @@ onBeforeUnmount(() => {
   width: 16px;
   height: 16px;
 }
-.archive-entry-name label > .material-icons {
+.archive-entry-name label > .app-icon {
   color: var(--textPrimary);
-  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 .archive-entry-name label > span {
   display: grid;
@@ -1189,9 +1203,10 @@ onBeforeUnmount(() => {
   border-radius: 9px;
   background: var(--surfaceSecondary);
 }
-.archive-destination .material-icons {
+.archive-destination .app-icon {
   color: var(--textPrimary);
-  font-size: 19px;
+  width: 19px;
+  height: 19px;
 }
 .archive-destination input {
   min-width: 0;
@@ -1220,8 +1235,9 @@ onBeforeUnmount(() => {
   color: var(--textPrimary);
   font-size: 11px;
 }
-.archive-extract-footer p .material-icons {
-  font-size: 16px;
+.archive-extract-footer p .app-icon {
+  width: 16px;
+  height: 16px;
 }
 .archive-primary {
   display: inline-flex;
@@ -1258,7 +1274,7 @@ onBeforeUnmount(() => {
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 10%, transparent);
 }
-.archive-task-icon.is-running .material-icons {
+.archive-task-icon.is-running .app-icon {
   animation: archive-spin 1.4s linear infinite;
 }
 .archive-task-icon.is-completed {
@@ -1356,8 +1372,9 @@ onBeforeUnmount(() => {
   font-weight: 700;
   text-decoration: none;
 }
-.archive-result > a .material-icons {
-  font-size: 17px;
+.archive-result > a .app-icon {
+  width: 17px;
+  height: 17px;
 }
 @keyframes archive-spin {
   to {
@@ -1460,7 +1477,7 @@ onBeforeUnmount(() => {
 }
 @media (prefers-reduced-motion: reduce) {
   .archive-spin,
-  .archive-task-icon.is-running .material-icons {
+  .archive-task-icon.is-running .app-icon {
     animation: none;
   }
   .archive-entry-row,

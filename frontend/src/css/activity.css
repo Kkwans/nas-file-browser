@@ -576,6 +576,43 @@
   color: var(--icon-red);
 }
 
+.task-error > span {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  text-overflow: ellipsis;
+}
+
+.task-error-details {
+  margin: 5px 0 0 21px;
+  color: var(--icon-red);
+  font-size: 11px;
+}
+
+.task-error-details summary {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.task-error-details pre {
+  max-height: 180px;
+  margin: 5px 0 0;
+  padding: 8px 9px;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--icon-red) 20%, var(--borderPrimary));
+  border-radius: 8px;
+  color: var(--textSecondary);
+  background: color-mix(in srgb, var(--icon-red) 4%, var(--surfaceSecondary));
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .task-card-actions {
   display: flex;
   min-width: 116px;
@@ -1580,6 +1617,14 @@
     min-width: 44px;
     min-height: 44px;
     align-items: center;
+  }
+
+  .task-error-details {
+    margin-left: 0;
+  }
+
+  .task-error-details summary {
+    min-height: 44px;
   }
 
   .task-overview {

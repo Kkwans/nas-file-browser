@@ -252,9 +252,16 @@
                   : "任务正在执行，暂时没有可量化进度"
               }}
             </p>
-            <p v-if="task.error" class="task-error">
-              <app-icon name="circle-x" :size="15" />{{ task.error }}
-            </p>
+            <template v-if="task.error">
+              <p class="task-error">
+                <app-icon name="circle-x" :size="15" />
+                <span>{{ summarizeTaskError(task.error) }}</span>
+              </p>
+              <details class="task-error-details">
+                <summary>查看完整错误</summary>
+                <pre>{{ task.error }}</pre>
+              </details>
+            </template>
             <details class="task-row__details">
               <summary>详细信息</summary>
               <dl>
@@ -380,6 +387,7 @@ import type {
 } from "@/api/tasks";
 import { useAuthStore } from "@/stores/auth";
 import { useTasksStore } from "@/stores/tasks";
+import { summarizeTaskError } from "@/utils/taskError";
 
 type TaskFilter =
   | "all"

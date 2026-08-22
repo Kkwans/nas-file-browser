@@ -37,6 +37,7 @@
     <img
       v-if="placeholderSrc && imageStatus === 'loading' && !placeholderFailed"
       class="image-ex-img image-ex-img-placeholder"
+      ref="placeholderImage"
       :src="placeholderSrc"
       alt=""
       aria-hidden="true"
@@ -187,6 +188,7 @@ const minScale = ref<number>(0.25);
 
 // Refs
 const imgex = ref<HTMLImageElement | null>(null);
+const placeholderImage = ref<HTMLImageElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
 let tiffRequest: XMLHttpRequest | null = null;
 let loadToken = 0;
@@ -196,6 +198,10 @@ const IMAGE_LOAD_TIMEOUT_MS = 30_000;
 // Give the real thumbnail a short head start so the first paint does not wait
 // behind the much more expensive 1080px preview on the single-image queue.
 const PLACEHOLDER_MAX_WAIT_MS = 650;
+// A very large JPEG can spend several seconds in the NAS decoder before the
+// scaled preview responds. Falling back to the inline original keeps the
+// viewer responsive while preserving the scaled-preview path when it wins.
+const RAW_IMAGE_FALLBACK_DELAY_MS = 650;
 
 const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 
@@ -363,6 +369,25 @@ const startFullImageLoad = (token: number) => {
   }
 };
 
+const startRawImageFallback = (token: number) => {
+  if (
+    token !== loadToken ||
+    fullLoadStarted.value ||
+    imageStatus.value !== "loading" ||
+    imgex.value === null ||
+    !props.placeholderIsFull
+  ) {
+    return;
+  }
+  fullLoadStarted.value = true;
+  armLoadTimeout(token);
+  // Removing the warm request's source lets the browser cancel the server
+  // coordinator when a cold decode has not produced a response in time.
+  placeholderImage.value?.removeAttribute("src");
+  placeholderFailed.value = true;
+  imgex.value.src = props.directSrc || props.src;
+};
+
 const onPlaceholderLoad = () => {
   startFullImageLoad(loadToken);
 };
@@ -378,10 +403,19 @@ const loadImage = () => {
   imageStatus.value = "loading";
   if (imgex.value === null) return;
   if (props.placeholderSrc) {
-    placeholderTimer = window.setTimeout(() => {
-      placeholderTimer = null;
-      startFullImageLoad(token);
-    }, PLACEHOLDER_MAX_WAIT_MS);
+    placeholderTimer = window.setTimeout(
+      () => {
+        placeholderTimer = null;
+        if (props.placeholderIsFull && props.directSrc) {
+          startRawImageFallback(token);
+        } else {
+          startFullImageLoad(token);
+        }
+      },
+      props.placeholderIsFull
+        ? RAW_IMAGE_FALLBACK_DELAY_MS
+        : PLACEHOLDER_MAX_WAIT_MS
+    );
   } else {
     startFullImageLoad(token);
   }

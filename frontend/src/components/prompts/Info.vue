@@ -3,9 +3,7 @@
     <!-- Header with icon -->
     <div class="card-title info-header">
       <div class="info-title-row">
-        <i class="material-icons info-type-icon">{{
-          dir ? "folder" : "insert_drive_file"
-        }}</i>
+        <AppIcon :name="infoIcon" class="info-type-icon" :size="32" />
         <div class="info-title-text">
           <h2 v-if="selectedCount > 1">
             {{ "已选择 " + selectedCount + " 个项目" }}
@@ -26,7 +24,7 @@
     <div class="card-content info-content">
       <!-- Multi-selection banner -->
       <div v-if="selectedCount > 1" class="info-banner info-banner-multi">
-        <i class="material-icons">checklist</i>
+        <AppIcon name="select" :size="20" />
         <span>已选择 {{ selectedCount }} 个文件/文件夹</span>
       </div>
 
@@ -54,9 +52,7 @@
             :title="pathCopied ? '已复制' : '复制路径'"
             @click="copyFullPath"
           >
-            <i class="material-icons">{{
-              pathCopied ? "check" : "content_copy"
-            }}</i>
+            <AppIcon :name="pathCopied ? 'circle-check' : 'copy'" :size="18" />
           </button>
         </div>
       </div>
@@ -113,9 +109,10 @@
             @click="showChecksums = !showChecksums"
             type="button"
           >
-            <i class="material-icons" :class="{ rotated: showChecksums }"
-              >expand_more</i
-            >
+            <AppIcon
+              :name="showChecksums ? 'chevron-up' : 'chevron-down'"
+              :size="18"
+            />
             <span>文件校验</span>
           </button>
           <div v-if="showChecksums" class="info-collapse-content">
@@ -165,7 +162,7 @@
         class="button--primary"
         aria-label="确认"
       >
-        <i class="material-icons">{{ renaming ? "sync" : "check" }}</i>
+        <AppIcon :name="renaming ? 'loader' : 'circle-check'" :size="18" />
         <span>{{ renaming ? "保存中…" : "确认" }}</span>
       </button>
     </div>
@@ -185,6 +182,9 @@ import { removePrefix } from "@/api/utils";
 import url from "@/utils/url";
 import { summarizeDirectory } from "@/utils/directoryStats";
 import { getFileTypeLabel } from "@/utils/fileListing";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
+import { getResourceIconName } from "@/utils/fileIcons";
 
 const $showError = inject<IToastError>("$showError")!;
 const showChecksums = ref(false);
@@ -313,6 +313,15 @@ const dir = computed(() => {
 });
 
 const isDirectoryInfo = computed(() => dir.value && selectedCount.value <= 1);
+
+const infoIcon = computed<AppIconName>(() => {
+  if (selectedCount.value > 1) return "select";
+  if (dir.value) return "folder";
+  return getResourceIconName(
+    selectedResource.value?.name || name.value,
+    selectedResource.value?.type || "blob"
+  );
+});
 
 const fileTypeLabel = computed(() => {
   const fileName = name.value;
@@ -443,7 +452,8 @@ const checksum = async (
 }
 
 .info-type-icon {
-  font-size: 2em;
+  width: 2rem;
+  height: 2rem;
   padding: 0.35em;
   border-radius: 0.5em;
   background: var(--surfaceSecondary, #f0f0f5);
@@ -541,8 +551,9 @@ const checksum = async (
   color: var(--textPrimary, #666);
 }
 
-.info-banner i {
-  font-size: 1.2em;
+.info-banner > .app-icon {
+  width: 1.2rem;
+  height: 1.2rem;
   color: var(--blue, #2196f3);
 }
 
@@ -571,9 +582,9 @@ const checksum = async (
   opacity: 0.8;
 }
 
-.info-collapse-btn i {
-  font-size: 1.1em;
-  transition: transform 0.2s;
+.info-collapse-btn > .app-icon {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .info-collapse-content {
@@ -631,8 +642,9 @@ const checksum = async (
   transform: scale(0.97);
 }
 
-.info-actions .button--primary i {
-  font-size: 1.1em;
+.info-actions .button--primary > .app-icon {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 /* Dark mode */
@@ -719,8 +731,9 @@ html.dark .info-type-icon {
   cursor: pointer;
 }
 
-.copy-path-button .material-icons {
-  font-size: 1.05rem;
+.copy-path-button > .app-icon {
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .info-path-value {

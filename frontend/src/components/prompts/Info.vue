@@ -767,7 +767,7 @@ html.dark .info-type-icon {
 .info-actions .button--secondary,
 .info-actions .button--primary {
   min-width: 5.5rem;
-  min-height: 2.75rem;
+  min-height: 44px;
   border-radius: 0.625rem;
 }
 
@@ -788,8 +788,10 @@ html.dark .info-type-icon {
 
 .copy-path-button {
   flex: 0 0 auto;
-  width: 2.5rem;
-  min-height: 2.5rem;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
   border-radius: 0.75rem;
 }

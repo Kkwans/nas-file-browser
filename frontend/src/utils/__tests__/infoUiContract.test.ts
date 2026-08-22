@@ -20,6 +20,9 @@ describe("文件信息弹窗 UI 契约", () => {
     expect(source).toContain("circle-check");
     expect(source).toContain("loader");
     expect(source).toContain(".copy-path-button");
+    expect(source).toContain("width: 44px;");
+    expect(source).toContain("height: 44px;");
+    expect(source).toContain("min-height: 44px;");
     expect(source).toContain(".info-actions .button--primary > .app-icon");
   });
 });

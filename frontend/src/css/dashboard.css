@@ -371,17 +371,12 @@ body.rtl .card .card-action {
   cursor: pointer;
 }
 
-.file-list li:before {
-  content: "folder";
+.file-list li > .file-list-icon {
+  flex: 0 0 auto;
   color: var(--textPrimary);
-  vertical-align: middle;
-  line-height: 1.4;
-  font-family: "Material Icons";
-  font-size: 1.75em;
-  margin-right: 0.25em;
 }
 
-.file-list li[aria-selected="true"]:before {
+.file-list li[aria-selected="true"] > .file-list-icon {
   color: var(--iconSecondary);
 }
 

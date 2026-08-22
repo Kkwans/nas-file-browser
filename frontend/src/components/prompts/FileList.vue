@@ -13,6 +13,12 @@
         v-for="item in items"
         :data-url="item.url"
       >
+        <AppIcon
+          name="folder"
+          class="file-list-icon"
+          :size="20"
+          aria-hidden="true"
+        />
         {{ item.name }}
       </li>
     </ul>
@@ -34,6 +40,7 @@ import { useLayoutStore } from "@/stores/layout";
 import url from "@/utils/url";
 import { files } from "@/api";
 import { StatusError } from "@/api/utils.js";
+import AppIcon from "@/components/ui/AppIcon.vue";
 
 interface FileItem {
   name: string;

@@ -195,6 +195,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: 0.5em;
   font-size: 0.92em;
   color: var(--textPrimary, #1a1a2e);
   box-sizing: border-box;
@@ -218,18 +219,12 @@
   background: var(--dark-blue, #3a8fd4);
 }
 
-.file-list li:before {
-  content: "folder";
-  font-family: "Material Icons";
-  font-size: 1.4em;
-  margin-right: 0.5em;
+.file-list li > .file-list-icon {
+  flex: 0 0 auto;
   color: var(--textSecondary, #888);
-  vertical-align: middle;
-  line-height: 1;
-  flex-shrink: 0;
 }
 
-.file-list li[aria-selected="true"]:before {
+.file-list li[aria-selected="true"] > .file-list-icon {
   color: rgba(255, 255, 255, 0.85);
 }
 

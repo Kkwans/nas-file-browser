@@ -231,3 +231,4 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 源码提交 `32110dc0` 已推送，GitHub CI `32603460906` 与 Docs `32603460926` 均成功。NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-media-placeholder-fallback-r11`（arm64，镜像 ID `sha256:6699cbbb0eaa5adef6da4718733ba92f1120fa10567a7466afab71ec5fa338e1`）；Compose 部署提交 `9a78cc9d` 已推送，CI `32603863440` 成功。仅重建 `filebrowser` 服务，容器 `running/healthy`，本机 HTTP `200`，r10 保留作回滚。
 - TX5pro 真实浏览器错误路径报告 `20260822T225607Z`：使用 `/tmp/nfb-acceptance-placeholder-error.jpg` 的受控损坏 JPEG，先发出 `/api/preview/thumb?...warm=big`，随后实际发出 `/api/raw/...` 并收到 `200 image/jpeg`；页面无控制台错误，最终进入明确的 `error` 状态而非假加载。测试文件已从 NAS `/tmp` 移除。
 - TX5pro 真实浏览器正常冷路径报告 `20260822T225623Z`：`78.jpg` 仍按 `warm=big` → 原图回退链路打开，最终 `ready`、`6048×8064`、无控制台错误；相邻 `77.jpg` 的 `/preview/big` 仍是成功后的低优先级预取，不属于目标重复解码。该证据确认错误回退修复没有破坏现有大图冷启动策略。
+- 同一路径的直接接口测量进一步解释了阈值取舍：冷缓存 `warm=big` 约 `4,724ms`、响应 `393,402 B`，而原图约 `1.60s`；完成一次后热缓存 `warm=big` 约 `197ms`。因此 `650ms` 不是声称服务端冷解码变快，而是让首开绕过慢冷解码、后续访问复用小体积缓存的折中。

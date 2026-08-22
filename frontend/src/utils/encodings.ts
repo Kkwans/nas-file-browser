@@ -1,5 +1,6 @@
 import type { Resource } from "@/types/file";
 import type { Sorting } from "@/types/user";
+import { decodePath } from "./url";
 
 export const availableEncodings = [
   // encodings
@@ -241,23 +242,24 @@ export async function makeRawResource(
   url: string
 ): Promise<Resource> {
   const buffer = await res.arrayBuffer();
+  const resourcePath = decodePath(url);
   return {
     items: [],
     numDirs: 0,
     numFiles: 0,
     sorting: {} as Sorting,
     index: 0,
-    extension: getExtension(url),
+    extension: getExtension(resourcePath),
     isDir: false,
     isSymlink: false,
-    path: url,
+    path: resourcePath,
     size: buffer.byteLength,
     modified: new Date().toISOString(),
-    name: url.split("/").pop() || "",
+    name: resourcePath.split("/").pop() || "",
     type: "text",
     riskLevel: "low",
     mode: 0,
-    url: `/files${url}`,
+    url: `/files${resourcePath}`,
     rawContent: buffer,
     content: decode(buffer, "utf-8"),
   };

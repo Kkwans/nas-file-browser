@@ -35,6 +35,20 @@ export function encodePath(str: string) {
     .join("/");
 }
 
+/** Decode each URL path segment once while preserving malformed legacy input. */
+export function decodePath(str: string) {
+  return str
+    .split("/")
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment);
+      } catch {
+        return segment;
+      }
+    })
+    .join("/");
+}
+
 export default {
   encodeRFC5987ValueChars,
   removeLastDir,

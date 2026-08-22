@@ -137,6 +137,8 @@ interface IProps {
   fileName?: string;
   fileSizeBytes?: number;
   placeholderSrc?: string;
+  /** The placeholder URL already contains the full preview bytes. */
+  placeholderIsFull?: boolean;
   directSrc?: string;
   downloadSrc?: string;
 }
@@ -148,6 +150,7 @@ const props = withDefaults(defineProps<IProps>(), {
   fileName: () => "",
   fileSizeBytes: () => 0,
   placeholderSrc: () => "",
+  placeholderIsFull: false,
   directSrc: () => "",
   downloadSrc: () => "",
 });
@@ -350,8 +353,13 @@ const startFullImageLoad = (token: number) => {
   }
   fullLoadStarted.value = true;
   armLoadTimeout(token);
-  if (!decodeUTIF(token)) {
+  if (!props.placeholderIsFull && !decodeUTIF(token)) {
     imgex.value.src = props.src;
+  } else if (props.placeholderIsFull) {
+    // The warm thumbnail response is the same 1080px JPEG used by the
+    // viewer. Reuse that URL so promotion is satisfied from the browser
+    // cache instead of triggering a second server-side image decode.
+    imgex.value.src = props.placeholderSrc;
   }
 };
 

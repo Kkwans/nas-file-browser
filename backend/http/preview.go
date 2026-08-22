@@ -207,19 +207,30 @@ func handleImagePreview(
 	}
 
 	cacheKey := previewCacheKey(file, previewSize)
+	warmLargeJPEG := previewSize == PreviewSizeThumb && shouldWarmLargeJPEGPreview(r, file)
 	resizedImage, ok, err := loadPreviewCache(r.Context(), fileCache, cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
+	// A warm request must run even when a small listing thumbnail already
+	// exists. Its response is the reusable large preview, while the exact
+	// thumbnail remains available from the regular cache key.
+	if warmLargeJPEG {
+		ok = false
+	}
 	if !ok {
-		resizedImage, err = coordinator.Do(r.Context(), cacheKey, func(ctx context.Context) ([]byte, error) {
+		coordinatorKey := cacheKey
+		if warmLargeJPEG {
+			coordinatorKey += ":warm=big"
+		}
+		resizedImage, err = coordinator.Do(r.Context(), coordinatorKey, func(ctx context.Context) ([]byte, error) {
+			if warmLargeJPEG {
+				return createLargeJPEGThumbnailWarmup(ctx, imgSvc, ffmpegImage, fileCache, file)
+			}
 			if cached, exists, loadErr := loadPreviewCache(ctx, fileCache, cacheKey); loadErr != nil {
 				return nil, loadErr
 			} else if exists {
 				return cached, nil
-			}
-			if shouldWarmLargeJPEGPreview(r, file) {
-				return createLargeJPEGThumbnailWarmup(ctx, imgSvc, ffmpegImage, fileCache, file)
 			}
 			return createImagePreview(ctx, imgSvc, ffmpegImage, fileCache, file, previewSize)
 		})

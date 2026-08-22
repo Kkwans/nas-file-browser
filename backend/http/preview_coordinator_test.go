@@ -205,8 +205,8 @@ func TestLargeJPEGThumbnailWarmHintStoresBigAndThumbFromOneSourceDecode(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(thumbnail) != "thumb-preview" {
-		t.Fatalf("thumbnail = %q, want derived preview", thumbnail)
+	if string(thumbnail) != "big-preview" {
+		t.Fatalf("warm thumbnail response = %q, want reusable big preview", thumbnail)
 	}
 	if generator.bigCalls != 1 {
 		t.Fatalf("source decode calls = %d, want 1", generator.bigCalls)
@@ -216,6 +216,52 @@ func TestLargeJPEGThumbnailWarmHintStoresBigAndThumbFromOneSourceDecode(t *testi
 	}
 	if got, ok, _ := cache.Load(context.Background(), previewCacheKey(file, PreviewSizeThumb)); !ok || string(got) != "thumb-preview" {
 		t.Fatalf("thumb cache = %q, exists=%t", got, ok)
+	}
+}
+
+func TestLargeJPEGWarmHintBypassesExistingListingThumbnail(t *testing.T) {
+	file := &files.FileInfo{
+		Path:      "/photos/large.jpg",
+		Name:      "large.jpg",
+		Extension: ".jpg",
+		Size:      ffmpegImagePreviewMinBytes,
+		ModTime:   time.Unix(10, 0),
+	}
+	cache := newMemoryPreviewCache()
+	var staleThumbnail bytes.Buffer
+	if err := png.Encode(&staleThumbnail, image.NewRGBA(image.Rect(0, 0, 2, 2))); err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.Store(context.Background(), previewCacheKey(file, PreviewSizeThumb), staleThumbnail.Bytes()); err != nil {
+		t.Fatal(err)
+	}
+	var bigPreview bytes.Buffer
+	if err := png.Encode(&bigPreview, image.NewRGBA(image.Rect(0, 0, 1, 1))); err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.Store(context.Background(), previewCacheKey(file, PreviewSizeBig), bigPreview.Bytes()); err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest("GET", "/api/preview/thumb/photos/large.jpg?warm=big", nil)
+	response := httptest.NewRecorder()
+	status, err := handleImagePreview(
+		response,
+		req,
+		fakeImgService{},
+		nil,
+		cache,
+		newPreviewCoordinator(),
+		file,
+		PreviewSizeThumb,
+		true,
+		true,
+	)
+	if err != nil || status != 0 {
+		t.Fatalf("warm preview status = %d, error = %v", status, err)
+	}
+	if got := response.Body.Bytes(); !bytes.Equal(got, bigPreview.Bytes()) {
+		t.Fatalf("warm preview response did not reuse the cached big preview")
 	}
 }
 

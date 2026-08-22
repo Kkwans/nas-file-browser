@@ -150,5 +150,9 @@ func createLargeJPEGThumbnailWarmup(
 	}
 	result := thumbnail.Bytes()
 	storePreviewCache(ctx, fileCache, previewCacheKey(file, PreviewSizeThumb), result)
-	return result, nil
+	// The warm request is used by the preview page itself. Return the already
+	// decoded large preview so the browser can promote the placeholder image to
+	// the viewer without issuing a second, identical decode request. The exact
+	// 256px thumbnail remains cached above for listing cards and other callers.
+	return bigPreview, nil
 }

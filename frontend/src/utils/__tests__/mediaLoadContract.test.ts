@@ -72,6 +72,10 @@ describe("media loading contract", () => {
     expect(imageSource).toContain("startFullImageLoad");
     expect(imageSource).toContain("PLACEHOLDER_MAX_WAIT_MS");
     expect(imageSource).toContain("placeholderFailed");
+    expect(imageSource).toContain("placeholderIsFull");
+    expect(previewSource).toContain(
+      ':placeholder-is-full="isLargeJpegPreview"'
+    );
   });
 
   it("uses a real server poster only for directly playable videos", () => {

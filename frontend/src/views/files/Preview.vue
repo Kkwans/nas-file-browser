@@ -126,6 +126,7 @@
           v-else-if="fileStore.req?.type == 'image'"
           :src="previewUrl"
           :placeholder-src="imagePlaceholderUrl"
+          :placeholder-is-full="isLargeJpegPreview"
           :fileName="name"
           :fileSizeBytes="fileStore.req?.size || 0"
           :directSrc="directUrl"
@@ -439,6 +440,17 @@ const imagePlaceholderUrl = computed(() => {
   if (fileStore.req?.type !== "image") return "";
   if (fullSize.value) return api.getPreviewURL(fileStore.req, "thumb");
   return api.getPreviewURL(fileStore.req, "thumb", { warm: "big" });
+});
+
+const LARGE_JPEG_PREVIEW_MIN_BYTES = 4 * 1024 * 1024;
+const isLargeJpegPreview = computed(() => {
+  const resource = fileStore.req;
+  if (!resource || resource.type !== "image" || fullSize.value) return false;
+  const extension = resource.extension.toLowerCase();
+  return (
+    resource.size >= LARGE_JPEG_PREVIEW_MIN_BYTES &&
+    (extension === ".jpg" || extension === ".jpeg")
+  );
 });
 
 const videoPosterUrl = computed(() => {

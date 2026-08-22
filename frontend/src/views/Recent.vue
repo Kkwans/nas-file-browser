@@ -2,7 +2,7 @@
   <div id="recent-page" class="activity-page">
     <header-bar show-menu show-logo>
       <div class="activity-header-title">
-        <i class="material-icons" aria-hidden="true">schedule</i>
+        <app-icon name="history" :size="24" />
         <div>
           <strong>最近访问</strong>
           <span>最近 {{ recentStore.items.length }} 项</span>
@@ -15,7 +15,7 @@
           :disabled="recentStore.loading"
           @click="load"
         >
-          <i class="material-icons" aria-hidden="true">refresh</i>
+          <app-icon name="refresh" :size="19" />
           刷新
         </button>
       </template>
@@ -24,14 +24,14 @@
     <main class="activity-workspace">
       <section class="recent-summary" aria-labelledby="recent-title">
         <div class="recent-summary-icon" aria-hidden="true">
-          <i class="material-icons">history</i>
+          <app-icon name="history" :size="20" />
         </div>
         <div>
           <h1 id="recent-title">接着上次的位置</h1>
           <p>最多保留 100 项成功访问记录，同一路径只显示最新一次。</p>
         </div>
         <span class="activity-private-state">
-          <i class="material-icons" aria-hidden="true">lock_outline</i>
+          <app-icon name="shield-check" :size="16" />
           用户私有
         </span>
       </section>
@@ -40,7 +40,7 @@
         v-if="recentStore.error"
         class="activity-state activity-state--error"
       >
-        <i class="material-icons" aria-hidden="true">cloud_off</i>
+        <app-icon name="cloud-off" :size="24" />
         <div>
           <strong>无法读取最近访问</strong>
           <p>{{ recentStore.error }}</p>
@@ -64,7 +64,7 @@
         v-else-if="recentStore.items.length === 0"
         class="activity-empty"
       >
-        <div aria-hidden="true"><i class="material-icons">schedule</i></div>
+        <div aria-hidden="true"><app-icon name="history" :size="28" /></div>
         <h2>还没有最近访问</h2>
         <p>成功进入目录或打开文件后，会出现在这里。</p>
         <router-link to="/files/">浏览文件</router-link>
@@ -78,9 +78,7 @@
           class="recent-entry"
         >
           <span class="recent-entry-icon" :class="{ folder: entry.isDir }">
-            <i class="material-icons" aria-hidden="true">{{
-              entry.isDir ? "folder" : getFileIcon(entry.name)
-            }}</i>
+            <app-icon :name="entryIcon(entry)" :size="22" />
           </span>
           <span class="recent-entry-copy">
             <strong :title="entry.name">{{ entry.name }}</strong>
@@ -89,9 +87,11 @@
           <time :datetime="new Date(entry.accessedAt).toISOString()">
             {{ dayjs(entry.accessedAt).fromNow() }}
           </time>
-          <i class="material-icons recent-entry-arrow" aria-hidden="true"
-            >chevron_right</i
-          >
+          <app-icon
+            name="chevron-right"
+            :size="20"
+            class="recent-entry-arrow"
+          />
         </router-link>
       </section>
     </main>
@@ -101,10 +101,11 @@
 <script setup lang="ts">
 import { inject, onMounted } from "vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import type { RecentEntry } from "@/api/recent";
 import { useRecentStore } from "@/stores/recent";
 import dayjs from "@/utils/date";
-import { getFileIcon } from "@/utils/fileIcons";
+import { getResourceIconName } from "@/utils/fileIcons";
 import { encodePath } from "@/utils/url";
 import { resourceOpenRoute } from "@/utils/archivePath";
 
@@ -126,6 +127,10 @@ function entryRoute(entry: RecentEntry) {
     path: entry.path,
     url: `/files${encodePath(entry.path)}${suffix}`,
   });
+}
+
+function entryIcon(entry: RecentEntry) {
+  return getResourceIconName(entry.name, "", entry.isDir);
 }
 
 onMounted(load);

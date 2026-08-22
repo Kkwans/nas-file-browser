@@ -1255,7 +1255,7 @@ html.dark .quick-preview-loading {
   border-top: 1px solid var(--divider, rgba(0, 0, 0, 0.06));
 }
 
-.batch-rename-card .card-action button {
+.rename-card .card-action button {
   min-height: 44px;
   min-width: 5.5rem;
 }

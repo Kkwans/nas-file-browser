@@ -19,7 +19,8 @@ describe("重命名弹窗 UI 契约", () => {
     expect(source).toContain('name="circle-check"');
     expect(source).toContain('name="arrow-right"');
     expect(source).toContain(":name=\"draft.isDir ? 'folder' : 'file'\"");
-    expect(styles).toContain(".batch-rename-card .card-action button");
+    expect(source).toContain('class="card floating rename-card"');
+    expect(styles).toContain(".rename-card .card-action button");
     expect(styles).toContain("min-height: 44px;");
   });
 });

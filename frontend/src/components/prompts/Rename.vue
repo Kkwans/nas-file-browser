@@ -1,5 +1,8 @@
 <template>
-  <div class="card floating" :class="{ 'batch-rename-card': isBatchRename }">
+  <div
+    class="card floating rename-card"
+    :class="{ 'batch-rename-card': isBatchRename }"
+  >
     <div class="card-title rename-title">
       <div>
         <h2>{{ isBatchRename ? "批量重命名" : "重命名" }}</h2>

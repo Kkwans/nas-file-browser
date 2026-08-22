@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -43,12 +44,13 @@ var errPreviewCoolingDown = errors.New("preview generation is cooling down after
 const previewFailureEntries = 256
 
 type previewFlight struct {
-	ctx     context.Context
-	cancel  context.CancelFunc
-	done    chan struct{}
-	waiters int
-	data    []byte
-	err     error
+	ctx       context.Context
+	cancel    context.CancelFunc
+	done      chan struct{}
+	keepAlive bool
+	waiters   int
+	data      []byte
+	err       error
 }
 
 type previewCoordinator struct {
@@ -79,7 +81,10 @@ func (c *previewCoordinator) Do(ctx context.Context, key string, work func(conte
 	flight := c.flights[key]
 	if flight == nil {
 		flightCtx, cancel := context.WithCancel(context.Background())
-		flight = &previewFlight{ctx: flightCtx, cancel: cancel, done: make(chan struct{})}
+		flight = &previewFlight{
+			ctx: flightCtx, cancel: cancel, done: make(chan struct{}),
+			keepAlive: strings.HasSuffix(key, ":warm=big"),
+		}
 		c.flights[key] = flight
 		go func() {
 			flight.data, flight.err = work(flight.ctx)
@@ -135,7 +140,7 @@ func (c *previewCoordinator) releaseWaiter(flight *previewFlight, canceled bool)
 	c.Lock()
 	defer c.Unlock()
 	flight.waiters--
-	if canceled && flight.waiters == 0 {
+	if canceled && flight.waiters == 0 && !flight.keepAlive {
 		flight.cancel()
 	}
 }

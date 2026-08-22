@@ -133,6 +133,46 @@ func TestPreviewCoordinatorCancelsUnobservedWorkAndCoolsFailures(t *testing.T) {
 	}
 }
 
+func TestPreviewCoordinatorKeepsWarmupWorkAfterLastWaiterLeaves(t *testing.T) {
+	coordinator := newPreviewCoordinator()
+	workStarted := make(chan struct{})
+	workFinished := make(chan struct{})
+	workCanceled := make(chan struct{})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		_, err := coordinator.Do(ctx, "thumb-key:warm=big", func(workCtx context.Context) ([]byte, error) {
+			close(workStarted)
+			select {
+			case <-workCtx.Done():
+				close(workCanceled)
+				return nil, context.Cause(workCtx)
+			case <-time.After(20 * time.Millisecond):
+				close(workFinished)
+				return []byte("warmed"), nil
+			}
+		})
+		done <- err
+	}()
+
+	<-workStarted
+	cancel()
+	if err := <-done; !errors.Is(err, context.Canceled) {
+		t.Fatalf("waiter error = %v", err)
+	}
+	select {
+	case <-workFinished:
+	case <-time.After(time.Second):
+		t.Fatal("warmup work did not finish after its last waiter left")
+	}
+	select {
+	case <-workCanceled:
+		t.Fatal("warmup work was canceled after its last waiter left")
+	default:
+	}
+}
+
 func TestFFmpegPreviewWorkerBounds(t *testing.T) {
 	if got := cap(newFFmpegPreviewService(0).workers); got != 1 {
 		t.Fatalf("default worker count = %d, want 1", got)

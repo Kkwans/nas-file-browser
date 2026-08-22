@@ -11,7 +11,6 @@
   gap: 10px;
 }
 
-.activity-header-title > .material-icons,
 .activity-header-title > .app-icon {
   color: var(--blue);
   font-size: 25px;
@@ -57,7 +56,7 @@
   outline-offset: -2px;
 }
 
-.activity-header-action .material-icons {
+.activity-header-action .app-icon {
   font-size: 19px;
 }
 
@@ -104,7 +103,7 @@
   background: color-mix(in srgb, var(--blue) 10%, var(--surfacePrimary));
 }
 
-.activity-switcher .material-icons {
+.activity-switcher .app-icon {
   font-size: 17px;
 }
 
@@ -173,7 +172,7 @@
   background: color-mix(in srgb, var(--blue) 9%, transparent);
 }
 
-.recent-summary-icon .material-icons {
+.recent-summary-icon .app-icon {
   font-size: 20px;
 }
 
@@ -332,13 +331,13 @@
   white-space: nowrap;
 }
 
-.activity-polling-state .material-icons,
-.activity-private-state .material-icons {
+.activity-polling-state .app-icon,
+.activity-private-state .app-icon {
   color: var(--icon-green);
   font-size: 17px;
 }
 
-.activity-private-state .material-icons {
+.activity-private-state .app-icon {
   color: var(--icon-orange);
 }
 
@@ -489,11 +488,11 @@
   background: color-mix(in srgb, var(--icon-red) 10%, transparent);
 }
 
-.task-icon .material-icons {
+.task-icon .app-icon {
   font-size: 21px;
 }
 
-.task-icon--running .material-icons {
+.task-icon--running .app-icon {
   animation: activity-spin 1.2s linear infinite;
 }
 
@@ -512,7 +511,7 @@
   gap: 5px;
 }
 
-.task-card-meta .material-icons {
+.task-card-meta .app-icon {
   font-size: 15px;
 }
 
@@ -567,8 +566,8 @@
   font-size: 11px;
 }
 
-.task-progress-pending .material-icons,
-.task-error .material-icons {
+.task-progress-pending .app-icon,
+.task-error .app-icon {
   font-size: 15px;
 }
 
@@ -648,7 +647,7 @@
   border-color: color-mix(in srgb, var(--blue) 28%, var(--borderPrimary));
 }
 
-.task-card-actions .material-icons {
+.task-card-actions .app-icon {
   font-size: 17px;
 }
 
@@ -660,7 +659,7 @@
   font-size: 11px;
 }
 
-.task-finished .material-icons {
+.task-finished .app-icon {
   color: var(--icon-green);
   font-size: 15px;
 }
@@ -1226,8 +1225,8 @@
   top: 0;
   bottom: 0;
   left: 16px;
-  width: 1px;
-  background: var(--borderPrimary);
+  width: 2px;
+  background: color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
   content: "";
 }
 
@@ -1250,35 +1249,18 @@
   align-self: stretch;
 }
 
-.history-entry:first-child .history-entry-line::before,
-.history-entry:last-child .history-entry-line::after {
-  position: absolute;
-  z-index: 1;
-  left: 5px;
-  width: 3px;
-  background: var(--surfacePrimary);
-  content: "";
-}
-
-.history-entry:first-child .history-entry-line::before {
-  inset: -10px auto 50%;
-}
-
-.history-entry:last-child .history-entry-line::after {
-  inset: 50% auto -10px;
-}
-
 .history-entry-line span {
   position: absolute;
   z-index: 2;
-  top: calc(50% - 4px);
-  left: 2px;
-  width: 9px;
-  height: 9px;
+  top: 50%;
+  left: 1px;
+  width: 11px;
+  height: 11px;
   border: 2px solid var(--surfacePrimary);
   border-radius: 50%;
   background: var(--icon-green);
-  box-shadow: 0 0 0 1px var(--borderPrimary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
+  transform: translateY(-50%);
 }
 
 .history-entry-line .history-entry-dot--submitted {
@@ -1299,7 +1281,7 @@
   background: var(--surfaceSecondary);
 }
 
-.history-entry-icon .material-icons {
+.history-entry-icon .app-icon {
   font-size: 20px;
 }
 
@@ -1399,7 +1381,7 @@
   text-align: left;
 }
 
-.activity-state--error > .material-icons {
+.activity-state--error > .app-icon {
   color: var(--icon-red);
   font-size: 30px;
 }
@@ -1436,7 +1418,7 @@
   background: var(--surfaceSecondary);
 }
 
-.activity-empty .material-icons {
+.activity-empty .app-icon {
   font-size: 34px;
 }
 
@@ -1750,7 +1732,7 @@
 @media (prefers-reduced-motion: reduce) {
   .task-card,
   .activity-skeleton,
-  .task-icon--running .material-icons {
+  .task-icon--running .app-icon {
     transition: none;
     animation: none;
   }

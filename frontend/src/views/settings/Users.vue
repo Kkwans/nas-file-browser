@@ -22,14 +22,18 @@
             <tr v-for="user in users" :key="user.id">
               <td>{{ user.username }}</td>
               <td>
-                <i v-if="user.perm.admin" class="material-icons">done</i
-                ><i v-else class="material-icons">close</i>
+                <AppIcon
+                  v-if="user.perm.admin"
+                  name="circle-check"
+                  :size="18"
+                />
+                <AppIcon v-else name="circle-x" :size="18" />
               </td>
               <td>{{ user.scope }}</td>
               <td class="small">
                 <router-link :to="'/settings/users/' + user.id"
-                  ><i class="material-icons">mode_edit</i></router-link
-                >
+                  ><AppIcon name="rename" :size="18"
+                /></router-link>
               </td>
             </tr>
           </table>
@@ -42,6 +46,7 @@
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
 import { users as api } from "@/api";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import Errors from "@/views/Errors.vue";
 import { onMounted, ref } from "vue";
 import { StatusError } from "@/api/utils";

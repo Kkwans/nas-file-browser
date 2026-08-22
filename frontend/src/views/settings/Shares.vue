@@ -37,7 +37,7 @@
                   aria-label="删除"
                   title="删除"
                 >
-                  <i class="material-icons">delete</i>
+                  <AppIcon name="trash" :size="18" />
                 </button>
               </td>
               <td class="small">
@@ -47,14 +47,14 @@
                   title="复制到剪贴板"
                   @click="copyToClipboard(buildLink(link))"
                 >
-                  <i class="material-icons">content_paste</i>
+                  <AppIcon name="copy" :size="18" />
                 </button>
               </td>
             </tr>
           </table>
         </div>
         <h2 class="message" v-else>
-          <i class="material-icons">sentiment_dissatisfied</i>
+          <AppIcon name="info" :size="26" />
           <span>{{ "这里没有任何文件..." }}</span>
         </h2>
       </div>
@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { share as api, users } from "@/api";
 import type { Share } from "@/types/api";
 import dayjs from "@/utils/date";

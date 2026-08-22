@@ -515,9 +515,10 @@
   font-weight: 400;
 }
 
-.dashboard .card h2.message i {
+.dashboard .card h2.message .app-icon {
   display: block;
-  font-size: 2.5em;
+  width: 2.5em;
+  height: 2.5em;
   margin-bottom: 0.3em;
   opacity: 0.4;
 }

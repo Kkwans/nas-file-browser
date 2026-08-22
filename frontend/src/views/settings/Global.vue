@@ -215,7 +215,7 @@
             <input :id="key" type="checkbox" />
             <label :for="key">
               <p>{{ capitalize(key) }}</p>
-              <i class="material-icons">arrow_drop_down</i>
+              <AppIcon name="chevron-down" :size="18" />
             </label>
             <div class="collapse">
               <textarea
@@ -237,6 +237,7 @@
 <script setup lang="ts">
 import { settings as api } from "@/api";
 import { StatusError } from "@/api/utils";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import Rules from "@/components/settings/Rules.vue";
 import Themes from "@/components/settings/Themes.vue";
 import UserForm from "@/components/settings/UserForm.vue";

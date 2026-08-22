@@ -69,9 +69,10 @@
                     :aria-label="`${rule.visible ? '隐藏' : '显示'}前缀 ${rule.prefix}`"
                     @click="togglePrefixVisibility(rule)"
                   >
-                    <i class="material-icons" aria-hidden="true">{{
-                      rule.visible ? "visibility" : "visibility_off"
-                    }}</i>
+                    <AppIcon
+                      :name="rule.visible ? 'eye' : 'eye-off'"
+                      :size="18"
+                    />
                     {{ rule.visible ? "显示" : "隐藏" }}
                   </button>
                   <button
@@ -82,9 +83,10 @@
                     :aria-label="`${rule.expanded ? '折叠' : '展开'}前缀 ${rule.prefix}`"
                     @click="togglePrefixExpanded(rule)"
                   >
-                    <i class="material-icons" aria-hidden="true">{{
-                      rule.expanded ? "unfold_less" : "unfold_more"
-                    }}</i>
+                    <AppIcon
+                      :name="rule.expanded ? 'chevron-up' : 'chevron-down'"
+                      :size="18"
+                    />
                     {{ rule.expanded ? "展开" : "折叠" }}
                   </button>
                   <button
@@ -94,9 +96,7 @@
                     :aria-label="`上移前缀 ${rule.prefix}`"
                     @click="movePrefix(index, -1)"
                   >
-                    <i class="material-icons" aria-hidden="true"
-                      >arrow_upward</i
-                    >
+                    <AppIcon name="arrow-up" :size="18" />
                   </button>
                   <button
                     type="button"
@@ -105,9 +105,7 @@
                     :aria-label="`下移前缀 ${rule.prefix}`"
                     @click="movePrefix(index, 1)"
                   >
-                    <i class="material-icons" aria-hidden="true"
-                      >arrow_downward</i
-                    >
+                    <AppIcon name="arrow-down" :size="18" />
                   </button>
                   <button
                     v-if="!listingPreferencesStore.isBuiltIn(rule.prefix)"
@@ -116,9 +114,7 @@
                     :aria-label="`删除前缀 ${rule.prefix}`"
                     @click="removePrefix(rule.prefix)"
                   >
-                    <i class="material-icons" aria-hidden="true"
-                      >delete_outline</i
-                    >
+                    <AppIcon name="trash" :size="18" />
                   </button>
                 </div>
               </div>
@@ -221,6 +217,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { useListingPreferencesStore } from "@/stores/listingPreferences";
 import { users as api } from "@/api";
 import AceEditorTheme from "@/components/settings/AceEditorTheme.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { authMethod, noAuth } from "@/utils/constants";
 import type { PrefixRule } from "@/types/user";
@@ -532,9 +529,10 @@ const addPrefix = () => {
   font-size: 12px;
 }
 
-.prefix-state-button .material-icons,
-.prefix-icon-button .material-icons {
-  font-size: 18px;
+.prefix-state-button .app-icon,
+.prefix-icon-button .app-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .prefix-state-button:hover,

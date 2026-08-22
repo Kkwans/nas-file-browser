@@ -2,9 +2,13 @@
   <div class="card floating risk-confirm-card">
     <div class="card-content">
       <div class="risk-confirm-header">
-        <i class="material-icons risk-confirm-icon" :class="'risk-' + riskLevel"
-          >warning</i
-        >
+        <AppIcon
+          :name="riskIconName"
+          class="risk-confirm-icon"
+          :class="'risk-' + riskLevel"
+          :size="28"
+          :stroke-width="2.1"
+        />
         <span class="risk-confirm-title">风险操作确认</span>
       </div>
       <div class="risk-confirm-body">
@@ -59,6 +63,8 @@
 import { computed } from "vue";
 import { useLayoutStore } from "@/stores/layout";
 import { storeToRefs } from "pinia";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 const layoutStore = useLayoutStore();
 const { currentPrompt } = storeToRefs(layoutStore);
 const { closeHovers } = layoutStore;
@@ -74,6 +80,11 @@ const riskLevelText = computed(() => {
   if (riskLevel.value === "high") return "高危";
   if (riskLevel.value === "medium") return "中危";
   return "低危";
+});
+const riskIconName = computed<AppIconName>(() => {
+  if (riskLevel.value === "high") return "risk-high";
+  if (riskLevel.value === "medium") return "risk-medium";
+  return "shield-check";
 });
 
 const cancel = () => {

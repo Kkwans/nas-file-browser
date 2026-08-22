@@ -599,7 +599,7 @@ html.dark .card .collapsible > label:hover {
 }
 
 .risk-confirm-icon {
-  font-size: 1.6em;
+  flex: 0 0 auto;
 }
 
 .risk-confirm-icon.risk-high {
@@ -608,6 +608,10 @@ html.dark .card .collapsible > label:hover {
 
 .risk-confirm-icon.risk-medium {
   color: #f5a623;
+}
+
+.risk-confirm-icon.risk-low {
+  color: #16845d;
 }
 
 .risk-confirm-title {
@@ -678,6 +682,11 @@ html.dark .card .collapsible > label:hover {
 
 .button--orange:hover {
   background: rgba(245, 166, 35, 0.1) !important;
+}
+
+.risk-confirm-card .card-action button {
+  min-width: 88px;
+  min-height: 44px;
 }
 
 :root.dark .risk-confirm-details,

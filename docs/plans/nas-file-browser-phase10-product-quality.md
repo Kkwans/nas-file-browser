@@ -52,6 +52,16 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 搜索页移动端快捷筛选在 r9 中存在横向滚动和截断；r1 修复为自动换行后，TX5pro `390×844` 与桌面 `1440×900` 均无横向溢出，8 个筛选按钮在移动端保持 `44px` 触控高度，搜索结果和当前目录范围正常，运行时错误为 0。
 - 当前部署镜像已更新为 `nas-file-browser:2026.8.23-phase10-search-r1`，Compose、容器健康检查和本机 HTTP 端点均通过。
 
+### 2026-08-23 编辑器移动触控修复与 TX5pro 验收
+
+- 首次 TX5pro 检查在编辑器移动端稳定复现两个 `40×40px` 顶部操作控件；会话续期和最近访问的 `POST /api/renew`、`POST /api/recent` 被只读脚本误计为业务写入，已将其区分为允许的被动请求，其他非幂等请求仍继续拦截。
+- 根因定位为工作台最终 CSS 将移动端通用 Header 操作保留为 `40px`，且编辑器关闭按钮实际位于 `header-center` 插槽而不是 `header-leading`。修复通过 `frontend/src/css/workspace-ui.css` 为编辑器关闭/保存操作提供 `44×44px` 触控目标，并补充 `markdownEditorContract` 回归契约。
+- 独立提交已推送：`ef97c062`（首版触控修复）、`adcc0e9c`（按真实 DOM 修正关闭按钮选择器）；对应部署标签提交为 `3dea8474`、`30e5e1b5`。
+- 本机验证：Markdown 聚焦 Vitest `10/10`、目标 ESLint `--max-warnings=0`、Frontend typecheck 通过；生产构建通过（仅保留既有 ReCaptcha、运行时 `custom.css` 和大 chunk 警告）。
+- 当前 NAS 镜像为 `nas-file-browser:2026.8.23-phase10-editor-touch-r3`，arm64 镜像构建完成，Compose config 通过，容器 `healthy`，`127.0.0.1:8888` 返回 200。
+- TX5pro Playwright 真实验收报告 `20260822T201121Z`：编辑器桌面 `1440×900`、移动 `390×844` 均渲染本地图标（Material 图标数为 0），无横向溢出、运行时错误或未授权业务写请求；移动端关闭、保存、更多均为 `44×44px`。当前账户没有分享链接，分享桌面/移动状态均明确标记 `skipped`，未伪称已验收。
+- 该模块不改变媒体、文件列表、移动端双击/长按契约或用户数据；下一步继续按 P0 媒体可靠性与 P1 文件区/侧栏视觉路线推进。
+
 ## 优先级与实施阶段
 
 ## P0：媒体打开速度与可靠性

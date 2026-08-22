@@ -23,7 +23,7 @@
       @click="openCurrentAudio"
     >
       <span class="audio-art" aria-hidden="true">
-        <i class="material-icons">graphic_eq</i>
+        <AppIcon :name="mediaIcon('graphic_eq')" :size="20" />
       </span>
       <span class="audio-copy">
         <strong>{{ mediaStore.currentAudio.name }}</strong>
@@ -39,7 +39,7 @@
         :disabled="!mediaStore.hasPreviousAudio"
         @click="mediaStore.previousAudio()"
       >
-        <i class="material-icons">skip_previous</i>
+        <AppIcon :name="mediaIcon('skip_previous')" :size="18" />
       </button>
       <button
         class="audio-play"
@@ -48,9 +48,10 @@
         :title="mediaStore.audioPlaying ? '暂停' : '播放'"
         @click="mediaStore.toggleAudio()"
       >
-        <i class="material-icons">{{
-          mediaStore.audioPlaying ? "pause" : "play_arrow"
-        }}</i>
+        <AppIcon
+          :name="mediaIcon(mediaStore.audioPlaying ? 'pause' : 'play_arrow')"
+          :size="18"
+        />
       </button>
       <button
         type="button"
@@ -59,7 +60,7 @@
         :disabled="!mediaStore.hasNextAudio"
         @click="mediaStore.nextAudio()"
       >
-        <i class="material-icons">skip_next</i>
+        <AppIcon :name="mediaIcon('skip_next')" :size="18" />
       </button>
     </div>
 
@@ -78,7 +79,7 @@
     </div>
 
     <div class="audio-volume">
-      <i class="material-icons" aria-hidden="true">volume_up</i>
+      <AppIcon :name="mediaIcon('volume_up')" :size="18" />
       <input
         type="range"
         min="0"
@@ -100,7 +101,7 @@
       title="关闭音频播放器"
       @click="mediaStore.closeAudio()"
     >
-      <i class="material-icons">close</i>
+      <AppIcon :name="mediaIcon('close')" :size="18" />
     </button>
   </section>
 </template>
@@ -110,6 +111,8 @@ import { useMediaStore } from "@/stores/media";
 import { formatMediaTime } from "@/utils/videoGestures";
 import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 
 const mediaStore = useMediaStore();
 const router = useRouter();
@@ -313,7 +316,7 @@ function openCurrentAudio() {
   accent-color: var(--blue);
 }
 
-.audio-volume i {
+.audio-volume .app-icon {
   color: var(--textSecondary);
   font-size: 18px;
 }

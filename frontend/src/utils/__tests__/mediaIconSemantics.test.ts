@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { mediaIcon } from "../mediaIconSemantics";
 
 describe("media icon semantics", () => {
@@ -28,5 +30,17 @@ describe("media icon semantics", () => {
     expect(mediaIcon("skip_next")).toBe("skip-forward");
     expect(mediaIcon("location_on")).toBe("map-pin");
     expect(mediaIcon("my_location")).toBe("locate-fixed");
+  });
+
+  it("keeps the global audio player and dropdown on the local SVG icon path", () => {
+    const sourceRoot = resolve(process.cwd(), "src");
+    for (const relativePath of [
+      "components/files/GlobalAudioPlayer.vue",
+      "components/DropdownModal.vue",
+    ]) {
+      const source = readFileSync(resolve(sourceRoot, relativePath), "utf8");
+      expect(source).not.toContain("material-icons");
+      expect(source).toContain("AppIcon");
+    }
   });
 });

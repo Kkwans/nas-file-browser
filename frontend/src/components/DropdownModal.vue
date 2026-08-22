@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { vClickOutside } from "@/utils/index";
+import AppIcon from "@/components/ui/AppIcon.vue";
 
 defineOptions({
   directives: {
@@ -83,7 +84,7 @@ onBeforeUnmount(() => {
   >
     <button @click="isOpen = !isOpen" class="dropdown-modal-trigger">
       <slot></slot>
-      <i class="material-icons">chevron_right</i>
+      <AppIcon name="chevron-right" :size="18" />
     </button>
 
     <teleport to="body">
@@ -116,7 +117,7 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-.dropdown-modal-trigger > i {
+.dropdown-modal-trigger > .app-icon {
   transform: rotate(90deg);
 }
 

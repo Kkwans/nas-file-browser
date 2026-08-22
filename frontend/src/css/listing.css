@@ -84,7 +84,8 @@
   font-weight: 550;
 }
 
-#listing .listing-prefix-header > .material-icons {
+#listing .listing-prefix-header > .material-icons,
+#listing .listing-prefix-header > .app-icon {
   color: var(--listing-muted);
   font-size: 20px;
 }
@@ -456,7 +457,10 @@
 
 #listing .item-icon-button .material-icons,
 #listing .detail-action-button .material-icons,
-#listing .mobile-item-more .material-icons {
+#listing .mobile-item-more .material-icons,
+#listing .item-icon-button > .app-icon,
+#listing .detail-action-button > .app-icon,
+#listing .mobile-item-more > .app-icon {
   font-size: 20px;
 }
 
@@ -899,7 +903,8 @@
   outline: none;
 }
 
-#listing.details .details-sort-button .material-icons {
+#listing.details .details-sort-button .material-icons,
+#listing.details .details-sort-button > .app-icon {
   color: var(--listing-accent);
   font-size: 16px;
 }
@@ -1234,7 +1239,8 @@
   );
 }
 
-.tag-filter-indicator > .material-icons {
+.tag-filter-indicator > .material-icons,
+.tag-filter-indicator > .app-icon {
   font-size: 22px;
 }
 
@@ -1461,7 +1467,8 @@
   border-radius: 1rem;
 }
 
-.file-empty-state-icon .material-icons {
+.file-empty-state-icon .material-icons,
+.file-empty-state-icon > .app-icon {
   font-size: 2rem;
 }
 
@@ -1535,7 +1542,8 @@
   white-space: nowrap;
 }
 
-#listing .selection-info > .material-icons {
+#listing .selection-info > .material-icons,
+#listing .selection-info > .app-icon {
   color: var(--listing-accent);
   font-size: 20px;
 }

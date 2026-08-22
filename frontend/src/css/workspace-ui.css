@@ -89,7 +89,9 @@ header > .header-center {
 }
 
 .listing-search-submit .material-icons,
-.listing-search-clear .material-icons {
+.listing-search-clear .material-icons,
+.listing-search-submit > .app-icon,
+.listing-search-clear > .app-icon {
   font-size: 19px;
 }
 
@@ -189,13 +191,16 @@ header > .header-center {
   font-size: 13px;
 }
 
-.dropdown-item > .material-icons {
+.dropdown-item > .material-icons,
+.dropdown-item > .app-icon {
   color: var(--textSecondary, #607080);
   font-size: 19px;
 }
 
 .dropdown-item.active > .material-icons,
-.dropdown-item:hover > .material-icons {
+.dropdown-item:hover > .material-icons,
+.dropdown-item.active > .app-icon,
+.dropdown-item:hover > .app-icon {
   color: currentColor;
 }
 

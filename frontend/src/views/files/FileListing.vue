@@ -18,7 +18,7 @@
             title="清空搜索内容"
             @click="clearInlineSearch"
           >
-            <i class="material-icons" aria-hidden="true">close</i>
+            <AppIcon name="x" :size="18" />
           </button>
           <button
             type="button"
@@ -27,7 +27,7 @@
             title="开始搜索"
             @click="submitInlineSearch"
           >
-            <i class="material-icons" aria-hidden="true">search</i>
+            <AppIcon name="search" :size="18" />
           </button>
         </div>
       </div>
@@ -97,7 +97,7 @@
               type="button"
               @click.stop="showViewDropdown = false"
             >
-              <i class="material-icons">arrow_back</i>
+              <AppIcon name="arrow-left" :size="18" />
               <span>选择视图</span>
             </button>
             <button
@@ -107,13 +107,14 @@
               :class="{ active: currentViewMode === mode.value }"
               @click="selectViewMode(mode.value)"
             >
-              <i class="material-icons">{{ mode.icon }}</i>
+              <AppIcon :name="mode.icon" :size="19" />
               <span>{{ mode.label }}</span>
               <i
                 v-if="currentViewMode === mode.value"
-                class="material-icons check"
-                >check</i
-              >
+                class="check"
+                name="circle-check"
+                :size="18"
+              />
             </button>
             <template v-if="currentViewMode === 'compact-grid'">
               <div class="dropdown-divider"></div>
@@ -126,14 +127,14 @@
                 type="button"
                 @click="selectCompactGridSize(size.value)"
               >
-                <i class="material-icons">{{ size.icon }}</i>
+                <AppIcon :name="size.icon" :size="19" />
                 <span>{{ size.label }}</span>
                 <i
                   v-if="compactGridSize === size.value"
-                  class="material-icons check"
-                  aria-hidden="true"
-                  >check</i
-                >
+                  class="check"
+                  name="circle-check"
+                  :size="18"
+                />
               </button>
             </template>
           </div>
@@ -151,7 +152,7 @@
               type="button"
               @click.stop="showSortDropdown = false"
             >
-              <i class="material-icons">arrow_back</i>
+              <AppIcon name="arrow-left" :size="18" />
               <span>选择排序方式</span>
             </button>
             <button
@@ -161,18 +162,18 @@
               :class="{ active: currentSortBy === opt.by }"
               @click="selectSort(opt.by)"
             >
-              <i class="material-icons">{{ opt.icon }}</i>
+              <AppIcon :name="opt.icon" :size="19" />
               <span>{{ opt.label }}</span>
               <i
                 v-if="currentSortBy === opt.by"
-                class="material-icons sort-arrow"
-              >
-                {{ currentSortAsc ? "arrow_upward" : "arrow_downward" }}
-              </i>
+                class="sort-arrow"
+                :name="listingSortDirectionIcon(currentSortAsc)"
+                :size="17"
+              />
             </button>
             <div class="dropdown-divider"></div>
             <button class="dropdown-item" @click="toggleSortDirection">
-              <i class="material-icons">swap_vert</i>
+              <AppIcon name="sort" :size="19" />
               <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
             </button>
           </div>
@@ -263,7 +264,7 @@
         role="status"
       >
         <span class="file-empty-state-icon" aria-hidden="true">
-          <i class="material-icons">folder_open</i>
+          <AppIcon name="folder" :size="32" />
         </span>
         <h2>这个文件夹是空的</h2>
         <p>可以新建文件或文件夹，也可以把文件上传到这里。</p>
@@ -344,12 +345,11 @@
           </div>
 
           <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
-            <i
-              class="material-icons"
+            <AppIcon
+              name="tag"
+              :size="22"
               :style="{ color: tagsStore.activeFilterTag.color }"
-              aria-hidden="true"
-              >label</i
-            >
+            />
             <span
               >正在按标签筛选：<strong>{{
                 tagsStore.activeFilterTag.name
@@ -383,7 +383,7 @@
               aria-label="清除筛选"
               @click="tagsStore.setFilter(null)"
             >
-              <i class="material-icons" aria-hidden="true">close</i>
+              <AppIcon name="x" :size="18" />
             </button>
           </div>
 
@@ -391,14 +391,14 @@
             v-if="items.dirs.length + items.files.length === 0"
             class="message filtered-empty"
           >
-            <i class="material-icons" aria-hidden="true">filter_alt_off</i>
+            <AppIcon name="filter-clear" :size="22" />
             <span>当前目录没有匹配项，可切换为全局筛选或清除筛选</span>
           </div>
           <div
             v-else-if="listingSections.length === 0"
             class="message filtered-empty prefix-hidden-empty"
           >
-            <i class="material-icons" aria-hidden="true">visibility_off</i>
+            <AppIcon name="eye-off" :size="22" />
             <span>当前项目已按特殊前缀偏好隐藏，可在账户设置中调整。</span>
           </div>
           <template v-for="section in renderedSections" :key="section.id">
@@ -413,9 +413,10 @@
               <code>{{ section.prefix }}</code>
               <span>{{ section.label }}</span>
               <span class="listing-prefix-count">{{ section.total }}</span>
-              <i class="material-icons" aria-hidden="true">{{
-                section.expanded ? "expand_less" : "expand_more"
-              }}</i>
+              <AppIcon
+                :name="section.expanded ? 'chevron-up' : 'chevron-down'"
+                :size="20"
+              />
             </button>
             <h2 v-else data-clear-on-click="true">{{ section.label }}</h2>
             <div
@@ -437,12 +438,11 @@
 
         <template v-else>
           <div v-if="tagsStore.activeFilterTag" class="tag-filter-indicator">
-            <i
-              class="material-icons"
+            <AppIcon
+              name="tag"
+              :size="22"
               :style="{ color: tagsStore.activeFilterTag.color }"
-              aria-hidden="true"
-              >label</i
-            >
+            />
             <span
               >正在按标签筛选：<strong>{{
                 tagsStore.activeFilterTag.name
@@ -476,14 +476,14 @@
               aria-label="清除筛选"
               @click="tagsStore.setFilter(null)"
             >
-              <i class="material-icons" aria-hidden="true">close</i>
+              <AppIcon name="x" :size="18" />
             </button>
           </div>
           <div
             v-if="listingSections.length === 0"
             class="message filtered-empty prefix-hidden-empty"
           >
-            <i class="material-icons" aria-hidden="true">visibility_off</i>
+            <AppIcon name="eye-off" :size="22" />
             <span>当前项目已按特殊前缀偏好隐藏，可在账户设置中调整。</span>
           </div>
           <div v-else-if="isMobile" class="details-mobile-list">
@@ -499,9 +499,10 @@
                 <code>{{ section.prefix }}</code>
                 <span>{{ section.label }}</span>
                 <span class="listing-prefix-count">{{ section.total }}</span>
-                <i class="material-icons" aria-hidden="true">{{
-                  section.expanded ? "expand_less" : "expand_more"
-                }}</i>
+                <AppIcon
+                  :name="section.expanded ? 'chevron-up' : 'chevron-down'"
+                  :size="20"
+                />
               </button>
               <Item
                 v-for="item in section.items"
@@ -531,14 +532,11 @@
                       @click="sortByHeader('name')"
                     >
                       名称
-                      <i
+                      <AppIcon
                         v-if="currentSortBy === 'name'"
-                        class="material-icons"
-                        aria-hidden="true"
-                        >{{
-                          currentSortAsc ? "arrow_upward" : "arrow_downward"
-                        }}</i
-                      >
+                        :name="listingSortDirectionIcon(currentSortAsc)"
+                        :size="16"
+                      />
                     </button>
                   </th>
                   <th scope="col" :aria-sort="headerSortState('type')">
@@ -548,14 +546,11 @@
                       @click="sortByHeader('type')"
                     >
                       类型
-                      <i
+                      <AppIcon
                         v-if="currentSortBy === 'type'"
-                        class="material-icons"
-                        aria-hidden="true"
-                        >{{
-                          currentSortAsc ? "arrow_upward" : "arrow_downward"
-                        }}</i
-                      >
+                        :name="listingSortDirectionIcon(currentSortAsc)"
+                        :size="16"
+                      />
                     </button>
                   </th>
                   <th scope="col" :aria-sort="headerSortState('size')">
@@ -565,14 +560,11 @@
                       @click="sortByHeader('size')"
                     >
                       大小
-                      <i
+                      <AppIcon
                         v-if="currentSortBy === 'size'"
-                        class="material-icons"
-                        aria-hidden="true"
-                        >{{
-                          currentSortAsc ? "arrow_upward" : "arrow_downward"
-                        }}</i
-                      >
+                        :name="listingSortDirectionIcon(currentSortAsc)"
+                        :size="16"
+                      />
                     </button>
                   </th>
                   <th scope="col" :aria-sort="headerSortState('modified')">
@@ -582,14 +574,11 @@
                       @click="sortByHeader('modified')"
                     >
                       修改时间
-                      <i
+                      <AppIcon
                         v-if="currentSortBy === 'modified'"
-                        class="material-icons"
-                        aria-hidden="true"
-                        >{{
-                          currentSortAsc ? "arrow_upward" : "arrow_downward"
-                        }}</i
-                      >
+                        :name="listingSortDirectionIcon(currentSortAsc)"
+                        :size="16"
+                      />
                     </button>
                   </th>
                   <th scope="col" class="details-actions-heading">操作</th>
@@ -614,9 +603,12 @@
                         <span class="listing-prefix-count">{{
                           section.total
                         }}</span>
-                        <i class="material-icons" aria-hidden="true">{{
-                          section.expanded ? "expand_less" : "expand_more"
-                        }}</i>
+                        <AppIcon
+                          :name="
+                            section.expanded ? 'chevron-up' : 'chevron-down'
+                          "
+                          :size="20"
+                        />
                       </button>
                     </td>
                   </tr>
@@ -708,7 +700,7 @@
           id="multiple-selection"
         >
           <div class="selection-info">
-            <i class="material-icons">check_circle</i>
+            <AppIcon name="circle-check" :size="20" />
             <span v-if="fileStore.selectedCount > 0"> 已选择 </span>
             <span v-else>多选模式已开启</span>
           </div>
@@ -719,7 +711,7 @@
               title="全选"
               aria-label="全选"
             >
-              <i class="material-icons">select_all</i>
+              <AppIcon name="select" :size="19" />
               <span>全选</span>
             </button>
             <button
@@ -729,7 +721,7 @@
               title="反选"
               aria-label="反选"
             >
-              <i class="material-icons">flip</i>
+              <AppIcon name="flip" :size="19" />
               <span>反选</span>
             </button>
             <template v-if="fileStore.selectedCount > 0">
@@ -738,7 +730,7 @@
                 class="selection-btn action-btn"
                 @click="layoutStore.showHover('rename')"
               >
-                <i class="material-icons">drive_file_rename_outline</i>
+                <AppIcon name="rename" :size="19" />
                 <span>重命名</span>
               </button>
               <button
@@ -746,7 +738,7 @@
                 class="selection-btn action-btn"
                 @click="layoutStore.showHover('copy')"
               >
-                <i class="material-icons">content_copy</i>
+                <AppIcon name="copy" :size="19" />
                 <span>复制文件</span>
               </button>
               <button
@@ -754,7 +746,7 @@
                 class="selection-btn action-btn"
                 @click="layoutStore.showHover('move')"
               >
-                <i class="material-icons">forward</i>
+                <AppIcon name="move" :size="19" />
                 <span>移动文件</span>
               </button>
               <button
@@ -762,7 +754,7 @@
                 class="selection-btn action-btn"
                 @click="download"
               >
-                <i class="material-icons">file_download</i>
+                <AppIcon name="download" :size="19" />
                 <span>下载</span>
               </button>
               <button
@@ -770,7 +762,7 @@
                 class="selection-btn action-btn"
                 @click="analyzeSelection"
               >
-                <i class="material-icons">data_usage</i>
+                <AppIcon name="chart-storage" :size="19" />
                 <span>分析</span>
               </button>
               <button
@@ -778,7 +770,7 @@
                 class="selection-btn action-btn danger"
                 @click="layoutStore.showHover('delete')"
               >
-                <i class="material-icons">delete</i>
+                <AppIcon name="trash" :size="19" />
                 <span>删除</span>
               </button>
             </template>
@@ -792,7 +784,7 @@
               title="关闭"
               aria-label="关闭"
             >
-              <i class="material-icons">close</i>
+              <AppIcon name="x" :size="18" />
             </button>
           </div>
         </div>
@@ -827,6 +819,7 @@ import { Base64 } from "js-base64";
 
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 import Item from "@/components/files/ListingItem.vue";
 import DetailedTableRow from "@/components/files/DetailedTableRow.vue";
@@ -861,6 +854,12 @@ import {
   buildListingSections,
   paginateListingSections,
 } from "@/utils/listingPreferences";
+import {
+  listingGridSizeIcon,
+  listingSortDirectionIcon,
+  listingSortIcon,
+  listingViewIcon,
+} from "@/utils/listingIconSemantics";
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -888,35 +887,39 @@ const currentViewMode = ref<ViewModeType>(
 const viewModes = [
   {
     value: "mosaic" as ViewModeType,
-    icon: "grid_view",
+    icon: listingViewIcon("mosaic"),
     label: "详细网格",
   },
   {
     value: "compact-grid" as ViewModeType,
-    icon: "grid_on",
+    icon: listingViewIcon("compact-grid"),
     label: "紧凑网格",
   },
   {
     value: "details" as ViewModeType,
-    icon: "table_rows",
+    icon: listingViewIcon("details"),
     label: "详细列表",
   },
   {
     value: "compact-list" as ViewModeType,
-    icon: "view_headline",
+    icon: listingViewIcon("compact-list"),
     label: "紧凑列表",
   },
 ];
 type CompactGridSize = "small" | "medium" | "large" | "xlarge";
 const compactGridSizes: Array<{
   value: CompactGridSize;
-  icon: string;
+  icon: AppIconName;
   label: string;
 }> = [
-  { value: "small", icon: "view_comfy", label: "小图标" },
-  { value: "medium", icon: "grid_on", label: "中图标" },
-  { value: "large", icon: "grid_view", label: "大图标" },
-  { value: "xlarge", icon: "photo_size_select_large", label: "超大图标" },
+  { value: "small", icon: listingGridSizeIcon("small"), label: "小图标" },
+  { value: "medium", icon: listingGridSizeIcon("medium"), label: "中图标" },
+  { value: "large", icon: listingGridSizeIcon("large"), label: "大图标" },
+  {
+    value: "xlarge",
+    icon: listingGridSizeIcon("xlarge"),
+    label: "超大图标",
+  },
 ];
 const storedCompactGridSize = localStorage.getItem(
   "nas-file-browser-compact-grid-size"
@@ -934,10 +937,14 @@ const currentSortBy = ref<string>(fileStore.req?.sorting?.by || "name");
 const currentSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
 const inlineSearch = ref("");
 const sortOptions = [
-  { by: "name", icon: "sort_by_alpha", label: "按名称排序" },
-  { by: "size", icon: "data_usage", label: "按大小排序" },
-  { by: "modified", icon: "schedule", label: "按修改时间排序" },
-  { by: "type", icon: "category", label: "按类型排序" },
+  { by: "name", icon: listingSortIcon("name"), label: "按名称排序" },
+  { by: "size", icon: listingSortIcon("size"), label: "按大小排序" },
+  {
+    by: "modified",
+    icon: listingSortIcon("modified"),
+    label: "按修改时间排序",
+  },
+  { by: "type", icon: listingSortIcon("type"), label: "按类型排序" },
 ];
 
 const { req } = storeToRefs(fileStore);

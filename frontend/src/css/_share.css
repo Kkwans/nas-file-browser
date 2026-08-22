@@ -27,8 +27,10 @@
   text-align: center;
 }
 
-.share__box__icon i {
-  font-size: 10em;
+.share__box__icon > .app-icon {
+  display: block;
+  width: 10em;
+  height: 10em;
   color: #40c4ff;
 }
 
@@ -50,9 +52,30 @@
   display: inline-block;
 }
 
-.share__box__element .button i {
+.share__box__element .button .app-icon {
   display: block;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 4px;
+}
+
+.share-audio-toggle {
+  display: inline-grid;
+  width: 7rem;
+  height: 7rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  outline: none;
+  color: var(--blue);
+  background: transparent;
+  cursor: pointer;
+}
+
+.share-audio-toggle:focus-visible {
+  border-radius: 0.75rem;
+  outline: 2px solid color-mix(in srgb, var(--blue) 62%, transparent);
+  outline-offset: 2px;
 }
 
 .share__box__items {

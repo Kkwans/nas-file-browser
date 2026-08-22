@@ -11,9 +11,9 @@ describe("文件工具栏图标契约", () => {
     const actionSource = readSource("components/header/Action.vue");
     const registrySource = readSource("components/ui/iconRegistry.ts");
 
-    expect(actionSource).toContain('v-if="appIcon"');
-    expect(actionSource).toContain(':name="appIcon"');
+    expect(actionSource).toContain(':name="resolvedIconName"');
     expect(actionSource).toContain("appIcon?: AppIconName");
+    expect(actionSource).toContain("resolveLegacyAppIcon");
     expect(registrySource).toContain("menu: Menu");
     expect(registrySource).toContain("more: MoreVertical");
     expect(registrySource).toContain("share: Share2");

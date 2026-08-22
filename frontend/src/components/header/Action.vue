@@ -6,13 +6,7 @@
     :disabled="disabled"
     class="action"
   >
-    <AppIcon
-      v-if="appIcon"
-      :name="appIcon"
-      :size="iconSize"
-      :stroke-width="1.9"
-    />
-    <i v-else class="material-icons" aria-hidden="true">{{ icon }}</i>
+    <AppIcon :name="resolvedIconName" :size="iconSize" :stroke-width="1.9" />
     <span>{{ label }}</span>
     <span v-if="counter && counter > 0" class="counter">{{ counter }}</span>
   </button>
@@ -21,7 +15,11 @@
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
 import AppIcon from "@/components/ui/AppIcon.vue";
-import type { AppIconName } from "@/components/ui/iconRegistry";
+import {
+  resolveLegacyAppIcon,
+  type AppIconName,
+} from "@/components/ui/iconRegistry";
+import { computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -41,6 +39,9 @@ const emit = defineEmits<{
 }>();
 
 const layoutStore = useLayoutStore();
+const resolvedIconName = computed(
+  () => props.appIcon ?? resolveLegacyAppIcon(props.icon)
+);
 
 const action = () => {
   if (props.disabled) return;

@@ -11,6 +11,9 @@ import {
   ArrowUpDown,
   BarChart3,
   ChartPie,
+  Clipboard,
+  Code2,
+  Columns2,
   ChevronLeft,
   Cloud,
   CloudOff,
@@ -44,6 +47,7 @@ import {
   FileVideoCamera,
   File,
   FilePlus2,
+  Frown,
   FlipHorizontal2,
   Film,
   Folder,
@@ -62,6 +66,8 @@ import {
   Home,
   List,
   ListChecks,
+  ListOrdered,
+  ListTree,
   LocateFixed,
   LoaderCircle,
   LogIn,
@@ -85,6 +91,7 @@ import {
   RefreshCw,
   RotateCcw,
   RotateCw,
+  Save,
   ScanSearch,
   Search,
   Server,
@@ -93,6 +100,7 @@ import {
   SkipForward,
   Settings2,
   Shapes,
+  Sparkles,
   ShieldCheck,
   ShieldAlert,
   Sun,
@@ -143,6 +151,9 @@ export const appIcons = {
   "circle-play": CirclePlay,
   "circle-stop": CircleStop,
   "circle-x": CircleX,
+  clipboard: Clipboard,
+  code: Code2,
+  columns: Columns2,
   collection: Archive,
   copy: Copy,
   container: Container,
@@ -167,6 +178,7 @@ export const appIcons = {
   "file-warning": FileExclamationPoint,
   flip: FlipHorizontal2,
   film: Film,
+  frown: Frown,
   "audio-lines": AudioLines,
   "filter-clear": FilterX,
   folder: Folder,
@@ -181,6 +193,9 @@ export const appIcons = {
   home: Home,
   logout: LogOut,
   login: LogIn,
+  list: List,
+  "list-ordered": ListOrdered,
+  "list-tree": ListTree,
   loader: LoaderCircle,
   "locate-fixed": LocateFixed,
   "map-pin": MapPin,
@@ -195,6 +210,7 @@ export const appIcons = {
   "panel-close": PanelLeftClose,
   "panel-open": PanelLeftOpen,
   rename: PencilLine,
+  save: Save,
   play: Play,
   pause: Pause,
   plus: Plus,
@@ -214,6 +230,7 @@ export const appIcons = {
   "skip-back": SkipBack,
   "skip-forward": SkipForward,
   settings: Settings2,
+  sparkles: Sparkles,
   "shield-check": ShieldCheck,
   sun: Sun,
   star: Star,
@@ -243,3 +260,37 @@ export const appIcons = {
 } satisfies Record<string, Component>;
 
 export type AppIconName = keyof typeof appIcons;
+
+/**
+ * Compatibility map for older callers that still pass Material icon names.
+ * New surfaces should pass `appIcon` directly; keeping this map local prevents
+ * the deprecated font glyph from reaching the browser while callers migrate.
+ */
+const legacyIconMap = {
+  auto_awesome: "sparkles",
+  call_to_action: "file",
+  check_circle: "circle-check",
+  clear: "x",
+  close: "x",
+  code: "code",
+  content_paste: "clipboard",
+  content_paste_go: "clipboard",
+  file_download: "download",
+  format_list_bulleted: "list",
+  format_list_numbered: "list-ordered",
+  folder: "folder",
+  open_in_new: "external-link",
+  pause_circle_filled: "pause",
+  play_circle_filled: "play",
+  save: "save",
+  search: "search",
+  sentiment_dissatisfied: "frown",
+  toc: "list-tree",
+  vertical_split: "columns",
+  visibility: "eye",
+} satisfies Record<string, AppIconName>;
+
+export const resolveLegacyAppIcon = (name?: string): AppIconName => {
+  if (!name) return "info";
+  return legacyIconMap[name as keyof typeof legacyIconMap] ?? "info";
+};

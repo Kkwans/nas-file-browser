@@ -5,7 +5,7 @@
 
       <action
         v-if="fileStore.selectedCount"
-        icon="file_download"
+        app-icon="download"
         label="下载"
         @action="download"
         :counter="fileStore.selectedCount"
@@ -17,10 +17,10 @@
         :data-title="'复制下载链接'"
         @click="copyToClipboard(linkSelected())"
       >
-        <i class="material-icons">content_paste</i>
+        <AppIcon name="copy" :size="20" :stroke-width="1.9" />
       </button>
       <action
-        icon="check_circle"
+        app-icon="select"
         label="多选"
         @action="toggleMultipleSelection"
       />
@@ -91,7 +91,7 @@
             v-if="!req.isDir"
             class="share__box__element share__box__center share__box__icon"
           >
-            <i class="material-icons">{{ icon }}</i>
+            <AppIcon :name="icon" :size="72" :stroke-width="1.45" />
           </div>
           <div class="share__box__element" style="height: 3em">
             <strong>'名称'：</strong> {{ req.name }}
@@ -109,7 +109,7 @@
               class="button button--flat"
               style="height: 4em"
             >
-              <div><i class="material-icons">file_download</i>下载</div>
+              <div><AppIcon name="download" :size="18" />下载</div>
             </a>
             <a
               target="_blank"
@@ -117,7 +117,7 @@
               class="button button--flat"
               v-if="!req.isDir"
             >
-              <div><i class="material-icons">open_in_new</i>打开文件</div>
+              <div><AppIcon name="external-link" :size="18" />打开文件</div>
             </a>
             <qrcode-vue
               v-if="req.isDir"
@@ -175,9 +175,10 @@
                   outline: none;
                   background: white;
                 "
-                class="material-icons"
+                class="share-audio-toggle"
+                aria-label="播放"
               >
-                play_circle_filled
+                <AppIcon name="play" :size="72" :stroke-width="1.55" />
               </button>
               <button
                 @click="play"
@@ -188,9 +189,10 @@
                   outline: none;
                   background: white;
                 "
-                class="material-icons"
+                class="share-audio-toggle"
+                aria-label="暂停"
               >
-                pause_circle_filled
+                <AppIcon name="pause" :size="72" :stroke-width="1.55" />
               </button>
               <audio
                 id="myaudio"
@@ -213,16 +215,17 @@
               您的浏览器不支持内嵌视频播放，请<a :href="raw">下载文件</a
               >后使用本地播放器观看。
             </video>
-            <i
+            <AppIcon
               v-else-if="
                 !fileStore.multiple &&
                 fileStore.selectedCount === 1 &&
                 selectedItem?.isDir
               "
-              class="material-icons"
-              >folder
-            </i>
-            <i v-else class="material-icons">call_to_action</i>
+              name="folder"
+              :size="72"
+              :stroke-width="1.45"
+            />
+            <AppIcon v-else name="file" :size="72" :stroke-width="1.45" />
           </div>
         </div>
         <div
@@ -269,7 +272,7 @@
                 aria-label="清空"
                 class="action"
               >
-                <i class="material-icons">clear</i>
+                <AppIcon name="x" :size="18" :stroke-width="2" />
               </div>
             </div>
           </div>
@@ -279,7 +282,7 @@
           class="share__box share__box__items"
         >
           <h2 class="message">
-            <i class="material-icons">sentiment_dissatisfied</i>
+            <AppIcon name="frown" :size="30" :stroke-width="1.7" />
             <span>这里没有任何文件...</span>
           </h2>
         </div>
@@ -296,6 +299,7 @@ import { Base64 } from "js-base64";
 import { createURL } from "@/api/utils";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import QrcodeVue from "qrcode.vue";
@@ -307,6 +311,7 @@ import { useRoute } from "vue-router";
 import { StatusError } from "@/api/utils";
 import { copy } from "@/utils/clipboard";
 import type { DownloadFormat } from "@/types/file";
+import { getResourceIconName } from "@/utils/fileIcons";
 
 const error = ref<StatusError | null>(null);
 const showLimit = ref<number>(100);
@@ -335,12 +340,12 @@ const selectedItem = computed(() => fileStore.selectedItems[0]);
 // Define computes
 
 const icon = computed(() => {
-  if (req.value === null) return "insert_drive_file";
-  if (req.value.isDir) return "folder";
-  if (req.value.type === "image") return "insert_photo";
-  if (req.value.type === "audio") return "volume_up";
-  if (req.value.type === "video") return "movie";
-  return "insert_drive_file";
+  if (req.value === null) return "file" as const;
+  return getResourceIconName(
+    req.value.name,
+    req.value.type ?? "",
+    req.value.isDir
+  );
 });
 
 const link = computed(() => (req.value ? api.getDownloadURL(req.value) : ""));

@@ -30,7 +30,7 @@
                 title="复制到剪贴板"
                 @click="copyToClipboard(buildLink(link))"
               >
-                <i class="material-icons">content_paste</i>
+                <AppIcon name="copy" :size="18" :stroke-width="1.9" />
               </button>
             </td>
             <td class="small">
@@ -41,7 +41,7 @@
                 :disabled="!!link.password_hash"
                 @click="copyToClipboard(buildDownloadLink(link))"
               >
-                <i class="material-icons">content_paste_go</i>
+                <AppIcon name="download" :size="18" :stroke-width="1.9" />
               </button>
             </td>
             <td class="small">
@@ -51,7 +51,7 @@
                 aria-label="删除"
                 title="删除"
               >
-                <i class="material-icons">delete</i>
+                <AppIcon name="trash" :size="18" :stroke-width="1.9" />
               </button>
             </td>
           </tr>
@@ -151,6 +151,7 @@ import * as api from "@/api/index";
 import dayjs from "@/utils/date";
 import type { Share } from "@/types/api";
 import type { Resource } from "@/types/file";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { copy } from "@/utils/clipboard";
 const route = useRoute();
 

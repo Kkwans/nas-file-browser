@@ -1,14 +1,14 @@
 <template>
   <div id="editor-container">
     <header-bar>
-      <action icon="close" label="关闭" @action="close()" />
+      <action app-icon="x" label="关闭" @action="close()" />
       <title>{{ fileStore.req?.name ?? "" }}</title>
 
       <template #mobile-actions>
         <action
           v-if="authStore.user?.perm.modify"
           id="save-button-mobile"
-          icon="save"
+          app-icon="save"
           label="保存"
           @action="save()"
         />
@@ -19,7 +19,7 @@
           v-if="authStore.user?.perm.modify"
           id="save-button"
           class="editor-save-desktop"
-          icon="save"
+          app-icon="save"
           label="保存"
           @action="save()"
         />
@@ -27,13 +27,11 @@
         <!-- 代码语言标识 + 行号切换（非 Markdown 文件） -->
         <template v-if="!usesVditor && aceEditorReady">
           <span class="editor-lang-badge" :title="langCaption">
-            <i class="material-icons">code</i>
+            <AppIcon name="code" :size="16" :stroke-width="1.8" />
             {{ langCaption }}
           </span>
           <action
-            :icon="
-              showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
-            "
+            :app-icon="showLineNumbers ? 'list-ordered' : 'list'"
             :label="showLineNumbers ? '关闭行号' : '显示行号'"
             @action="toggleLineNumbers()"
             :class="{ active: showLineNumbers }"
@@ -43,34 +41,32 @@
         <!-- Markdown 模式切换 -->
         <template v-if="usesVditor">
           <action
-            icon="auto_awesome"
+            app-icon="sparkles"
             label="即时渲染（类似 Typora）"
             @action="switchMode('wysiwyg')"
             :class="{ active: currentMode === 'wysiwyg' }"
           />
           <action
-            icon="vertical_split"
+            app-icon="columns"
             label="分屏对照"
             @action="switchMode('sv')"
             :class="{ active: currentMode === 'sv' }"
           />
           <action
-            icon="visibility"
+            app-icon="eye"
             label="预览模式"
             @action="switchMode('preview')"
             :class="{ active: currentMode === 'preview' }"
           />
           <action
-            :icon="
-              showLineNumbers ? 'format_list_numbered' : 'format_list_bulleted'
-            "
+            :app-icon="showLineNumbers ? 'list-ordered' : 'list'"
             :label="showLineNumbers ? '关闭行号' : '显示行号'"
             @action="toggleLineNumbers()"
             :class="{ active: showLineNumbers }"
             :disabled="currentMode === 'sv'"
           />
           <action
-            icon="toc"
+            app-icon="list-tree"
             :label="showOutline ? '关闭大纲' : '显示大纲'"
             @action="toggleOutline()"
             :class="{ active: showOutline }"
@@ -140,11 +136,11 @@
             aria-label="关闭"
             @click="closeCodeLanguagePicker"
           >
-            <i class="material-icons" aria-hidden="true">close</i>
+            <AppIcon name="x" :size="18" :stroke-width="1.9" />
           </button>
         </div>
         <div class="markdown-language-search">
-          <i class="material-icons" aria-hidden="true">search</i>
+          <AppIcon name="search" :size="18" :stroke-width="1.9" />
           <input
             ref="codeLanguageSearchInput"
             v-model.trim="codeLanguageQuery"
@@ -178,7 +174,7 @@
             @mouseenter="codeLanguageActiveIndex = index"
             @click="applyMarkdownCodeLanguage(option.value)"
           >
-            <i class="material-icons" aria-hidden="true">code</i>
+            <AppIcon name="code" :size="18" :stroke-width="1.9" />
             <span>{{ option.label }}</span>
           </button>
           <p
@@ -225,6 +221,7 @@ import {
 import type { Ace } from "ace-builds";
 
 import Action from "@/components/header/Action.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
@@ -616,7 +613,7 @@ const initVditorWithMode = async (
         name: "code-language",
         tipPosition: "s",
         tip: "插入代码块",
-        icon: '<i class="material-icons">code</i>',
+        icon: '<svg><use xlink:href="#vditor-icon-code"></use></svg>',
         click: () => openCodeLanguagePicker(),
       },
       "inline-code",
@@ -634,7 +631,7 @@ const initVditorWithMode = async (
         name: "source-mode",
         tipPosition: "s",
         tip: "源码模式",
-        icon: '<svg viewBox="0 0 1024 1024"><path d="M586.185 280.418l44.206-44.206L816 421.812l-185.609 185.61-44.206-44.207L727.588 421.812zM437.815 743.582l-44.206 44.206L208 602.188l185.609-185.61 44.206 44.207L296.412 602.188z"/></svg>',
+        icon: '<svg><use xlink:href="#vditor-icon-both"></use></svg>',
         click: () => switchMode("sv"),
       },
     ],
@@ -1399,7 +1396,7 @@ const finishClose = () => {
 }
 
 /* 活跃的模式按钮 */
-.active :deep(i) {
+.active :deep(.app-icon) {
   color: var(--blue) !important;
 }
 
@@ -1419,7 +1416,7 @@ const finishClose = () => {
   white-space: nowrap;
   user-select: none;
 }
-.editor-lang-badge i {
+.editor-lang-badge .app-icon {
   font-size: 14px;
   opacity: 0.7;
 }
@@ -1548,8 +1545,8 @@ const finishClose = () => {
   outline: none;
 }
 
-.markdown-language-options i {
-  font-size: 1.1rem;
+.markdown-language-options .app-icon {
+  flex: 0 0 auto;
 }
 
 @media (max-width: 480px) {

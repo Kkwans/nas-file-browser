@@ -16,7 +16,12 @@
         id="focus-prompt"
         tabindex="1"
       >
-        <i class="material-icons">insert_drive_file</i>
+        <AppIcon
+          name="file"
+          class="upload-choice-icon"
+          :size="56"
+          :stroke-width="1.65"
+        />
         <div class="title">文件</div>
       </div>
       <div
@@ -25,7 +30,12 @@
         class="action"
         tabindex="2"
       >
-        <i class="material-icons">folder</i>
+        <AppIcon
+          name="folder"
+          class="upload-choice-icon"
+          :size="56"
+          :stroke-width="1.65"
+        />
         <div class="title">文件夹</div>
       </div>
     </div>
@@ -35,6 +45,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import { useLayoutStore } from "@/stores/layout";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import * as upload from "@/utils/upload";
 const route = useRoute();
 
@@ -58,3 +69,10 @@ const uploadFolder = () => {
   openUpload(true);
 };
 </script>
+
+<style scoped>
+.upload-choice-icon {
+  display: block;
+  margin: 0 auto 0.25em;
+}
+</style>

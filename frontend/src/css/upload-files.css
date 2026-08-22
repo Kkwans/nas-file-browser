@@ -27,7 +27,7 @@
   gap: 0.5rem;
 }
 
-.upload-files .file .file-name i {
+.upload-files .file .file-name .file-type-icon {
   flex: 0 0 auto;
   margin-right: 0;
 }

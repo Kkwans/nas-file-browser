@@ -24,7 +24,7 @@
           </div>
         </div>
         <button class="action" @click="abortAll" aria-label="中止" title="中止">
-          <i class="material-icons">{{ "cancel" }}</i>
+          <AppIcon name="x" :size="22" :stroke-width="2" />
         </button>
         <button
           class="action"
@@ -32,9 +32,11 @@
           aria-label="切换列表"
           title="切换列表"
         >
-          <i class="material-icons">{{
-            open ? "keyboard_arrow_down" : "keyboard_arrow_up"
-          }}</i>
+          <AppIcon
+            :name="open ? 'chevron-down' : 'chevron-up'"
+            :size="22"
+            :stroke-width="2"
+          />
         </button>
       </div>
 
@@ -48,7 +50,12 @@
           :aria-label="upload.name"
         >
           <div class="file-name">
-            <i class="material-icons" aria-hidden="true"></i>
+            <AppIcon
+              class="file-type-icon"
+              :name="getUploadIcon(upload)"
+              :size="20"
+              :stroke-width="1.9"
+            />
             <span class="file-name-text" :title="upload.name">{{
               upload.name
             }}</span>
@@ -73,12 +80,17 @@ import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import buttons from "@/utils/buttons";
 import { partial } from "filesize";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { getResourceIconName } from "@/utils/fileIcons";
 const open = ref<boolean>(false);
 const speed = ref<number>(0);
 const eta = ref<number>(Infinity);
 
 const fileStore = useFileStore();
 const uploadStore = useUploadStore();
+
+const getUploadIcon = (upload: Upload) =>
+  getResourceIconName(upload.name, upload.type, upload.type === "dir");
 
 const { sentBytes, totalBytes } = storeToRefs(uploadStore);
 

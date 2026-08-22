@@ -936,3 +936,58 @@ nav.sidebar .sidebar-rail-logout {
     transition: none;
   }
 }
+
+/* Dark mode: keep the sidebar hierarchy on the dark surface tokens.  Several
+ * legacy rules use literal light gradients/fallbacks, which otherwise leave
+ * white cards behind white text when the document switches to `.dark`. */
+html.dark nav.sidebar .sidebar-user-card {
+  color: var(--textSecondary) !important;
+  background: var(--surfaceSecondary) !important;
+  background-image: none !important;
+  border-color: var(--borderPrimary) !important;
+}
+
+html.dark nav.sidebar .sidebar-user-card:hover {
+  background: var(--surfaceSecondary) !important;
+  border-color: rgba(80, 153, 255, 0.52) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+html.dark nav.sidebar .sidebar-section-header {
+  color: var(--textSecondary) !important;
+  background: var(--surfaceSecondary) !important;
+  background-image: none !important;
+  border-color: var(--borderPrimary) !important;
+}
+
+html.dark nav.sidebar .sidebar-section-header .section-toggle,
+html.dark nav.sidebar .sidebar-section-header .section-toggle > .app-icon,
+html.dark nav.sidebar .sidebar-section-header .section-toggle .material-icons {
+  color: var(--textSecondary) !important;
+}
+
+html.dark nav.sidebar .sidebar-group-header,
+html.dark nav.sidebar .favorite-group-header,
+html.dark nav.sidebar .category-group-header {
+  color: var(--textSecondary) !important;
+  background: var(--surfacePrimary) !important;
+  background-image: none !important;
+  border-color: var(--borderPrimary) !important;
+}
+
+html.dark nav.sidebar .sidebar-group-header:hover,
+html.dark nav.sidebar .sidebar-group-header:focus-within,
+html.dark nav.sidebar .favorite-group-header:hover,
+html.dark nav.sidebar .favorite-group-header:focus-visible,
+html.dark nav.sidebar .category-group-header:hover,
+html.dark nav.sidebar .category-group-header:focus-visible {
+  background: var(--surfaceSecondary) !important;
+  border-color: rgba(80, 153, 255, 0.42) !important;
+}
+
+html.dark nav.sidebar .sidebar-group-name,
+html.dark nav.sidebar .favorite-group-header .group-name,
+html.dark nav.sidebar .favorite-group-header .category-count,
+html.dark nav.sidebar .category-group-header .group-name {
+  color: var(--textSecondary) !important;
+}

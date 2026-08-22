@@ -6,9 +6,7 @@
 
     <div v-if="mode === 'info'" class="card-content result-info">
       <div class="result-info-name">
-        <i class="material-icons" aria-hidden="true">{{
-          result.dir ? "folder" : "insert_drive_file"
-        }}</i>
+        <AppIcon :name="resultIcon" :size="32" aria-hidden="true" />
         <strong>{{ result.name }}</strong>
       </div>
       <dl>
@@ -31,10 +29,18 @@
           <dd>
             <code>{{ result.path }}</code>
           </dd>
-          <button type="button" title="复制完整路径" @click="copyPath">
-            <i class="material-icons" aria-hidden="true">{{
-              copied ? "check" : "content_copy"
-            }}</i>
+          <button
+            class="result-path-copy"
+            type="button"
+            title="复制完整路径"
+            aria-label="复制完整路径"
+            @click="copyPath"
+          >
+            <AppIcon
+              :name="copied ? 'circle-check' : 'copy'"
+              :size="18"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </dl>
@@ -53,6 +59,7 @@
       <button
         class="button button--flat button--grey"
         type="button"
+        aria-label="取消"
         @click="close"
       >
         取消
@@ -72,6 +79,7 @@
         id="focus-prompt"
         class="button button--flat"
         type="button"
+        aria-label="确定"
         @click="close"
       >
         确定
@@ -83,8 +91,10 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
 import { files as api } from "@/api";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { useLayoutStore } from "@/stores/layout";
 import { getFileTypeLabel } from "@/utils/fileListing";
+import { getResourceIconName } from "@/utils/fileIcons";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import type { ConflictResult, MoveCopyItem } from "@/types/file";
@@ -105,6 +115,9 @@ const copied = ref(false);
 
 const title = computed(
   () => ({ copy: "复制", move: "移动", info: "详细信息" })[props.mode]
+);
+const resultIcon = computed(() =>
+  getResourceIconName(props.result.name, "", props.result.dir)
 );
 const fileType = computed(() => {
   const dot = props.result.name.lastIndexOf(".");
@@ -191,9 +204,9 @@ async function transfer() {
   margin-bottom: 1rem;
 }
 
-.result-info-name .material-icons {
+.result-info-name > .app-icon {
   color: var(--blue, #1677ff);
-  font-size: 2rem;
+  flex: 0 0 auto;
 }
 
 .result-info dl,
@@ -218,16 +231,18 @@ async function transfer() {
 }
 
 .path-row dd {
-  padding-right: 2.5rem;
+  padding-right: 3.25rem;
   overflow-wrap: anywhere;
 }
 
-.path-row button {
+.path-row .result-path-copy {
   position: absolute;
   right: 0;
   display: inline-grid;
-  width: 2rem;
-  height: 2rem;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   place-items: center;
   color: var(--blue, #1677ff);
   background: rgba(22, 119, 255, 0.08);
@@ -236,8 +251,14 @@ async function transfer() {
   cursor: pointer;
 }
 
-.path-row button .material-icons {
-  font-size: 1rem;
+.path-row .result-path-copy:hover,
+.path-row .result-path-copy:focus-visible {
+  background: rgba(22, 119, 255, 0.16);
+}
+
+.result-action-buttons > button {
+  min-height: 44px;
+  min-width: 5.5rem;
 }
 
 .result-action-buttons {

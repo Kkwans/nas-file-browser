@@ -34,7 +34,7 @@
 
       <section v-if="currentTask" class="analysis-task-card" aria-live="polite">
         <div class="analysis-task-icon" :class="`is-${currentTask.status}`">
-          <i class="material-icons" aria-hidden="true">{{ taskIcon }}</i>
+          <AppIcon :name="taskIcon" :size="23" />
         </div>
         <div class="analysis-task-copy">
           <div>
@@ -75,7 +75,7 @@
       </section>
 
       <section v-if="loadError" class="analysis-error" role="alert">
-        <i class="material-icons" aria-hidden="true">error_outline</i>
+        <AppIcon name="circle-alert" :size="23" />
         <div>
           <strong>无法读取分析状态</strong>
           <p>{{ loadError }}</p>
@@ -113,7 +113,7 @@
         </section>
 
         <section v-if="report.truncated" class="analysis-warning" role="status">
-          <i class="material-icons" aria-hidden="true">warning_amber</i>
+          <AppIcon name="circle-alert" :size="19" />
           结果文件超过
           {{ report.resultFileLimit.toLocaleString() }}
           项，当前仅展示前一部分；顶部统计仍为完整扫描结果。
@@ -150,9 +150,7 @@
                 :key="file.path"
                 :to="fileRoute(file.path)"
               >
-                <i class="material-icons" aria-hidden="true"
-                  >insert_drive_file</i
-                >
+                <AppIcon :name="resourceIcon(file.path)" :size="19" />
                 <span>
                   <strong>{{ fileName(file.path) }}</strong>
                   <small :title="file.path">{{ file.path }}</small>
@@ -160,14 +158,14 @@
                 <time :datetime="new Date(file.modified).toISOString()">{{
                   formatModified(file.modified)
                 }}</time>
-                <i class="material-icons" aria-hidden="true">open_in_new</i>
+                <AppIcon name="external-link" :size="17" />
               </router-link>
             </div>
           </article>
         </section>
 
         <section v-else class="analysis-clean-state">
-          <i class="material-icons" aria-hidden="true">done_all</i>
+          <AppIcon name="circle-check" :size="34" />
           <h2>所选范围内没有确认的重复文件</h2>
           <p>同名或同大小并不会被误判；只有完整 SHA-256 相同才会进入结果。</p>
         </section>
@@ -228,9 +226,7 @@
           aria-label="各扫描范围占用"
         >
           <article v-for="scope in storageReport.scopes" :key="scope.path">
-            <i class="material-icons" aria-hidden="true">{{
-              scope.isDir ? "folder" : "insert_drive_file"
-            }}</i>
+            <AppIcon :name="resourceIcon(scope.path, scope.isDir)" :size="20" />
             <span>
               <strong :title="scope.path">{{ scope.path }}</strong>
               <small>
@@ -246,7 +242,7 @@
           class="analysis-warning"
           role="status"
         >
-          <i class="material-icons" aria-hidden="true">warning_amber</i>
+          <AppIcon name="circle-alert" :size="19" />
           排行榜各最多展示
           {{ storageReport.resultLimit.toLocaleString() }}
           项；顶部总量仍为完整扫描结果。
@@ -265,7 +261,7 @@
                 :to="fileRoute(directory.path, true)"
               >
                 <b>{{ String(index + 1).padStart(2, "0") }}</b>
-                <i class="material-icons" aria-hidden="true">folder</i>
+                <AppIcon name="folder" :size="19" />
                 <span>
                   <strong>{{ fileName(directory.path) }}</strong>
                   <small :title="directory.path">{{ directory.path }}</small>
@@ -301,9 +297,7 @@
                 :to="fileRoute(file.path, false)"
               >
                 <b>{{ String(index + 1).padStart(2, "0") }}</b>
-                <i class="material-icons" aria-hidden="true"
-                  >insert_drive_file</i
-                >
+                <AppIcon :name="resourceIcon(file.path)" :size="19" />
                 <span>
                   <strong>{{ fileName(file.path) }}</strong>
                   <small :title="file.path">{{ file.path }}</small>
@@ -358,6 +352,7 @@ import AnalysisScopePanel from "@/components/analysis/AnalysisScopePanel.vue";
 import AnalysisToolSwitcher from "@/components/analysis/AnalysisToolSwitcher.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 import * as analysisApi from "@/api/analysis";
 import * as taskApi from "@/api/tasks";
 import type {
@@ -376,6 +371,7 @@ import { resourceOpenRoute } from "@/utils/archivePath";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import type { AnalysisTool } from "@/utils/analysisTools";
+import { getResourceIconName } from "@/utils/fileIcons";
 
 const route = useRoute();
 const router = useRouter();
@@ -435,16 +431,16 @@ const taskProgress = computed(() => {
 const taskStatusLabel = computed(() =>
   currentTask.value ? taskStatus(currentTask.value.status) : ""
 );
-const taskIcon = computed(() => {
-  const icons: Record<TaskStatus, string> = {
-    queued: "hourglass_top",
-    running: "sync",
-    completed: "task_alt",
-    failed: "error_outline",
-    canceled: "cancel",
-    interrupted: "power_settings_new",
+const taskIcon = computed<AppIconName>(() => {
+  const icons: Record<TaskStatus, AppIconName> = {
+    queued: "hourglass",
+    running: "loader",
+    completed: "circle-check",
+    failed: "circle-alert",
+    canceled: "circle-x",
+    interrupted: "retry",
   };
-  return currentTask.value ? icons[currentTask.value.status] : "pending";
+  return currentTask.value ? icons[currentTask.value.status] : "hourglass";
 });
 const completedTime = computed(() => {
   const completedAt =
@@ -714,6 +710,10 @@ function fileName(path: string) {
   return path.split("/").at(-1) || path;
 }
 
+function resourceIcon(path: string, isDir = false): AppIconName {
+  return getResourceIconName(fileName(path), "", isDir);
+}
+
 function formatBytes(value: number) {
   return filesize(value || 0);
 }
@@ -885,7 +885,7 @@ onBeforeUnmount(() => {
   background: color-mix(in srgb, var(--blue) 10%, transparent);
 }
 
-.analysis-task-icon.is-running .material-icons {
+.analysis-task-icon.is-running .app-icon {
   animation: analysis-spin 1.4s linear infinite;
 }
 
@@ -1056,9 +1056,10 @@ onBeforeUnmount(() => {
   background: var(--surfacePrimary);
 }
 
-.storage-scope-grid > article > .material-icons {
+.storage-scope-grid > article > .app-icon {
+  width: 20px;
+  height: 20px;
   color: var(--blue);
-  font-size: 20px;
 }
 
 .storage-scope-grid span {
@@ -1158,9 +1159,10 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 
-.storage-rankings a > .material-icons {
+.storage-rankings a > .app-icon {
+  width: 19px;
+  height: 19px;
   color: var(--textPrimary);
-  font-size: 19px;
 }
 
 .storage-rankings a > span:not(.storage-rank-value) {
@@ -1303,14 +1305,16 @@ onBeforeUnmount(() => {
   box-shadow: inset 3px 0 var(--focus-ring);
 }
 
-.duplicate-file-list > a > .material-icons:first-child {
+.duplicate-file-list > a > .app-icon:first-child {
+  width: 20px;
+  height: 20px;
   color: var(--textPrimary);
-  font-size: 20px;
 }
 
-.duplicate-file-list > a > .material-icons:last-child {
+.duplicate-file-list > a > .app-icon:last-child {
+  width: 17px;
+  height: 17px;
   color: var(--textPrimary);
-  font-size: 17px;
 }
 
 .duplicate-file-list span {
@@ -1347,9 +1351,10 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-.analysis-clean-state > .material-icons {
+.analysis-clean-state > .app-icon {
+  width: 34px;
+  height: 34px;
   color: #16845d;
-  font-size: 34px;
 }
 
 .analysis-clean-state h2 {
@@ -1462,7 +1467,7 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .analysis-task-icon.is-running .material-icons {
+  .analysis-task-icon.is-running .app-icon {
     animation: none;
   }
 

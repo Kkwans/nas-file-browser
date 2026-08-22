@@ -17,12 +17,6 @@ import "@/utils/date";
 
 import "./css/styles.css";
 
-// Detect Material Icons font loading to prevent "folder" text flash
-document.body.classList.add("fonts-loading");
-document.fonts.ready.then(() => {
-  document.body.classList.remove("fonts-loading");
-});
-
 const pinia = createPinia(router);
 
 const app = createApp(App);

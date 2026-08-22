@@ -214,3 +214,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - TX5pro Playwright 报告 `20260822T221820Z`：真实路径下的 `37.jpg` 预览页收到一个带 `warm=big` 的 `thumb` 响应（`164040` bytes），250ms 快照已经显示 `1080×720` 真实大图；同次报告中的另一个 `42.jpg` `/preview/big` 是相邻媒体预取，不属于目标文件，目标没有第二个 `/preview/big` 请求，控制台错误为 `0`。
 - 视频回归报告 `20260822T222008Z`：`老男孩...mp4` 保持暂停打开，`durationchange/loadedmetadata/canplay` 约 `1.305–1.307s`，`readyState=4`，无运行时错误。旧验收脚本对 `/volume1/@home/.../35.jpg` 的路径映射超时，属于夹具路径不兼容，未作为产品回归计入。
 - 本次修复确认了预览页不会重复触发大 JPEG 服务端解码，但 r7/r8 已记录的冷盘首次读取仍可能达到数秒；没有新的未缓存大图样本前，不宣称冷启动慢开问题全部解决，后续继续优先处理首屏冷盘路径。
+
+### 2026-08-23 大 JPEG 冷启动原图回退与 r10 验收
+
+- 在大 JPEG 预览页的 `warm=big` 请求超过 `650ms` 仍未返回时，前端主动取消预热请求并切换到同一文件的 inline 原图；预热在阈值内完成时仍沿用 1080px 缩放预览。该回退只作用于预览页的大 JPEG，不改变普通图片、列表缩略图或视频链路。
+- 源码提交 `0d3797a8` 已推送，GitHub CI `32602471305` success；部署提交 `035a2607` 已推送。NAS 本机构建 `nas-file-browser:2026.8.23-phase10-media-raw-fallback-r10`（arm64，镜像 ID `sha256:99e4eecd80ea858d5424681d2459ed0cc61c6d99c7eebc6ef5862f02e26d2638`），Compose 校验通过，仅重建 `filebrowser`，容器 `running/healthy`，本机 HTTP `200`，r9 保留作回滚。
+- TX5pro 冷路径报告 `20260822T223337Z`：未命中预览缓存的 `78.jpg` 在 `650ms` 后取消 `/preview/thumb?...warm=big`，NAS 日志记录 `context canceled`；目标原图 `/api/raw/.../78.jpg` 首字节约 `5ms`、完整 `56.9 MB` 响应约 `1.60s`，页面总 ready `3.14s`，最终尺寸 `6048×8064`，控制台错误 `0`。同次报告的 `/preview/big` 只属于相邻 `77.jpg` 预取，目标未触发缩放大图。
+- 视频回归报告 `20260822T223349Z`：同一视频在约 `0.835s` 达到 `durationchange/loadedmetadata/canplay`，`readyState=4`、保持暂停、运行时错误 `0`。全量 Frontend Vitest `87 files / 294 tests` 通过；typecheck、lint 已在提交前通过。
+- 该策略优先解决“冷盘等待期间页面卡住”的用户体验，不把原图回退误报成冷盘解码本身已变快；原图传输会增加单次带宽和浏览器内存占用，后续继续观察移动端大图设备的资源压力。

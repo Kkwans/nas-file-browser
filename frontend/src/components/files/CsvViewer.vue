@@ -31,7 +31,10 @@
             />
             <div class="encoding-list">
               <div v-if="encodingList.length == 0" class="message">
-                <i class="material-icons">sentiment_dissatisfied</i>
+                <AppIcon
+                  :name="mediaIcon('sentiment_dissatisfied')"
+                  :size="28"
+                />
                 <span>这里没有任何文件...</span>
               </div>
               <button
@@ -49,11 +52,11 @@
       </div>
     </div>
     <div v-if="displayError" class="csv-error">
-      <i class="material-icons">error</i>
+      <AppIcon :name="mediaIcon('error')" :size="28" />
       <p>{{ displayError }}</p>
     </div>
     <div v-else-if="parsed.headers.length === 0" class="csv-empty">
-      <i class="material-icons">description</i>
+      <AppIcon :name="mediaIcon('description')" :size="28" />
       <p>这里没有任何文件...</p>
     </div>
     <div v-else class="csv-table-container" @wheel.stop @touchmove.stop>
@@ -75,7 +78,7 @@
       </table>
       <div class="csv-footer">
         <div class="csv-info" v-if="parsed.rows.length > 100">
-          <i class="material-icons">info</i>
+          <AppIcon :name="mediaIcon('info')" :size="16" />
           <span>
             {{ "正在显示 " + parsed.rows.length + " 行" }}
           </span>
@@ -88,6 +91,8 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from "vue";
 import { parse } from "csv-parse/browser/esm";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 import { availableEncodings, decode } from "@/utils/encodings";
 import DropdownModal from "../DropdownModal.vue";
 import type { CsvData } from "@/types/file";

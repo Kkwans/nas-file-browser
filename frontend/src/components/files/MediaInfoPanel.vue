@@ -6,7 +6,7 @@
         <strong>{{ resource.name }}</strong>
       </div>
       <button type="button" aria-label="关闭媒体信息" @click="$emit('close')">
-        <i class="material-icons" aria-hidden="true">close</i>
+        <AppIcon :name="mediaIcon('close')" :size="20" />
       </button>
     </header>
 
@@ -80,7 +80,7 @@
           {{ locationError }}
         </p>
         <p v-else-if="info?.location" class="media-location-value">
-          <i class="material-icons">location_on</i>
+          <AppIcon :name="mediaIcon('location_on')" :size="18" />
           {{ info.location }}
         </p>
         <p v-else>该文件未提供可识别的位置信息。</p>
@@ -91,7 +91,7 @@
           aria-label="显示位置信息"
           @click="requestLocation"
         >
-          <i class="material-icons" aria-hidden="true">my_location</i>
+          <AppIcon :name="mediaIcon('my_location')" :size="18" />
           显示位置信息
         </button>
       </section>
@@ -111,6 +111,8 @@ import type { Resource } from "@/types/file";
 import { filesize } from "@/utils";
 import { formatMediaTime } from "@/utils/videoGestures";
 import { computed, ref, watch } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 
 const props = defineProps<{ open: boolean; resource: Resource }>();
 defineEmits<{ (event: "close"): void }>();

@@ -2,7 +2,7 @@
   <section class="audio-preview" aria-label="音频预览">
     <div class="audio-orbit" aria-hidden="true">
       <span class="audio-disc" :class="{ playing: mediaStore.audioPlaying }">
-        <i class="material-icons">music_note</i>
+        <AppIcon :name="mediaIcon('music_note')" :size="52" />
       </span>
     </div>
     <div class="audio-preview-copy">
@@ -16,7 +16,7 @@
           aria-label="上一首"
           @click="mediaStore.previousAudio()"
         >
-          <i class="material-icons">skip_previous</i>
+          <AppIcon :name="mediaIcon('skip_previous')" :size="22" />
         </button>
         <button
           type="button"
@@ -24,9 +24,10 @@
           :aria-label="mediaStore.audioPlaying ? '暂停' : '播放'"
           @click="mediaStore.toggleAudio()"
         >
-          <i class="material-icons">{{
-            mediaStore.audioPlaying ? "pause" : "play_arrow"
-          }}</i>
+          <AppIcon
+            :name="mediaIcon(mediaStore.audioPlaying ? 'pause' : 'play_arrow')"
+            :size="24"
+          />
         </button>
         <button
           type="button"
@@ -34,7 +35,7 @@
           aria-label="下一首"
           @click="mediaStore.nextAudio()"
         >
-          <i class="material-icons">skip_next</i>
+          <AppIcon :name="mediaIcon('skip_next')" :size="22" />
         </button>
       </div>
       <div class="audio-preview-time" aria-live="polite">
@@ -49,11 +50,16 @@
           :class="{ active: index === mediaStore.audioIndex }"
           @click="mediaStore.selectAudio(index)"
         >
-          <i class="material-icons">{{
-            index === mediaStore.audioIndex && mediaStore.audioPlaying
-              ? "graphic_eq"
-              : "music_note"
-          }}</i>
+          <AppIcon
+            :name="
+              mediaIcon(
+                index === mediaStore.audioIndex && mediaStore.audioPlaying
+                  ? 'graphic_eq'
+                  : 'music_note'
+              )
+            "
+            :size="18"
+          />
           <span>{{ item.name }}</span>
           <small>{{ index + 1 }}</small>
         </button>
@@ -66,6 +72,8 @@
 import { useMediaStore } from "@/stores/media";
 import { formatMediaTime } from "@/utils/videoGestures";
 import { computed } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 
 defineProps<{ name: string }>();
 const mediaStore = useMediaStore();

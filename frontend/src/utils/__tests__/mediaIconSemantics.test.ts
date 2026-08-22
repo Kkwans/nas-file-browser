@@ -18,4 +18,15 @@ describe("media icon semantics", () => {
     expect(mediaIcon("brightness_6")).toBe("sun");
     expect(mediaIcon("volume_up")).toBe("volume-2");
   });
+
+  it("maps document and audio controls without falling back to font icons", () => {
+    expect(mediaIcon("print")).toBe("printer");
+    expect(mediaIcon("fullscreen")).toBe("maximize");
+    expect(mediaIcon("fullscreen_exit")).toBe("minimize-2");
+    expect(mediaIcon("music_note")).toBe("music");
+    expect(mediaIcon("skip_previous")).toBe("skip-back");
+    expect(mediaIcon("skip_next")).toBe("skip-forward");
+    expect(mediaIcon("location_on")).toBe("map-pin");
+    expect(mediaIcon("my_location")).toBe("locate-fixed");
+  });
 });

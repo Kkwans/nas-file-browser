@@ -4,27 +4,27 @@
     <div class="pdf-toolbar">
       <div class="pdf-toolbar-left">
         <button class="pdf-btn" title="下载" @click="download">
-          <i class="material-icons">file_download</i>
+          <AppIcon :name="mediaIcon('file_download')" :size="19" />
         </button>
         <button class="pdf-btn" title="打印" @click="print">
-          <i class="material-icons">print</i>
+          <AppIcon :name="mediaIcon('print')" :size="19" />
         </button>
       </div>
 
       <div class="pdf-toolbar-center">
         <button class="pdf-btn" title="缩小" @click="zoomOut">
-          <i class="material-icons">remove</i>
+          <AppIcon :name="mediaIcon('remove')" :size="19" />
         </button>
         <span class="pdf-zoom-label">{{ zoomPercent }}%</span>
         <button class="pdf-btn" title="放大" @click="zoomIn">
-          <i class="material-icons">add</i>
+          <AppIcon :name="mediaIcon('add')" :size="19" />
         </button>
         <span class="pdf-divider"></span>
         <button class="pdf-btn" title="适应页面" @click="zoomFit">
-          <i class="material-icons">fit_screen</i>
+          <AppIcon :name="mediaIcon('fit_screen')" :size="19" />
         </button>
         <button class="pdf-btn" title="适应宽度" @click="zoomWidth">
-          <i class="material-icons">swap_horiz</i>
+          <AppIcon :name="mediaIcon('swap_horiz')" :size="19" />
         </button>
       </div>
 
@@ -34,9 +34,10 @@
           :title="isFullscreen ? '退出全屏' : '全屏'"
           @click="toggleFullscreen"
         >
-          <i class="material-icons">{{
-            isFullscreen ? "fullscreen_exit" : "fullscreen"
-          }}</i>
+          <AppIcon
+            :name="mediaIcon(isFullscreen ? 'fullscreen_exit' : 'fullscreen')"
+            :size="19"
+          />
         </button>
       </div>
     </div>
@@ -60,7 +61,7 @@
         @error="onError"
       ></iframe>
       <div v-if="error" class="pdf-error">
-        <i class="material-icons">error_outline</i>
+        <AppIcon :name="mediaIcon('error_outline')" :size="30" />
         <span>加载失败</span>
         <button class="pdf-btn-text" @click="download">下载文件</button>
       </div>
@@ -70,6 +71,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 interface Props {
   src: string;
   name?: string;

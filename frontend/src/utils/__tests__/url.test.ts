@@ -18,9 +18,7 @@ describe("URL path helpers", () => {
       "/volume1/%40appstore/config/blacklist.csv"
     );
     expect(resource.path).toBe("/volume1/@appstore/config/blacklist.csv");
-    expect(resource.url).toBe(
-      "/files/volume1/@appstore/config/blacklist.csv"
-    );
+    expect(resource.url).toBe("/files/volume1/@appstore/config/blacklist.csv");
     expect(resource.name).toBe("blacklist.csv");
   });
 });

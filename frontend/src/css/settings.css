@@ -301,13 +301,17 @@
 }
 
 .dashboard .card .card-action .button--flat {
+  min-width: 4.5rem;
+  border: 1px solid var(--borderPrimary);
+  background: var(--surfaceSecondary);
   color: var(--blue);
   text-transform: none;
   font-weight: 600;
 }
 
 .dashboard .card .card-action .button--flat:hover {
-  background: rgba(33, 150, 243, 0.08);
+  border-color: rgba(33, 150, 243, 0.42);
+  background: var(--surfacePrimary);
 }
 
 .dashboard .card .card-action .button--flat.button--red {

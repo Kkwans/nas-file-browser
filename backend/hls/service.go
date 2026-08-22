@@ -477,7 +477,7 @@ func ffmpegArgs(source, segmentPattern, playlist string) []string {
 	return []string{
 		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
 		"-map", "0:v:0", "-map", "0:a:0?",
-		"-vf", "scale=w='trunc(min(1280,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease",
+		"-vf", "scale=w='trunc(min(1280,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2",
 		"-c:v", "libx264", "-preset", "veryfast", "-profile:v", "main", "-pix_fmt", "yuv420p",
 		"-threads", "1", "-filter_threads", "1",
 		"-c:a", "aac", "-b:a", "128k", "-ac", "2",

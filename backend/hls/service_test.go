@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -114,6 +115,14 @@ func TestCappedBufferAcceptsAllInputAndRetainsOnlyLimit(t *testing.T) {
 	written, err := buffer.Write([]byte("123456789"))
 	if err != nil || written != 9 || buffer.String() != "1234" {
 		t.Fatalf("buffer = %q written=%d err=%v", buffer.String(), written, err)
+	}
+}
+
+func TestFFmpegArgsPadOddVideoDimensionsForYUV420(t *testing.T) {
+	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8")
+	joined := strings.Join(args, "\x00")
+	if !strings.Contains(joined, "pad=ceil(iw/2)*2:ceil(ih/2)*2") {
+		t.Fatalf("ffmpeg filter does not pad odd dimensions: %q", joined)
 	}
 }
 

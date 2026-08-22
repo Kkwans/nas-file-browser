@@ -49,7 +49,9 @@ describe("媒体预览生命周期契约", () => {
       "utf8"
     );
     expect(previewSource).toContain(':placeholder-src="imagePlaceholderUrl"');
-    expect(previewSource).toContain('getPreviewURL(fileStore.req, "thumb")');
+    expect(previewSource).toContain(
+      'getPreviewURL(fileStore.req, "thumb", { warm: "big" })'
+    );
     expect(imageSource).toContain("imageStatus === 'loading'");
     expect(imageSource).toContain("placeholderFailed");
     expect(imageSource).toContain("PLACEHOLDER_MAX_WAIT_MS");

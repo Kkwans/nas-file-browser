@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
+	"net/http/httptest"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/Kkwans/nas-file-browser/backend/files"
+	"github.com/Kkwans/nas-file-browser/backend/img"
 )
 
 func TestPreviewCoordinatorMergesConcurrentWork(t *testing.T) {
@@ -179,6 +182,43 @@ func TestFFmpegImageFilterPreservesPreviewGeometry(t *testing.T) {
 	}
 }
 
+func TestLargeJPEGThumbnailWarmHintRequiresExplicitRequest(t *testing.T) {
+	largeJPEG := &files.FileInfo{Extension: ".jpg", Size: ffmpegImagePreviewMinBytes}
+	withoutHint := httptest.NewRequest("GET", "/api/preview/thumb/photos/large.jpg", nil)
+	withHint := httptest.NewRequest("GET", "/api/preview/thumb/photos/large.jpg?warm=big", nil)
+
+	if shouldWarmLargeJPEGPreview(withoutHint, largeJPEG) {
+		t.Fatal("thumbnail requests without warm hint must not generate a full preview")
+	}
+	if !shouldWarmLargeJPEGPreview(withHint, largeJPEG) {
+		t.Fatal("explicit warm hint should enable the large JPEG preview bundle")
+	}
+}
+
+func TestLargeJPEGThumbnailWarmHintStoresBigAndThumbFromOneSourceDecode(t *testing.T) {
+	file := &files.FileInfo{Path: "/photos/large.jpg", Extension: ".jpg", Size: ffmpegImagePreviewMinBytes, ModTime: time.Unix(10, 0)}
+	cache := newMemoryPreviewCache()
+	generator := &fakeImagePreviewGenerator{big: []byte("big-preview")}
+	imgService := fakeImgService{}
+
+	thumbnail, err := createLargeJPEGThumbnailWarmup(context.Background(), imgService, generator, cache, file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(thumbnail) != "thumb-preview" {
+		t.Fatalf("thumbnail = %q, want derived preview", thumbnail)
+	}
+	if generator.bigCalls != 1 {
+		t.Fatalf("source decode calls = %d, want 1", generator.bigCalls)
+	}
+	if got, ok, _ := cache.Load(context.Background(), previewCacheKey(file, PreviewSizeBig)); !ok || string(got) != "big-preview" {
+		t.Fatalf("big cache = %q, exists=%t", got, ok)
+	}
+	if got, ok, _ := cache.Load(context.Background(), previewCacheKey(file, PreviewSizeThumb)); !ok || string(got) != "thumb-preview" {
+		t.Fatalf("thumb cache = %q, exists=%t", got, ok)
+	}
+}
+
 func TestPreviewCoordinatorBoundsFailureCooldownEntries(t *testing.T) {
 	coordinator := newPreviewCoordinator()
 	coordinator.Lock()
@@ -233,4 +273,48 @@ func TestFFmpegPreviewFailsSafelyWhenBinaryIsMissing(t *testing.T) {
 	if err == nil {
 		t.Fatal("missing FFmpeg should return a safe error")
 	}
+}
+
+type fakeImagePreviewGenerator struct {
+	big      []byte
+	bigCalls int
+}
+
+func (g *fakeImagePreviewGenerator) create(context.Context, *files.FileInfo, PreviewSize) ([]byte, error) {
+	g.bigCalls++
+	return append([]byte(nil), g.big...), nil
+}
+
+type fakeImgService struct{}
+
+func (fakeImgService) FormatFromExtension(string) (img.Format, error) {
+	return img.FormatJpeg, nil
+}
+
+func (fakeImgService) Resize(_ context.Context, _ io.Reader, _, _ int, out io.Writer, _ ...img.Option) error {
+	_, err := out.Write([]byte("thumb-preview"))
+	return err
+}
+
+type memoryPreviewCache struct {
+	values map[string][]byte
+}
+
+func newMemoryPreviewCache() *memoryPreviewCache {
+	return &memoryPreviewCache{values: make(map[string][]byte)}
+}
+
+func (c *memoryPreviewCache) Store(_ context.Context, key string, value []byte) error {
+	c.values[key] = append([]byte(nil), value...)
+	return nil
+}
+
+func (c *memoryPreviewCache) Load(_ context.Context, key string) ([]byte, bool, error) {
+	value, ok := c.values[key]
+	return append([]byte(nil), value...), ok, nil
+}
+
+func (c *memoryPreviewCache) Delete(_ context.Context, key string) error {
+	delete(c.values, key)
+	return nil
 }

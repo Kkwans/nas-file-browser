@@ -437,7 +437,8 @@ const previewUrl = computed(() => {
 
 const imagePlaceholderUrl = computed(() => {
   if (fileStore.req?.type !== "image") return "";
-  return api.getPreviewURL(fileStore.req, "thumb");
+  if (fullSize.value) return api.getPreviewURL(fileStore.req, "thumb");
+  return api.getPreviewURL(fileStore.req, "thumb", { warm: "big" });
 });
 
 const videoPosterUrl = computed(() => {

@@ -5,10 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os/exec"
 	"strings"
 
 	"github.com/Kkwans/nas-file-browser/backend/files"
+	"github.com/Kkwans/nas-file-browser/backend/img"
 )
 
 // Large JPEGs are expensive to fully decode in the Go image pipeline on the
@@ -18,6 +20,10 @@ const ffmpegImagePreviewMinBytes = 4 * 1024 * 1024
 
 type ffmpegImagePreviewService struct {
 	workers chan struct{}
+}
+
+type imagePreviewGenerator interface {
+	create(context.Context, *files.FileInfo, PreviewSize) ([]byte, error)
 }
 
 func newFFmpegImagePreviewService(workers int) *ffmpegImagePreviewService {
@@ -97,4 +103,52 @@ func shouldUseFFmpegImagePreview(file *files.FileInfo, size PreviewSize) bool {
 	}
 	ext := strings.ToLower(file.Extension)
 	return ext == ".jpg" || ext == ".jpeg"
+}
+
+// A full-size preview is requested immediately after the real thumbnail in
+// the image viewer. When the viewer opts into warm=big, decode a large JPEG
+// only once, cache that result, and derive the thumbnail from the decoded
+// preview bytes. Listing thumbnails do not opt in and keep their cheap
+// single-size behavior.
+func shouldWarmLargeJPEGPreview(r *http.Request, file *files.FileInfo) bool {
+	return r != nil && r.URL.Query().Get("warm") == "big" &&
+		shouldUseFFmpegImagePreview(file, PreviewSizeThumb)
+}
+
+func createLargeJPEGThumbnailWarmup(
+	ctx context.Context,
+	imgSvc ImgService,
+	source imagePreviewGenerator,
+	fileCache FileCache,
+	file *files.FileInfo,
+) ([]byte, error) {
+	bigKey := previewCacheKey(file, PreviewSizeBig)
+	bigPreview, ok, err := loadPreviewCache(ctx, fileCache, bigKey)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		bigPreview, err = source.create(ctx, file, PreviewSizeBig)
+		if err != nil {
+			return nil, err
+		}
+		storePreviewCache(ctx, fileCache, bigKey, bigPreview)
+	}
+
+	thumbnail := &bytes.Buffer{}
+	if err := imgSvc.Resize(
+		ctx,
+		bytes.NewReader(bigPreview),
+		256,
+		256,
+		thumbnail,
+		img.WithMode(img.ResizeModeFill),
+		img.WithQuality(img.QualityLow),
+		img.WithFormat(img.FormatJpeg),
+	); err != nil {
+		return nil, err
+	}
+	result := thumbnail.Bytes()
+	storePreviewCache(ctx, fileCache, previewCacheKey(file, PreviewSizeThumb), result)
+	return result, nil
 }

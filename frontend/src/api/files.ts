@@ -385,10 +385,15 @@ export function getDownloadURL(file: ResourceItem, inline: boolean) {
   return createURL("api/raw" + file.path, params);
 }
 
-export function getPreviewURL(file: ResourceItem, size: string) {
+export function getPreviewURL(
+  file: ResourceItem,
+  size: string,
+  options: { warm?: "big" } = {}
+) {
   const params = {
     inline: "true",
     key: Date.parse(file.modified),
+    ...(options.warm ? { warm: options.warm } : {}),
   };
 
   return createURL("api/preview/" + size + file.path, params);

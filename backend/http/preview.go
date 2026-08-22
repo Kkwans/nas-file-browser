@@ -218,6 +218,9 @@ func handleImagePreview(
 			} else if exists {
 				return cached, nil
 			}
+			if shouldWarmLargeJPEGPreview(r, file) {
+				return createLargeJPEGThumbnailWarmup(ctx, imgSvc, ffmpegImage, fileCache, file)
+			}
 			return createImagePreview(ctx, imgSvc, ffmpegImage, fileCache, file, previewSize)
 		})
 		if err != nil {

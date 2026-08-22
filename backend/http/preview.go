@@ -156,12 +156,13 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{
-			Fs:         d.user.Fs,
-			Path:       "/" + vars["path"],
-			Modify:     d.user.Perm.Modify,
-			Expand:     true,
-			ReadHeader: d.server.TypeDetectionByHeader,
-			Checker:    d,
+			Fs:            d.user.Fs,
+			Path:          "/" + vars["path"],
+			Modify:        d.user.Perm.Modify,
+			Expand:        true,
+			SkipSubtitles: true,
+			ReadHeader:    d.server.TypeDetectionByHeader,
+			Checker:       d,
 		})
 		if err != nil {
 			return errToStatus(err), err

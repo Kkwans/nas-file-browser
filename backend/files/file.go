@@ -57,15 +57,16 @@ type FileInfo struct {
 
 // FileOptions are the options when getting a file info.
 type FileOptions struct {
-	Fs         afero.Fs
-	Path       string
-	Modify     bool
-	Expand     bool
-	ReadHeader bool
-	CalcImgRes bool
-	Token      string
-	Checker    rules.Checker
-	Content    bool
+	Fs            afero.Fs
+	Path          string
+	Modify        bool
+	Expand        bool
+	SkipSubtitles bool
+	ReadHeader    bool
+	CalcImgRes    bool
+	Token         string
+	Checker       rules.Checker
+	Content       bool
 }
 
 type ImageResolution struct {
@@ -99,7 +100,7 @@ func NewFileInfo(opts *FileOptions) (*FileInfo, error) {
 			return file, nil
 		}
 
-		err = file.detectType(opts.Modify, opts.Content, true, opts.CalcImgRes)
+		err = file.detectType(opts.Modify, opts.Content, true, opts.CalcImgRes, opts.SkipSubtitles)
 		if err != nil {
 			return nil, err
 		}
@@ -227,7 +228,7 @@ func (i *FileInfo) RealPath() string {
 	return i.Path
 }
 
-func (i *FileInfo) detectType(modify, saveContent, readHeader bool, calcImgRes bool) error {
+func (i *FileInfo) detectType(modify, saveContent, readHeader bool, calcImgRes bool, skipSubtitles bool) error {
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		return nil
@@ -251,7 +252,9 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool, calcImgRes b
 	switch {
 	case strings.HasPrefix(mimetype, "video"):
 		i.Type = "video"
-		i.detectSubtitles()
+		if !skipSubtitles {
+			i.detectSubtitles()
+		}
 		return nil
 	case strings.HasPrefix(mimetype, "audio"):
 		i.Type = "audio"

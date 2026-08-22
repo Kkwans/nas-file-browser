@@ -204,7 +204,8 @@ main .spinner .bounce2 {
   z-index: 19999;
 }
 
-#previewer header .action i {
+#previewer header .action i,
+#previewer header .action > .app-icon {
   color: #fff;
   text-shadow: 1px 1px 1px #000000;
 }
@@ -280,14 +281,16 @@ main .spinner .bounce2 {
   padding: 0;
 }
 
-#previewer header.media-preview-header .action i {
+#previewer header.media-preview-header .action i,
+#previewer header.media-preview-header .action > .app-icon {
   display: block;
   padding: 0;
   line-height: 1;
 }
 
 @media (min-width: 738px) {
-  #previewer header #dropdown .action i {
+  #previewer header #dropdown .action i,
+  #previewer header #dropdown .action > .app-icon {
     color: #fff;
     text-shadow: 1px 1px 1px #000000;
   }
@@ -342,7 +345,8 @@ main .spinner .bounce2 {
 #previewer .preview .info .title {
   margin-bottom: 1em;
 }
-#previewer .preview .info .title i {
+#previewer .preview .info .title i,
+#previewer .preview .info .title > .app-icon {
   display: block;
   margin-bottom: 0.1em;
   font-size: 4em;
@@ -353,7 +357,8 @@ main .spinner .bounce2 {
 #previewer .preview .info .button:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
-#previewer .preview .info .button i {
+#previewer .preview .info .button i,
+#previewer .preview .info .button .app-icon {
   display: block;
   margin-bottom: 4px;
   font-size: 1.3em;
@@ -418,8 +423,17 @@ main .spinner .bounce2 {
   padding: 0;
   font-size: 32px;
   line-height: 1;
-  /* Material chevrons sit optically high inside their font box. */
+  /* Keep the legacy font-icon optical correction for old extensions. */
   transform: translateY(2px);
+}
+
+#previewer > .preview-nav > .app-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  line-height: 1;
 }
 
 #previewer > .preview-nav--previous {

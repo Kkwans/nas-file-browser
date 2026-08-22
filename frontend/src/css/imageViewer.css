@@ -193,8 +193,8 @@ html.dark .image-ex-container {
   letter-spacing: 0.02em;
 }
 
-.image-viewer-info .info-tag i {
-  font-size: 1em;
+.image-viewer-info .info-tag i,
+.image-viewer-info .info-tag > .app-icon {
   opacity: 0.6;
 }
 

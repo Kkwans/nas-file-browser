@@ -32,7 +32,7 @@
     </video>
 
     <div v-if="gestureHud" class="media-gesture-hud" role="status">
-      <i class="material-icons">{{ gestureHud.icon }}</i>
+      <AppIcon :name="mediaIcon(gestureHud.icon)" :size="28" />
       <strong>{{ gestureHud.value }}</strong>
       <span>{{ gestureHud.label }}</span>
     </div>
@@ -70,7 +70,7 @@
       role="status"
       @pointerdown.stop
     >
-      <i class="material-icons">history</i>
+      <AppIcon :name="mediaIcon('history')" :size="18" />
       <span
         >{{ resumeApplied ? "已从" : "将从" }}
         {{ formatMediaTime(restoredPosition) }} 继续</span
@@ -89,13 +89,13 @@
       @pointerdown.stop
       @click.stop="compatibilityPanelOpen = true"
     >
-      <i class="material-icons" aria-hidden="true">movie_filter</i>
+      <AppIcon :name="mediaIcon('movie_filter')" :size="18" />
       <span>{{ compatibilityBadgeLabel }}</span>
-      <i
-        class="material-icons media-compatibility-badge__arrow"
-        aria-hidden="true"
-        >expand_less</i
-      >
+      <AppIcon
+        class="media-compatibility-badge__arrow"
+        :name="mediaIcon('expand_less')"
+        :size="17"
+      />
     </button>
 
     <section
@@ -108,7 +108,7 @@
       @pointerup.stop
     >
       <div class="media-compatibility-card__icon" aria-hidden="true">
-        <i class="material-icons">{{ compatibilityCopy.icon }}</i>
+        <AppIcon :name="mediaIcon(compatibilityCopy.icon)" :size="24" />
       </div>
       <div class="media-compatibility-card__body">
         <div class="media-compatibility-card__heading">
@@ -122,12 +122,12 @@
             aria-label="收起兼容播放状态"
             @click.stop="compatibilityPanelOpen = false"
           >
-            <i class="material-icons" aria-hidden="true">close</i>
+            <AppIcon :name="mediaIcon('close')" :size="20" />
           </button>
         </div>
         <p>{{ compatibilityCopy.description }}</p>
         <small v-if="compatibilityNetworkError" role="alert">
-          <i class="material-icons" aria-hidden="true">cloud_off</i>
+          <AppIcon :name="mediaIcon('cloud_off')" :size="16" />
           {{ compatibilityNetworkError }}
         </small>
         <div class="media-compatibility-card__actions">
@@ -138,7 +138,7 @@
             :disabled="compatibilityBusy"
             @click.stop="startCompatibilityPlayback"
           >
-            <i class="material-icons" aria-hidden="true">movie_filter</i>
+            <AppIcon :name="mediaIcon('movie_filter')" :size="18" />
             {{ compatibilityBusy ? "正在提交…" : compatibilityStartLabel }}
           </button>
           <button
@@ -148,7 +148,7 @@
             :disabled="compatibilityBusy"
             @click.stop="cancelCompatibilityPlayback"
           >
-            <i class="material-icons" aria-hidden="true">stop_circle</i>
+            <AppIcon :name="mediaIcon('stop_circle')" :size="18" />
             {{ compatibilityBusy ? "正在取消…" : "取消任务" }}
           </button>
           <button
@@ -157,7 +157,7 @@
             class="media-compatibility-action media-compatibility-action--primary"
             @click.stop="useCompatibilityPlayback"
           >
-            <i class="material-icons" aria-hidden="true">play_circle</i>
+            <AppIcon :name="mediaIcon('play_circle')" :size="18" />
             使用兼容版本
           </button>
           <a
@@ -166,7 +166,7 @@
             :href="downloadFallbackSource"
             download
           >
-            <i class="material-icons" aria-hidden="true">download</i>
+            <AppIcon :name="mediaIcon('download')" :size="18" />
             下载原文件
           </a>
           <a
@@ -176,7 +176,7 @@
             target="_blank"
             rel="noopener"
           >
-            <i class="material-icons" aria-hidden="true">open_in_new</i>
+            <AppIcon :name="mediaIcon('open_in_new')" :size="18" />
             直接打开
           </a>
           <button
@@ -185,7 +185,7 @@
             class="media-compatibility-action"
             @click.stop="tryDirectPlayback"
           >
-            <i class="material-icons" aria-hidden="true">undo</i>
+            <AppIcon :name="mediaIcon('undo')" :size="18" />
             返回原视频
           </button>
         </div>
@@ -210,6 +210,8 @@ import {
   isKnownIncompatibleVideo,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
 import type { HLSPlaybackState, HLSPlaybackStatus } from "@/api/media";
@@ -1174,9 +1176,9 @@ const languageImports: LanguageImports = {
   transform: translate(-50%, -50%);
 }
 
-.media-gesture-hud i {
+.media-gesture-hud i,
+.media-gesture-hud > .app-icon {
   margin: 0 auto 4px;
-  font-size: 28px;
 }
 
 .media-gesture-hud strong {
@@ -1230,14 +1232,13 @@ const languageImports: LanguageImports = {
   cursor: pointer;
 }
 
-.media-compatibility-badge > i:first-child {
+.media-compatibility-badge > i:first-child,
+.media-compatibility-badge > .app-icon:first-child {
   color: #7cb5ff;
-  font-size: 18px;
 }
 
 .media-compatibility-badge__arrow {
   color: rgb(255 255 255 / 58%);
-  font-size: 17px;
 }
 
 .media-compatibility-badge:focus-visible,
@@ -1303,10 +1304,6 @@ const languageImports: LanguageImports = {
   border-color: rgb(255 117 132 / 18%);
 }
 
-.media-compatibility-card__icon i {
-  font-size: 24px;
-}
-
 .media-compatibility-card__body {
   min-width: 0;
 }
@@ -1355,10 +1352,6 @@ const languageImports: LanguageImports = {
   background: rgb(255 255 255 / 9%);
 }
 
-.media-compatibility-card__close i {
-  font-size: 20px;
-}
-
 .media-compatibility-card__body > p {
   margin: 7px 0 0;
   color: rgb(235 242 255 / 68%);
@@ -1374,10 +1367,6 @@ const languageImports: LanguageImports = {
   margin-top: 9px;
   color: #ffb0ba;
   font-size: 12px;
-}
-
-.media-compatibility-card__body > small i {
-  font-size: 16px;
 }
 
 .media-compatibility-card__actions {
@@ -1424,14 +1413,6 @@ const languageImports: LanguageImports = {
 .media-compatibility-action:disabled {
   cursor: wait;
   opacity: 0.56;
-}
-
-.media-compatibility-action i {
-  font-size: 18px;
-}
-
-.media-resume-chip i {
-  font-size: 18px;
 }
 
 .media-resume-chip button {

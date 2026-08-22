@@ -11,12 +11,12 @@
       v-if="isPdf || isEpub || isCsv || showNav || mediaInfoOpen"
       :class="{ 'media-preview-header': isUnifiedMedia }"
     >
-      <action icon="close" label="关闭" @action="close()" />
+      <action app-icon="x" label="关闭" @action="close()" />
       <title>{{ name }}</title>
       <action
         :disabled="layoutStore.loading"
         v-if="isResizeEnabled && fileStore.req?.type === 'image'"
-        :icon="fullSize ? 'photo_size_select_large' : 'hd'"
+        :app-icon="fullSize ? 'minimize-2' : 'maximize-2'"
         @action="toggleSize"
       />
 
@@ -24,34 +24,34 @@
         <action
           v-if="isUnifiedMedia"
           :disabled="favoritePending"
-          :icon="isCurrentFavorite ? 'favorite' : 'favorite_border'"
+          :app-icon="isCurrentFavorite ? 'heart' : 'heart-off'"
           :label="isCurrentFavorite ? '取消收藏' : '收藏'"
           @action="toggleCurrentFavorite"
         />
         <action
           v-if="isUnifiedMedia"
-          :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
+          :app-icon="isFullscreen ? 'minimize-2' : 'maximize'"
           :label="isFullscreen ? '退出全屏' : '全屏'"
           @action="toggleFullscreen"
         />
         <action
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.rename"
-          icon="mode_edit"
+          app-icon="rename"
           label="重命名"
           show="rename"
         />
         <action
           :disabled="layoutStore.loading"
           v-if="isCsv && authStore.user?.perm.modify"
-          icon="edit_note"
+          app-icon="text"
           label="编辑文本"
           @action="editAsText"
         />
         <action
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.delete"
-          icon="delete"
+          app-icon="trash"
           label="删除"
           @action="deleteFile"
           id="delete-button"
@@ -59,7 +59,7 @@
         <action
           :disabled="layoutStore.loading"
           v-if="authStore.user?.perm.download"
-          icon="file_download"
+          app-icon="download"
           label="下载"
           @action="download"
         />
@@ -69,13 +69,13 @@
             ['image', 'audio', 'video'].includes(fileStore.req?.type || '') &&
             authStore.user?.perm.download
           "
-          icon="open_in_new"
+          app-icon="external-link"
           label="直接打开"
           @action="openDirect"
         />
         <action
           :disabled="layoutStore.loading"
-          icon="info"
+          app-icon="info"
           label="文件信息"
           :show="isUnifiedMedia ? undefined : 'info'"
           @action="isUnifiedMedia && (mediaInfoOpen = !mediaInfoOpen)"
@@ -110,13 +110,13 @@
               @click="changeSize(Math.max(100, size - 10))"
               class="reader-button"
             >
-              <i class="material-icons">remove</i>
+              <AppIcon :name="mediaIcon('remove')" :size="18" />
             </button>
             <button
               @click="changeSize(Math.min(150, size + 10))"
               class="reader-button"
             >
-              <i class="material-icons">add</i>
+              <AppIcon :name="mediaIcon('add')" :size="18" />
             </button>
             <span>{{ size }}%</span>
           </div>
@@ -148,12 +148,14 @@
         <PdfViewer v-else-if="isPdf" :src="previewUrl" :name="name" />
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
-            <i class="material-icons">feedback</i>
+            <AppIcon :name="mediaIcon('feedback')" :size="42" />
             此文件无法预览
           </div>
           <div>
             <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div><i class="material-icons">file_download</i>下载</div>
+              <div>
+                <AppIcon :name="mediaIcon('file_download')" :size="20" />下载
+              </div>
             </a>
             <a
               target="_blank"
@@ -161,7 +163,9 @@
               class="button button--flat"
               v-if="!fileStore.req?.isDir"
             >
-              <div><i class="material-icons">open_in_new</i>打开文件</div>
+              <div>
+                <AppIcon :name="mediaIcon('open_in_new')" :size="20" />打开文件
+              </div>
             </a>
           </div>
         </div>
@@ -180,7 +184,7 @@
       aria-label="上一个"
       title="上一个"
     >
-      <i class="material-icons" aria-hidden="true">chevron_left</i>
+      <AppIcon :name="mediaIcon('chevron_left')" :size="28" />
     </button>
     <button
       @click="next"
@@ -194,7 +198,7 @@
       aria-label="下一个"
       title="下一个"
     >
-      <i class="material-icons" aria-hidden="true">chevron_right</i>
+      <AppIcon :name="mediaIcon('chevron_right')" :size="28" />
     </button>
     <link v-if="nextPrefetchEnabled" rel="prefetch" :href="nextRaw" />
     <MediaInfoPanel
@@ -221,6 +225,7 @@ import url from "@/utils/url";
 import { throttle } from "lodash-es";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import {
   computed,
   defineAsyncComponent,
@@ -239,6 +244,7 @@ import {
   favoriteGroupAudioQueue,
 } from "@/utils/audioQueue";
 import { isKnownIncompatibleVideo } from "@/utils/videoPlayback";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 
 const ExtendedImage = defineAsyncComponent(
   () => import("@/components/files/ExtendedImage.vue")

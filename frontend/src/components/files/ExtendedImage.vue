@@ -48,11 +48,11 @@
     <!-- Image info (top-right) -->
     <div class="image-viewer-info" :class="{ visible: showUI && imageLoaded }">
       <div v-if="naturalWidth && naturalHeight" class="info-tag">
-        <i class="material-icons">aspect_ratio</i>
+        <AppIcon :name="mediaIcon('aspect_ratio')" :size="14" />
         {{ naturalWidth }} × {{ naturalHeight }}
       </div>
       <div v-if="fileSize" class="info-tag">
-        <i class="material-icons">data_usage</i>
+        <AppIcon :name="mediaIcon('data_usage')" :size="14" />
         {{ fileSize }}
       </div>
     </div>
@@ -67,7 +67,7 @@
         :disabled="scale >= maxScale"
         title="放大 (+)"
       >
-        <i class="material-icons">zoom_in</i>
+        <AppIcon :name="mediaIcon('zoom_in')" :size="20" />
       </button>
       <div class="zoom-display">{{ Math.round(scale * 100) }}%</div>
       <button
@@ -75,25 +75,25 @@
         :disabled="scale <= minScale"
         title="缩小 (-)"
       >
-        <i class="material-icons">zoom_out</i>
+        <AppIcon :name="mediaIcon('zoom_out')" :size="20" />
       </button>
       <div class="toolbar-divider"></div>
       <button @click.stop="zoomFit" title="适应屏幕">
-        <i class="material-icons">fit_screen</i>
+        <AppIcon :name="mediaIcon('fit_screen')" :size="20" />
       </button>
       <button @click.stop="zoomOriginal" title="原始大小">
-        <i class="material-icons">aspect_ratio</i>
+        <AppIcon :name="mediaIcon('aspect_ratio')" :size="20" />
       </button>
       <div class="toolbar-divider"></div>
       <button @click.stop="rotateLeft" title="左旋转">
-        <i class="material-icons">rotate_left</i>
+        <AppIcon :name="mediaIcon('rotate_left')" :size="20" />
       </button>
       <button @click.stop="rotateRight" title="右旋转">
-        <i class="material-icons">rotate_right</i>
+        <AppIcon :name="mediaIcon('rotate_right')" :size="20" />
       </button>
       <div class="toolbar-divider"></div>
       <button @click.stop="zoomAuto" title="切换缩放">
-        <i class="material-icons">search</i>
+        <AppIcon :name="mediaIcon('search')" :size="20" />
       </button>
     </div>
 
@@ -124,6 +124,8 @@ import { throttle } from "lodash-es";
 import UTIF from "utif";
 import { filesize } from "@/utils";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
+import { mediaIcon } from "@/utils/mediaIconSemantics";
 
 interface IProps {
   src: string;

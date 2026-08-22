@@ -1,0 +1,48 @@
+import type { AppIconName } from "@/components/ui/iconRegistry";
+
+const MEDIA_ICONS: Record<string, AppIconName> = {
+  add: "plus",
+  aspect_ratio: "maximize-2",
+  brightness_6: "sun",
+  cancel: "circle-x",
+  chevron_left: "chevron-left",
+  chevron_right: "chevron-right",
+  close: "x",
+  cloud_off: "cloud-off",
+  data_usage: "database",
+  download: "download",
+  error_outline: "circle-alert",
+  expand_less: "chevron-up",
+  feedback: "circle-alert",
+  file_download: "download",
+  fit_screen: "maximize",
+  forward_10: "arrow-up",
+  graphic_eq: "volume-2",
+  history: "history",
+  hourglass_top: "hourglass",
+  movie_edit: "film",
+  movie_filter: "film",
+  open_in_new: "external-link",
+  offline_pin: "circle-check",
+  pause: "circle-stop",
+  play_arrow: "play",
+  play_circle: "circle-play",
+  remove: "minus",
+  replay_10: "arrow-down",
+  rotate_left: "rotate-ccw",
+  rotate_right: "rotate-cw",
+  search: "search",
+  skip_next: "chevron-right",
+  skip_previous: "chevron-left",
+  stop_circle: "circle-stop",
+  swap_horiz: "flip",
+  undo: "undo",
+  volume_off: "volume-off",
+  volume_up: "volume-2",
+  zoom_in: "zoom-in",
+  zoom_out: "zoom-out",
+};
+
+export function mediaIcon(value: string): AppIconName {
+  return MEDIA_ICONS[value] ?? "info";
+}

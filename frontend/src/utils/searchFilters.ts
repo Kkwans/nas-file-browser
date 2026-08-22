@@ -3,32 +3,32 @@ import type { SearchResult } from "@/types/file";
 export const SEARCH_TYPE_OPTIONS = {
   image: {
     label: "图片",
-    icon: "insert_photo",
+    icon: "file-image",
     extensions: ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "avif"],
   },
   audio: {
     label: "音频",
-    icon: "volume_up",
+    icon: "file-music",
     extensions: ["mp3", "m4a", "aac", "flac", "wav", "ogg", "opus"],
   },
   video: {
     label: "视频",
-    icon: "movie",
+    icon: "file-video",
     extensions: ["mp4", "mkv", "avi", "mov", "webm", "m4v", "ts"],
   },
   pdf: {
     label: "PDF 文档",
-    icon: "picture_as_pdf",
+    icon: "file-text",
     extensions: ["pdf"],
   },
   markdown: {
     label: "Markdown 文档",
-    icon: "description",
+    icon: "file-text",
     extensions: ["md", "markdown", "mdown", "mkd"],
   },
   config: {
     label: "配置文件",
-    icon: "settings_suggest",
+    icon: "settings",
     extensions: [
       "json",
       "json5",
@@ -45,7 +45,7 @@ export const SEARCH_TYPE_OPTIONS = {
   },
   code: {
     label: "代码文件",
-    icon: "code",
+    icon: "file-code",
     extensions: [
       "java",
       "py",

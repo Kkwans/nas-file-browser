@@ -44,7 +44,8 @@ video {
   margin: 1em auto 0;
 }
 
-i.spin {
+i.spin,
+.app-icon.spin {
   animation: 1s spin linear infinite;
 }
 

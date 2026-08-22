@@ -2,12 +2,7 @@
   <section class="result-explorer" :aria-labelledby="headingId">
     <div class="result-explorer-header">
       <div class="result-explorer-heading">
-        <i
-          class="material-icons"
-          :style="{ color: iconColor }"
-          aria-hidden="true"
-          >{{ icon }}</i
-        >
+        <AppIcon :name="icon" :size="28" :style="{ color: iconColor }" />
         <div>
           <span class="result-explorer-kicker">{{ scopeKicker }}</span>
           <h1 :id="headingId">{{ title }}</h1>
@@ -43,18 +38,18 @@
         replace
         @click="$emit('return')"
       >
-        <i class="material-icons" aria-hidden="true">arrow_back</i>
+        <AppIcon name="arrow-left" :size="18" />
         返回文件列表
       </router-link>
     </div>
 
     <div v-if="loading" class="result-state" aria-live="polite">
-      <i class="material-icons spin" aria-hidden="true">autorenew</i>
+      <AppIcon name="loader" :size="28" class="spin" />
       <span>正在加载{{ noun }}结果…</span>
     </div>
     <template v-else>
       <div v-if="error" class="result-error-state" role="alert">
-        <i class="material-icons" aria-hidden="true">error_outline</i>
+        <AppIcon name="circle-alert" :size="20" />
         <span>无法加载{{ noun }}结果：{{ error }}</span>
         <button type="button" @click="$emit('retry')">重试</button>
       </div>
@@ -67,7 +62,7 @@
           class="result-limit-state"
           role="status"
         >
-          <i class="material-icons" aria-hidden="true">info</i>
+          <AppIcon name="info" :size="18" />
           <span v-if="termination.reason === 'limit'">
             已达到 1,000 项上限，当前结果并不完整。
           </span>
@@ -77,7 +72,7 @@
           <span v-else>搜索已取消，以下为取消前找到的结果。</span>
         </div>
         <div v-if="results.length === 0" class="result-state">
-          <i class="material-icons" aria-hidden="true">{{ emptyIcon }}</i>
+          <AppIcon :name="emptyIcon" :size="32" />
           <span>{{ emptyText }}</span>
         </div>
         <div v-else class="result-explorer-list">
@@ -93,14 +88,12 @@
             "
           >
             <span class="result-icon" aria-hidden="true">
-              <i class="material-icons">{{
-                getFileIcon(result.name, result.dir)
-              }}</i>
+              <AppIcon :name="getResultIcon(result)" :size="24" />
             </span>
             <span class="result-copy">
               <strong :title="result.name">{{ result.name }}</strong>
               <span :title="getResultParentPath(result.path, basePath)">
-                <i class="material-icons" aria-hidden="true">folder_open</i>
+                <AppIcon name="folder" :size="14" />
                 {{ getResultParentPath(result.path, basePath) }}
               </span>
             </span>
@@ -126,7 +119,7 @@
       @hide="closeContextMenu"
     >
       <button type="button" @click="emitAction('open-location')">
-        <i class="material-icons" aria-hidden="true">folder_open</i>
+        <AppIcon name="folder" :size="18" />
         打开文件所在位置
       </button>
       <button
@@ -134,7 +127,7 @@
         type="button"
         @click="emitAction('copy')"
       >
-        <i class="material-icons" aria-hidden="true">content_copy</i>
+        <AppIcon name="copy" :size="18" />
         复制
       </button>
       <button
@@ -142,7 +135,7 @@
         type="button"
         @click="emitAction('move')"
       >
-        <i class="material-icons" aria-hidden="true">drive_file_move</i>
+        <AppIcon name="move" :size="18" />
         移动
       </button>
       <button
@@ -150,11 +143,11 @@
         type="button"
         @click="emitAction('download')"
       >
-        <i class="material-icons" aria-hidden="true">download</i>
+        <AppIcon name="download" :size="18" />
         下载
       </button>
       <button type="button" @click="emitAction('info')">
-        <i class="material-icons" aria-hidden="true">info</i>
+        <AppIcon name="info" :size="18" />
         详细信息
       </button>
     </context-menu>
@@ -165,9 +158,11 @@
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
 import ContextMenu from "@/components/ContextMenu.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
-import { getFileIcon } from "@/utils/fileIcons";
+import { getResourceIconName } from "@/utils/fileIcons";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 import { getResultParentPath } from "@/utils/tagResults";
 import { useAuthStore } from "@/stores/auth";
 import { resourceOpenRoute } from "@/utils/archivePath";
@@ -240,7 +235,9 @@ const contextResult = ref<ExplorerResult | null>(null);
 
 const headingId = computed(() => `${props.kind}-results-title`);
 const noun = computed(() => (props.kind === "tag" ? "标签筛选" : "搜索"));
-const icon = computed(() => (props.kind === "tag" ? "label" : "search"));
+const icon = computed<AppIconName>(() =>
+  props.kind === "tag" ? "tag" : "search"
+);
 const scopeKicker = computed(
   () =>
     `${
@@ -257,8 +254,8 @@ const alternateScope = computed<Exclude<ExplorerScope, "current">>(() =>
 const alternateScopeLabel = computed(() =>
   props.kind === "search" ? "递归子目录" : "全局"
 );
-const emptyIcon = computed(() =>
-  props.kind === "tag" ? "label_off" : "search_off"
+const emptyIcon = computed<AppIconName>(() =>
+  props.kind === "tag" ? "filter-clear" : "search"
 );
 const emptyText = computed(() =>
   props.kind === "tag"
@@ -272,6 +269,10 @@ function formatSize(size: number) {
 
 function formatTime(time: string | null) {
   return time ? dayjs(time).fromNow() : "时间未知";
+}
+
+function getResultIcon(result: ExplorerResult): AppIconName {
+  return getResourceIconName(result.name, "", result.dir);
 }
 
 function openContextMenu(event: MouseEvent, result: ExplorerResult) {
@@ -318,9 +319,10 @@ function emitAction(action: ExplorerResultAction) {
   gap: 0.75rem;
 }
 
-.result-explorer-heading > .material-icons {
+.result-explorer-heading > .app-icon {
   flex: 0 0 auto;
-  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .result-explorer-kicker {
@@ -383,8 +385,9 @@ function emitAction(action: ExplorerResultAction) {
   border-color: rgba(22, 119, 255, 0.4);
 }
 
-.result-explorer-back .material-icons {
-  font-size: 1.125rem;
+.result-explorer-back .app-icon {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .result-explorer-list {
@@ -428,8 +431,9 @@ function emitAction(action: ExplorerResultAction) {
   border-radius: 0.625rem;
 }
 
-.result-icon .material-icons {
-  font-size: 1.5rem;
+.result-icon .app-icon {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .result-copy {
@@ -458,8 +462,10 @@ function emitAction(action: ExplorerResultAction) {
   font-size: 0.75rem;
 }
 
-.result-copy > span .material-icons {
-  font-size: 0.875rem;
+.result-copy > span .app-icon {
+  flex: 0 0 auto;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .result-meta {
@@ -484,8 +490,9 @@ function emitAction(action: ExplorerResultAction) {
   border-radius: 0.875rem;
 }
 
-.result-state .material-icons {
-  font-size: 2rem;
+.result-state .app-icon {
+  width: 2rem;
+  height: 2rem;
   opacity: 0.6;
 }
 
@@ -553,9 +560,10 @@ function emitAction(action: ExplorerResultAction) {
   background: var(--hover, #f1f5f9);
 }
 
-:deep(.context-menu button .material-icons) {
+:deep(.context-menu button .app-icon) {
   color: var(--textSecondary, #64748b);
-  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 @media (max-width: 736px) {

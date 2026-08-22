@@ -19,7 +19,7 @@
             aria-label="清空搜索内容"
             @click="clearSearch"
           >
-            <i class="material-icons" aria-hidden="true">close</i>
+            <AppIcon name="x" :size="18" />
           </button>
           <button
             :type="ongoing ? 'button' : 'submit'"
@@ -28,9 +28,7 @@
             :disabled="!prompt"
             @click="ongoing ? stopSearch() : undefined"
           >
-            <i class="material-icons" aria-hidden="true">
-              {{ ongoing ? "stop" : "search" }}
-            </i>
+            <AppIcon :name="ongoing ? 'circle-stop' : 'search'" :size="18" />
           </button>
         </div>
         <span v-if="searchResults.length" class="search-result-count"
@@ -65,7 +63,7 @@
             :class="{ active: activeType === null }"
             @click="selectSearchType(null)"
           >
-            <i class="material-icons" aria-hidden="true">apps</i>
+            <AppIcon name="categories" :size="16" />
             全部
           </button>
           <button
@@ -75,7 +73,7 @@
             :class="{ active: activeType === type }"
             @click="selectSearchType(type)"
           >
-            <i class="material-icons" aria-hidden="true">{{ item.icon }}</i>
+            <AppIcon :name="item.icon" :size="16" />
             {{ item.label }}
           </button>
         </div>
@@ -110,6 +108,7 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import HeaderBar from "@/components/header/HeaderBar.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import ResultExplorer, {
   type ExplorerResult,
   type ExplorerResultAction,
@@ -580,8 +579,9 @@ onUnmounted(() => {
   opacity: 0.4;
 }
 
-.search-page-actions .material-icons {
-  font-size: 1.125rem;
+.search-page-actions .app-icon {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .search-result-count {
@@ -640,11 +640,11 @@ onUnmounted(() => {
   border-color: rgba(22, 119, 255, 0.35);
 }
 
-.search-shortcuts .material-icons {
+.search-shortcuts .app-icon {
   display: inline-grid;
   width: 1rem;
+  height: 1rem;
   place-items: center;
-  font-size: 1rem;
 }
 
 @media (max-width: 736px) {

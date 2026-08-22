@@ -17,8 +17,8 @@ const result = (path: string): SearchResult => ({
 });
 
 describe("search type filters", () => {
-  it("Markdown 筛选使用可用的 Material Icons 图标", () => {
-    expect(SEARCH_TYPE_OPTIONS.markdown.icon).toBe("description");
+  it("Markdown 筛选使用本地语义文件图标", () => {
+    expect(SEARCH_TYPE_OPTIONS.markdown.icon).toBe("file-text");
   });
 
   it("recognizes composite search types", () => {

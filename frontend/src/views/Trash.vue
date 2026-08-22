@@ -2,7 +2,7 @@
   <div id="trash-page">
     <header-bar show-menu show-logo>
       <div class="trash-header-title">
-        <i class="material-icons" aria-hidden="true">delete_outline</i>
+        <AppIcon name="trash" :size="24" />
         <div>
           <strong>回收站</strong>
           <span>{{ countLabel }}</span>
@@ -15,7 +15,7 @@
           :disabled="trashStore.loading"
           @click="load"
         >
-          <i class="material-icons" aria-hidden="true">refresh</i>
+          <AppIcon name="refresh" :size="19" />
           刷新
         </button>
         <button
@@ -25,7 +25,7 @@
           :disabled="clearing || clearTaskActive"
           @click="showClearConfirm = true"
         >
-          <i class="material-icons" aria-hidden="true">delete_sweep</i>
+          <AppIcon name="trash" :size="19" />
           清空回收站
         </button>
       </template>
@@ -34,7 +34,7 @@
     <main class="trash-workspace">
       <section class="trash-intro" aria-labelledby="trash-title">
         <div class="trash-intro-icon" aria-hidden="true">
-          <i class="material-icons">restore_from_trash</i>
+          <AppIcon name="archive-restore" :size="24" />
         </div>
         <div>
           <h1 id="trash-title">先恢复，再永久删除</h1>
@@ -54,7 +54,7 @@
         role="alertdialog"
         aria-labelledby="clear-trash-title"
       >
-        <i class="material-icons" aria-hidden="true">warning_amber</i>
+        <AppIcon name="circle-alert" :size="23" />
         <div>
           <strong id="clear-trash-title">永久删除全部项目？</strong>
           <p>此操作不可撤销。原文件、收藏暂存信息和标签暂存信息都会被清除。</p>
@@ -79,7 +79,7 @@
       </section>
 
       <section v-if="trashStore.error" class="trash-state trash-state--error">
-        <i class="material-icons" aria-hidden="true">cloud_off</i>
+        <AppIcon name="cloud-off" :size="27" />
         <div>
           <strong>无法读取回收站</strong>
           <p>{{ trashStore.error }}</p>
@@ -97,7 +97,7 @@
 
       <section v-else-if="trashStore.items.length === 0" class="trash-empty">
         <div class="trash-empty-illustration" aria-hidden="true">
-          <i class="material-icons">delete_outline</i>
+          <AppIcon name="trash" :size="36" />
           <span></span>
         </div>
         <h2>没有待处理的文件</h2>
@@ -119,15 +119,13 @@
         >
           <div class="trash-item-file">
             <div class="trash-file-icon" :class="{ folder: item.isDir }">
-              <i class="material-icons" aria-hidden="true">{{
-                itemIcon(item)
-              }}</i>
+              <AppIcon :name="itemIcon(item)" :size="24" />
             </div>
             <div class="trash-file-copy">
               <strong :title="item.name">{{ item.name }}</strong>
               <span :title="item.originalPath">{{ item.originalPath }}</span>
               <small v-if="item.error" class="trash-item-error">
-                <i class="material-icons" aria-hidden="true">error_outline</i>
+                <AppIcon name="circle-alert" :size="14" />
                 {{ item.error }}
               </small>
             </div>
@@ -135,17 +133,18 @@
 
           <div class="trash-item-meta">
             <span>
-              <i class="material-icons" aria-hidden="true">schedule</i>
+              <AppIcon name="clock" :size="15" />
               {{ deletedLabel(item.deletedAt) }}
             </span>
             <span>
-              <i class="material-icons" aria-hidden="true">{{
-                item.isDir ? "folder" : "data_usage"
-              }}</i>
+              <AppIcon
+                :name="item.isDir ? 'folder' : 'hard-drive'"
+                :size="15"
+              />
               {{ item.isDir ? "文件夹" : filesize(item.size) }}
             </span>
             <span v-if="authStore.user?.perm.admin">
-              <i class="material-icons" aria-hidden="true">person_outline</i>
+              <AppIcon name="user" :size="15" />
               {{ item.ownerName || `用户 ${item.userId}` }}
             </span>
             <span v-if="item.status !== 'available'" class="trash-status-chip">
@@ -161,7 +160,7 @@
                 :disabled="busyIds.has(item.id) || item.status === 'restoring'"
                 @click="restoreItem(item)"
               >
-                <i class="material-icons" aria-hidden="true">restore</i>
+                <AppIcon name="archive-restore" :size="18" />
                 {{ busyIds.has(item.id) ? "恢复中…" : "恢复" }}
               </button>
               <button
@@ -172,7 +171,7 @@
                 :disabled="busyIds.has(item.id)"
                 @click="confirmDeleteId = item.id"
               >
-                <i class="material-icons" aria-hidden="true">delete_forever</i>
+                <AppIcon name="trash" :size="18" />
               </button>
             </template>
             <template v-else>
@@ -203,7 +202,7 @@
         aria-labelledby="trash-conflict-title"
       >
         <div class="trash-conflict-heading">
-          <i class="material-icons" aria-hidden="true">difference</i>
+          <AppIcon name="copy" :size="22" />
           <div>
             <h2 id="trash-conflict-title">原位置已有同名项目</h2>
             <p>{{ conflictItem.originalPath }}</p>
@@ -211,16 +210,14 @@
         </div>
         <div class="trash-conflict-options">
           <button type="button" @click="resolveConflict('keep-both')">
-            <i class="material-icons" aria-hidden="true"
-              >control_point_duplicate</i
-            >
+            <AppIcon name="copy" :size="20" />
             <span
               ><strong>保留两者</strong
               ><small>恢复文件并自动添加序号</small></span
             >
           </button>
           <button type="button" @click="resolveConflict('skip')">
-            <i class="material-icons" aria-hidden="true">skip_next</i>
+            <AppIcon name="skip-forward" :size="20" />
             <span
               ><strong>跳过</strong
               ><small>保留回收站项目，稍后处理</small></span
@@ -231,7 +228,7 @@
             class="danger"
             @click="resolveConflict('replace')"
           >
-            <i class="material-icons" aria-hidden="true">swap_horiz</i>
+            <AppIcon name="arrow-left-right" :size="20" />
             <span
               ><strong>替换</strong><small>现有项目会先移入回收站</small></span
             >
@@ -259,8 +256,10 @@ import { StatusError } from "@/api/utils";
 import { useAuthStore } from "@/stores/auth";
 import { useTrashStore } from "@/stores/trash";
 import { useTasksStore } from "@/stores/tasks";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { filesize } from "@/utils";
-import { getFileIcon } from "@/utils/fileIcons";
+import { getResourceIconName } from "@/utils/fileIcons";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 
 const authStore = useAuthStore();
 const trashStore = useTrashStore();
@@ -371,8 +370,8 @@ async function clearTrash() {
   }
 }
 
-function itemIcon(item: TrashItem) {
-  return item.isDir ? "folder" : getFileIcon(item.name);
+function itemIcon(item: TrashItem): AppIconName {
+  return getResourceIconName(item.name, "", item.isDir);
 }
 
 function deletedLabel(timestamp: number) {

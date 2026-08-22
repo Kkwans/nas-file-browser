@@ -11,9 +11,10 @@
   gap: 10px;
 }
 
-.trash-header-title > .material-icons {
+.trash-header-title > .app-icon {
   color: var(--icon-red);
-  font-size: 25px;
+  width: 25px;
+  height: 25px;
 }
 
 .trash-header-title > div {
@@ -57,8 +58,10 @@
   outline-offset: -2px;
 }
 
-.trash-header-action .material-icons {
-  font-size: 19px;
+.trash-header-action .app-icon {
+  flex: 0 0 auto;
+  width: 19px;
+  height: 19px;
 }
 
 .trash-header-action--danger {
@@ -94,8 +97,9 @@
   background: color-mix(in srgb, var(--blue) 11%, transparent);
 }
 
-.trash-intro-icon .material-icons {
-  font-size: 24px;
+.trash-intro-icon .app-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .trash-intro h1,
@@ -146,7 +150,7 @@
   background: color-mix(in srgb, var(--icon-red) 6%, var(--surfacePrimary));
 }
 
-.trash-confirm-panel > .material-icons {
+.trash-confirm-panel > .app-icon {
   color: var(--icon-red);
 }
 
@@ -203,9 +207,10 @@
   text-align: left;
 }
 
-.trash-state--error > .material-icons {
+.trash-state--error > .app-icon {
   color: var(--icon-red);
-  font-size: 30px;
+  width: 30px;
+  height: 30px;
 }
 
 .trash-state p,
@@ -249,8 +254,9 @@
   background: var(--surfaceSecondary);
 }
 
-.trash-empty-illustration .material-icons {
-  font-size: 38px;
+.trash-empty-illustration .app-icon {
+  width: 38px;
+  height: 38px;
 }
 
 .trash-empty-illustration span {
@@ -336,8 +342,9 @@
   background: color-mix(in srgb, var(--icon-blue) 10%, transparent);
 }
 
-.trash-file-icon .material-icons {
-  font-size: 24px;
+.trash-file-icon .app-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .trash-file-copy {
@@ -376,8 +383,10 @@
   white-space: nowrap;
 }
 
-.trash-item-error .material-icons {
-  font-size: 14px;
+.trash-item-error .app-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
 }
 
 .trash-item-meta {
@@ -395,9 +404,10 @@
   gap: 5px;
 }
 
-.trash-item-meta .material-icons {
+.trash-item-meta .app-icon {
   flex: 0 0 auto;
-  font-size: 15px;
+  width: 15px;
+  height: 15px;
 }
 
 .trash-status-chip {
@@ -421,9 +431,11 @@
   font-weight: 650;
 }
 
-.trash-action-primary .material-icons,
-.trash-action-icon .material-icons {
-  font-size: 18px;
+.trash-action-primary .app-icon,
+.trash-action-icon .app-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
 }
 
 .trash-action-icon {
@@ -478,7 +490,7 @@
   gap: 12px;
 }
 
-.trash-conflict-heading > .material-icons {
+.trash-conflict-heading > .app-icon {
   display: grid;
   width: 40px;
   height: 40px;
@@ -528,11 +540,11 @@
   outline-offset: 2px;
 }
 
-.trash-conflict-options button > .material-icons {
+.trash-conflict-options button > .app-icon {
   color: var(--blue);
 }
 
-.trash-conflict-options button.danger > .material-icons {
+.trash-conflict-options button.danger > .app-icon {
   color: var(--icon-red);
 }
 

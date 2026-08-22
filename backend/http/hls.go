@@ -146,7 +146,8 @@ func mediaHLSInput(d *data, owner *users.User, value string) (hls.Input, int, er
 	ownerData.user = owner
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs: owner.Fs, Path: value, Modify: owner.Perm.Modify,
-		Expand: true, ReadHeader: d.server.TypeDetectionByHeader, Checker: &ownerData,
+		Expand: true, SkipSubtitles: true,
+		ReadHeader: d.server.TypeDetectionByHeader, Checker: &ownerData,
 	})
 	if err != nil {
 		return hls.Input{}, errToStatus(err), err

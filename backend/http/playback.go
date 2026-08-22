@@ -113,7 +113,8 @@ func playbackFile(d *data, value string) (*files.FileInfo, string, int, error) {
 	if file.Type == "blob" {
 		file, err = files.NewFileInfo(&files.FileOptions{
 			Fs: d.user.Fs, Path: value, Modify: d.user.Perm.Modify,
-			Expand: true, ReadHeader: d.server.TypeDetectionByHeader, Checker: d,
+			Expand: true, SkipSubtitles: true,
+			ReadHeader: d.server.TypeDetectionByHeader, Checker: d,
 		})
 		if err != nil {
 			return nil, "", errToStatus(err), err

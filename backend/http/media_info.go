@@ -69,7 +69,8 @@ func mediaInfoHandler(probe mediaProbe) handleFunc {
 		value = pathmeta.Clean(value)
 		file, err := files.NewFileInfo(&files.FileOptions{
 			Fs: d.user.Fs, Path: value, Modify: d.user.Perm.Modify,
-			Expand: true, ReadHeader: d.server.TypeDetectionByHeader,
+			Expand: true, SkipSubtitles: true,
+			ReadHeader: d.server.TypeDetectionByHeader,
 			CalcImgRes: true, Checker: d,
 		})
 		if err != nil {

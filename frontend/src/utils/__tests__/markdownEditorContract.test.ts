@@ -19,6 +19,10 @@ const contentStyles = readFileSync(
   fileURLToPath(new URL("../../css/markdown-content.css", import.meta.url)),
   "utf8"
 );
+const workspaceStyles = readFileSync(
+  fileURLToPath(new URL("../../css/workspace-ui.css", import.meta.url)),
+  "utf8"
+);
 const resourceLoaderSource = readFileSync(
   fileURLToPath(new URL("../externalResources.ts", import.meta.url)),
   "utf8"
@@ -107,6 +111,15 @@ describe("Markdown 编辑器交互契约", () => {
     );
     expect(editorSource).toContain('window.addEventListener("beforeunload"');
     expect(editorSource).not.toMatch(/autoSave|autosave|draft|草稿/);
+  });
+
+  it("移动端编辑器顶部操作保持 44px 触控目标", () => {
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width: 899px\)[\s\S]*?#editor-container > header > \.header-leading,[\s\S]*?#editor-container > header > \.header-trailing\s*\{[\s\S]*flex-basis:\s*44px;/
+    );
+    expect(workspaceStyles).toMatch(
+      /#editor-container > header > \.header-leading > \.action,[\s\S]*?#editor-container > header > \.header-trailing \.header-mobile-actions > \.action\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/
+    );
   });
 
   it("图片拖入使用同级 assets 且只标记 Markdown 为待手动保存", () => {

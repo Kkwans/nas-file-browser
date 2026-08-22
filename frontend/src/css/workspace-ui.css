@@ -1210,6 +1210,21 @@ nav.sidebar .favorite-item.drag-over-bottom {
     flex: 0 0 40px;
   }
 
+  /* 编辑器顶部关闭/保存操作也必须保持完整触控目标，避免移动端只有 40px。 */
+  #editor-container > header > .header-leading,
+  #editor-container > header > .header-trailing {
+    flex-basis: 44px;
+  }
+
+  #editor-container > header > .header-leading > .action,
+  #editor-container > header > .header-trailing .header-mobile-actions > .action {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    flex: 0 0 44px;
+  }
+
   header > .header-leading {
     justify-content: flex-start;
   }

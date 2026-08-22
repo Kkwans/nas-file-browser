@@ -120,7 +120,7 @@
             v-if="preflightPassed"
             class="rename-check-state rename-check-state--success"
           >
-            <i class="material-icons" aria-hidden="true">verified</i>
+            <AppIcon name="circle-check" :size="16" aria-hidden="true" />
             检查通过
           </span>
         </div>
@@ -138,12 +138,19 @@
           >
             <span class="rename-row-index">{{ index + 1 }}</span>
             <div class="rename-source" :title="draft.oldName">
-              <i class="material-icons" aria-hidden="true">
-                {{ draft.isDir ? "folder" : "draft" }}
-              </i>
+              <AppIcon
+                :name="draft.isDir ? 'folder' : 'file'"
+                :size="18"
+                aria-hidden="true"
+              />
               <span>{{ draft.oldName }}</span>
             </div>
-            <i class="material-icons rename-arrow" aria-hidden="true">east</i>
+            <AppIcon
+              class="rename-arrow"
+              name="arrow-right"
+              :size="17"
+              aria-hidden="true"
+            />
             <label class="rename-target">
               <span class="sr-only">第 {{ index + 1 }} 项的新名称</span>
               <input
@@ -221,6 +228,7 @@
 import { computed, inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import url from "@/utils/url";

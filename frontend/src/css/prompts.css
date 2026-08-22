@@ -1140,7 +1140,7 @@ html.dark .quick-preview-loading {
   color: #16845d;
 }
 
-.rename-check-state .material-icons {
+.rename-check-state .app-icon {
   font-size: 1rem;
 }
 
@@ -1187,10 +1187,9 @@ html.dark .quick-preview-loading {
   font-size: 0.82rem;
 }
 
-.rename-source .material-icons {
+.rename-source > .app-icon {
   flex-shrink: 0;
   color: var(--textSecondary, #7b8494);
-  font-size: 1.15rem;
 }
 
 .rename-source span {
@@ -1200,9 +1199,9 @@ html.dark .quick-preview-loading {
 }
 
 .rename-arrow {
-  padding-top: 0.55rem;
+  align-self: start;
+  margin-top: 0.55rem;
   color: var(--textSecondary, #9aa2af);
-  font-size: 1rem;
 }
 
 .rename-target {
@@ -1254,6 +1253,11 @@ html.dark .quick-preview-loading {
 .batch-rename-card .card-action {
   flex-shrink: 0;
   border-top: 1px solid var(--divider, rgba(0, 0, 0, 0.06));
+}
+
+.batch-rename-card .card-action button {
+  min-height: 44px;
+  min-width: 5.5rem;
 }
 
 .sr-only {

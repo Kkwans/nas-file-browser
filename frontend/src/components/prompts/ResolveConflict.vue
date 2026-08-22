@@ -2,6 +2,7 @@
   <div class="card floating">
     <div class="card-title">
       <h2>
+        <AppIcon name="circle-alert" :size="22" aria-hidden="true" />
         {{ personalized ? "解决冲突" : "替换或跳过" }}
       </h2>
     </div>
@@ -86,39 +87,44 @@
 
         <div class="result-buttons">
           <button @click="(e) => resolve(e, ['origin'])">
-            <i class="material-icons">done_all</i>
+            <AppIcon name="copy" :size="20" aria-hidden="true" />
             替换目标文件夹中的所有文件
           </button>
           <button
             v-if="isUploadAction != true"
             @click="(e) => resolve(e, ['origin', 'dest'])"
           >
-            <i class="material-icons">folder_copy</i>
+            <AppIcon name="folder-maintenance" :size="20" aria-hidden="true" />
             重命名所有文件（创建副本）
           </button>
           <button @click="(e) => resolve(e, ['dest'])">
-            <i class="material-icons">undo</i>
+            <AppIcon name="undo" :size="20" aria-hidden="true" />
             跳过所有冲突文件
           </button>
           <button @click="(e) => resume(e)">
-            <i class="material-icons">replay</i>
+            <AppIcon name="retry" :size="20" aria-hidden="true" />
             恢复传输
             <span class="info-tooltip" @click.stop="() => {}">
-              <i class="material-icons info-icon">info_outline</i>
+              <AppIcon
+                name="info"
+                :size="18"
+                class="info-icon"
+                aria-hidden="true"
+              />
               <span class="info-tooltip-text">
                 跳过所有冲突文件，除了服务器上较小的文件（可能传输中断）。
               </span>
             </span>
           </button>
           <button @click="personalized = true">
-            <i class="material-icons">checklist</i>
+            <AppIcon name="tasks" :size="20" aria-hidden="true" />
             逐个处理冲突文件
           </button>
         </div>
       </template>
     </div>
 
-    <div class="card-action" style="display: flex; justify-content: end">
+    <div class="card-action conflict-actions">
       <div>
         <button
           class="button button--flat button--grey"
@@ -147,6 +153,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
@@ -234,6 +241,17 @@ const toogleCheckAll = (e: Event) => {
 };
 </script>
 <style scoped>
+.card-title h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-title h2 > .app-icon {
+  flex: 0 0 auto;
+  color: var(--icon-orange, #d97706);
+}
+
 .conflict-list-container {
   max-height: 300px;
   overflow: auto;
@@ -254,6 +272,13 @@ const toogleCheckAll = (e: Event) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.conflict-list-container input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--blue, #1677ff);
 }
 
 .conflict-file-name {
@@ -309,6 +334,7 @@ const toogleCheckAll = (e: Event) => {
   transition: all ease-in-out 200ms;
   cursor: pointer;
   border-radius: 0.25rem;
+  min-height: 44px;
 }
 
 .result-buttons > button:hover {
@@ -321,10 +347,20 @@ const toogleCheckAll = (e: Event) => {
   align-items: center;
 }
 
+.result-buttons > button > .app-icon,
 .info-icon {
-  font-size: 1rem;
+  flex: 0 0 auto;
   color: var(--icon-blue);
   cursor: help;
+}
+
+.conflict-actions {
+  justify-content: flex-end;
+}
+
+.conflict-actions button {
+  min-width: 5.5rem;
+  min-height: 44px;
 }
 
 .info-tooltip-text {

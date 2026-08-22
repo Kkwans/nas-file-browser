@@ -174,3 +174,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 验证：新增 `fileListIconContract.test.ts`，旧实现先失败，修复后聚焦测试 `1/1`；Frontend typecheck、目标 ESLint `--max-warnings=0`、全量 Vitest `87 files / 292 tests` 通过；CI `32597275565` 与 Docs `32597275575` 均成功。
 - 发布：NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-filelist-icons-r5` 成功；Compose 配置校验通过；部署提交 `32fd3dd0 chore(deploy): 发布目录选择器图标修复镜像` 已推送 `master`。仅重建 `filebrowser` 服务，容器为 `healthy`，本机 `127.0.0.1:8888` 返回 `200`。
 - TX5pro 只读浏览器报告 `20260822T204913Z`：桌面/手机移动弹窗均实际打开目录选择器，各检查 `28` 个目录项和 `28` 个本地图标（约 `19×19px`），Material 图标为 `0`，横向溢出为 `0`，未授权写请求为 `0`；取消弹窗退出，未修改 NAS 数据。
+
+### 2026-08-23 遗留字体图标层清理与 r6 部署
+
+- `frontend/src/css/listing-icons.css` 保留文件类型颜色语义，移除旧 Material 字体伪元素、`content` 图标映射和骨架动画；`frontend/src/css/fonts.css` 不再导入 Material Icons 字体；`frontend/src/main.ts` 移除无对应字体层的全局加载门闩。
+- 先新增契约并在旧实现上确认失败，修复后聚焦契约 `2/2`、typecheck、目标 ESLint 和全量 Vitest `87 files / 293 tests` 通过；CI `32598106923` 与 Docs `32598106970` 均成功。
+- 发布提交：`0b22eebd chore(deploy): 发布遗留图标层清理镜像` 已推送；NAS 本机镜像 `nas-file-browser:2026.8.23-phase10-icon-layer-r6` 构建成功，Compose 校验通过，只有 `filebrowser` 服务重建，容器 `healthy`，本机 HTTP `200`。
+- TX5pro 核心图标报告 `20260822T210233Z`：桌面/手机文件列表分别检查 `36/33` 个本地图标，Material 图标为 `0`，无横向溢出、无未授权写请求；错误页主动访问不存在路径产生的 `404` 控制台记录属于预期错误态验证，Shell 入口仍因当前账户/配置不可见而 skipped。
+- TX5pro 目录选择器报告 `20260822T210253Z`：桌面/手机各检查 `28` 个目录项和 `28` 个本地图标，图标约 `19×19px`，Material 图标为 `0`，无横向溢出、无运行时错误、无未授权写请求；弹窗均通过取消退出，未修改 NAS 数据。

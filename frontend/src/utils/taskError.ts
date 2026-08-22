@@ -15,7 +15,5 @@ export function summarizeTaskError(error: string | null | undefined): string {
   if (!firstLine) return "任务失败，未提供详细原因";
   if (firstLine.length <= TASK_ERROR_SUMMARY_MAX_LENGTH) return firstLine;
 
-  return `${firstLine
-    .slice(0, TASK_ERROR_SUMMARY_MAX_LENGTH - 1)
-    .trimEnd()}…`;
+  return `${firstLine.slice(0, TASK_ERROR_SUMMARY_MAX_LENGTH - 1).trimEnd()}…`;
 }

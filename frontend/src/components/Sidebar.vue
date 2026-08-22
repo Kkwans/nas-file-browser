@@ -256,7 +256,7 @@
                   class="sidebar-rail-popover-item sidebar-rail-volume-item"
                   @click="navigateVolume(volume.path)"
                 >
-                  <AppIcon name="database" :size="19" />
+                  <AppIcon :name="volume.icon" :size="19" :stroke-width="1.9" />
                   <span>
                     <strong>{{ volume.displayName }}</strong>
                     <small
@@ -749,9 +749,12 @@
               @drop.stop="onPreferenceDrop('volumeOrder', vol.path)"
               @dragend="clearSidebarDrag"
             >
-              <i class="material-icons" :style="{ color: vol.color }">{{
-                vol.icon
-              }}</i>
+              <AppIcon
+                :name="vol.icon"
+                :size="20"
+                :stroke-width="1.9"
+                :style="{ color: vol.color }"
+              />
               <div class="volume-info">
                 <span class="volume-name">{{ vol.displayName }}</span>
                 <div class="volume-bar-wrap">

@@ -3,21 +3,25 @@ import { ref, computed } from "vue";
 import type { Volume, SubDir } from "@/api/volumes";
 import { getVolumes } from "@/api/volumes";
 import { formatStorageSize } from "@/utils/storageSize";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 
 export interface VolumeDisplay extends Volume {
   displayName: string;
   usedFormatted: string;
   totalFormatted: string;
   usedPercentage: number;
-  icon: string;
+  icon: AppIconName;
   color: string;
 }
 
-const VOLUME_ICONS: Record<string, { icon: string; color: string }> = {
-  system: { icon: "storage", color: "#4CAF50" },
+const VOLUME_ICONS: Record<
+  Volume["type"],
+  { icon: AppIconName; color: string }
+> = {
+  system: { icon: "hard-drive", color: "#4CAF50" },
   usb: { icon: "usb", color: "#2196F3" },
   network: { icon: "cloud", color: "#9C27B0" },
-  docker: { icon: "developer_board", color: "#FF9800" },
+  docker: { icon: "container", color: "#FF9800" },
 };
 
 export const useVolumesStore = defineStore("volumes", () => {

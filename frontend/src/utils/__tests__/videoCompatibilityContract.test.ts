@@ -37,6 +37,7 @@ describe("视频兼容播放依赖契约", () => {
     expect(videoPlayerSource).toContain('"application/x-mpegURL"');
     expect(videoPlayerSource).toContain("processedSeconds");
     expect(videoPlayerSource).toContain("完整兼容文件生成后即可拖动进度");
+    expect(videoPlayerSource).toContain("兼容文件已生成，可拖动进度");
     expect(videoPlayerSource).toContain('status?.format === "webm-copy"');
   });
 

@@ -134,9 +134,11 @@
           class="media-compatibility-card__progress"
         >
           已转换
-          {{
-            formatMediaTime(compatibilityStatus.processedSeconds)
-          }}；完整兼容文件生成后即可拖动进度。
+          {{ formatMediaTime(compatibilityStatus.processedSeconds) }}；
+          <template v-if="compatibilityStatus?.state === 'completed'">
+            兼容文件已生成，可拖动进度。
+          </template>
+          <template v-else>完整兼容文件生成后即可拖动进度。</template>
         </p>
         <small v-if="compatibilityNetworkError" role="alert">
           <AppIcon :name="mediaIcon('cloud_off')" :size="16" />

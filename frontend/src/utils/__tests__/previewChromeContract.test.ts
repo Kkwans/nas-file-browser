@@ -17,6 +17,8 @@ const workspaceStyles = readFileSync(
 describe("preview chrome contract", () => {
   it("isolates unified media from the globally centered header", () => {
     expect(previewSource).toContain("'media-preview-header': isUnifiedMedia");
+    expect(previewSource).toContain('class="header-title"');
+    expect(previewSource).toContain("{{ name }}");
     expect(previewStyles).toContain(
       "#previewer header.media-preview-header > .header-center"
     );
@@ -24,7 +26,7 @@ describe("preview chrome contract", () => {
       /header\.media-preview-header > \.header-center[\s\S]*?position: static;[\s\S]*?transform: none;/
     );
     expect(previewStyles).toMatch(
-      /header\.media-preview-header > \.header-center title[\s\S]*?color: #fff;[\s\S]*?text-align: left;[\s\S]*?text-overflow: ellipsis;/
+      /header\.media-preview-header > \.header-center \.header-title[\s\S]*?color: #fff;[\s\S]*?text-align: left;[\s\S]*?text-overflow: ellipsis;/
     );
   });
 

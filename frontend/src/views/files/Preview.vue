@@ -12,7 +12,7 @@
       :class="{ 'media-preview-header': isUnifiedMedia }"
     >
       <action app-icon="x" label="关闭" @action="close()" />
-      <title>{{ name }}</title>
+      <span class="header-title" :title="name">{{ name }}</span>
       <action
         :disabled="layoutStore.loading"
         v-if="isResizeEnabled && fileStore.req?.type === 'image'"

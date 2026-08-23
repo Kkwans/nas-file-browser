@@ -15,7 +15,7 @@ describe("媒体预览外壳契约", () => {
       /#previewer\s+header\.media-preview-header\s*>\s*\.header-center\s*\{[\s\S]*?justify-content:\s*flex-start;/
     );
     expect(stylesSource).toMatch(
-      /#previewer\s+header\.media-preview-header\s*>\s*\.header-center title\s*\{[\s\S]*?color:\s*#fff;[\s\S]*?text-align:\s*left;/
+      /#previewer\s+header\.media-preview-header\s*>\s*\.header-center \.header-title\s*\{[\s\S]*?color:\s*#fff;[\s\S]*?text-align:\s*left;/
     );
   });
 

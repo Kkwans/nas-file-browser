@@ -2,7 +2,9 @@
   <div id="editor-container">
     <header-bar>
       <action app-icon="x" label="关闭" @action="close()" />
-      <title>{{ fileStore.req?.name ?? "" }}</title>
+      <span class="header-title" :title="fileStore.req?.name ?? ''">{{
+        fileStore.req?.name ?? ""
+      }}</span>
 
       <template #mobile-actions>
         <action

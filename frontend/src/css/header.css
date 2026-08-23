@@ -78,7 +78,7 @@ header img:hover {
 }
 
 /* Title */
-header title {
+header .header-title {
   display: block;
   flex: 1 1 auto;
   padding: 0 0.75em;
@@ -92,7 +92,7 @@ header title {
   line-height: 1.4;
 }
 
-#editor-container header title {
+#editor-container header .header-title {
   overflow: hidden;
 }
 
@@ -731,7 +731,7 @@ html.dark header .breadcrumbs a:hover {
     display: none;
   }
 
-  header title {
+  header .header-title {
     font-size: 0.9375em;
   }
 

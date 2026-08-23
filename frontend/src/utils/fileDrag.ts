@@ -40,12 +40,10 @@ export function writeFileDragPayload(
   } catch {
     // Safari/WebView can reject writes for a synthetic or protected transfer.
   }
-  try {
-    sameDocumentFallback =
-      dataTransfer.getData(FILE_DRAG_MIME) === payload ? [] : normalized;
-  } catch {
-    sameDocumentFallback = normalized;
-  }
+  // Keep the fallback even when the write appears to succeed: Playwright and
+  // some WebViews can expose the value during dragstart, then hand a fresh
+  // empty DataTransfer to dragover/drop.
+  sameDocumentFallback = normalized;
   dataTransfer.effectAllowed = "copyMove";
 }
 

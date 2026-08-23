@@ -70,7 +70,12 @@ export function isKnownIncompatibleVideo(path: string) {
     const mime = VIDEO_MIME_TYPES[extension];
     if (mime) {
       const support = document.createElement("video").canPlayType(mime);
-      if (/maybe|probably/i.test(support)) return false;
+      // A container-only `maybe` is not enough: Chromium reports `maybe` for
+      // Matroska even when the actual H.264/AAC tracks cannot be decoded.
+      // Without codec metadata we only trust an explicit `probably` result;
+      // otherwise the user gets the compatibility path instead of a black
+      // player that appears to be loading forever.
+      if (/probably/i.test(support)) return false;
     }
   }
   return true;

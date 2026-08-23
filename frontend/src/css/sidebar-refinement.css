@@ -1053,6 +1053,14 @@ nav.sidebar .favorite-remove {
     border-color 140ms ease;
 }
 
+nav.sidebar .favorite-item > .favorite-remove {
+  flex-basis: 2rem;
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+}
+
 nav.sidebar .favorite-remove > .app-icon {
   display: block;
   width: 1rem;

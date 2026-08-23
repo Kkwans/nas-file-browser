@@ -58,7 +58,7 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 		if err := decoder.Decode(&request); err != nil {
 			return http.StatusBadRequest, fmt.Errorf("兼容播放参数无效: %w", err)
 		}
-		input, status, err := mediaHLSInput(d, d.user, request.Path)
+		input, status, err := mediaHLSInputWithContext(r.Context(), d, d.user, request.Path, request.Format != "webm")
 		if err != nil {
 			return status, err
 		}
@@ -68,6 +68,8 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 			reserve = service.ReserveWebM
 		} else if request.Format != "" && request.Format != "hls" {
 			return http.StatusBadRequest, fmt.Errorf("不支持的兼容播放格式")
+		} else if mediaHLSFormatForInput(input) == "copy" {
+			reserve = service.ReserveCopy
 		}
 		cached, created, err := reserve(input, func(job hls.Job) (string, error) {
 			task, err = enqueueMediaHLSTask(runtime, d, d.user, service, job, "")
@@ -148,6 +150,10 @@ func mediaHLSAssetHandler(service *hls.Service) handleFunc {
 }
 
 func mediaHLSInput(d *data, owner *users.User, value string) (hls.Input, int, error) {
+	return mediaHLSInputWithContext(context.Background(), d, owner, value, true)
+}
+
+func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, value string, probeCodecs bool) (hls.Input, int, error) {
 	if owner == nil || !owner.Perm.Download {
 		return hls.Input{}, http.StatusForbidden, fmt.Errorf("没有兼容播放该视频的权限")
 	}
@@ -169,15 +175,37 @@ func mediaHLSInput(d *data, owner *users.User, value string) (hls.Input, int, er
 		return hls.Input{}, http.StatusBadRequest, fmt.Errorf("兼容播放仅适用于视频文件")
 	}
 	identity := "v1:" + strconv.FormatInt(file.Size, 10) + ":" + strconv.FormatInt(file.ModTime.UnixNano(), 10)
-	return hls.Input{
+	input := hls.Input{
 		UserID: owner.ID, Path: file.Path, Identity: identity, SourcePath: file.RealPath(),
-	}, 0, nil
+	}
+	// Compatibility playback is already an explicit user action. A short,
+	// best-effort probe lets H.264/AAC MKV and MOV files take the remux-only
+	// path; probe failures fall back to the existing transcode profile.
+	if probeCodecs {
+		probeCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		probe, probeErr := defaultMediaProbe(probeCtx, input.SourcePath, false)
+		cancel()
+		if probeErr == nil {
+			input.VideoCodec = probe.VideoCodec
+			input.AudioCodec = probe.AudioCodec
+		}
+	}
+	return input, 0, nil
+}
+
+func mediaHLSFormatForInput(input hls.Input) string {
+	if hls.CanCopyMedia(input.VideoCodec, input.AudioCodec) {
+		return "copy"
+	}
+	return "hls"
 }
 
 func enqueueMediaHLSTask(runtime *tasks.Runtime, d *data, owner *users.User, service *hls.Service, job hls.Job, retryOf string) (*tasks.Task, error) {
 	format := "hls"
 	if hls.IsWebMProfile(job.Profile) {
 		format = "webm"
+	} else if hls.IsCopyProfile(job.Profile) {
+		format = "copy"
 	}
 	args, err := json.Marshal(mediaHLSTaskArgs{Path: job.Path, CacheID: job.ID, Identity: job.Identity, Format: format})
 	if err != nil {
@@ -215,6 +243,8 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 	}
 	if hls.IsWebMProfile(status.Profile) {
 		response.Format = "webm"
+	} else if hls.IsCopyProfile(status.Profile) {
+		response.Format = "copy"
 	}
 	if status.State == hls.StateStreamable || status.State == hls.StateCompleted {
 		base := strings.TrimSuffix(baseURL, "/") + "/api/media/hls/" + status.ID + "/"

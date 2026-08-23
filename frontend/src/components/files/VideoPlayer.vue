@@ -490,7 +490,9 @@ const compatibilityCopy = computed(() => {
         icon: "movie_edit",
         title: "正在准备首个分段",
         description:
-          "FFmpeg 正以低资源配置转换视频。可以离开此页，真实任务状态会保留在任务中心。",
+          status?.format === "copy"
+            ? "正在重新封装已有的 H.264/AAC 轨道，不重新编码视频；完成后即可拖动进度。"
+            : "FFmpeg 正以低资源配置转换视频。可以离开此页，真实任务状态会保留在任务中心。",
       };
     case "streamable":
       return {
@@ -501,10 +503,10 @@ const compatibilityCopy = computed(() => {
     case "completed":
       return {
         icon: "offline_pin",
-        title: "兼容版本已缓存",
+        title: status?.format === "copy" ? "兼容封装已缓存" : "兼容版本已缓存",
         description: status?.sizeBytes
-          ? `本次产物占用 ${formatCacheSize(status.sizeBytes)}，再次打开同一文件可直接复用。`
-          : "转换已经完成，再次打开同一文件可直接复用缓存。",
+          ? `${status.format === "copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，本次产物占用 ${formatCacheSize(status.sizeBytes)}，再次打开同一文件可直接复用。`
+          : `${status?.format === "copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，再次打开同一文件可直接复用缓存。`,
       };
     case "failed":
       return {

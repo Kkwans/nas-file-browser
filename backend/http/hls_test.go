@@ -123,6 +123,25 @@ func TestMediaHLSCancelDoesNotOfferRetry(t *testing.T) {
 	}
 }
 
+func TestMediaHLSFormatUsesRemuxForCompatibleStreams(t *testing.T) {
+	if got := mediaHLSFormatForInput(hls.Input{VideoCodec: "h264", AudioCodec: "aac"}); got != "copy" {
+		t.Fatalf("compatible streams format = %q, want copy", got)
+	}
+	if got := mediaHLSFormatForInput(hls.Input{VideoCodec: "hevc", AudioCodec: "aac"}); got != "hls" {
+		t.Fatalf("HEVC streams format = %q, want hls", got)
+	}
+}
+
+func TestMediaHLSStatusResponseMarksRemuxProfile(t *testing.T) {
+	response := mediaHLSStatusResponse("", hls.Status{
+		ID: "copy-id", UserID: 1, Path: "/movie.mkv", Identity: "v1",
+		Profile: hls.DefaultCopyProfile, State: hls.StateCompleted,
+	})
+	if response.Format != "copy" || response.PlaylistURL == "" {
+		t.Fatalf("copy response = %#v", response)
+	}
+}
+
 func newHTTPHLSService(t *testing.T, slow bool) *hls.Service {
 	t.Helper()
 	directory := t.TempDir()

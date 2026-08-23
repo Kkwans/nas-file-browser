@@ -23,6 +23,7 @@ import (
 const (
 	DefaultMaxBytes    = int64(10 << 30)
 	DefaultProfile     = "h264-main-720p-aac-hls4-v1"
+	DefaultCopyProfile = "h264-copy-hls-v1"
 	DefaultWebMProfile = "vp9-720p-opus-webm-v1"
 	playingLease       = 2 * time.Minute
 	maxFFmpegError     = 8 * 1024
@@ -60,6 +61,8 @@ type Input struct {
 	Path       string
 	Identity   string
 	SourcePath string
+	VideoCodec string
+	AudioCodec string
 }
 
 type Job struct {
@@ -76,6 +79,21 @@ type Job struct {
 // browsers with and without H.264 MSE support do not share incompatible data.
 func IsWebMProfile(profile string) bool {
 	return profile == DefaultWebMProfile
+}
+
+// IsCopyProfile reports whether the HLS artifact only remuxes streams that
+// Chromium can consume.  It avoids a full video encode for MKV/MOV files that
+// already contain H.264 video and AAC (or no) audio.
+func IsCopyProfile(profile string) bool {
+	return profile == DefaultCopyProfile
+}
+
+// CanCopyMedia is deliberately conservative: copying an unsupported audio
+// stream would produce a fast but unusable compatibility artifact.
+func CanCopyMedia(videoCodec, audioCodec string) bool {
+	videoCodec = strings.ToLower(strings.TrimSpace(videoCodec))
+	audioCodec = strings.ToLower(strings.TrimSpace(audioCodec))
+	return videoCodec == "h264" && (audioCodec == "" || audioCodec == "aac")
 }
 
 type Status struct {
@@ -163,6 +181,12 @@ func New(config Config) (*Service, error) {
 
 func (service *Service) Reserve(input Input, start StartFunc) (Status, bool, error) {
 	return service.reserve(input, service.profile, start)
+}
+
+// ReserveCopy creates an HLS playlist by copying already browser-compatible
+// H.264/AAC streams.  The container is remuxed, not re-encoded.
+func (service *Service) ReserveCopy(input Input, start StartFunc) (Status, bool, error) {
+	return service.reserve(input, DefaultCopyProfile, start)
 }
 
 // ReserveWebM creates a compatibility artifact that can be played by
@@ -260,6 +284,9 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	playlist := filepath.Join(directory, "index.m3u8")
 	segmentPattern := filepath.Join(directory, "segment-%06d.ts")
 	args := ffmpegArgs(job.SourcePath, segmentPattern, playlist)
+	if IsCopyProfile(job.Profile) {
+		args = copyFFmpegArgs(job.SourcePath, segmentPattern, playlist)
+	}
 	command := exec.CommandContext(ctx, service.ffmpegPath, args...)
 	stderr := cappedBuffer{limit: maxFFmpegError}
 	command.Stderr = &stderr
@@ -565,6 +592,17 @@ func ffmpegArgs(source, segmentPattern, playlist string) []string {
 		"-threads", "1", "-filter_threads", "1",
 		"-c:a", "aac", "-b:a", "128k", "-ac", "2",
 		"-force_key_frames", "expr:gte(t,n_forced*4)",
+		"-f", "hls", "-hls_time", "4", "-hls_list_size", "0", "-hls_playlist_type", "event",
+		"-hls_flags", "independent_segments+temp_file",
+		"-hls_segment_filename", segmentPattern, playlist,
+	}
+}
+
+func copyFFmpegArgs(source, segmentPattern, playlist string) []string {
+	return []string{
+		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
+		"-map", "0:v:0", "-map", "0:a:0?",
+		"-c:v", "copy", "-c:a", "copy",
 		"-f", "hls", "-hls_time", "4", "-hls_list_size", "0", "-hls_playlist_type", "event",
 		"-hls_flags", "independent_segments+temp_file",
 		"-hls_segment_filename", segmentPattern, playlist,

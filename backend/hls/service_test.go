@@ -144,6 +144,44 @@ func TestWebMArgsProduceBrowserSeekableCompatibilityFile(t *testing.T) {
 	}
 }
 
+func TestCopyFFmpegArgsKeepBrowserCompatibleStreams(t *testing.T) {
+	args := copyFFmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8")
+	joined := strings.Join(args, "\x00")
+	for _, expected := range []string{
+		"-c:v\x00copy",
+		"-c:a\x00copy",
+		"-hls_playlist_type\x00event",
+	} {
+		if !strings.Contains(joined, expected) {
+			t.Fatalf("copy HLS args missing %q: %q", expected, joined)
+		}
+	}
+	if strings.Contains(joined, "libx264") || strings.Contains(joined, "libvpx-vp9") {
+		t.Fatalf("copy HLS args unexpectedly re-encode video: %q", joined)
+	}
+}
+
+func TestCanCopyMediaRequiresBrowserCompatibleCodecs(t *testing.T) {
+	tests := []struct {
+		name       string
+		videoCodec string
+		audioCodec string
+		want       bool
+	}{
+		{name: "h264 aac", videoCodec: "h264", audioCodec: "aac", want: true},
+		{name: "h264 no audio", videoCodec: "h264", want: true},
+		{name: "hevc aac", videoCodec: "hevc", audioCodec: "aac", want: false},
+		{name: "h264 dts", videoCodec: "h264", audioCodec: "dts", want: false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := CanCopyMedia(test.videoCodec, test.audioCodec); got != test.want {
+				t.Fatalf("CanCopyMedia(%q, %q) = %v, want %v", test.videoCodec, test.audioCodec, got, test.want)
+			}
+		})
+	}
+}
+
 func newFakeService(t *testing.T, workers int, maxBytes int64, delay time.Duration) *Service {
 	t.Helper()
 	directory := t.TempDir()

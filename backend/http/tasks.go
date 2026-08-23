@@ -77,13 +77,15 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 		if err := json.Unmarshal(original.Args, &args); err != nil {
 			return nil, http.StatusConflict, fmt.Errorf("任务参数损坏: %w", err)
 		}
-		input, status, err := mediaHLSInput(d, owner, args.Path)
+		input, status, err := mediaHLSInputWithContext(context.Background(), d, owner, args.Path, args.Format != "webm")
 		if err != nil {
 			return nil, status, err
 		}
 		reserve := hlsServices[0].Reserve
 		if args.Format == "webm" {
 			reserve = hlsServices[0].ReserveWebM
+		} else if args.Format == "copy" {
+			reserve = hlsServices[0].ReserveCopy
 		}
 		_, created, reserveErr := reserve(input, func(job hls.Job) (string, error) {
 			retry, err = enqueueMediaHLSTask(runtime, d, owner, hlsServices[0], job, original.ID)

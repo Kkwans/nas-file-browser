@@ -237,11 +237,12 @@ const PLACEHOLDER_MAX_WAIT_MS = 650;
 // A very large JPEG can spend several seconds in the NAS decoder before the
 // scaled preview responds. Falling back to the inline original keeps the
 // viewer responsive while preserving the scaled-preview path when it wins.
-// The warm 1080px preview is usually ready shortly after the thumbnail. Give
-// it enough time to win before fetching/decode of a multi-megabyte original;
-// the thumbnail remains visible during this grace period and the raw source
-// is still a bounded fallback when the preview service is genuinely stuck.
-const RAW_IMAGE_FALLBACK_DELAY_MS = 3000;
+// The warm 1080px preview can take several seconds on the NAS ARM CPU for a
+// multi-megapixel JPEG. Keep a short grace period for the scaled preview, then
+// fetch the original so the viewer can show real pixels instead of leaving the
+// user behind a spinner. The warm request remains shared and cacheable in the
+// background; this only changes which response wins the first paint.
+const RAW_IMAGE_FALLBACK_DELAY_MS = 1200;
 
 const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 

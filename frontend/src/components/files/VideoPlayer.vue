@@ -491,6 +491,7 @@ function applyPendingResume() {
 
 const compatibilityState = computed<HLSPlaybackState | "idle" | "error">(() => {
   if (compatibilityStatus.value) return compatibilityStatus.value.state;
+  if (directPlaybackProbeBlocked.value) return "idle";
   if (compatibilityNetworkError.value) return "error";
   return "idle";
 });

@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.23-phase10-sidebar-logout-r32
+    image: nas-file-browser:2026.8.23-phase10-sidebar-logout-icon-r33
     build:
       context: .
       dockerfile: Dockerfile.custom

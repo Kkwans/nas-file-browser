@@ -192,6 +192,18 @@ export function inferMarkdownCodeLanguage(source: string): string | null {
   const code = source.trim();
   if (!code) return null;
 
+  // README/deployment snippets are frequently fenced without a language.
+  // Recognize a small, high-confidence command vocabulary so they receive
+  // the bundled Bash theme instead of rendering as an undifferentiated black
+  // block.  A lone prose line or an arbitrary identifier remains plaintext.
+  if (
+    /(?:^|\n)\s*(?:#\s+|(?:sudo\s+)?)(?:npm|pnpm|yarn|node|docker(?:-compose)?|git|cd|tar|ssh|scp|curl|wget|chmod|chown|mkdir|rm|cp|mv|go|make|ffmpeg|ffprobe)\b/im.test(
+      code
+    )
+  ) {
+    return "bash";
+  }
+
   if (/^#!\s*\/usr\/bin\/env\s+(?:ba)?sh\b|^#!\/bin\/(?:ba)?sh\b/.test(code)) {
     return "bash";
   }

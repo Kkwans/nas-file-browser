@@ -36,6 +36,14 @@ describe("Markdown 代码块契约", () => {
     ).toBe(null);
   });
 
+  it("识别未标注围栏中的常见 Shell 命令，避免整块黑色纯文本", () => {
+    expect(
+      inferMarkdownCodeLanguage(
+        "# 构建\nnpm run build\ntar czf -C dist . | ssh user@nas 'tar xzf -'"
+      )
+    ).toBe("bash");
+  });
+
   it("行号关闭时不创建 gutter，开启时每一行只包装一次", () => {
     const source = "第一行\n第二行\n第三行\n";
     expect(wrapMarkdownCodeLines(source, false)).toEqual({

@@ -52,6 +52,8 @@ type mediaHLSResponse struct {
 	SourceURL        string    `json:"sourceUrl,omitempty"`
 }
 
+const mediaHLSCodecProbeTimeout = 5 * time.Second
+
 func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		var request mediaHLSStartRequest
@@ -183,7 +185,7 @@ func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, v
 	// best-effort probe lets H.264/AAC MKV and MOV files take the remux-only
 	// path; probe failures fall back to the existing transcode profile.
 	if probeCodecs {
-		probeCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		probeCtx, cancel := context.WithTimeout(ctx, mediaHLSCodecProbeTimeout)
 		probe, probeErr := defaultMediaProbe(probeCtx, input.SourcePath, false)
 		cancel()
 		if probeErr == nil {

@@ -533,7 +533,7 @@
                     @keydown.enter.stop.prevent="removeFavorite(fav.id)"
                     @keydown.space.stop.prevent="removeFavorite(fav.id)"
                   >
-                    <AppIcon name="star-off" :size="15" :stroke-width="1.9" />
+                    <AppIcon name="minus" :size="14" :stroke-width="2.2" />
                   </span>
                 </button>
               </template>
@@ -629,7 +629,7 @@
                     @keydown.enter.stop.prevent="removeFavorite(fav.id)"
                     @keydown.space.stop.prevent="removeFavorite(fav.id)"
                   >
-                    <AppIcon name="star-off" :size="15" :stroke-width="1.9" />
+                    <AppIcon name="minus" :size="14" :stroke-width="2.2" />
                   </span>
                 </button>
                 <div

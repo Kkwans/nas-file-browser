@@ -361,3 +361,13 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.23-phase10-task-mobile-r27` 已构建；Compose 提交 `56a9c322` 已推送，容器 `healthy`，`127.0.0.1:8888` 返回 `200`，r26 保留作回滚。
 - NAS 本机 Playwright 390×844 实测报告 `/tmp/nfb-mobile-tasks-r27.json`、截图 `/tmp/nfb-mobile-tasks-r27.png`：任务筛选区尺寸 `331×94px`，六个按钮按 `106.3px × 44px` 对齐为两行三列，`scrollWidth=clientWidth=375`，`overflow-x=visible`，未再出现横向滚动条。
 - 该模块只修复已复现的移动端任务筛选溢出，不宣称移动端所有页面已经完成；继续检查文件列表、预览和设置页的内容起始线、操作密度与触控反馈。
+
+### 2026-08-23 MP4 编码预检与 r28–r30 NAS 本机复验
+
+- 真实复现：Chromium 打开 HEVC MP4 时，原实现会先绑定 `/api/raw`，在约 1 秒后接收约 `5.3 MB` 数据，再以 `MEDIA_ERR_SRC_NOT_SUPPORTED` 失败；这正是用户看到“卡住几秒甚至卡死”的一类路径。MKV/MOV 仍按当前浏览器容器能力默认等待用户选择兼容播放，不能把扩展名当成原生播放保证。
+- r28 实现 MP4/M4V 的服务端编码预检，使用现有 `/api/media/info` 返回的 `videoCodec`；预检有取消和超时保护。首次真实验收发现 r28 在预检超时后仍自动回退直读，重新复现了约 `5.3 MB` 无效读取，因此该版本不作为通过结论。失败路径已记录，不掩盖回归。
+- r29 修复为：预检超时或网络失败时不再自动绑定原视频，直接展示“启动兼容播放 / 尝试原视频 / 下载原文件 / 直接打开”；只有用户主动点击“尝试原视频”才发起直读。r30 再修正文案状态，避免把编码探测失败误显示成 HLS 任务网络错误。
+- 源码提交 `e6767e80`、`e0c6b45e`、`2d19a4f1`、`b79f2a86` 已推送 `master`；其中 r28 首次 CI 因脆弱的源码格式断言失败，测试提交 `e0c6b45e` 修复后 CI `32624280665` success。后续源码 CI `32625108430`、`32625525632` 均 success。
+- NAS 本机发布：r28 Compose 提交 `8bd06ee9`（CI `32624626994` success）、r29 Compose 提交 `08037c46`（CI `32625404351` success）、r30 Compose 提交 `ac937b1b`（CI `32625861147`、Docs `32625861192` success）。三个版本均只重建 `filebrowser` 服务，r27 及中间版本保留作回滚；r30 容器最终 `running/healthy`，本机 HTTP `200`。
+- NAS 本机 Playwright 报告 `/tmp/nfb-video-r28-preflight.json` 证明 r28 超时后仍发出原视频请求，作为失败证据；r29 报告 `/tmp/nfb-video-r29-preflight.json` 已无原视频请求但短暂显示“任务状态错误”文案；r30 报告 `/tmp/nfb-video-r30b-preflight.json` 最终显示“暂时无法确认是否可直接播放”，视频元素保持 `readyState=0`、`networkState=0`、`src` 为空，只有 `/api/media/info` 请求且没有 `/api/raw` 请求，控制台错误 `0`。截图 `/tmp/nfb-video-r30b-preflight.png` 显示四个操作按统一底部操作区排列。
+- 当前结论：已阻止不支持/无法确认的 MP4 在用户未确认时自动读取大块原视频，兼容播放仍为显式 HLS 任务；尚未承诺所有 MKV/MOV 无转码原生播放，下一步应以浏览器实际 `canPlayType`、服务端编码信息和首帧可用性为依据，按格式逐项验证。

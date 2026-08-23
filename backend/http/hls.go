@@ -273,11 +273,12 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 	}
 	if status.State == hls.StateStreamable || status.State == hls.StateCompleted {
 		base := strings.TrimSuffix(baseURL, "/") + "/api/media/hls/" + status.ID + "/"
-		if response.Format == "webm" || response.Format == "webm-copy" {
+		switch response.Format {
+		case "webm", "webm-copy":
 			response.SourceURL = base + "index.webm"
-		} else if response.Format == "mp4-copy" {
+		case "mp4-copy":
 			response.SourceURL = base + "index.mp4"
-		} else {
+		default:
 			response.PlaylistURL = base + "index.m3u8"
 		}
 	}

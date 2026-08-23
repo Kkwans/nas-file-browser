@@ -171,6 +171,15 @@
             <AppIcon :name="mediaIcon('play_circle')" :size="18" />
             使用兼容版本
           </button>
+          <button
+            v-if="directPlaybackProbeBlocked && !hlsActive"
+            type="button"
+            class="media-compatibility-action"
+            @click.stop="tryDirectPlayback"
+          >
+            <AppIcon :name="mediaIcon('play_arrow')" :size="18" />
+            尝试原视频
+          </button>
           <a
             v-if="showCompatibilityFallbacks"
             class="media-compatibility-action"
@@ -263,6 +272,7 @@ const compatibilityBusy = ref(false);
 const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
+const directPlaybackProbeBlocked = ref(false);
 const hlsActive = ref(false);
 const codecProbePending = ref(shouldPreflightVideoCodec(props.path));
 const sourceAttached = ref(
@@ -540,11 +550,14 @@ const compatibilityCopy = computed(() => {
     default:
       return {
         icon: "movie_filter",
-        title: directPlaybackFailed.value
-          ? "当前格式无法直接播放"
-          : "此格式可能需要兼容播放",
-        description:
-          "只在你点击后，NAS 才会按需转换为 H.264/AAC 分段；不会自动转码其他视频。",
+        title: directPlaybackProbeBlocked.value
+          ? "暂时无法确认是否可直接播放"
+          : directPlaybackFailed.value
+            ? "当前格式无法直接播放"
+            : "此格式可能需要兼容播放",
+        description: directPlaybackProbeBlocked.value
+          ? "编码探测超时，已停止自动读取原视频。你可以手动尝试原视频，或启动兼容播放。"
+          : "只在你点击后，NAS 才会按需转换为 H.264/AAC 分段；不会自动转码其他视频。",
       };
   }
 });
@@ -572,7 +585,9 @@ const canActivateCompatibility = computed(
 
 const showCompatibilityFallbacks = computed(
   () =>
-    directPlaybackFailed.value || compatibilityStatus.value?.state === "failed"
+    directPlaybackFailed.value ||
+    directPlaybackProbeBlocked.value ||
+    compatibilityStatus.value?.state === "failed"
 );
 
 const showCompatibilityBadge = computed(
@@ -670,6 +685,7 @@ async function prepareDirectPlayback(path: string, source: string) {
     if (request !== directProbeRequest || disposed) return;
     if (isDefinitelyUnsupportedVideoCodec(info.videoCodec)) {
       codecProbePending.value = false;
+      directPlaybackProbeBlocked.value = false;
       directPlaybackFailed.value = true;
       compatibilityPanelOpen.value = true;
       showProgressMessage(
@@ -678,8 +694,16 @@ async function prepareDirectPlayback(path: string, source: string) {
       return;
     }
   } catch {
-    // A probe outage must not make a playable file unusable. Fall back to the
-    // normal direct source; the existing player error state remains available.
+    if (request !== directProbeRequest || disposed) return;
+    // Do not fall back to an automatic raw request after a probe timeout or
+    // outage: that is exactly how an unsupported HEVC file can read megabytes
+    // before failing. Keep the decision explicit and reversible instead.
+    codecProbePending.value = false;
+    directPlaybackProbeBlocked.value = true;
+    compatibilityPanelOpen.value = true;
+    compatibilityNetworkError.value =
+      "暂时无法确认视频编码，已停止自动读取原视频";
+    return;
   } finally {
     window.clearTimeout(timeout);
     if (directProbeAbortController === controller)
@@ -695,6 +719,7 @@ function attachDirectSource(path: string, source: string) {
   if (disposed || path !== props.path) return;
   sourceAttached.value = true;
   directPlaybackFailed.value = false;
+  directPlaybackProbeBlocked.value = false;
   compatibilityPanelOpen.value = false;
   const currentPlayer = player.value;
   if (!currentPlayer) return;
@@ -907,6 +932,7 @@ function tryDirectPlayback() {
   activeHLSURL = "";
   hlsActive.value = false;
   directPlaybackFailed.value = false;
+  directPlaybackProbeBlocked.value = false;
   compatibilityNetworkError.value = "";
   codecProbePending.value = false;
   sourceAttached.value = true;
@@ -935,6 +961,7 @@ function resetCompatibility(path: string) {
   compatibilityNetworkError.value = "";
   compatibilityStatus.value = null;
   directPlaybackFailed.value = false;
+  directPlaybackProbeBlocked.value = false;
   hlsActive.value = false;
   activeHLSURL = "";
   codecProbePending.value = shouldPreflightVideoCodec(path);

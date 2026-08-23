@@ -144,7 +144,7 @@ export function buildListingSections<T extends ListingItemLike>(
     sections.push({
       id: `prefix:${rule.prefix}`,
       kind: "prefix",
-      label: `以 ${rule.prefix} 开头`,
+      label: `以 “${rule.prefix}” 开头`,
       prefix: rule.prefix,
       expanded: rule.expanded,
       total: items.length,

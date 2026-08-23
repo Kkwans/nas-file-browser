@@ -13,6 +13,10 @@ const listingStyles = readFileSync(
   new URL("../../css/listing.css", import.meta.url),
   "utf8"
 );
+const workspaceStyles = readFileSync(
+  new URL("../../css/workspace-ui.css", import.meta.url),
+  "utf8"
+);
 
 describe("listing preference integration contract", () => {
   it("uses one shared grouped view model in every listing layout", () => {
@@ -35,5 +39,25 @@ describe("listing preference integration contract", () => {
       /#listing \.listing-prefix-header \{[\s\S]*?grid-template-columns:[\s\S]*?min-height: 42px;/
     );
     expect(listingStyles).not.toContain("system-dirs-toggle");
+  });
+
+  it("gives every prefix group a readable token and accessible state", () => {
+    expect(listingSource.match(/listing-prefix-token/g)).toHaveLength(3);
+    expect(
+      listingSource.match(/:aria-label="prefixSectionAriaLabel\(section\)"/g)
+    ).toHaveLength(3);
+    expect(listingStyles).toMatch(
+      /\.listing-prefix-token\s*\{[\s\S]*?font-family:[\s\S]*?line-height:/
+    );
+  });
+
+  it("keeps detailed-grid actions on one stable bottom alignment", () => {
+    const controls = workspaceStyles.match(
+      /#listing\.mosaic \.item > \.item-controls\s*\{([\s\S]*?)\}/
+    )?.[1];
+    expect(controls).toBeTruthy();
+    expect(controls).toContain("left: 12px;");
+    expect(controls).toContain("right: 12px;");
+    expect(controls).toContain("width: calc(100% - 24px);");
   });
 });

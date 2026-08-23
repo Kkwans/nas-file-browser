@@ -64,16 +64,20 @@
   cursor: pointer;
 }
 
-#listing .listing-prefix-header code {
+#listing .listing-prefix-header .listing-prefix-token {
   display: inline-grid;
   width: 30px;
   height: 30px;
   place-items: center;
   border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--listing-accent) 18%, transparent);
   color: var(--listing-accent);
   background: color-mix(in srgb, var(--listing-accent) 10%, transparent);
-  font-size: 15px;
-  font-weight: 750;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
 
 #listing .listing-prefix-count {

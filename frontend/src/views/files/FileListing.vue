@@ -408,9 +408,13 @@
               class="listing-prefix-header"
               :data-prefix-group="section.prefix"
               :aria-expanded="section.expanded"
+              :aria-label="prefixSectionAriaLabel(section)"
+              :title="prefixSectionAriaLabel(section)"
               @click="togglePrefixSection(section.prefix || '')"
             >
-              <code>{{ section.prefix }}</code>
+              <code class="listing-prefix-token" aria-hidden="true">{{
+                section.prefix
+              }}</code>
               <span>{{ section.label }}</span>
               <span class="listing-prefix-count">{{ section.total }}</span>
               <AppIcon
@@ -494,9 +498,13 @@
                 class="listing-prefix-header"
                 :data-prefix-group="section.prefix"
                 :aria-expanded="section.expanded"
+                :aria-label="prefixSectionAriaLabel(section)"
+                :title="prefixSectionAriaLabel(section)"
                 @click="togglePrefixSection(section.prefix || '')"
               >
-                <code>{{ section.prefix }}</code>
+                <code class="listing-prefix-token" aria-hidden="true">{{
+                  section.prefix
+                }}</code>
                 <span>{{ section.label }}</span>
                 <span class="listing-prefix-count">{{ section.total }}</span>
                 <AppIcon
@@ -596,9 +604,13 @@
                         class="listing-prefix-header"
                         :data-prefix-group="section.prefix"
                         :aria-expanded="section.expanded"
+                        :aria-label="prefixSectionAriaLabel(section)"
+                        :title="prefixSectionAriaLabel(section)"
                         @click="togglePrefixSection(section.prefix || '')"
                       >
-                        <code>{{ section.prefix }}</code>
+                        <code class="listing-prefix-token" aria-hidden="true">{{
+                          section.prefix
+                        }}</code>
                         <span>{{ section.label }}</span>
                         <span class="listing-prefix-count">{{
                           section.total
@@ -1049,6 +1061,13 @@ const togglePrefixSection = async (prefix: string) => {
     $showError(error instanceof Error ? error : new Error("分组偏好保存失败"));
   }
 };
+
+const prefixSectionAriaLabel = (section: {
+  label: string;
+  total: number;
+  expanded: boolean;
+}) =>
+  `${section.label}，${section.total} 项，${section.expanded ? "已展开" : "已折叠"}`;
 
 const skeletonViewMode = computed(() => {
   const mode = currentViewMode.value;

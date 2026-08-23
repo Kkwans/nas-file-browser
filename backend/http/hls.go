@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -188,6 +189,9 @@ func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, v
 		if probeErr == nil {
 			input.VideoCodec = probe.VideoCodec
 			input.AudioCodec = probe.AudioCodec
+			log.Printf("media HLS codec probe video=%q audio=%q", input.VideoCodec, input.AudioCodec)
+		} else {
+			log.Printf("media HLS codec probe unavailable: %v", probeErr)
 		}
 	}
 	return input, 0, nil

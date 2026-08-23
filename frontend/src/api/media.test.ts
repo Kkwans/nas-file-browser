@@ -216,4 +216,22 @@ describe("媒体 API", () => {
       { method: "POST" },
     ]);
   });
+
+  it("支持请求无重新编码的 MP4 兼容封装", async () => {
+    mocks.fetchURL.mockImplementation(async () =>
+      Promise.resolve(
+        new Response(JSON.stringify({ id: "mp4-cache-id", format: "mp4-copy" }))
+      )
+    );
+    await startHLSPlayback("/电影/示例.mkv", "mp4");
+
+    expect(mocks.fetchURL.mock.calls[0]).toEqual([
+      "/api/media/hls",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "/电影/示例.mkv", format: "mp4" }),
+      },
+    ]);
+  });
 });

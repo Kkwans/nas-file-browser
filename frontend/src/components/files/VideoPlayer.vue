@@ -497,7 +497,9 @@ const compatibilityCopy = computed(() => {
         icon: "hourglass_top",
         title: "已加入低并发队列",
         description:
-          status?.format === "webm" || status?.format === "webm-copy"
+          status?.format === "webm" ||
+          status?.format === "webm-copy" ||
+          status?.format === "mp4-copy"
             ? "NAS 会优先响应文件浏览和缩略图；轮到此视频后生成兼容视频文件。"
             : "NAS 会优先响应文件浏览和缩略图；轮到此视频后再生成首个可播放分段。",
       };
@@ -505,11 +507,15 @@ const compatibilityCopy = computed(() => {
       return {
         icon: "movie_edit",
         title:
-          status?.format === "webm" || status?.format === "webm-copy"
+          status?.format === "webm" ||
+          status?.format === "webm-copy" ||
+          status?.format === "mp4-copy"
             ? "正在生成兼容视频"
             : "正在准备首个分段",
         description:
-          status?.format === "copy" || status?.format === "webm-copy"
+          status?.format === "copy" ||
+          status?.format === "mp4-copy" ||
+          status?.format === "webm-copy"
             ? status?.format === "webm-copy"
               ? "视频本身已是浏览器支持的 VP8/VP9/AV1 + Opus/Vorbis，NAS 只重新封装，不重新编码。"
               : "正在重新封装已有的 H.264/AAC 轨道，不重新编码视频；完成后即可拖动进度。"
@@ -527,12 +533,14 @@ const compatibilityCopy = computed(() => {
       return {
         icon: "offline_pin",
         title:
-          status?.format === "copy" || status?.format === "webm-copy"
+          status?.format === "copy" ||
+          status?.format === "mp4-copy" ||
+          status?.format === "webm-copy"
             ? "兼容封装已缓存"
             : "兼容版本已缓存",
         description: status?.sizeBytes
-          ? `${status.format === "copy" || status.format === "webm-copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，本次产物占用 ${formatCacheSize(status.sizeBytes)}，再次打开同一文件可直接复用。`
-          : `${status?.format === "copy" || status?.format === "webm-copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，再次打开同一文件可直接复用缓存。`,
+          ? `${status.format === "copy" || status.format === "mp4-copy" || status.format === "webm-copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，本次产物占用 ${formatCacheSize(status.sizeBytes)}，再次打开同一文件可直接复用。`
+          : `${status?.format === "copy" || status?.format === "mp4-copy" || status?.format === "webm-copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，再次打开同一文件可直接复用缓存。`,
       };
     case "failed":
       return {
@@ -742,16 +750,18 @@ function retryVideoSource() {
   const compatibilityIsWebM =
     hlsActive.value &&
     (compatibilityStatus.value?.format === "webm" ||
-      Boolean(compatibilityStatus.value?.sourceUrl));
+      compatibilityStatus.value?.format === "webm-copy");
   beginVideoLoading();
   currentPlayer.pause();
   currentPlayer.src({
     src: source,
     type: compatibilityIsWebM
       ? "video/webm"
-      : hlsActive.value
-        ? "application/x-mpegURL"
-        : getVideoSourceType(props.source, props.path),
+      : hlsActive.value && compatibilityStatus.value?.format === "mp4-copy"
+        ? "video/mp4"
+        : hlsActive.value
+          ? "application/x-mpegURL"
+          : getVideoSourceType(props.source, props.path),
   });
   currentPlayer.load();
 }
@@ -766,7 +776,7 @@ async function startCompatibilityPlayback() {
   try {
     const status = await mediaApi.startHLSPlayback(
       props.path,
-      supportsH264CompatibilityPlayback() ? "hls" : "webm"
+      supportsH264CompatibilityPlayback() ? "mp4" : "webm"
     );
     if (disposed || request !== compatibilityRequest) return;
     applyCompatibilityStatus(status, request);
@@ -848,7 +858,8 @@ function activateCompatibilityPlayback(status: HLSPlaybackStatus) {
   const currentPlayer = player.value;
   const sourceURL = status.sourceUrl || status.playlistUrl;
   if (!currentPlayer || !sourceURL || activeHLSURL === sourceURL) return;
-  const isWebM = status.format === "webm" || Boolean(status.sourceUrl);
+  const isWebM = status.format === "webm" || status.format === "webm-copy";
+  const isMP4 = status.format === "mp4-copy";
   const resumeAt = Math.max(
     currentPlayer.currentTime() || 0,
     restoredPosition.value,
@@ -874,7 +885,7 @@ function activateCompatibilityPlayback(status: HLSPlaybackStatus) {
   currentPlayer.playbackRate(playbackRate);
   currentPlayer.src({
     src: sourceURL,
-    type: isWebM ? "video/webm" : "application/x-mpegURL",
+    type: isWebM ? "video/webm" : isMP4 ? "video/mp4" : "application/x-mpegURL",
   });
   currentPlayer.one("loadedmetadata", () => {
     props.subtitles.forEach((subtitle, index) => {

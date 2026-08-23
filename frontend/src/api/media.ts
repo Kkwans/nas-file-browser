@@ -82,7 +82,7 @@ export interface HLSPlaybackStatus {
   lastAccessAt?: number;
   sizeBytes?: number;
   processedSeconds?: number;
-  format?: "hls" | "copy" | "webm" | "webm-copy";
+  format?: "hls" | "copy" | "mp4-copy" | "webm" | "webm-copy";
   playlistUrl?: string;
   sourceUrl?: string;
 }
@@ -205,7 +205,7 @@ export function getMediaInformation(
 
 export async function startHLSPlayback(
   path: string,
-  format: "hls" | "webm" = "hls"
+  format: "hls" | "mp4" | "webm" = "hls"
 ): Promise<HLSPlaybackStatus> {
   const response = await fetchURL("/api/media/hls", {
     method: "POST",

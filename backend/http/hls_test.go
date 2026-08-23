@@ -152,6 +152,16 @@ func TestMediaHLSStatusResponseMarksWebMRemuxProfile(t *testing.T) {
 	}
 }
 
+func TestMediaHLSStatusResponseMarksMP4RemuxProfile(t *testing.T) {
+	response := mediaHLSStatusResponse("", hls.Status{
+		ID: "mp4-copy-id", UserID: 1, Path: "/movie.mkv", Identity: "v1",
+		Profile: hls.DefaultMP4CopyProfile, State: hls.StateCompleted,
+	})
+	if response.Format != "mp4-copy" || response.SourceURL == "" || response.PlaylistURL != "" {
+		t.Fatalf("MP4 copy response = %#v", response)
+	}
+}
+
 func newHTTPHLSService(t *testing.T, slow bool) *hls.Service {
 	t.Helper()
 	directory := t.TempDir()

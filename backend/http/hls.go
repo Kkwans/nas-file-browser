@@ -73,6 +73,13 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 			if hls.CanCopyWebMMedia(input.VideoCodec, input.AudioCodec) {
 				reserve = service.ReserveWebMCopy
 			}
+		} else if request.Format == "mp4" {
+			// Prefer a seekable MP4 remux for H.264/AAC sources. If probing
+			// cannot prove the streams are copy-safe, keep the HLS fallback so
+			// HEVC/DTS and similar files still get a playable path.
+			if hls.CanCopyMedia(input.VideoCodec, input.AudioCodec) {
+				reserve = service.ReserveMP4Copy
+			}
 		} else if request.Format != "" && request.Format != "hls" {
 			return http.StatusBadRequest, fmt.Errorf("不支持的兼容播放格式")
 		} else if mediaHLSFormatForInput(input) == "copy" {
@@ -147,6 +154,9 @@ func mediaHLSAssetHandler(service *hls.Service) handleFunc {
 		} else if strings.HasSuffix(name, ".webm") {
 			w.Header().Set("Content-Type", "video/webm")
 			w.Header().Set("Cache-Control", "private, no-cache")
+		} else if strings.HasSuffix(name, ".mp4") {
+			w.Header().Set("Content-Type", "video/mp4")
+			w.Header().Set("Cache-Control", "private, no-cache")
 		} else {
 			w.Header().Set("Content-Type", "video/mp2t")
 			w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
@@ -212,6 +222,8 @@ func enqueueMediaHLSTask(runtime *tasks.Runtime, d *data, owner *users.User, ser
 		format = "webm"
 	} else if hls.IsWebMCopyProfile(job.Profile) {
 		format = "webm-copy"
+	} else if hls.IsMP4CopyProfile(job.Profile) {
+		format = "mp4-copy"
 	} else if hls.IsCopyProfile(job.Profile) {
 		format = "copy"
 	}
@@ -254,6 +266,8 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 		response.Format = "webm"
 	} else if hls.IsWebMCopyProfile(status.Profile) {
 		response.Format = "webm-copy"
+	} else if hls.IsMP4CopyProfile(status.Profile) {
+		response.Format = "mp4-copy"
 	} else if hls.IsCopyProfile(status.Profile) {
 		response.Format = "copy"
 	}
@@ -261,6 +275,8 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 		base := strings.TrimSuffix(baseURL, "/") + "/api/media/hls/" + status.ID + "/"
 		if response.Format == "webm" || response.Format == "webm-copy" {
 			response.SourceURL = base + "index.webm"
+		} else if response.Format == "mp4-copy" {
+			response.SourceURL = base + "index.mp4"
 		} else {
 			response.PlaylistURL = base + "index.m3u8"
 		}

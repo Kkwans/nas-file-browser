@@ -25,6 +25,7 @@ const (
 	DefaultMaxBytes        = int64(10 << 30)
 	DefaultProfile         = "h264-main-720p-aac-hls4-v1"
 	DefaultCopyProfile     = "h264-copy-hls-v1"
+	DefaultMP4CopyProfile  = "h264-aac-mp4-copy-v1"
 	DefaultWebMProfile     = "vp9-720p-opus-webm-v1"
 	DefaultWebMCopyProfile = "vp9-opus-webm-copy-v1"
 	playingLease           = 2 * time.Minute
@@ -36,7 +37,7 @@ var (
 	ErrForbidden = errors.New("HLS cache access denied")
 	ErrState     = errors.New("HLS cache state does not allow this operation")
 	cacheIDRE    = regexp.MustCompile(`^[a-f0-9]{64}$`)
-	assetNameRE  = regexp.MustCompile(`^(index\.m3u8|index\.webm|segment-[0-9]{6}\.ts)$`)
+	assetNameRE  = regexp.MustCompile(`^(index\.m3u8|index\.mp4|index\.webm|segment-[0-9]{6}\.ts)$`)
 )
 
 type State string
@@ -94,6 +95,12 @@ func IsWebMCopyProfile(profile string) bool {
 // already contain H.264 video and AAC (or no) audio.
 func IsCopyProfile(profile string) bool {
 	return profile == DefaultCopyProfile
+}
+
+// IsMP4CopyProfile reports a complete MP4 artifact containing the original
+// browser-compatible H.264/AAC streams. The source is remuxed, never encoded.
+func IsMP4CopyProfile(profile string) bool {
+	return profile == DefaultMP4CopyProfile
 }
 
 // CanCopyMedia is deliberately conservative: copying an unsupported audio
@@ -211,6 +218,12 @@ func (service *Service) ReserveCopy(input Input, start StartFunc) (Status, bool,
 	return service.reserve(input, DefaultCopyProfile, start)
 }
 
+// ReserveMP4Copy creates a seekable MP4 artifact by copying compatible
+// H.264/AAC streams into a browser-friendly container.
+func (service *Service) ReserveMP4Copy(input Input, start StartFunc) (Status, bool, error) {
+	return service.reserve(input, DefaultMP4CopyProfile, start)
+}
+
 // ReserveWebM creates a compatibility artifact that can be played by
 // Chromium builds without proprietary H.264/MSE decoders.  It intentionally
 // waits until the complete WebM file is available before exposing it, which
@@ -310,6 +323,9 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	}
 	if IsWebMCopyProfile(job.Profile) {
 		return service.runWebMCopy(ctx, job, directory)
+	}
+	if IsMP4CopyProfile(job.Profile) {
+		return service.runMP4Copy(ctx, job, directory)
 	}
 
 	playlist := filepath.Join(directory, "index.m3u8")
@@ -513,6 +529,54 @@ func (service *Service) runWebMCopy(ctx context.Context, job Job, directory stri
 	return nil
 }
 
+func (service *Service) runMP4Copy(ctx context.Context, job Job, directory string) error {
+	temporary := filepath.Join(directory, "index.mp4.tmp")
+	output := filepath.Join(directory, "index.mp4")
+	command := exec.CommandContext(ctx, service.ffmpegPath, mp4CopyArgs(job.SourcePath, temporary)...)
+	stderr := cappedBuffer{limit: maxFFmpegError}
+	command.Stderr = &stderr
+	if err := command.Run(); err != nil {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			service.finish(job.ID, StateCanceled, "任务已取消", 0)
+			_ = os.RemoveAll(directory)
+			return ctx.Err()
+		}
+		message := strings.TrimSpace(stderr.String())
+		if message == "" {
+			message = err.Error()
+		}
+		message = "MP4 兼容封装失败: " + message
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
+	if err := os.Rename(temporary, output); err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		_ = os.RemoveAll(directory)
+		return fmt.Errorf("publish MP4 remux artifact: %w", err)
+	}
+	if !readyForProfile(directory, job.Profile) {
+		message := "MP4 兼容封装未生成可播放文件"
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
+	size, err := directorySize(directory)
+	if err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		return fmt.Errorf("measure MP4 cache: %w", err)
+	}
+	service.finish(job.ID, StateCompleted, "", size)
+	if err := service.persist(job.ID); err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		return fmt.Errorf("persist MP4 cache metadata: %w", err)
+	}
+	service.mu.Lock()
+	service.cleanupLocked(job.ID)
+	service.mu.Unlock()
+	return nil
+}
+
 func (service *Service) Asset(id string, userID uint, name string) (string, State, error) {
 	if !assetNameRE.MatchString(name) {
 		return "", "", ErrNotFound
@@ -529,7 +593,7 @@ func (service *Service) Asset(id string, userID uint, name string) (string, Stat
 	if current.State != StateStreamable && current.State != StateCompleted {
 		return "", current.State, ErrState
 	}
-	if name == "index.webm" && current.State != StateCompleted {
+	if (name == "index.webm" || name == "index.mp4") && current.State != StateCompleted {
 		return "", current.State, ErrState
 	}
 	path := filepath.Join(service.entryDir(id), name)
@@ -738,6 +802,14 @@ func webMCopyArgs(source, output string) []string {
 	}
 }
 
+func mp4CopyArgs(source, output string) []string {
+	return []string{
+		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
+		"-map", "0:v:0", "-map", "0:a:0?", "-c", "copy", "-movflags", "+faststart",
+		"-f", "mp4", output,
+	}
+}
+
 func parseFFmpegProgressLine(line string) (float64, bool) {
 	key, value, found := strings.Cut(strings.TrimSpace(line), "=")
 	if !found || key != "out_time_ms" {
@@ -762,6 +834,10 @@ func readyToStream(directory string) bool {
 func readyForProfile(directory, profile string) bool {
 	if IsWebMProfile(profile) || IsWebMCopyProfile(profile) {
 		info, err := os.Stat(filepath.Join(directory, "index.webm"))
+		return err == nil && !info.IsDir() && info.Size() > 0
+	}
+	if IsMP4CopyProfile(profile) {
+		info, err := os.Stat(filepath.Join(directory, "index.mp4"))
 		return err == nil && !info.IsDir() && info.Size() > 0
 	}
 	return readyToStream(directory)

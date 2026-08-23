@@ -154,6 +154,24 @@ func TestWebMCopyArgsRemuxNativeStreams(t *testing.T) {
 	}
 }
 
+func TestMP4CopyArgsRemuxBrowserCompatibleStreams(t *testing.T) {
+	args := mp4CopyArgs("/source.mkv", "/tmp/index.mp4.tmp")
+	joined := strings.Join(args, "\x00")
+	for _, expected := range []string{
+		"-c\x00copy",
+		"-movflags\x00+faststart",
+		"-f\x00mp4",
+		"/tmp/index.mp4.tmp",
+	} {
+		if !strings.Contains(joined, expected) {
+			t.Fatalf("MP4 copy args missing %q: %q", expected, joined)
+		}
+	}
+	if strings.Contains(joined, "libx264") || strings.Contains(joined, "libvpx-vp9") {
+		t.Fatalf("MP4 copy args unexpectedly re-encode video: %q", joined)
+	}
+}
+
 func TestParseFFmpegProgressLineReportsOnlyOutputTime(t *testing.T) {
 	seconds, ok := parseFFmpegProgressLine("out_time_ms=2500000")
 	if !ok || seconds != 2.5 {

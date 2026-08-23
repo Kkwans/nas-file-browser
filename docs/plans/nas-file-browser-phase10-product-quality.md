@@ -8,7 +8,7 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 
 ## 当前基线与已确认问题
 
-### TX5pro 真实浏览器基线（2026-08-11）
+### 历史 TX5pro 真实浏览器基线（2026-08-11）
 
 - 运行镜像：`nas-file-browser:2026.8.9-phase9f-touch-r8`，容器健康，空闲时约 `0.27% CPU / 23.7 MiB`，不是持续资源过载。
 - 直接打开一张 `27,514,917 B` 的 JPEG：预览壳约 `296 ms` 出现，图片约 `5,745 ms` 可见。
@@ -121,7 +121,7 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 **验证**
 
 - 播放位置读写、请求合并、路由切换、已知兼容/不兼容格式和 HLS 回归测试。
-- TX5pro 记录首帧、可交互、Range 请求数量、取消和兼容播放状态。
+- NAS 本机 Playwright 记录首帧、可交互、Range 请求数量、取消和兼容播放状态；历史 TX5pro 报告仅作为既有证据保留。
 
 ## P1：文件区与导航视觉质量
 
@@ -156,7 +156,7 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 
 - 每个独立模块完成聚焦验证后立即精确暂存，使用中文 Conventional Commit，推送 `master`，等待 GitHub CI 终态。
 - 每个 P0/P1 模块使用明确不可变镜像标签部署；部署前记录当前镜像，变更后检查容器健康、日志和真实端点。
-- TX5pro 使用同一测试数据与稳定 viewport 复测功能、视觉、键盘、Reduced Motion 和触屏契约；失败在当前优先级修复，不跳级。
+- NAS 本机 Playwright 使用同一测试数据与稳定 viewport 复测功能、视觉、键盘、Reduced Motion 和触屏契约；失败在当前优先级修复，不跳级。不得把 TX5pro 作为当前发布 Gate。
 - Frontend Gate：lint 零 warning、typecheck、Vitest 和 production build 全部通过。
 - Backend Gate：`go test ./...` 通过，CI `go test -race ./...` 通过。
 - 不强推、rebase、amend、清理旧镜像或删除用户文件；始终保留 `.codex-tmp/`、`database/` 和同步冲突 Compose 文件。
@@ -313,3 +313,18 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 验证：新增契约测试先在旧实现上失败，修复后标签无障碍聚焦 Vitest `2/2`、目标 ESLint 通过；源码提交 `668cf68a` 已推送，GitHub Continuous Integration `32612106728`、Docs `32612106865` 均成功。
 - 发布：NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-tag-a11y-r19` 成功，arm64 镜像摘要 `sha256:1f56482a439f08471b4723a80a0571f34ce469bdfbd9aaaa808718c5ece9c1ad`；Compose 提交 `cbc9ec80` 已推送，CI `32612416302`、Docs `32612416313` 均成功。仅重建 `filebrowser`，容器 `running/healthy`，本机 `127.0.0.1:8888` 返回 `200`，r18 保留作回滚。
 - TX5pro Playwright 实际验收（运行约 `20260823T022239Z`）：通过 SSH 仅连接 TX5pro 执行浏览器，当前 NAS 根目录真实页面打开标签管理器，关闭/编辑/删除/保存/取消标签均存在，缺失为 `0`，运行时错误为 `0`；当前根目录布局没有可见文件标签快捷按钮，因此标签选择器标记为 skipped，未伪称已验证其运行时弹窗，但源码契约已覆盖其 `aria-label`/`aria-pressed`。
+
+### 2026-08-23 r20 预览并发修复与 NAS 本机 Playwright 复验
+
+- 根因：大 JPEG 预览页的 `warm=big` 预热请求和正式大图请求此前使用不同的协调键。同一文件冷打开时可能排队两次完整 JPEG 解码，且预热请求取消会连带取消仍有价值的大图生成，放大 NAS 单任务图片队列的等待时间。
+- 修复：后端 `previewCoordinator` 增加可保活的共享飞行任务；预热与正式 `big` 请求使用同一个规范化大图缓存键。预热等待者离开后，后台工作继续完成并派生 256px 缩略图；普通取消语义不变。
+- 验证：新增并发集成测试证明同一大图只执行一次 resize；`go test ./http -count=1` 通过。源码提交 `e40187b9`、部署提交 `4d421f33` 均已推送 `master`；源码 CI `32613637503`、部署 Docker CI `32614170693`、Docs CI `32614170686` 均成功。
+- NAS 本机 ARM64 构建镜像 `nas-file-browser:2026.8.23-phase10-preview-flight-r20`，仅重建 `filebrowser` 服务；容器 `running/healthy`，`127.0.0.1:8888` 返回 `200`。旧 r19 镜像保留作回滚。
+- 当前真实浏览器 Gate 已纠正为 NAS 主机本机 Playwright：使用已安装的 Playwright Chromium 登录当前部署，验证 NAS 根目录可读、MP4/MKV/MOV 预览状态、兼容播放面板无运行时错误。TX5pro 不再作为本项目当前验收前提；历史 TX5pro 记录不删除，仅保留为历史证据。
+
+### 2026-08-23 视频容器兼容性现状（NAS 本机只读探测）
+
+- 当前代码没有完成 MKV/MOV 的“无转码原生播放”：`VideoPlayer.vue` 对 `mkv`、`mov` 等格式默认不绑定原始源，只有用户点击“兼容播放”后才提交 HLS 任务；镜像已内置 FFmpeg，但它只是用户主动触发的回退能力。
+- NAS 本机 Playwright 实测：MP4 直播放路径会发出 `Range` 请求；真实 MKV 和 MOV 页面均保持 `awaiting-source`，在用户点击前没有媒体请求；不存在自动转码或自动读取整段视频的行为。浏览器临时直连真实文件的探测不能把容器扩展名当成可播放保证：当前 Chromium 对样本的实际解码分别返回“不支持的流”或在等待窗口内无法建立元数据。
+- 样本 `ffprobe` 说明同一扩展名内部编码差异很大：HEVC MP4、H.264 High 10 MKV 和 H.264 MOV 均可能被浏览器/硬件能力拒绝；因此不能仅修改 MIME 就承诺所有 MKV/MOV 原生播放。HLS 对受控 `/tmp/nfb-acceptance-hls-odd.mp4` 测试文件实际完成并生成播放清单，说明当前 FFmpeg 队列并非必然失败。
+- 下一步产品方案：继续保持默认不自动转码；增加基于浏览器实际能力和服务端媒体信息的“可尝试原生播放”路径，仅在能力明确时直播放，失败立即回到兼容播放/下载，不让不支持的 MKV/MOV 进入数秒假加载。MKV 容器仍以 HLS/下载为可靠路径，MOV 仅对浏览器明确支持的编码尝试直播放。

@@ -204,6 +204,7 @@ import {
   loadHighlight,
   isDarkTheme,
   highlightAndAnnotateCodeBlocks,
+  highlightMarkdownEditorPreviews,
   observeMarkdownThemeChanges,
   getAceAssetRoot,
   getVditorAssetRoot,
@@ -687,6 +688,10 @@ const initVditorWithMode = async (
       setupMarkdownImagePreviews();
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
+      queueMicrotask(() => {
+        const currentMount = document.getElementById("vditor-mount");
+        if (currentMount) highlightMarkdownEditorPreviews(currentMount);
+      });
       if (currentMode.value === "preview") refreshMarkdownCodeBlocks();
     },
     input: () => {
@@ -697,6 +702,10 @@ const initVditorWithMode = async (
       try {
         markdownBuffer = getVditorMarkdown();
       } catch {}
+      window.setTimeout(() => {
+        const currentMount = document.getElementById("vditor-mount");
+        if (currentMount) highlightMarkdownEditorPreviews(currentMount);
+      }, 0);
     },
   });
 };

@@ -51,6 +51,18 @@ describe("Markdown 编辑器交互契约", () => {
     );
   });
 
+  it("即时渲染代码块聚焦时只保留一个可编辑表面，并为预览表面应用本地高亮", () => {
+    expect(resourceLoaderSource).toContain(
+      "export function highlightMarkdownEditorPreviews("
+    );
+    expect(editorSource).toContain(
+      "highlightMarkdownEditorPreviews(currentMount)"
+    );
+    expect(vditorStyles).toMatch(
+      /\.vditor-ir__node--expand\s*>\s*\.vditor-ir__preview\s*\{[\s\S]*display:\s*none;/
+    );
+  });
+
   it("代码语言选择器使用顶部下拉面板而不是居中模态框", () => {
     expect(editorSource).toMatch(
       /\.markdown-language-picker-backdrop\s*\{[\s\S]*place-items:\s*start end;[\s\S]*background:\s*transparent;/

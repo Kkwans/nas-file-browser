@@ -58,7 +58,22 @@ function extensionOf(value: string) {
 }
 
 export function isKnownIncompatibleVideo(path: string) {
-  return KNOWN_INCOMPATIBLE_VIDEO_EXTENSIONS.has(extensionOf(path));
+  const extension = extensionOf(path);
+  if (!KNOWN_INCOMPATIBLE_VIDEO_EXTENSIONS.has(extension)) return false;
+
+  // Container support is browser-dependent.  Prefer a direct source when the
+  // active browser explicitly advertises support (Firefox and some desktop
+  // players can play Matroska/QuickTime without a compatibility artifact).
+  // Chromium commonly returns an empty result, so it keeps the safe opt-in
+  // compatibility flow for those containers.
+  if (typeof document !== "undefined") {
+    const mime = VIDEO_MIME_TYPES[extension];
+    if (mime) {
+      const support = document.createElement("video").canPlayType(mime);
+      if (/maybe|probably/i.test(support)) return false;
+    }
+  }
+  return true;
 }
 
 /**

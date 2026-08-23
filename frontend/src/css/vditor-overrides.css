@@ -31,6 +31,17 @@
   overflow-wrap: anywhere;
 }
 
+/*
+ * IR keeps an editable source <pre> beside its rendered preview.  When a
+ * block receives focus Vditor expands both surfaces by design, which makes
+ * one code block look duplicated.  Keep the source as the single editing
+ * surface while focused; the syntax-coloured preview remains the single
+ * surface when the block is idle.
+ */
+#vditor-mount .vditor-ir__node--expand > .vditor-ir__preview {
+  display: none;
+}
+
 #vditor-mount .vditor-outline {
   border-left: 1px solid var(--borderSecondary, #d0d7de);
   background: var(--surfacePrimary, #ffffff);

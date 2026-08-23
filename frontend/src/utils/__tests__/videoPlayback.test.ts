@@ -22,6 +22,25 @@ describe("视频播放源策略", () => {
     );
   });
 
+  it("浏览器明确支持容器时不强制走兼容播放", () => {
+    const scope = globalThis as typeof globalThis & {
+      document?: { createElement: () => { canPlayType: () => string } };
+    };
+    const originalDocument = scope.document;
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: {
+        createElement: () => ({ canPlayType: () => "probably" }),
+      },
+    });
+    expect(isKnownIncompatibleVideo("/movie/demo.mkv")).toBe(false);
+    expect(isKnownIncompatibleVideo("/movie/demo.mov")).toBe(false);
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: originalDocument,
+    });
+  });
+
   it("为浏览器和 Video.js 提供真实 MIME 类型", () => {
     expect(getVideoSourceType("/api/raw/movie.mp4?auth=1")).toBe("video/mp4");
     expect(getVideoSourceType("/api/raw/movie.mkv")).toBe("video/x-matroska");

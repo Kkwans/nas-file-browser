@@ -81,6 +81,47 @@ export type HighlightCodeOptions = {
   showLineNumbers?: boolean;
 };
 
+/**
+ * Highlight the rendered code surface used by Vditor's instant-rendering
+ * editor.  Vditor owns the editable source node, so this deliberately only
+ * touches the sibling preview node and never rewrites the source that the
+ * user is typing into.
+ */
+export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
+  const hljs = window.hljs;
+  if (!hljs) return;
+
+  container
+    .querySelectorAll<HTMLElement>(
+      ".vditor-ir__preview > code, .vditor-wysiwyg__preview > code"
+    )
+    .forEach((codeEl) => {
+      // `textContent` remains the original source even after highlight.js
+      // inserts token spans, and therefore also picks up edits Vditor makes
+      // before the next render pass.  Do not prefer a stale dataset cache.
+      const rawSource = (codeEl.textContent ?? "").replace(/\u200b/g, "");
+      codeEl.dataset.rawSource = rawSource;
+
+      const lang = resolveMarkdownCodeLanguage(codeEl.className, rawSource);
+      if (lang && hljs.getLanguage(lang)) {
+        codeEl.dataset.lang = lang;
+        codeEl.classList.add("hljs");
+        try {
+          codeEl.innerHTML = hljs.highlight(rawSource, {
+            language: lang,
+            ignoreIllegals: true,
+          }).value;
+        } catch {
+          codeEl.textContent = rawSource;
+        }
+      } else {
+        codeEl.removeAttribute("data-lang");
+        codeEl.classList.remove("hljs");
+        codeEl.textContent = rawSource;
+      }
+    });
+}
+
 export function observeMarkdownThemeChanges(
   onChange?: (isDark: boolean) => void
 ): () => void {

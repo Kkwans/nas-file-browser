@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   canDropFilePaths,
   fileNameFromPath,
+  isExternalFileDrag,
   readFileDragPayload,
   writeFileDragPayload,
 } from "../fileDrag";
@@ -38,5 +39,14 @@ describe("file drag payload", () => {
 
   it("ignores external drops without the internal MIME type", () => {
     expect(readFileDragPayload(transfer())).toEqual([]);
+  });
+
+  it("recognizes OS file drops but not this app's internal drags", () => {
+    expect(isExternalFileDrag(["Files"])).toBe(true);
+    expect(isExternalFileDrag(["text/uri-list"])).toBe(true);
+    expect(isExternalFileDrag(["Files", "application/x-nas-file-paths"])).toBe(
+      false
+    );
+    expect(isExternalFileDrag([])).toBe(false);
   });
 });

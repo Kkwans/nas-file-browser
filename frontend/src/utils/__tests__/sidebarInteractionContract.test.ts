@@ -203,4 +203,18 @@ describe("侧边栏分组交互契约", () => {
       /nav\.sidebar \.sidebar-personalized-stack > #logout > \.app-icon,\s*nav\.sidebar \.sidebar-rail-logout > \.app-icon\s*\{[^}]*color:\s*inherit\s*!important;/s
     );
   });
+
+  it("账户卡片与侧栏内容共用一条边界，折叠按钮不再另起一个孤立方框", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toMatch(
+      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-row\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-collapse-control\s*\{[^}]*position:\s*absolute;[^}]*right:/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-card\s*\{[^}]*padding:\s*0\.5rem 3\.25rem 0\.5rem 0\.625rem/s
+    );
+  });
 });

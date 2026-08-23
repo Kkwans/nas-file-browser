@@ -1095,13 +1095,32 @@ nav.sidebar .favorite-group-header .section-action-btn:focus-visible {
  * label; remove actions use a quiet minus glyph instead of a competing mark.
  */
 @media (min-width: 737px) {
+  nav.sidebar:not(.sidebar--rail) .sidebar-user-row {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
   nav.sidebar:not(.sidebar--rail) .sidebar-user-card {
     display: grid;
     grid-template-columns: 2rem minmax(0, 1fr);
     align-items: center;
     column-gap: 0.5rem;
     min-height: 3.25rem;
-    padding: 0.5rem 0.625rem !important;
+    padding: 0.5rem 3.25rem 0.5rem 0.625rem !important;
+  }
+
+  nav.sidebar:not(.sidebar--rail) .sidebar-collapse-control {
+    position: absolute;
+    top: 50%;
+    right: 0.25rem;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    min-height: 2.75rem;
+    transform: translateY(-50%);
+    border-color: transparent;
+    background: transparent;
   }
 
   nav.sidebar:not(.sidebar--rail) .sidebar-user-card > .sidebar-user-icon {

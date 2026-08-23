@@ -199,5 +199,8 @@ describe("侧边栏分组交互契约", () => {
     expect(cssSource).toMatch(
       /nav\.sidebar \.sidebar-rail-logout:hover,[\s\S]*nav\.sidebar \.sidebar-rail-logout:focus-visible\s*\{[^}]*color:\s*var\(--icon-red, #dc2626\)\s*!important;/s
     );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-personalized-stack > #logout > \.app-icon,\s*nav\.sidebar \.sidebar-rail-logout > \.app-icon\s*\{[^}]*color:\s*inherit\s*!important;/s
+    );
   });
 });

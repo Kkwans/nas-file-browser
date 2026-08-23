@@ -1144,6 +1144,11 @@ nav.sidebar .sidebar-rail-logout {
   color: var(--textSecondary, #64748b) !important;
 }
 
+nav.sidebar .sidebar-personalized-stack > #logout > .app-icon,
+nav.sidebar .sidebar-rail-logout > .app-icon {
+  color: inherit !important;
+}
+
 nav.sidebar .sidebar-personalized-stack > #logout:hover,
 nav.sidebar .sidebar-personalized-stack > #logout:focus-visible,
 nav.sidebar .sidebar-rail-logout:hover,

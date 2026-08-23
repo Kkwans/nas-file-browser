@@ -107,14 +107,18 @@
           />
           <div class="size">
             <button
+              type="button"
               @click="changeSize(Math.max(100, size - 10))"
               class="reader-button"
+              aria-label="缩小字号"
             >
               <AppIcon :name="mediaIcon('remove')" :size="18" />
             </button>
             <button
+              type="button"
               @click="changeSize(Math.min(150, size + 10))"
               class="reader-button"
+              aria-label="放大字号"
             >
               <AppIcon :name="mediaIcon('add')" :size="18" />
             </button>

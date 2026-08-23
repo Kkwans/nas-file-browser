@@ -161,12 +161,12 @@ describe("侧边栏分组交互契约", () => {
     );
   });
 
-  it("收藏项移除操作使用克制的可访问命中区，而不是直接放大 X 图标", () => {
+  it("收藏项移除操作使用克制的可访问命中区，而不是突兀的交叉图标", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSource("css/sidebar-refinement.css");
 
     expect(sidebarSource).toContain('class="favorite-remove"');
-    expect(sidebarSource).toContain('name="star-off"');
+    expect(sidebarSource).toContain('name="minus"');
     expect(sidebarSource).toContain('role="button"');
     expect(sidebarSource).toContain('aria-label="取消收藏"');
     expect(sidebarSource).toContain("@keydown.enter.stop.prevent");

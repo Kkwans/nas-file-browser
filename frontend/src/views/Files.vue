@@ -6,7 +6,7 @@
       showLogo
     />
 
-    <breadcrumbs base="/files" />
+    <breadcrumbs base="/files" :root-label="rootLabel" />
     <errors
       v-if="error"
       :errorCode="error.status"
@@ -46,6 +46,7 @@ import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useRecentStore } from "@/stores/recent";
+import { useAuthStore } from "@/stores/auth";
 
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
@@ -60,8 +61,14 @@ const Preview = defineAsyncComponent(() => import("@/views/files/Preview.vue"));
 const layoutStore = useLayoutStore();
 const fileStore = useFileStore();
 const recentStore = useRecentStore();
+const authStore = useAuthStore();
 
 const { reload } = storeToRefs(fileStore);
+const { user } = storeToRefs(authStore);
+
+const rootLabel = computed(() =>
+  user.value?.perm?.admin ? "NAS 根目录" : "我的文件"
+);
 
 const route = useRoute();
 

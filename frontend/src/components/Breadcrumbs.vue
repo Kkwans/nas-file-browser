@@ -1,7 +1,16 @@
 <template>
   <div class="breadcrumbs">
-    <component :is="element" :to="base || ''" aria-label="首页" title="首页">
+    <component
+      :is="element"
+      :to="base || ''"
+      class="breadcrumb-root"
+      :aria-label="rootLabel || '首页'"
+      :title="rootLabel || '首页'"
+    >
       <AppIcon name="home" :size="20" />
+      <span v-if="rootLabel" class="breadcrumb-root-label">
+        {{ rootLabel }}
+      </span>
     </component>
 
     <span v-for="(link, index) in items" :key="index">
@@ -21,7 +30,10 @@ const route = useRoute();
 const props = defineProps<{
   base: string;
   noLink?: boolean;
+  rootLabel?: string;
 }>();
+
+const rootLabel = computed(() => props.rootLabel?.trim() || "");
 
 const decodeSegment = (segment: string) => {
   try {

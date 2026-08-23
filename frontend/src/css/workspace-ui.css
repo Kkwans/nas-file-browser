@@ -148,12 +148,26 @@ header > .header-center {
 .breadcrumbs > a:first-child {
   align-self: center;
   justify-content: center;
+  gap: 0.35rem;
   line-height: 1;
 }
 
 .breadcrumbs > a:first-child .app-icon {
   display: block;
   line-height: 1;
+}
+
+.breadcrumbs > a:first-child .breadcrumb-root-label {
+  display: inline;
+  max-width: 12rem;
+  overflow: hidden;
+  padding: 0;
+  color: inherit;
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .breadcrumbs > a:hover,

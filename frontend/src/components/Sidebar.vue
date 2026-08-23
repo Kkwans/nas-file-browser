@@ -523,14 +523,18 @@
                       fav.path
                     }}</span>
                   </div>
-                  <AppIcon
+                  <span
                     class="favorite-remove"
-                    name="x"
-                    :size="18"
-                    :stroke-width="2"
+                    role="button"
+                    tabindex="0"
+                    aria-label="取消收藏"
                     title="取消收藏"
                     @click.stop.prevent="removeFavorite(fav.id)"
-                  />
+                    @keydown.enter.stop.prevent="removeFavorite(fav.id)"
+                    @keydown.space.stop.prevent="removeFavorite(fav.id)"
+                  >
+                    <AppIcon name="x" :size="16" :stroke-width="2" />
+                  </span>
                 </button>
               </template>
             </div>
@@ -615,14 +619,18 @@
                       fav.path
                     }}</span>
                   </div>
-                  <AppIcon
+                  <span
                     class="favorite-remove"
-                    name="x"
-                    :size="18"
-                    :stroke-width="2"
+                    role="button"
+                    tabindex="0"
+                    aria-label="取消收藏"
                     title="取消收藏"
                     @click.stop.prevent="removeFavorite(fav.id)"
-                  />
+                    @keydown.enter.stop.prevent="removeFavorite(fav.id)"
+                    @keydown.space.stop.prevent="removeFavorite(fav.id)"
+                  >
+                    <AppIcon name="x" :size="16" :stroke-width="2" />
+                  </span>
                 </button>
                 <div
                   v-if="

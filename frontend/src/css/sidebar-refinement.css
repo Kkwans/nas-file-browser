@@ -1018,3 +1018,53 @@ html.dark nav.sidebar .favorite-group-header .category-count,
 html.dark nav.sidebar .category-group-header .group-name {
   color: var(--textSecondary) !important;
 }
+
+/* 收藏条目最终视觉契约：内容、文件图标和移除动作共享一条基线。
+ * 移除动作不是装饰性大号 X，而是低干扰的 32px 键盘/触摸命中区。 */
+nav.sidebar .favorite-item {
+  display: grid;
+  grid-template-columns: var(--sidebar-level-two-icon-column) minmax(0, 1fr) 2rem;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+
+nav.sidebar .favorite-item > .favorite-info {
+  min-width: 0;
+  align-self: center;
+}
+
+nav.sidebar .favorite-remove {
+  display: inline-grid;
+  flex: 0 0 2rem;
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  place-items: center;
+  padding: 0;
+  color: var(--textTertiary, #94a3b8) !important;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  opacity: 0.62;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+nav.sidebar .favorite-remove > .app-icon {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+nav.sidebar .favorite-remove:hover,
+nav.sidebar .favorite-remove:focus-visible {
+  color: var(--icon-red, #dc2626) !important;
+  background: color-mix(in srgb, var(--icon-red, #dc2626) 9%, transparent);
+  border-color: color-mix(in srgb, var(--icon-red, #dc2626) 18%, transparent);
+  opacity: 1;
+}

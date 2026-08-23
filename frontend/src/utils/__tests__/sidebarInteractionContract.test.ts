@@ -161,6 +161,23 @@ describe("侧边栏分组交互契约", () => {
     );
   });
 
+  it("收藏项移除操作使用克制的可访问命中区，而不是直接放大 X 图标", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(sidebarSource).toContain('class="favorite-remove"');
+    expect(sidebarSource).toContain('role="button"');
+    expect(sidebarSource).toContain('aria-label="取消收藏"');
+    expect(sidebarSource).toContain("@keydown.enter.stop.prevent");
+    expect(sidebarSource).toContain("@keydown.space.stop.prevent");
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.favorite-remove\s*\{[^}]*display:\s*inline-grid;[^}]*width:\s*2rem;[^}]*height:\s*2rem;/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.favorite-remove > \.app-icon\s*\{[^}]*width:\s*1rem;[^}]*height:\s*1rem;/s
+    );
+  });
+
   it("收藏与标签的落点线绘制在条目内部，避免被圆角容器裁掉", () => {
     const cssSource = readSource("css/sidebar-refinement.css");
 

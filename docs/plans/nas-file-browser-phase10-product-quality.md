@@ -264,3 +264,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 先新增失败契约，修复后风险展示聚焦测试 `6/6`、资源图标测试 `8/8` 通过；源码提交 `65cd27d2`，CI `32606293180`、Docs `32606293184` 均成功。
 - NAS 本机直接构建并部署 `nas-file-browser:2026.8.23-phase10-risk-icons-r14`，arm64 镜像 ID `sha256:7dfd0b35b90b17dcde782b1c474085425bb04fb2f332cd1d1ba596ef70058d1a`；Compose 提交 `aa1eeacf`，CI `32606433810`、Docs `32606433764` 均成功。仅重建 `filebrowser`，容器 `healthy`，本机 HTTP `200`，r13 保留作回滚。
 - TX5pro 真实浏览器复验：根目录 32 项中高风险目录均返回 `high`；部署后首批风险图标计算颜色为 `rgb(196, 50, 58)`，图标框 `32×32px`、实际图形约 `26.2×26.2px`，无运行时错误。该次只读检查未修改 NAS 数据。
+
+### 2026-08-23 文件页 NAS 根入口标签与 r15 验收
+
+- 复现：管理员进入宿主机根目录时，文件列表已能显示 `volume1`、`volume2` 等真实目录，但面包屑只有 Home 图标，没有明确的根入口名称，容易误以为根目录未展示。
+- 修复：`Breadcrumbs` 增加可选 `rootLabel`，文件页按权限显示“NAS 根目录/我的文件”，同时同步 `aria-label` 与 `title`；保留 Share 等其他面包屑调用的旧行为。
+- 先新增失败契约，修复后 `breadcrumbsContract`、目标 ESLint 和 typecheck 通过；源码提交 `fbaded5f`，CI `32606964261`、Docs `32606964243` 均成功。
+- NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-root-label-r15`，arm64 镜像 ID `sha256:71e55a87b4f807bae4fac3d41b66a70998183f008bf66df735bd5029f9353f8f`；Compose 提交 `aff2e139`，CI `32607086957`、Docs 均成功。仅重建 `filebrowser`，容器健康检查通过，本机 HTTP `200`，r14 保留作回滚。
+- TX5pro Playwright 真机侧验收：桌面 `1440×900`、移动 `390×844` 均显示“NAS 根目录”，ARIA/title 同步，无横向溢出、无运行时错误；四种桌面与移动文件布局的风险图标尺寸/语义回归全部通过（8/8）。本次未修改 NAS 数据。

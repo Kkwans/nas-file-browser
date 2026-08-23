@@ -28,6 +28,18 @@ var recentListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	// The root entry is a virtual scope whose display name depends on the
+	// authenticated user's view. Normalize it at read time so records created
+	// before the NAS-root label was introduced remain consistent across pages.
+	rootName := "我的文件"
+	if d.user.Perm.Admin {
+		rootName = "NAS 根目录"
+	}
+	for _, entry := range entries {
+		if entry != nil && pathmeta.Clean(entry.Path) == "/" {
+			entry.Name = rootName
+		}
+	}
 	return renderJSON(w, r, entries)
 })
 
@@ -49,7 +61,10 @@ var recentRecordHandler = withUser(func(w http.ResponseWriter, r *http.Request, 
 	}
 	name := info.Name()
 	if resourcePath == "/" {
-		name = "根目录"
+		name = "我的文件"
+		if d.user.Perm.Admin {
+			name = "NAS 根目录"
+		}
 	}
 	entry, err := d.store.Recent.Record(d.user.ID, resourcePath, name, info.IsDir())
 	if err != nil {

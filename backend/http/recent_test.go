@@ -58,6 +58,46 @@ func TestRecentHTTPRecordsExistingPathsAndStaysPrivate(t *testing.T) {
 	}
 }
 
+func TestRecentHTTPUsesRoleAwareRootLabel(t *testing.T) {
+	h := newTrashHTTPHarness(t,
+		users.User{Username: "admin", Perm: users.Permissions{Admin: true}},
+		users.User{Username: "member"},
+	)
+	admin := trashHTTPUserByName(t, h, "admin")
+	member := trashHTTPUserByName(t, h, "member")
+
+	for _, userID := range []uint{admin.ID, member.ID} {
+		response := h.request(t, userID, recentRecordHandler, http.MethodPost, "/recent", bytes.NewBufferString(`{"path":"/"}`), nil)
+		if response.Code != http.StatusOK {
+			t.Fatalf("record root status = %d body=%s", response.Code, response.Body.String())
+		}
+	}
+
+	response := h.request(t, admin.ID, recentListHandler, http.MethodGet, "/recent", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("admin root list status = %d body=%s", response.Code, response.Body.String())
+	}
+	var adminEntries []*recent.Entry
+	if err := json.Unmarshal(response.Body.Bytes(), &adminEntries); err != nil {
+		t.Fatal(err)
+	}
+	if len(adminEntries) != 1 || adminEntries[0].Name != "NAS 根目录" {
+		t.Fatalf("admin root entry = %#v", adminEntries)
+	}
+
+	response = h.request(t, member.ID, recentListHandler, http.MethodGet, "/recent", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("member root list status = %d body=%s", response.Code, response.Body.String())
+	}
+	var memberEntries []*recent.Entry
+	if err := json.Unmarshal(response.Body.Bytes(), &memberEntries); err != nil {
+		t.Fatal(err)
+	}
+	if len(memberEntries) != 1 || memberEntries[0].Name != "我的文件" {
+		t.Fatalf("member root entry = %#v", memberEntries)
+	}
+}
+
 func TestRecentPathsFollowRenameAndDisappearInTrash(t *testing.T) {
 	h := newTrashHTTPHarness(t, users.User{
 		Username: "owner",

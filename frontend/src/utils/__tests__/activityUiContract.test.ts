@@ -3,6 +3,11 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 describe("activity page UI contract", () => {
+  const tasksSource = readFileSync(
+    resolve(process.cwd(), "src/views/Tasks.vue"),
+    "utf8"
+  );
+
   it("uses the shared SVG icon class instead of the retired font icon selectors", () => {
     const css = readFileSync(
       resolve(process.cwd(), "src/css/activity.css"),
@@ -35,5 +40,10 @@ describe("activity page UI contract", () => {
       /\.activity-header-action\s*\{[\s\S]*?width:\s*auto;[\s\S]*?border:\s*1px solid var\(--borderPrimary\);/
     );
     expect(css).toContain(".activity-header-action:disabled");
+  });
+
+  it("用告警和停止语义区分失败与取消，避免状态列表堆叠巨大的叉号", () => {
+    expect(tasksSource).toContain('failed: "circle-alert"');
+    expect(tasksSource).toContain('canceled: "circle-stop"');
   });
 });

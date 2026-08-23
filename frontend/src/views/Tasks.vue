@@ -284,7 +284,7 @@
               :disabled="busyIds.has(task.id)"
               @click="cancelTask(task)"
             >
-              <app-icon name="circle-x" :size="17" />取消
+              <app-icon name="circle-stop" :size="17" />取消
             </button>
             <button
               v-if="canRetry(task)"
@@ -677,8 +677,8 @@ function taskIcon(status: TaskStatus): AppIconName {
       queued: "clock",
       running: "loader",
       completed: "circle-check",
-      failed: "circle-x",
-      canceled: "circle-x",
+      failed: "circle-alert",
+      canceled: "circle-stop",
       interrupted: "retry",
     } satisfies Record<TaskStatus, AppIconName>
   )[status];

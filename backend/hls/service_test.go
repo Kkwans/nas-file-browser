@@ -126,6 +126,14 @@ func TestFFmpegArgsPadOddVideoDimensionsForYUV420(t *testing.T) {
 	}
 }
 
+func TestFFmpegArgsExposeGrowingPlaylistAsSeekableEvent(t *testing.T) {
+	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8")
+	joined := strings.Join(args, "\x00")
+	if !strings.Contains(joined, "-hls_playlist_type\x00event") {
+		t.Fatalf("growing HLS playlist is not marked as an event: %q", joined)
+	}
+}
+
 func newFakeService(t *testing.T, workers int, maxBytes int64, delay time.Duration) *Service {
 	t.Helper()
 	directory := t.TempDir()

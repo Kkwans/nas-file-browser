@@ -50,6 +50,15 @@ describe("媒体预览生命周期契约", () => {
     );
   });
 
+  it("兼容播放等待 HLS 可寻址范围后再恢复进度", () => {
+    expect(videoPlayerSource).toContain("isPlaybackPositionSeekable");
+    expect(videoPlayerSource).toContain('"durationchange"');
+    expect(videoPlayerSource).toContain("currentPlayer.seekable()");
+    expect(videoPlayerSource).not.toMatch(
+      /currentPlayer\.one\("loadedmetadata", \(\) => \{[\s\S]*currentPlayer\.currentTime\(resumeAt\)/
+    );
+  });
+
   it("大图生成期间先显示真实缩略图占位", () => {
     const previewSource = readFileSync(
       fileURLToPath(new URL("../../views/files/Preview.vue", import.meta.url)),

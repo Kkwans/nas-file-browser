@@ -482,7 +482,7 @@ func ffmpegArgs(source, segmentPattern, playlist string) []string {
 		"-threads", "1", "-filter_threads", "1",
 		"-c:a", "aac", "-b:a", "128k", "-ac", "2",
 		"-force_key_frames", "expr:gte(t,n_forced*4)",
-		"-f", "hls", "-hls_time", "4", "-hls_list_size", "0",
+		"-f", "hls", "-hls_time", "4", "-hls_list_size", "0", "-hls_playlist_type", "event",
 		"-hls_flags", "independent_segments+temp_file",
 		"-hls_segment_filename", segmentPattern, playlist,
 	}

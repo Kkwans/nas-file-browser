@@ -217,6 +217,7 @@ import {
 import {
   getVideoSourceType,
   isKnownIncompatibleVideo,
+  isPlaybackPositionSeekable,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
@@ -286,6 +287,7 @@ let compatibilityPollTimer: number | null = null;
 let compatibilityRequest = 0;
 let loadStateTimer: number | null = null;
 let activeHLSURL = "";
+let hlsResumeCleanup: (() => void) | null = null;
 let pendingResume: {
   path: string;
   position: number;
@@ -342,6 +344,7 @@ onBeforeUnmount(() => {
   if (tapTimer) window.clearTimeout(tapTimer);
   clearLoadStateTimer();
   stopCompatibilityPolling();
+  clearHLSResumeWait();
   compatibilityRequest++;
   player.value?.dispose();
   player.value = null;
@@ -816,6 +819,7 @@ function activateHLSPlayback(playlistURL: string) {
   sourceAttached.value = true;
   beginVideoLoading();
   pendingResume = null;
+  clearHLSResumeWait();
 
   // Reset a failed direct-play tech before selecting the generated HLS source.
   currentPlayer.pause();
@@ -836,12 +840,70 @@ function activateHLSPlayback(playlistURL: string) {
         false
       );
     });
-    if (resumeAt > 0) {
-      currentPlayer.currentTime(resumeAt);
-      resumeApplied.value = true;
-    }
   });
+  waitForHLSResume(currentPlayer, resumeAt);
   playVideo(currentPlayer);
+}
+
+function clearHLSResumeWait() {
+  hlsResumeCleanup?.();
+  hlsResumeCleanup = null;
+}
+
+function waitForHLSResume(currentPlayer: Player, position: number) {
+  if (!Number.isFinite(position) || position <= 0) return;
+
+  const events = [
+    "loadedmetadata",
+    "durationchange",
+    "progress",
+    "loadeddata",
+    "canplay",
+    "timeupdate",
+  ];
+  let timeout: number | null = null;
+  const apply = () => {
+    if (disposed || player.value !== currentPlayer) {
+      cleanup();
+      return;
+    }
+
+    let seekableStart = Number.NaN;
+    let seekableEnd = Number.NaN;
+    try {
+      const ranges = currentPlayer.seekable();
+      if (ranges.length > 0) {
+        const last = ranges.length - 1;
+        seekableStart = ranges.start(last);
+        seekableEnd = ranges.end(last);
+      }
+    } catch {
+      return;
+    }
+    if (
+      !isPlaybackPositionSeekable(
+        position,
+        seekableStart,
+        seekableEnd,
+        currentPlayer.duration()
+      )
+    ) {
+      return;
+    }
+    currentPlayer.currentTime(position);
+    resumeApplied.value = true;
+    cleanup();
+  };
+  const cleanup = () => {
+    events.forEach((event) => currentPlayer.off(event, apply));
+    if (timeout !== null) window.clearTimeout(timeout);
+    if (hlsResumeCleanup === cleanup) hlsResumeCleanup = null;
+  };
+
+  hlsResumeCleanup = cleanup;
+  events.forEach((event) => currentPlayer.on(event, apply));
+  timeout = window.setTimeout(cleanup, 30_000);
+  apply();
 }
 
 function playVideo(currentPlayer: Pick<Player, "play">) {
@@ -856,6 +918,7 @@ function playVideo(currentPlayer: Pick<Player, "play">) {
 function tryDirectPlayback() {
   const currentPlayer = player.value;
   if (!currentPlayer) return;
+  clearHLSResumeWait();
   activeHLSURL = "";
   hlsActive.value = false;
   directPlaybackFailed.value = false;
@@ -878,6 +941,7 @@ function useCompatibilityPlayback() {
 }
 
 function resetCompatibility(path: string) {
+  clearHLSResumeWait();
   compatibilityRequest++;
   stopCompatibilityPolling();
   compatibilityBusy.value = false;

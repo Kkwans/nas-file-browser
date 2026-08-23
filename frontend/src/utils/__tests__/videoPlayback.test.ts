@@ -4,6 +4,7 @@ import {
   getVideoSourceType,
   isDefinitelyUnsupportedVideoCodec,
   isKnownIncompatibleVideo,
+  isPlaybackPositionSeekable,
   shouldPreflightVideoCodec,
 } from "../videoPlayback";
 
@@ -45,5 +46,25 @@ describe("视频播放源策略", () => {
     expect(isDefinitelyUnsupportedVideoCodec("h264")).toBe(false);
     expect(isDefinitelyUnsupportedVideoCodec("av1")).toBe(false);
     expect(isDefinitelyUnsupportedVideoCodec(undefined)).toBe(false);
+  });
+
+  it("只在 HLS 已暴露目标时间范围后应用续播位置", () => {
+    expect(
+      isPlaybackPositionSeekable(60, 0, 120, Number.POSITIVE_INFINITY)
+    ).toBe(true);
+    expect(
+      isPlaybackPositionSeekable(60, 0, 30, Number.POSITIVE_INFINITY)
+    ).toBe(false);
+    expect(isPlaybackPositionSeekable(60, Number.NaN, Number.NaN, 120)).toBe(
+      true
+    );
+    expect(
+      isPlaybackPositionSeekable(
+        60,
+        Number.NaN,
+        Number.NaN,
+        Number.POSITIVE_INFINITY
+      )
+    ).toBe(false);
   });
 });

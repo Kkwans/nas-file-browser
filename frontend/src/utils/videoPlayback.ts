@@ -93,3 +93,22 @@ export function getVideoSourceType(source: string, fallbackPath = "") {
   const extension = extensionOf(fallbackPath) || extensionOf(source);
   return VIDEO_MIME_TYPES[extension] ?? "";
 }
+
+/**
+ * A growing HLS playlist can expose metadata before it exposes the segment
+ * containing a saved position.  Do not call currentTime() until the browser
+ * reports that the target is inside its seekable range; otherwise Video.js
+ * silently clamps the seek to zero and the resume chip becomes misleading.
+ */
+export function isPlaybackPositionSeekable(
+  position: number,
+  seekableStart: number,
+  seekableEnd: number,
+  duration: number
+) {
+  if (!Number.isFinite(position) || position < 0) return false;
+  if (Number.isFinite(seekableStart) && Number.isFinite(seekableEnd)) {
+    return position >= seekableStart && position <= seekableEnd;
+  }
+  return Number.isFinite(duration) && duration > 0 && position <= duration;
+}

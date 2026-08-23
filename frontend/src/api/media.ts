@@ -190,11 +190,14 @@ function runPlaybackQueue(path: string, queue: PlaybackQueue) {
 
 export function getMediaInformation(
   path: string,
-  includeLocation = false
+  includeLocation = false,
+  signal?: AbortSignal
 ): Promise<MediaInformation> {
   const query = new URLSearchParams({ path });
   if (includeLocation) query.set("includeLocation", "true");
-  return fetchJSON<MediaInformation>(`/api/media/info?${query.toString()}`);
+  return fetchJSON<MediaInformation>(`/api/media/info?${query.toString()}`, {
+    signal,
+  });
 }
 
 export async function startHLSPlayback(

@@ -31,6 +31,17 @@
       </p>
     </video>
 
+    <div
+      v-if="codecProbePending"
+      class="media-video-status media-video-status--loading media-video-status--format-probe"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="media-video-status__indicator" aria-hidden="true"></span>
+      <strong>正在检测视频格式</strong>
+      <small>确认浏览器是否可以直接播放，避免读取无效视频数据</small>
+    </div>
+
     <div v-if="gestureHud" class="media-gesture-hud" role="status">
       <AppIcon :name="mediaIcon(gestureHud.icon)" :size="28" />
       <strong>{{ gestureHud.value }}</strong>
@@ -207,7 +218,9 @@ import {
 } from "@/utils/videoGestures";
 import {
   getVideoSourceType,
+  isDefinitelyUnsupportedVideoCodec,
   isKnownIncompatibleVideo,
+  shouldPreflightVideoCodec,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
@@ -251,7 +264,10 @@ const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
 const hlsActive = ref(false);
-const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));
+const codecProbePending = ref(shouldPreflightVideoCodec(props.path));
+const sourceAttached = ref(
+  !isKnownIncompatibleVideo(props.path) && !codecProbePending.value
+);
 type VideoLoadState = "idle" | "loading" | "stalled" | "ready" | "error";
 const videoLoadState = ref<VideoLoadState>(
   sourceAttached.value ? "loading" : "idle"
@@ -274,8 +290,11 @@ let tapTimer: number | null = null;
 let lastTap = 0;
 let compatibilityPollTimer: number | null = null;
 let compatibilityRequest = 0;
+let directProbeRequest = 0;
+let directProbeAbortController: AbortController | null = null;
 let loadStateTimer: number | null = null;
 let activeHLSURL = "";
+const VIDEO_CODEC_PROBE_TIMEOUT_MS = 1_200;
 let pendingResume: {
   path: string;
   position: number;
@@ -311,14 +330,7 @@ watch(
     resetCompatibility(nextPath);
     player.value.pause();
     player.value.reset();
-    if (!isKnownIncompatibleVideo(nextPath)) {
-      sourceAttached.value = true;
-      player.value.src({
-        src: nextSource,
-        type: getVideoSourceType(nextSource, nextPath),
-      });
-      player.value.load();
-    }
+    void prepareDirectPlayback(nextPath, nextSource);
     void restorePlayback(nextPath);
   }
 );
@@ -340,6 +352,8 @@ onBeforeUnmount(() => {
   clearLoadStateTimer();
   stopCompatibilityPolling();
   compatibilityRequest++;
+  directProbeRequest++;
+  directProbeAbortController?.abort();
   player.value?.dispose();
   player.value = null;
 });
@@ -353,14 +367,16 @@ async function initVideoPlayer() {
     if (disposed || !videoPlayer.value) return;
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);
-    const initialSource = isKnownIncompatibleVideo(props.path)
-      ? {}
-      : {
-          sources: {
-            src: props.source,
-            type: getVideoSourceType(props.source, props.path),
-          },
-        };
+    const initialSource =
+      isKnownIncompatibleVideo(props.path) ||
+      shouldPreflightVideoCodec(props.path)
+        ? {}
+        : {
+            sources: {
+              src: props.source,
+              type: getVideoSourceType(props.source, props.path),
+            },
+          };
     player.value = videojs(
       videoPlayer.value,
       getOptions(props.options, { language: code }, initialSource, {
@@ -379,6 +395,8 @@ async function initVideoPlayer() {
     player.value.on("stalled", onVideoWaiting);
     player.value.on("playing", onPlayerPlaying);
     if (sourceAttached.value) beginVideoLoading();
+    else if (shouldPreflightVideoCodec(props.path))
+      void prepareDirectPlayback(props.path, props.source);
     await restorePlayback(props.path);
   } catch (error) {
     console.error("Error initializing video player:", error);
@@ -616,6 +634,78 @@ function clearLoadStateTimer() {
   }
 }
 
+async function prepareDirectPlayback(path: string, source: string) {
+  const request = ++directProbeRequest;
+  directProbeAbortController?.abort();
+  directProbeAbortController = null;
+
+  if (isKnownIncompatibleVideo(path)) {
+    codecProbePending.value = false;
+    sourceAttached.value = false;
+    return;
+  }
+
+  if (!shouldPreflightVideoCodec(path)) {
+    codecProbePending.value = false;
+    attachDirectSource(path, source);
+    return;
+  }
+
+  codecProbePending.value = true;
+  sourceAttached.value = false;
+  setVideoLoadState("idle");
+  const controller = new AbortController();
+  directProbeAbortController = controller;
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    VIDEO_CODEC_PROBE_TIMEOUT_MS
+  );
+
+  try {
+    const info = await mediaApi.getMediaInformation(
+      path,
+      false,
+      controller.signal
+    );
+    if (request !== directProbeRequest || disposed) return;
+    if (isDefinitelyUnsupportedVideoCodec(info.videoCodec)) {
+      codecProbePending.value = false;
+      directPlaybackFailed.value = true;
+      compatibilityPanelOpen.value = true;
+      showProgressMessage(
+        `浏览器无法直接解码 ${info.videoCodec?.toUpperCase() || "此编码"} 视频`
+      );
+      return;
+    }
+  } catch {
+    // A probe outage must not make a playable file unusable. Fall back to the
+    // normal direct source; the existing player error state remains available.
+  } finally {
+    window.clearTimeout(timeout);
+    if (directProbeAbortController === controller)
+      directProbeAbortController = null;
+  }
+
+  if (request !== directProbeRequest || disposed) return;
+  codecProbePending.value = false;
+  attachDirectSource(path, source);
+}
+
+function attachDirectSource(path: string, source: string) {
+  if (disposed || path !== props.path) return;
+  sourceAttached.value = true;
+  directPlaybackFailed.value = false;
+  compatibilityPanelOpen.value = false;
+  const currentPlayer = player.value;
+  if (!currentPlayer) return;
+  beginVideoLoading();
+  currentPlayer.src({
+    src: source,
+    type: getVideoSourceType(source, path),
+  });
+  currentPlayer.load();
+}
+
 function beginVideoLoading() {
   if (!sourceAttached.value || disposed) return;
   setVideoLoadState("loading");
@@ -818,6 +908,7 @@ function tryDirectPlayback() {
   hlsActive.value = false;
   directPlaybackFailed.value = false;
   compatibilityNetworkError.value = "";
+  codecProbePending.value = false;
   sourceAttached.value = true;
   beginVideoLoading();
   currentPlayer.src({
@@ -837,13 +928,18 @@ function useCompatibilityPlayback() {
 function resetCompatibility(path: string) {
   compatibilityRequest++;
   stopCompatibilityPolling();
+  directProbeRequest++;
+  directProbeAbortController?.abort();
+  directProbeAbortController = null;
   compatibilityBusy.value = false;
   compatibilityNetworkError.value = "";
   compatibilityStatus.value = null;
   directPlaybackFailed.value = false;
   hlsActive.value = false;
   activeHLSURL = "";
-  sourceAttached.value = !isKnownIncompatibleVideo(path);
+  codecProbePending.value = shouldPreflightVideoCodec(path);
+  sourceAttached.value =
+    !isKnownIncompatibleVideo(path) && !codecProbePending.value;
   posterSource.value = "";
   videoLoadState.value = sourceAttached.value ? "loading" : "idle";
   loadingOverlayVisible.value = false;

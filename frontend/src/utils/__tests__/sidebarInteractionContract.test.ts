@@ -189,4 +189,15 @@ describe("侧边栏分组交互契约", () => {
       /\.sidebar-drop-after::after\s*\{[^}]*bottom:\s*0;/s
     );
   });
+
+  it("登出图标默认与导航同色，仅在悬停或聚焦时表达危险性", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-personalized-stack > #logout,\s*nav\.sidebar \.sidebar-rail-logout\s*\{[^}]*color:\s*var\(--textSecondary, #64748b\)\s*!important;/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-rail-logout:hover,[\s\S]*nav\.sidebar \.sidebar-rail-logout:focus-visible\s*\{[^}]*color:\s*var\(--icon-red, #dc2626\)\s*!important;/s
+    );
+  });
 });

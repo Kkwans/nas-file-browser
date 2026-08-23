@@ -1135,3 +1135,20 @@ nav.sidebar .favorite-group-header .section-action-btn:focus-visible {
     stroke-width: 2.2;
   }
 }
+
+/* Logout is a navigation action, not a permanent alert. Keep its icon and
+ * label on the same neutral baseline as the other sidebar commands; surface
+ * the destructive meaning only at the point of interaction. */
+nav.sidebar .sidebar-personalized-stack > #logout,
+nav.sidebar .sidebar-rail-logout {
+  color: var(--textSecondary, #64748b) !important;
+}
+
+nav.sidebar .sidebar-personalized-stack > #logout:hover,
+nav.sidebar .sidebar-personalized-stack > #logout:focus-visible,
+nav.sidebar .sidebar-rail-logout:hover,
+nav.sidebar .sidebar-rail-logout:focus-visible {
+  color: var(--icon-red, #dc2626) !important;
+  border-color: color-mix(in srgb, var(--icon-red, #dc2626) 22%, transparent);
+  background: color-mix(in srgb, var(--icon-red, #dc2626) 7%, transparent);
+}

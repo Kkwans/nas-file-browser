@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.23-phase10-sidebar-favorite-r21
+    image: nas-file-browser:2026.8.23-phase10-sidebar-actions-r22
     build:
       context: .
       dockerfile: Dockerfile.custom

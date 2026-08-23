@@ -237,8 +237,8 @@ main .spinner .bounce2 {
 #previewer header.media-preview-header > .header-center {
   position: static;
   left: auto;
-  flex: 0 1 min(48rem, calc(100vw - 27rem));
-  width: auto;
+  flex: 0 1 auto;
+  width: fit-content;
   max-width: min(48rem, calc(100vw - 27rem));
   height: 44px;
   min-width: 0;
@@ -452,6 +452,7 @@ main .spinner .bounce2 {
 
   #previewer header.media-preview-header > .header-center {
     flex: 1 1 auto;
+    width: auto;
     max-width: calc(100vw - 64px);
     height: 48px;
   }

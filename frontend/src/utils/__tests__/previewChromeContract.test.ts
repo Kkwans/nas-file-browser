@@ -28,6 +28,12 @@ describe("preview chrome contract", () => {
     );
   });
 
+  it("keeps a short media title sized to its content instead of stretching across the chrome", () => {
+    expect(previewStyles).toMatch(
+      /header\.media-preview-header > \.header-center\s*\{[\s\S]*?flex:\s*0 1 auto;[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*min\(48rem, calc\(100vw - 27rem\)\);/
+    );
+  });
+
   it("uses fixed square navigation targets with explicit optical alignment", () => {
     expect(previewSource).toContain("'preview-nav--previous'");
     expect(previewSource).toContain("'preview-nav--next'");

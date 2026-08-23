@@ -352,3 +352,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.23-phase10-icon-baseline-r26` 构建成功；Compose 提交 `f8fa02b3` 已推送，Docs `32622712222` 已成功，Continuous Integration 正在等待最终结果。仅重建 `filebrowser`，容器已 `healthy`，`127.0.0.1:8888` 返回 `200`，r25 保留作回滚。
 - NAS 本机 Playwright 1440×900 实测报告 `/tmp/nfb-files-r26-icon-baseline.json`、截图 `/tmp/nfb-files-r26-icon-baseline.png` 和 `/tmp/nfb-settings-r26-icon-baseline.png`：文件列表 `scrollWidth=clientWidth=1425`；侧栏图标命中区内的 SVG 均为稳定 `21–22px`，顶部操作图标均为 `20px`，计算样式为 `display:block`、`vertical-align:middle`、`flex:0 0 auto`；设置页、NAS 根目录和文件网格未观察到横向溢出或明显基线漂移。
 - 该模块只修复全局图标布局基础，不宣称用户截图中所有页面级对齐、字号、密度和图标选择问题已经完成；继续按页面证据推进，保留当前侧栏收藏移除不使用大号 `X` 的产品决策。
+
+### 2026-08-23 移动端任务状态筛选布局与 r27 验收
+
+- 复现：390px 移动端任务中心的六个状态按钮被强制放在单行横向滚动容器中，页面露出一条横向滚动条并截断后续状态，破坏筛选区的对齐和可发现性。
+- 修复：在 `max-width: 520px` 下将任务状态筛选改为三列两行网格，保持每个按钮 `44px` 触控高度，移除横向滚动；桌面和宽屏继续保持原有单行工具栏。
+- 验证：新增活动页 UI 契约测试先在旧实现上失败，修复后活动 UI Vitest `2/2`、目标 ESLint 通过；源码提交 `f8cb9ca5` 已推送，GitHub Continuous Integration `32623063181`、Docs `32623063174` 均成功。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.23-phase10-task-mobile-r27` 已构建；Compose 提交 `56a9c322` 已推送，容器 `healthy`，`127.0.0.1:8888` 返回 `200`，r26 保留作回滚。
+- NAS 本机 Playwright 390×844 实测报告 `/tmp/nfb-mobile-tasks-r27.json`、截图 `/tmp/nfb-mobile-tasks-r27.png`：任务筛选区尺寸 `331×94px`，六个按钮按 `106.3px × 44px` 对齐为两行三列，`scrollWidth=clientWidth=375`，`overflow-x=visible`，未再出现横向滚动条。
+- 该模块只修复已复现的移动端任务筛选溢出，不宣称移动端所有页面已经完成；继续检查文件列表、预览和设置页的内容起始线、操作密度与触控反馈。

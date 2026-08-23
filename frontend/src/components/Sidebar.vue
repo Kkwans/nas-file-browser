@@ -123,7 +123,7 @@
             :aria-expanded="railPanel === 'volumes'"
             @click.stop="toggleRailPanel('volumes', $event)"
           >
-            <AppIcon name="database" :size="21" />
+            <AppIcon name="storage" :size="21" />
           </button>
 
           <div class="sidebar-rail-spacer"></div>
@@ -335,7 +335,7 @@
           @drop="onModuleDrop('system-options')"
         >
           <SidebarSectionHeader
-            icon="settings"
+            icon="system-options"
             label="系统选项"
             :expanded="!collapsedSections.systemOptions"
             draggable="true"
@@ -734,7 +734,7 @@
           @drop="onModuleDrop('volumes')"
         >
           <SidebarSectionHeader
-            icon="database"
+            icon="storage"
             label="存储卷"
             :expanded="!collapsedSections.volumes"
             draggable="true"

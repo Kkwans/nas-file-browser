@@ -1176,3 +1176,60 @@ nav.sidebar .sidebar-rail-logout:focus-visible {
   border-color: color-mix(in srgb, var(--icon-red, #dc2626) 22%, transparent);
   background: color-mix(in srgb, var(--icon-red, #dc2626) 7%, transparent);
 }
+
+/* 2026-08-23: sidebar icon rhythm.
+ * Every navigation row owns the hit area; the glyphs themselves share one
+ * 20px visual size and one centred 28px column. This keeps folder items,
+ * section headers and rail actions aligned without oversized glyphs or
+ * post-hoc symbols competing with the label.
+ */
+nav.sidebar {
+  --sidebar-icon-size: 1.25rem;
+  --sidebar-icon-column: 1.75rem;
+}
+
+nav.sidebar .sidebar-section-header .section-toggle > .app-icon,
+nav.sidebar .sidebar-command > .app-icon,
+nav.sidebar > #logout > .app-icon {
+  box-sizing: border-box;
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
+  flex: 0 0 var(--sidebar-icon-size);
+  margin-inline: calc(
+    (var(--sidebar-icon-column) - var(--sidebar-icon-size)) / 2
+  );
+}
+
+nav.sidebar .favorite-item > .favorite-icon:not(.favorite-drag-handle),
+nav.sidebar .favorite-group-header > .favorite-group-icon,
+nav.sidebar .category-group-header > .favorite-group-icon,
+nav.sidebar .category-path-item > .category-path-risk-icon {
+  box-sizing: border-box;
+  width: var(--sidebar-icon-size) !important;
+  height: var(--sidebar-icon-size) !important;
+  min-width: var(--sidebar-icon-size);
+  min-height: var(--sidebar-icon-size);
+  place-self: center;
+  margin: 0;
+}
+
+nav.sidebar .favorite-item > .favorite-icon:not(.favorite-drag-handle) {
+  justify-self: center;
+}
+
+nav.sidebar .sidebar-section-header .section-toggle,
+nav.sidebar .sidebar-command,
+nav.sidebar > #logout,
+nav.sidebar .favorite-item,
+nav.sidebar .sidebar-group-header {
+  align-items: center;
+}
+
+nav.sidebar .sidebar-rail-action > .app-icon {
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
+}
+
+nav.sidebar .sidebar-section-header .section-toggle {
+  font-size: 0.9375rem;
+}

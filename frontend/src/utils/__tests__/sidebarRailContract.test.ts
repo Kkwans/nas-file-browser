@@ -90,6 +90,28 @@ describe("桌面侧边栏图标轨契约", () => {
     );
   });
 
+  it("导航图标使用语义图形并共享同一视觉尺寸", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+    const iconRegistrySource = readSource("components/ui/iconRegistry.ts");
+
+    expect(iconRegistrySource).toContain("FolderTree");
+    expect(iconRegistrySource).toContain("SlidersHorizontal");
+    expect(iconRegistrySource).toContain("HardDrive");
+    expect(cssSource).toContain("--sidebar-icon-size: 1.25rem");
+    expect(cssSource).toContain(
+      "nav.sidebar .favorite-item > .favorite-icon:not(.favorite-drag-handle),"
+    );
+    expect(cssSource).toContain(
+      "nav.sidebar .sidebar-section-header .section-toggle > .app-icon,"
+    );
+    expect(
+      cssSource.match(/width: var\(--sidebar-icon-size\);/g)
+    ).not.toBeNull();
+    expect(
+      cssSource.match(/height: var\(--sidebar-icon-size\);/g)
+    ).not.toBeNull();
+  });
+
   it("移动端保持完整抽屉并关闭桌面图标轨", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSource("css/sidebar-refinement.css");

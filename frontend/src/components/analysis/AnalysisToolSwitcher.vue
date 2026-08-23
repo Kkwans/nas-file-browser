@@ -39,10 +39,12 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 <style scoped>
 .analysis-tool-switcher {
-  display: inline-grid;
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
-  width: min(100%, 520px);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 4px;
   border: 1px solid var(--borderPrimary);
   border-radius: 12px;

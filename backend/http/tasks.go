@@ -77,7 +77,7 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 		if err := json.Unmarshal(original.Args, &args); err != nil {
 			return nil, http.StatusConflict, fmt.Errorf("任务参数损坏: %w", err)
 		}
-		input, status, err := mediaHLSInputWithContext(context.Background(), d, owner, args.Path, args.Format != "webm")
+		input, status, err := mediaHLSInputWithContext(context.Background(), d, owner, args.Path, true)
 		if err != nil {
 			return nil, status, err
 		}
@@ -85,6 +85,8 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 		switch args.Format {
 		case "webm":
 			reserve = hlsServices[0].ReserveWebM
+		case "webm-copy":
+			reserve = hlsServices[0].ReserveWebMCopy
 		case "copy":
 			reserve = hlsServices[0].ReserveCopy
 		}

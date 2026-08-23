@@ -142,6 +142,16 @@ func TestMediaHLSStatusResponseMarksRemuxProfile(t *testing.T) {
 	}
 }
 
+func TestMediaHLSStatusResponseMarksWebMRemuxProfile(t *testing.T) {
+	response := mediaHLSStatusResponse("", hls.Status{
+		ID: "webm-copy-id", UserID: 1, Path: "/movie.mkv", Identity: "v1",
+		Profile: hls.DefaultWebMCopyProfile, State: hls.StateCompleted,
+	})
+	if response.Format != "webm-copy" || response.SourceURL == "" || response.PlaylistURL != "" {
+		t.Fatalf("WebM copy response = %#v", response)
+	}
+}
+
 func newHTTPHLSService(t *testing.T, slow bool) *hls.Service {
 	t.Helper()
 	directory := t.TempDir()

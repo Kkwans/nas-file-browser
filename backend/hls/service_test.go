@@ -144,6 +144,16 @@ func TestWebMArgsProduceBrowserSeekableCompatibilityFile(t *testing.T) {
 	}
 }
 
+func TestWebMCopyArgsRemuxNativeStreams(t *testing.T) {
+	args := webMCopyArgs("/source.mkv", "/tmp/index.webm.tmp")
+	joined := strings.Join(args, "\x00")
+	for _, expected := range []string{"-c\x00copy", "-f\x00webm", "/tmp/index.webm.tmp"} {
+		if !strings.Contains(joined, expected) {
+			t.Fatalf("WebM copy args missing %q: %q", expected, joined)
+		}
+	}
+}
+
 func TestParseFFmpegProgressLineReportsOnlyOutputTime(t *testing.T) {
 	seconds, ok := parseFFmpegProgressLine("out_time_ms=2500000")
 	if !ok || seconds != 2.5 {
@@ -190,6 +200,28 @@ func TestCanCopyMediaRequiresBrowserCompatibleCodecs(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			if got := CanCopyMedia(test.videoCodec, test.audioCodec); got != test.want {
 				t.Fatalf("CanCopyMedia(%q, %q) = %v, want %v", test.videoCodec, test.audioCodec, got, test.want)
+			}
+		})
+	}
+}
+
+func TestCanCopyWebMMediaRequiresBrowserNativeCodecs(t *testing.T) {
+	tests := []struct {
+		name       string
+		videoCodec string
+		audioCodec string
+		want       bool
+	}{
+		{name: "vp9 opus", videoCodec: "vp9", audioCodec: "opus", want: true},
+		{name: "vp8 no audio", videoCodec: "vp8", want: true},
+		{name: "av1 vorbis", videoCodec: "av1", audioCodec: "vorbis", want: true},
+		{name: "h264 opus", videoCodec: "h264", audioCodec: "opus", want: false},
+		{name: "vp9 dts", videoCodec: "vp9", audioCodec: "dts", want: false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := CanCopyWebMMedia(test.videoCodec, test.audioCodec); got != test.want {
+				t.Fatalf("CanCopyWebMMedia(%q, %q) = %v, want %v", test.videoCodec, test.audioCodec, got, test.want)
 			}
 		})
 	}

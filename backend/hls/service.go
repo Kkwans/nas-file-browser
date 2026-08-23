@@ -22,12 +22,13 @@ import (
 )
 
 const (
-	DefaultMaxBytes    = int64(10 << 30)
-	DefaultProfile     = "h264-main-720p-aac-hls4-v1"
-	DefaultCopyProfile = "h264-copy-hls-v1"
-	DefaultWebMProfile = "vp9-720p-opus-webm-v1"
-	playingLease       = 2 * time.Minute
-	maxFFmpegError     = 8 * 1024
+	DefaultMaxBytes        = int64(10 << 30)
+	DefaultProfile         = "h264-main-720p-aac-hls4-v1"
+	DefaultCopyProfile     = "h264-copy-hls-v1"
+	DefaultWebMProfile     = "vp9-720p-opus-webm-v1"
+	DefaultWebMCopyProfile = "vp9-opus-webm-copy-v1"
+	playingLease           = 2 * time.Minute
+	maxFFmpegError         = 8 * 1024
 )
 
 var (
@@ -82,6 +83,12 @@ func IsWebMProfile(profile string) bool {
 	return profile == DefaultWebMProfile
 }
 
+// IsWebMCopyProfile reports a WebM artifact that only remuxes streams already
+// supported by Chromium, rather than decoding and re-encoding them.
+func IsWebMCopyProfile(profile string) bool {
+	return profile == DefaultWebMCopyProfile
+}
+
 // IsCopyProfile reports whether the HLS artifact only remuxes streams that
 // Chromium can consume.  It avoids a full video encode for MKV/MOV files that
 // already contain H.264 video and AAC (or no) audio.
@@ -95,6 +102,16 @@ func CanCopyMedia(videoCodec, audioCodec string) bool {
 	videoCodec = strings.ToLower(strings.TrimSpace(videoCodec))
 	audioCodec = strings.ToLower(strings.TrimSpace(audioCodec))
 	return videoCodec == "h264" && (audioCodec == "" || audioCodec == "aac")
+}
+
+// CanCopyWebMMedia accepts browser-native WebM codec families so MKV/MOV
+// files carrying VP8/VP9/AV1 + Opus/Vorbis do not need a compatibility encode.
+func CanCopyWebMMedia(videoCodec, audioCodec string) bool {
+	videoCodec = strings.ToLower(strings.TrimSpace(videoCodec))
+	audioCodec = strings.ToLower(strings.TrimSpace(audioCodec))
+	videoOK := videoCodec == "vp8" || videoCodec == "vp9" || videoCodec == "av1"
+	audioOK := audioCodec == "" || audioCodec == "opus" || audioCodec == "vorbis"
+	return videoOK && audioOK
 }
 
 type Status struct {
@@ -202,6 +219,11 @@ func (service *Service) ReserveWebM(input Input, start StartFunc) (Status, bool,
 	return service.reserve(input, DefaultWebMProfile, start)
 }
 
+// ReserveWebMCopy remuxes browser-native WebM streams without re-encoding.
+func (service *Service) ReserveWebMCopy(input Input, start StartFunc) (Status, bool, error) {
+	return service.reserve(input, DefaultWebMCopyProfile, start)
+}
+
 func (service *Service) reserve(input Input, profile string, start StartFunc) (Status, bool, error) {
 	if input.UserID == 0 || input.Path == "" || input.Identity == "" || input.SourcePath == "" {
 		return Status{}, false, fmt.Errorf("invalid HLS source")
@@ -285,6 +307,9 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	}
 	if IsWebMProfile(job.Profile) {
 		return service.runWebM(ctx, job, directory)
+	}
+	if IsWebMCopyProfile(job.Profile) {
+		return service.runWebMCopy(ctx, job, directory)
 	}
 
 	playlist := filepath.Join(directory, "index.m3u8")
@@ -433,6 +458,54 @@ func (service *Service) runWebM(ctx context.Context, job Job, directory string) 
 	if err := service.persist(job.ID); err != nil {
 		service.finish(job.ID, StateFailed, err.Error(), 0)
 		return fmt.Errorf("persist WebM cache metadata: %w", err)
+	}
+	service.mu.Lock()
+	service.cleanupLocked(job.ID)
+	service.mu.Unlock()
+	return nil
+}
+
+func (service *Service) runWebMCopy(ctx context.Context, job Job, directory string) error {
+	temporary := filepath.Join(directory, "index.webm.tmp")
+	output := filepath.Join(directory, "index.webm")
+	command := exec.CommandContext(ctx, service.ffmpegPath, webMCopyArgs(job.SourcePath, temporary)...)
+	stderr := cappedBuffer{limit: maxFFmpegError}
+	command.Stderr = &stderr
+	if err := command.Run(); err != nil {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			service.finish(job.ID, StateCanceled, "任务已取消", 0)
+			_ = os.RemoveAll(directory)
+			return ctx.Err()
+		}
+		message := strings.TrimSpace(stderr.String())
+		if message == "" {
+			message = err.Error()
+		}
+		message = "FFmpeg WebM 重新封装失败: " + message
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
+	if err := os.Rename(temporary, output); err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		_ = os.RemoveAll(directory)
+		return fmt.Errorf("publish WebM remux artifact: %w", err)
+	}
+	if !readyForProfile(directory, job.Profile) {
+		message := "FFmpeg WebM 重新封装未生成可播放文件"
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
+	size, err := directorySize(directory)
+	if err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		return fmt.Errorf("measure WebM remux cache: %w", err)
+	}
+	service.finish(job.ID, StateCompleted, "", size)
+	if err := service.persist(job.ID); err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		return fmt.Errorf("persist WebM remux metadata: %w", err)
 	}
 	service.mu.Lock()
 	service.cleanupLocked(job.ID)
@@ -658,6 +731,13 @@ func webMArgs(source, output string) []string {
 	}
 }
 
+func webMCopyArgs(source, output string) []string {
+	return []string{
+		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
+		"-map", "0:v:0", "-map", "0:a:0?", "-c", "copy", "-f", "webm", output,
+	}
+}
+
 func parseFFmpegProgressLine(line string) (float64, bool) {
 	key, value, found := strings.Cut(strings.TrimSpace(line), "=")
 	if !found || key != "out_time_ms" {
@@ -680,7 +760,7 @@ func readyToStream(directory string) bool {
 }
 
 func readyForProfile(directory, profile string) bool {
-	if IsWebMProfile(profile) {
+	if IsWebMProfile(profile) || IsWebMCopyProfile(profile) {
 		info, err := os.Stat(filepath.Join(directory, "index.webm"))
 		return err == nil && !info.IsDir() && info.Size() > 0
 	}

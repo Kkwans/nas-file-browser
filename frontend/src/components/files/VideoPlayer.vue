@@ -495,7 +495,7 @@ const compatibilityCopy = computed(() => {
         icon: "hourglass_top",
         title: "已加入低并发队列",
         description:
-          status?.format === "webm"
+          status?.format === "webm" || status?.format === "webm-copy"
             ? "NAS 会优先响应文件浏览和缩略图；轮到此视频后生成兼容视频文件。"
             : "NAS 会优先响应文件浏览和缩略图；轮到此视频后再生成首个可播放分段。",
       };
@@ -503,11 +503,15 @@ const compatibilityCopy = computed(() => {
       return {
         icon: "movie_edit",
         title:
-          status?.format === "webm" ? "正在生成兼容视频" : "正在准备首个分段",
+          status?.format === "webm" || status?.format === "webm-copy"
+            ? "正在生成兼容视频"
+            : "正在准备首个分段",
         description:
-          status?.format === "copy"
-            ? "正在重新封装已有的 H.264/AAC 轨道，不重新编码视频；完成后即可拖动进度。"
-            : status?.format === "webm"
+          status?.format === "copy" || status?.format === "webm-copy"
+            ? status?.format === "webm-copy"
+              ? "视频本身已是浏览器支持的 VP8/VP9/AV1 + Opus/Vorbis，NAS 只重新封装，不重新编码。"
+              : "正在重新封装已有的 H.264/AAC 轨道，不重新编码视频；完成后即可拖动进度。"
+            : status?.format === "webm" || status?.format === "webm-copy"
               ? "当前浏览器没有可用的 H.264 解码器，NAS 正生成 VP9/WebM 兼容文件；完整文件就绪后支持拖动进度。"
               : "FFmpeg 正以低资源配置转换视频。可以离开此页，真实任务状态会保留在任务中心。",
       };
@@ -520,10 +524,13 @@ const compatibilityCopy = computed(() => {
     case "completed":
       return {
         icon: "offline_pin",
-        title: status?.format === "copy" ? "兼容封装已缓存" : "兼容版本已缓存",
+        title:
+          status?.format === "copy" || status?.format === "webm-copy"
+            ? "兼容封装已缓存"
+            : "兼容版本已缓存",
         description: status?.sizeBytes
-          ? `${status.format === "copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，本次产物占用 ${formatCacheSize(status.sizeBytes)}，再次打开同一文件可直接复用。`
-          : `${status?.format === "copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，再次打开同一文件可直接复用缓存。`,
+          ? `${status.format === "copy" || status.format === "webm-copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，本次产物占用 ${formatCacheSize(status.sizeBytes)}，再次打开同一文件可直接复用。`
+          : `${status?.format === "copy" || status?.format === "webm-copy" ? "未重新编码，仅重新封装" : "转换已经完成"}，再次打开同一文件可直接复用缓存。`,
       };
     case "failed":
       return {

@@ -37,6 +37,7 @@ describe("视频兼容播放依赖契约", () => {
     expect(videoPlayerSource).toContain('"application/x-mpegURL"');
     expect(videoPlayerSource).toContain("processedSeconds");
     expect(videoPlayerSource).toContain("完整兼容文件生成后即可拖动进度");
+    expect(videoPlayerSource).toContain('status?.format === "webm-copy"');
   });
 
   it("对无 DRM 的 HLS 通过受管补丁解除 EME 初始化等待", () => {

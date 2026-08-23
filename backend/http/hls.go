@@ -59,7 +59,7 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 		if err := decoder.Decode(&request); err != nil {
 			return http.StatusBadRequest, fmt.Errorf("兼容播放参数无效: %w", err)
 		}
-		input, status, err := mediaHLSInputWithContext(r.Context(), d, d.user, request.Path, request.Format != "webm")
+		input, status, err := mediaHLSInputWithContext(r.Context(), d, d.user, request.Path, true)
 		if err != nil {
 			return status, err
 		}
@@ -67,6 +67,9 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 		reserve := service.Reserve
 		if request.Format == "webm" {
 			reserve = service.ReserveWebM
+			if hls.CanCopyWebMMedia(input.VideoCodec, input.AudioCodec) {
+				reserve = service.ReserveWebMCopy
+			}
 		} else if request.Format != "" && request.Format != "hls" {
 			return http.StatusBadRequest, fmt.Errorf("不支持的兼容播放格式")
 		} else if mediaHLSFormatForInput(input) == "copy" {
@@ -201,6 +204,8 @@ func enqueueMediaHLSTask(runtime *tasks.Runtime, d *data, owner *users.User, ser
 	format := "hls"
 	if hls.IsWebMProfile(job.Profile) {
 		format = "webm"
+	} else if hls.IsWebMCopyProfile(job.Profile) {
+		format = "webm-copy"
 	} else if hls.IsCopyProfile(job.Profile) {
 		format = "copy"
 	}
@@ -241,12 +246,14 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 	}
 	if hls.IsWebMProfile(status.Profile) {
 		response.Format = "webm"
+	} else if hls.IsWebMCopyProfile(status.Profile) {
+		response.Format = "webm-copy"
 	} else if hls.IsCopyProfile(status.Profile) {
 		response.Format = "copy"
 	}
 	if status.State == hls.StateStreamable || status.State == hls.StateCompleted {
 		base := strings.TrimSuffix(baseURL, "/") + "/api/media/hls/" + status.ID + "/"
-		if response.Format == "webm" {
+		if response.Format == "webm" || response.Format == "webm-copy" {
 			response.SourceURL = base + "index.webm"
 		} else {
 			response.PlaylistURL = base + "index.m3u8"

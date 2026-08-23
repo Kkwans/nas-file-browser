@@ -82,7 +82,7 @@ export interface HLSPlaybackStatus {
   lastAccessAt?: number;
   sizeBytes?: number;
   processedSeconds?: number;
-  format?: "hls" | "copy" | "webm";
+  format?: "hls" | "copy" | "webm" | "webm-copy";
   playlistUrl?: string;
   sourceUrl?: string;
 }

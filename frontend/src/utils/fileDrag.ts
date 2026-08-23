@@ -2,6 +2,13 @@ import { normalizeFileKey } from "./fileListing";
 
 export const FILE_DRAG_MIME = "application/x-nas-file-paths";
 
+// Some browser automation layers and older WebViews expose the internal MIME
+// type during dragover/drop but discard the value written during dragstart.
+// Keep a same-document fallback for that short drag lifecycle. Native drags
+// still use DataTransfer as the source of truth, and the value is cleared on
+// drop/dragend by the listing components.
+let sameDocumentFallback: string[] = [];
+
 /**
  * Returns true for files coming from the operating system, not an internal
  * drag created by this application. The listing uses this distinction to keep
@@ -26,8 +33,19 @@ export function writeFileDragPayload(
   if (!dataTransfer) return;
   const normalized = [...new Set(paths.map(normalizeFileKey))];
   if (normalized.length === 0) return;
-  dataTransfer.setData(FILE_DRAG_MIME, JSON.stringify(normalized));
-  dataTransfer.setData("text/plain", normalized.join("\n"));
+  const payload = JSON.stringify(normalized);
+  try {
+    dataTransfer.setData(FILE_DRAG_MIME, payload);
+    dataTransfer.setData("text/plain", normalized.join("\n"));
+  } catch {
+    // Safari/WebView can reject writes for a synthetic or protected transfer.
+  }
+  try {
+    sameDocumentFallback =
+      dataTransfer.getData(FILE_DRAG_MIME) === payload ? [] : normalized;
+  } catch {
+    sameDocumentFallback = normalized;
+  }
   dataTransfer.effectAllowed = "copyMove";
 }
 
@@ -36,11 +54,16 @@ export function readFileDragPayload(
   dataTransfer: DataTransfer | null
 ): string[] {
   if (!dataTransfer) return [];
-  const raw = dataTransfer.getData(FILE_DRAG_MIME);
-  if (!raw) return [];
+  let raw = "";
+  try {
+    raw = dataTransfer.getData(FILE_DRAG_MIME);
+  } catch {
+    raw = "";
+  }
+  if (!raw) return sameDocumentFallbackFor(dataTransfer);
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) return sameDocumentFallbackFor(dataTransfer);
     return [
       ...new Set(
         parsed
@@ -49,8 +72,18 @@ export function readFileDragPayload(
       ),
     ];
   } catch {
-    return [];
+    return sameDocumentFallbackFor(dataTransfer);
   }
+}
+
+function sameDocumentFallbackFor(dataTransfer: DataTransfer) {
+  const types = Array.from((dataTransfer.types ?? []) as ArrayLike<string>);
+  return types.includes(FILE_DRAG_MIME) ? [...sameDocumentFallback] : [];
+}
+
+/** Clears the short-lived fallback after a drop or dragend event. */
+export function clearFileDragPayload() {
+  sameDocumentFallback = [];
 }
 
 /** A folder cannot receive itself or one of its own descendants. */

@@ -242,6 +242,7 @@ import { resourceOpenRoute } from "@/utils/archivePath";
 import { appendResourceRouteSegment, encodeResourceRoute } from "@/utils/url";
 import {
   canDropFilePaths,
+  clearFileDragPayload,
   readFileDragPayload,
   writeFileDragPayload,
 } from "@/utils/fileDrag";
@@ -477,11 +478,13 @@ const dragLeave = (event: DragEvent) => {
 
 const dragEnd = () => {
   dropTargetActive.value = false;
+  clearFileDragPayload();
 };
 
 const drop = async (event: DragEvent) => {
   dropTargetActive.value = false;
   const draggedPaths = readFileDragPayload(event.dataTransfer);
+  clearFileDragPayload();
   if (!props.isDir || draggedPaths.length === 0) return;
   event.preventDefault();
   if (!canDropFilePaths(draggedPaths, props.path)) return;

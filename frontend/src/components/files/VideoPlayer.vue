@@ -850,7 +850,10 @@ function clearHLSResumeWait() {
   hlsResumeCleanup = null;
 }
 
-function waitForHLSResume(currentPlayer: Player, position: number) {
+function waitForHLSResume(
+  currentPlayer: NonNullable<typeof player.value>,
+  position: number
+) {
   if (!Number.isFinite(position) || position <= 0) return;
 
   const events = [
@@ -885,7 +888,7 @@ function waitForHLSResume(currentPlayer: Player, position: number) {
         position,
         seekableStart,
         seekableEnd,
-        currentPlayer.duration()
+        currentPlayer.duration() ?? Number.NaN
       )
     ) {
       return;

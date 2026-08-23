@@ -30,11 +30,11 @@ describe("视频兼容播放依赖契约", () => {
     expect(videoPlayerSource).not.toContain(".vhs");
     expect(videoPlayerSource).not.toContain("setupEme_");
     expect(videoPlayerSource).not.toContain("compatibilityRecoveryTimer");
-    expect(
-      videoPlayerSource.match(
-        /currentPlayer\.src\(\{ src: playlistURL, type: "application\/x-mpegURL" \}\)/g
-      )
-    ).toHaveLength(1);
+    expect(videoPlayerSource).toContain(
+      "const sourceURL = status.sourceUrl || status.playlistUrl"
+    );
+    expect(videoPlayerSource).toContain('type: isWebM ? "video/webm"');
+    expect(videoPlayerSource).toContain('"application/x-mpegURL"');
   });
 
   it("对无 DRM 的 HLS 通过受管补丁解除 EME 初始化等待", () => {

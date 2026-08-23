@@ -7,6 +7,7 @@
           class="tag-picker-manage"
           type="button"
           @click="openManager"
+          aria-label="管理标签"
           title="管理标签"
         >
           <AppIcon name="settings" :size="18" />
@@ -15,6 +16,7 @@
           class="tag-picker-close"
           type="button"
           @click="closePicker"
+          aria-label="关闭"
           title="关闭"
         >
           <AppIcon name="x" :size="18" />
@@ -31,6 +33,7 @@
         class="tag-picker-item"
         :class="{ active: isAssigned(tag.id) }"
         type="button"
+        :aria-pressed="isAssigned(tag.id)"
         @click="toggle(tag.id)"
       >
         <span class="tag-dot" :style="{ background: tag.color }"></span>

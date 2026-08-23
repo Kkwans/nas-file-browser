@@ -13,6 +13,7 @@
       <button
         class="icon-button close-button"
         type="button"
+        aria-label="关闭"
         title="关闭"
         @click="close"
       >
@@ -107,6 +108,7 @@
           <button
             class="icon-button"
             type="button"
+            aria-label="编辑标签"
             title="编辑标签"
             @click="startEdit(tag)"
           >
@@ -115,6 +117,7 @@
           <button
             class="icon-button danger-button"
             type="button"
+            aria-label="删除标签"
             title="删除标签"
             @click="confirmDelete(tag)"
           >
@@ -136,6 +139,7 @@
             <button
               class="icon-button save-button"
               type="button"
+              aria-label="保存"
               title="保存"
               @click="saveEdit(tag.id)"
             >
@@ -144,6 +148,7 @@
             <button
               class="icon-button"
               type="button"
+              aria-label="取消"
               title="取消"
               @click="cancelEdit"
             >

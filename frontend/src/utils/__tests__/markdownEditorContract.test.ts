@@ -59,6 +59,10 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toContain(
       "highlightMarkdownEditorPreviews(currentMount)"
     );
+    expect(editorSource).toContain(
+      "scheduleMarkdownPreviewHighlight(generation)"
+    );
+    expect(editorSource).toContain("}, 120);");
     expect(vditorStyles).toMatch(
       /\.vditor-ir__node--expand\s*>\s*\.vditor-ir__preview\s*\{[\s\S]*display:\s*none;/
     );

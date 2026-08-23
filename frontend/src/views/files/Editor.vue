@@ -307,6 +307,7 @@ let userEdited = false; // 用户是否实际修改过内容
 let initialContent = ""; // 文件初始内容，用于 close 时的内容比对兜底
 let markdownBuffer = "";
 let editorGeneration = 0;
+let markdownPreviewHighlightTimer: number | null = null;
 let markdownBaselineReady = false;
 let stopThemeObserver: (() => void) | null = null;
 
@@ -314,6 +315,18 @@ const markdownLineNumberKey = () =>
   getMarkdownLineNumberStorageKey(authStore.user?.id);
 const markdownOutlineKey = () =>
   getMarkdownOutlineStorageKey(authStore.user?.id);
+
+const scheduleMarkdownPreviewHighlight = (generation: number) => {
+  if (markdownPreviewHighlightTimer !== null) {
+    window.clearTimeout(markdownPreviewHighlightTimer);
+  }
+  markdownPreviewHighlightTimer = window.setTimeout(() => {
+    markdownPreviewHighlightTimer = null;
+    if (generation !== editorGeneration) return;
+    const currentMount = document.getElementById("vditor-mount");
+    if (currentMount) highlightMarkdownEditorPreviews(currentMount);
+  }, 120);
+};
 
 const restoreLineNumberPreference = () => {
   if (!isMarkdownFile) return;
@@ -389,6 +402,10 @@ onBeforeUnmount(() => {
   const mountEl = document.getElementById("vditor-mount");
   if (mountEl) {
     mountEl.removeEventListener("click", handleOutlineCapture, true);
+  }
+  if (markdownPreviewHighlightTimer !== null) {
+    window.clearTimeout(markdownPreviewHighlightTimer);
+    markdownPreviewHighlightTimer = null;
   }
   _outlineHandlerBound = false;
   teardownMarkdownImagePreviews();
@@ -688,10 +705,7 @@ const initVditorWithMode = async (
       setupMarkdownImagePreviews();
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
-      queueMicrotask(() => {
-        const currentMount = document.getElementById("vditor-mount");
-        if (currentMount) highlightMarkdownEditorPreviews(currentMount);
-      });
+      scheduleMarkdownPreviewHighlight(generation);
       if (currentMode.value === "preview") refreshMarkdownCodeBlocks();
     },
     input: () => {
@@ -702,10 +716,7 @@ const initVditorWithMode = async (
       try {
         markdownBuffer = getVditorMarkdown();
       } catch {}
-      window.setTimeout(() => {
-        const currentMount = document.getElementById("vditor-mount");
-        if (currentMount) highlightMarkdownEditorPreviews(currentMount);
-      }, 0);
+      scheduleMarkdownPreviewHighlight(generation);
     },
   });
 };

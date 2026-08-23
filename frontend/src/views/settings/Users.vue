@@ -27,7 +27,7 @@
                   name="circle-check"
                   :size="18"
                 />
-                <AppIcon v-else name="circle-x" :size="18" />
+                <AppIcon v-else name="circle-alert" :size="18" />
               </td>
               <td>{{ user.scope }}</td>
               <td class="small">

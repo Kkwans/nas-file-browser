@@ -45,5 +45,18 @@ describe("activity page UI contract", () => {
   it("用告警和停止语义区分失败与取消，避免状态列表堆叠巨大的叉号", () => {
     expect(tasksSource).toContain('failed: "circle-alert"');
     expect(tasksSource).toContain('canceled: "circle-stop"');
+    expect(tasksSource).toContain('app-icon name="circle-alert"');
+
+    const historySource = readFileSync(
+      resolve(process.cwd(), "src/views/History.vue"),
+      "utf8"
+    );
+    const mediaIconSource = readFileSync(
+      resolve(process.cwd(), "src/utils/mediaIconSemantics.ts"),
+      "utf8"
+    );
+    expect(historySource).toContain('icon: "circle-stop"');
+    expect(mediaIconSource).toContain('cancel: "circle-stop"');
+    expect(mediaIconSource).toContain('sentiment_dissatisfied: "frown"');
   });
 });

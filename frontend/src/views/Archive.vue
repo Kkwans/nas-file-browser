@@ -458,7 +458,7 @@ const taskIcon = computed<AppIconName>(() => {
     running: "loader",
     completed: "circle-check",
     failed: "circle-alert",
-    canceled: "circle-x",
+    canceled: "circle-stop",
     interrupted: "retry",
   };
   return currentTask.value ? icons[currentTask.value.status] : "hourglass";

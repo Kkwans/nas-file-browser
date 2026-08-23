@@ -94,7 +94,7 @@
         v-if="historyStore.error"
         class="activity-state activity-state--error"
       >
-        <app-icon name="circle-x" :size="24" />
+        <app-icon name="circle-alert" :size="24" />
         <div>
           <strong>无法读取操作历史</strong>
           <p>{{ historyStore.error }}</p>
@@ -206,7 +206,7 @@ const actions: Record<string, { label: string; icon: AppIconName }> = {
   "analysis.storage": { label: "分析存储空间", icon: "analysis-storage" },
   "archive.extract": { label: "解压归档", icon: "archive" },
   "media.hls": { label: "准备兼容播放", icon: "play" },
-  "task.cancel": { label: "取消任务", icon: "circle-x" },
+  "task.cancel": { label: "取消任务", icon: "circle-stop" },
   "task.retry": { label: "重试任务", icon: "retry" },
   "task.archive": { label: "归档任务", icon: "archive" },
   "task.unarchive": { label: "恢复归档任务", icon: "archive-restore" },

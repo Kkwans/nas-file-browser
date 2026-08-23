@@ -36,7 +36,7 @@
         </div>
 
         <div v-else-if="error" class="task-result-state is-error" role="alert">
-          <app-icon name="circle-x" :size="26" />
+          <app-icon name="circle-alert" :size="26" />
           <strong>无法读取任务结果</strong>
           <span>{{ error }}</span>
           <button type="button" @click="load">重新读取</button>

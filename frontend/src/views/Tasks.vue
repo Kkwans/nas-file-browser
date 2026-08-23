@@ -161,7 +161,7 @@
         v-if="tasksStore.error"
         class="activity-state activity-state--error"
       >
-        <app-icon name="circle-x" :size="24" />
+        <app-icon name="circle-alert" :size="24" />
         <div>
           <strong>无法读取任务</strong>
           <p>{{ tasksStore.error }}</p>
@@ -254,7 +254,7 @@
             </p>
             <template v-if="task.error">
               <p class="task-error">
-                <app-icon name="circle-x" :size="15" />
+                <app-icon name="circle-alert" :size="15" />
                 <span>{{ summarizeTaskError(task.error) }}</span>
               </p>
               <details class="task-error-details">

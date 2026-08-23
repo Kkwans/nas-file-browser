@@ -1577,7 +1577,10 @@
   }
 
   .activity-toolbar.task-status-tabs {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-bottom: 0;
+    overflow-x: visible;
   }
 
   .activity-toolbar button {

@@ -288,3 +288,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 验证：Backend `go test ./http -run TestRecentHTTP -count=1` 通过；Frontend 目标 ESLint、搜索与面包屑聚焦 Vitest `4/4` 通过；生产构建通过（保留既有 ReCaptcha、运行时 `custom.css` 和大 chunk 警告）。源码提交 `e7281c4c`、`667bd40d` 已推送，GitHub CI/Docs 均成功。
 - 发布：NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-search-accessibility-r16` 完成，arm64 镜像摘要 `sha256:72489c09e39a153854990417b743ae4164c1989b98c5e92e1a0167791cb87167`；Compose 提交 `6b746cf0` 已推送。该提交仅更新部署标签，未产生新的 GitHub workflow run；部署前已确认源代码提交 CI 成功。仅重建 `filebrowser`，容器 `healthy`，本机 `127.0.0.1:8888` 返回 `200`，r15 保留作回滚。
 - TX5pro Playwright：根入口桌面/移动均显示“NAS 根目录”，ARIA/title 同步且无横向溢出、运行时错误；搜索桌面快捷筛选和范围按钮均 `40px`，移动端均 `44px`，当前目录搜索产生结果，桌面/移动无横向溢出和运行时错误。报告运行号 `20260823T004548Z`。
+
+### 2026-08-23 预览响应身份缓存与 r17 验收
+
+- 复现：服务端预览缓存已经按路径、mtime、大小和规格区分，但图片/视频预览响应只有 `Cache-Control: private`；同一文件在预览页重复打开仍可能重新发起请求。前端预览 URL 原先只携带 mtime，文件内容大小变化时 URL 身份不完整。
+- 修复：`getPreviewURL` 将 `mtime-size` 作为 URL `key`；图片和视频预览统一返回 `private, max-age=86400`。不使用 `immutable`，避免服务端仍需处理文件变更时被长期固定；不改变真实缩略图、FFmpeg 队列或原图回退策略。
+- 验证：Frontend 预览缓存契约与生命周期聚焦 Vitest `4/4`、目标 ESLint 通过；Backend 图片/视频预览缓存头聚焦测试通过；`docker compose config --quiet`、Dockerfile.custom arm64 构建通过，镜像 `nas-file-browser:2026.8.23-phase10-preview-cache-r17` 摘要 `sha256:ce932793339f75e852554060928286fe7e805be6b772320b94b198a602d050fc`。
+- 交付：源码提交 `e0ddcff2 fix(media): 复用带身份的预览缓存`、部署提交 `d62ea5c6 chore(deploy): 发布预览缓存复用镜像 r17` 均已推送 `master`。NAS 主机本地仅重建 `filebrowser`；容器最终为 `healthy`，本机 HTTP `200`，r16 保留作回滚。GitHub 对这两个提交未返回新的 workflow run；源码提交此前的 CI/Docs 记录仍以对应提交为准。
+- TX5pro Playwright 只读验收（`20260823T010251Z`）：真实图片和视频预览均两次 `200`，响应头均为 `private, max-age=86400`；第二次 `fetch(..., force-cache)` 的 `transferSize=0`、约 `2ms`，图片 `221406` bytes、视频封面 `6144` bytes 均复用缓存；页面无运行时错误。该证据覆盖重复打开/重复请求体验，不等价于所有冷盘首次打开都已低于秒级。

@@ -511,7 +511,7 @@ const compatibilityCopy = computed(() => {
             ? status?.format === "webm-copy"
               ? "视频本身已是浏览器支持的 VP8/VP9/AV1 + Opus/Vorbis，NAS 只重新封装，不重新编码。"
               : "正在重新封装已有的 H.264/AAC 轨道，不重新编码视频；完成后即可拖动进度。"
-            : status?.format === "webm" || status?.format === "webm-copy"
+            : status?.format === "webm"
               ? "当前浏览器没有可用的 H.264 解码器，NAS 正生成 VP9/WebM 兼容文件；完整文件就绪后支持拖动进度。"
               : "FFmpeg 正以低资源配置转换视频。可以离开此页，真实任务状态会保留在任务中心。",
       };

@@ -305,3 +305,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 验证：新增契约测试先在旧实现上失败，修复后媒体无障碍聚焦 Vitest `2/2`、目标 ESLint `--max-warnings=0` 通过；源码提交 `c53bc4e8` 已推送，GitHub Continuous Integration `32611168055`、Docs `32611168105` 均成功。
 - 发布：NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-media-a11y-r18` 成功，arm64 镜像摘要 `sha256:acce3881d6b9d6a12c839b31a6f6a20674b5864f7060e3ffd278833c95961b18`；Compose 提交 `34e65401` 已推送，CI `32611507867`、Docs `32611507847` 均成功。仅重建 `filebrowser`，容器 `running/healthy`，本机 `127.0.0.1:8888` 返回 `200`，r17 保留作回滚。
 - TX5pro Playwright 实际验收（运行约 `20260823T015947Z`）：通过 SSH 仅连接 TX5pro 执行浏览器，直接打开当前 NAS 部署中的真实 JPEG；七个图片工具按钮均同时存在预期 `aria-label`/`title`，缺失标签为 `0`，页面运行时错误为 `0`。NAS 主机上的构建、Compose、部署和健康检查均在本机执行。
+
+### 2026-08-23 标签控件交互语义与 r19 验收
+
+- 复现：标签选择器的管理/关闭图标按钮仅有 `title`，标签项目的选中状态只有视觉 class；标签管理器的关闭、编辑、删除、保存和取消图标按钮也缺少辅助技术可访问名称。
+- 修复：`TagPicker.vue` 补齐管理/关闭 `aria-label`，标签项目增加同步的 `aria-pressed`；`TagManager.vue` 为五类图标操作补齐 `aria-label`。不改变标签数据、颜色、文件操作或已有界面布局。
+- 验证：新增契约测试先在旧实现上失败，修复后标签无障碍聚焦 Vitest `2/2`、目标 ESLint 通过；源码提交 `668cf68a` 已推送，GitHub Continuous Integration `32612106728`、Docs `32612106865` 均成功。
+- 发布：NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-tag-a11y-r19` 成功，arm64 镜像摘要 `sha256:1f56482a439f08471b4723a80a0571f34ce469bdfbd9aaaa808718c5ece9c1ad`；Compose 提交 `cbc9ec80` 已推送，CI `32612416302`、Docs `32612416313` 均成功。仅重建 `filebrowser`，容器 `running/healthy`，本机 `127.0.0.1:8888` 返回 `200`，r18 保留作回滚。
+- TX5pro Playwright 实际验收（运行约 `20260823T022239Z`）：通过 SSH 仅连接 TX5pro 执行浏览器，当前 NAS 根目录真实页面打开标签管理器，关闭/编辑/删除/保存/取消标签均存在，缺失为 `0`，运行时错误为 `0`；当前根目录布局没有可见文件标签快捷按钮，因此标签选择器标记为 skipped，未伪称已验证其运行时弹窗，但源码契约已覆盖其 `aria-label`/`aria-pressed`。

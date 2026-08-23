@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.23-phase10-icon-baseline-r26
+    image: nas-file-browser:2026.8.23-phase10-task-mobile-r27
     build:
       context: .
       dockerfile: Dockerfile.custom

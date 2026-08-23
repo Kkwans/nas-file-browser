@@ -126,6 +126,18 @@
           </button>
         </div>
         <p>{{ compatibilityCopy.description }}</p>
+        <p
+          v-if="
+            compatibilityStatus?.format === 'webm' &&
+            compatibilityStatus.processedSeconds
+          "
+          class="media-compatibility-card__progress"
+        >
+          已转换
+          {{
+            formatMediaTime(compatibilityStatus.processedSeconds)
+          }}；完整兼容文件生成后即可拖动进度。
+        </p>
         <small v-if="compatibilityNetworkError" role="alert">
           <AppIcon :name="mediaIcon('cloud_off')" :size="16" />
           {{ compatibilityNetworkError }}
@@ -483,16 +495,21 @@ const compatibilityCopy = computed(() => {
         icon: "hourglass_top",
         title: "已加入低并发队列",
         description:
-          "NAS 会优先响应文件浏览和缩略图；轮到此视频后再生成首个可播放分段。",
+          status?.format === "webm"
+            ? "NAS 会优先响应文件浏览和缩略图；轮到此视频后生成兼容视频文件。"
+            : "NAS 会优先响应文件浏览和缩略图；轮到此视频后再生成首个可播放分段。",
       };
     case "preparing":
       return {
         icon: "movie_edit",
-        title: "正在准备首个分段",
+        title:
+          status?.format === "webm" ? "正在生成兼容视频" : "正在准备首个分段",
         description:
           status?.format === "copy"
             ? "正在重新封装已有的 H.264/AAC 轨道，不重新编码视频；完成后即可拖动进度。"
-            : "FFmpeg 正以低资源配置转换视频。可以离开此页，真实任务状态会保留在任务中心。",
+            : status?.format === "webm"
+              ? "当前浏览器没有可用的 H.264 解码器，NAS 正生成 VP9/WebM 兼容文件；完整文件就绪后支持拖动进度。"
+              : "FFmpeg 正以低资源配置转换视频。可以离开此页，真实任务状态会保留在任务中心。",
       };
     case "streamable":
       return {
@@ -1512,6 +1529,11 @@ const languageImports: LanguageImports = {
   font-size: 13px;
   line-height: 1.55;
   overflow-wrap: anywhere;
+}
+
+.media-compatibility-card__body > .media-compatibility-card__progress {
+  color: #b9d7ff;
+  font-variant-numeric: tabular-nums;
 }
 
 .media-compatibility-card__body > small {

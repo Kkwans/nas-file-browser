@@ -35,19 +35,20 @@ type mediaHLSTaskArgs struct {
 }
 
 type mediaHLSResponse struct {
-	ID           string    `json:"id"`
-	TaskID       string    `json:"taskId,omitempty"`
-	Path         string    `json:"path"`
-	Identity     string    `json:"identity"`
-	Profile      string    `json:"profile"`
-	State        hls.State `json:"state"`
-	Error        string    `json:"error,omitempty"`
-	UpdatedAt    int64     `json:"updatedAt"`
-	LastAccessAt int64     `json:"lastAccessAt,omitempty"`
-	SizeBytes    int64     `json:"sizeBytes,omitempty"`
-	Format       string    `json:"format"`
-	PlaylistURL  string    `json:"playlistUrl,omitempty"`
-	SourceURL    string    `json:"sourceUrl,omitempty"`
+	ID               string    `json:"id"`
+	TaskID           string    `json:"taskId,omitempty"`
+	Path             string    `json:"path"`
+	Identity         string    `json:"identity"`
+	Profile          string    `json:"profile"`
+	State            hls.State `json:"state"`
+	Error            string    `json:"error,omitempty"`
+	UpdatedAt        int64     `json:"updatedAt"`
+	LastAccessAt     int64     `json:"lastAccessAt,omitempty"`
+	SizeBytes        int64     `json:"sizeBytes,omitempty"`
+	ProcessedSeconds float64   `json:"processedSeconds,omitempty"`
+	Format           string    `json:"format"`
+	PlaylistURL      string    `json:"playlistUrl,omitempty"`
+	SourceURL        string    `json:"sourceUrl,omitempty"`
 }
 
 func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFunc {
@@ -235,7 +236,8 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 		Identity: status.Identity, Profile: status.Profile, State: status.State,
 		Error: status.Error, UpdatedAt: status.UpdatedAt,
 		LastAccessAt: status.LastAccessAt, SizeBytes: status.SizeBytes,
-		Format: "hls",
+		ProcessedSeconds: status.ProcessedSeconds,
+		Format:           "hls",
 	}
 	if hls.IsWebMProfile(status.Profile) {
 		response.Format = "webm"

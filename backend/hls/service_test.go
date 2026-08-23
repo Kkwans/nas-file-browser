@@ -137,10 +137,23 @@ func TestFFmpegArgsExposeGrowingPlaylistAsSeekableEvent(t *testing.T) {
 func TestWebMArgsProduceBrowserSeekableCompatibilityFile(t *testing.T) {
 	args := webMArgs("/source.mkv", "/tmp/index.webm.tmp")
 	joined := strings.Join(args, "\x00")
-	for _, expected := range []string{"libvpx-vp9", "libopus", "-f\x00webm", "/tmp/index.webm.tmp"} {
+	for _, expected := range []string{"libvpx-vp9", "libopus", "-progress\x00pipe:1", "-f\x00webm", "/tmp/index.webm.tmp"} {
 		if !strings.Contains(joined, expected) {
 			t.Fatalf("WebM args missing %q: %q", expected, joined)
 		}
+	}
+}
+
+func TestParseFFmpegProgressLineReportsOnlyOutputTime(t *testing.T) {
+	seconds, ok := parseFFmpegProgressLine("out_time_ms=2500000")
+	if !ok || seconds != 2.5 {
+		t.Fatalf("parsed progress = %v, %v", seconds, ok)
+	}
+	if _, ok := parseFFmpegProgressLine("progress=end"); ok {
+		t.Fatal("non-duration progress line unexpectedly parsed")
+	}
+	if _, ok := parseFFmpegProgressLine("out_time_ms=-1"); ok {
+		t.Fatal("negative progress unexpectedly parsed")
 	}
 }
 

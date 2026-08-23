@@ -1,6 +1,7 @@
 package hls
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/sha256"
@@ -107,7 +108,11 @@ type Status struct {
 	UpdatedAt    int64  `json:"updatedAt"`
 	LastAccessAt int64  `json:"lastAccessAt,omitempty"`
 	SizeBytes    int64  `json:"sizeBytes,omitempty"`
-	UserID       uint   `json:"userId"`
+	// ProcessedSeconds is reported for compatibility transcodes that cannot
+	// expose a playable artifact until the complete file is ready.  It is
+	// deliberately a duration, not a guessed percentage.
+	ProcessedSeconds float64 `json:"processedSeconds,omitempty"`
+	UserID           uint    `json:"userId"`
 }
 
 type entry struct {
@@ -265,6 +270,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	}
 	current.State = StatePreparing
 	current.Error = ""
+	current.ProcessedSeconds = 0
 	current.UpdatedAt = time.Now().UnixMilli()
 	service.mu.Unlock()
 
@@ -366,13 +372,31 @@ func (service *Service) runWebM(ctx context.Context, job Job, directory string) 
 	command := exec.CommandContext(ctx, service.ffmpegPath, args...)
 	stderr := cappedBuffer{limit: maxFFmpegError}
 	command.Stderr = &stderr
+	stdout, err := command.StdoutPipe()
+	if err != nil {
+		message := fmt.Sprintf("FFmpeg WebM 进度通道创建失败: %v", err)
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
 	if err := command.Start(); err != nil {
 		message := fmt.Sprintf("FFmpeg WebM 转码启动失败: %v", err)
 		service.finish(job.ID, StateFailed, message, 0)
 		_ = os.RemoveAll(directory)
 		return errors.New(message)
 	}
+	progressDone := make(chan struct{})
+	go func() {
+		defer close(progressDone)
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			if seconds, ok := parseFFmpegProgressLine(scanner.Text()); ok {
+				service.setProgress(job.ID, seconds)
+			}
+		}
+	}()
 	runErr := command.Wait()
+	<-progressDone
 	if errors.Is(ctx.Err(), context.Canceled) {
 		service.finish(job.ID, StateCanceled, "任务已取消", 0)
 		_ = os.RemoveAll(directory)
@@ -451,6 +475,18 @@ func (service *Service) setState(id string, state State, message string) {
 	if current := service.entries[id]; current != nil {
 		current.State = state
 		current.Error = message
+		current.UpdatedAt = time.Now().UnixMilli()
+	}
+}
+
+func (service *Service) setProgress(id string, seconds float64) {
+	if seconds < 0 || seconds != seconds {
+		return
+	}
+	service.mu.Lock()
+	defer service.mu.Unlock()
+	if current := service.entries[id]; current != nil && seconds >= current.ProcessedSeconds {
+		current.ProcessedSeconds = seconds
 		current.UpdatedAt = time.Now().UnixMilli()
 	}
 }
@@ -617,8 +653,21 @@ func webMArgs(source, output string) []string {
 		"-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "1.5M",
 		"-row-mt", "1", "-threads", "1", "-pix_fmt", "yuv420p",
 		"-c:a", "libopus", "-b:a", "128k", "-ac", "2",
+		"-progress", "pipe:1",
 		"-f", "webm", output,
 	}
+}
+
+func parseFFmpegProgressLine(line string) (float64, bool) {
+	key, value, found := strings.Cut(strings.TrimSpace(line), "=")
+	if !found || key != "out_time_ms" {
+		return 0, false
+	}
+	microseconds, err := strconv.ParseInt(value, 10, 64)
+	if err != nil || microseconds < 0 {
+		return 0, false
+	}
+	return float64(microseconds) / 1_000_000, true
 }
 
 func readyToStream(directory string) bool {

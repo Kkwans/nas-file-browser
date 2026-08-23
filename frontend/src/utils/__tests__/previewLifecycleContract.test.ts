@@ -24,7 +24,7 @@ describe("媒体预览生命周期契约", () => {
   it("已知不兼容格式不会在用户选择前绑定原视频源", () => {
     expect(videoPlayerSource).toContain("isKnownIncompatibleVideo(props.path)");
     expect(videoPlayerSource).toContain("const initialSource");
-    expect(videoPlayerSource).toContain("? {}\n      : {");
+    expect(videoPlayerSource).toMatch(/\? \{\}\s+: \{/);
     expect(videoPlayerSource).not.toContain("<source />");
     expect(videoPlayerSource).toContain(
       "'media-video-stage--awaiting-source': !sourceAttached"

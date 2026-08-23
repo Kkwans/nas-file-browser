@@ -42,6 +42,7 @@ type FileCache interface {
 var errPreviewCoolingDown = errors.New("preview generation is cooling down after a recent failure")
 
 const previewFailureEntries = 256
+const previewCacheControl = "private, max-age=86400"
 
 type previewFlight struct {
 	ctx       context.Context
@@ -247,7 +248,10 @@ func handleImagePreview(
 		}
 	}
 
-	w.Header().Set("Cache-Control", "private")
+	// The URL carries the file's mtime and size identity, so a private browser
+	// cache can reuse the generated preview without serving stale content after
+	// an in-place file update.
+	w.Header().Set("Cache-Control", previewCacheControl)
 	if previewSize == PreviewSizeThumb {
 		w.Header().Set("Content-Type", "image/jpeg")
 	}

@@ -392,7 +392,7 @@ export function getPreviewURL(
 ) {
   const params = {
     inline: "true",
-    key: Date.parse(file.modified),
+    key: `${Date.parse(file.modified)}-${file.size}`,
     ...(options.warm ? { warm: options.warm } : {}),
   };
 

@@ -303,6 +303,44 @@ func TestLargeJPEGWarmHintBypassesExistingListingThumbnail(t *testing.T) {
 	if got := response.Body.Bytes(); !bytes.Equal(got, bigPreview.Bytes()) {
 		t.Fatalf("warm preview response did not reuse the cached big preview")
 	}
+	if got := response.Header().Get("Cache-Control"); got != previewCacheControl {
+		t.Fatalf("image preview cache control = %q, want %q", got, previewCacheControl)
+	}
+}
+
+func TestVideoPreviewAdvertisesPrivateIdentityCache(t *testing.T) {
+	file := &files.FileInfo{
+		Path:      "/videos/clip.mp4",
+		Name:      "clip.mp4",
+		Extension: ".mp4",
+		Size:      42,
+		ModTime:   time.Unix(20, 0),
+	}
+	cache := newMemoryPreviewCache()
+	var encoded bytes.Buffer
+	if err := png.Encode(&encoded, image.NewRGBA(image.Rect(0, 0, 1, 1))); err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.Store(context.Background(), previewCacheKey(file, PreviewSizeThumb), encoded.Bytes()); err != nil {
+		t.Fatal(err)
+	}
+
+	response := httptest.NewRecorder()
+	status, err := handleVideoPreview(
+		response,
+		httptest.NewRequest("GET", "/api/preview/thumb/videos/clip.mp4", nil),
+		cache,
+		newPreviewCoordinator(),
+		nil,
+		file,
+		PreviewSizeThumb,
+	)
+	if err != nil || status != 0 {
+		t.Fatalf("video preview status = %d, error = %v", status, err)
+	}
+	if got := response.Header().Get("Cache-Control"); got != previewCacheControl {
+		t.Fatalf("video preview cache control = %q, want %q", got, previewCacheControl)
+	}
 }
 
 func TestPreviewCoordinatorBoundsFailureCooldownEntries(t *testing.T) {

@@ -102,7 +102,9 @@ func handleVideoPreview(
 		}
 	}
 
-	w.Header().Set("Cache-Control", "private")
+	// The URL carries the file's mtime and size identity, matching image
+	// previews and making repeated poster opens reusable in the browser cache.
+	w.Header().Set("Cache-Control", previewCacheControl)
 	http.ServeContent(w, r, file.Name+".jpg", file.ModTime, bytes.NewReader(preview))
 	return 0, nil
 }

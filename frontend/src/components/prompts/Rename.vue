@@ -236,7 +236,6 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import url from "@/utils/url";
 import { files as api } from "@/api";
-import { removePrefix } from "@/api/utils";
 import {
   applyBatchRenameRule,
   validateBatchRenameDrafts,
@@ -403,7 +402,10 @@ async function executeSingleRename() {
     return;
   submitting.value = true;
   const oldLink = isListing.value ? selectedItems.value[0].url : req.value!.url;
-  const newLink = `${url.removeLastDir(oldLink)}/${encodeURIComponent(name.value)}`;
+  const newLink = url.appendResourceRouteSegment(
+    url.removeLastDir(oldLink),
+    name.value
+  );
   try {
     await api.move([{ from: oldLink, to: newLink }]);
     if (!isListing.value) {
@@ -411,7 +413,7 @@ async function executeSingleRename() {
       closeHovers();
       return;
     }
-    preselect.value = removePrefix(newLink);
+    preselect.value = url.canonicalResourcePath(newLink);
     reload.value = true;
     closeHovers();
   } catch (error) {

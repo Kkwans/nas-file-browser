@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { makeRawResource } from "../encodings";
-import { decodePath } from "../url";
+import {
+  appendResourceRouteSegment,
+  canonicalResourcePath,
+  decodePath,
+  encodeResourceRoute,
+} from "../url";
 
 describe("URL path helpers", () => {
   it("decodes encoded path segments exactly once for resource state", () => {
@@ -20,5 +25,24 @@ describe("URL path helpers", () => {
     expect(resource.path).toBe("/volume1/@appstore/config/blacklist.csv");
     expect(resource.url).toBe("/files/volume1/@appstore/config/blacklist.csv");
     expect(resource.name).toBe("blacklist.csv");
+  });
+
+  it("decodes UI routes once before resource mutations", () => {
+    expect(
+      canonicalResourcePath("/files/volume2/%E7%94%B5%E5%BD%B1/%252Fname")
+    ).toBe("/volume2/电影/%2Fname");
+    expect(canonicalResourcePath("/volume2/%2Fname")).toBe("/volume2/%2Fname");
+  });
+
+  it("re-encodes Chinese and percent-prefixed names exactly once", () => {
+    expect(encodeResourceRoute("/volume2/电影/%2Fname")).toBe(
+      "/files/volume2/%E7%94%B5%E5%BD%B1/%252Fname"
+    );
+    expect(
+      appendResourceRouteSegment(
+        "/files/volume2/%E7%94%B5%E5%BD%B1/",
+        "新 名称"
+      )
+    ).toBe("/files/volume2/%E7%94%B5%E5%BD%B1/%E6%96%B0%20%E5%90%8D%E7%A7%B0");
   });
 });

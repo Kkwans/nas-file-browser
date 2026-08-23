@@ -65,7 +65,7 @@ import type { MoveCopyItem, ConflictResult } from "@/types/file";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { removePrefix } from "@/api/utils";
+import { appendResourceRouteSegment, canonicalResourcePath } from "@/utils/url";
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();
 const router = useRouter();
@@ -89,7 +89,7 @@ const copy = async (event: Event) => {
   for (const item of selectedItems.value) {
     items.push({
       from: item.url,
-      to: dest.value + encodeURIComponent(item.name),
+      to: appendResourceRouteSegment(dest.value!, item.name),
       name: item.name,
       size: item.size,
       modified: item.modified,
@@ -106,7 +106,7 @@ const copy = async (event: Event) => {
       .copy(items, overwrite, rename)
       .then(() => {
         buttons.success("copy");
-        preselect.value = removePrefix(items[0].to);
+        preselect.value = canonicalResourcePath(items[0].to);
 
         if (route.path === dest.value) {
           reload.value = true;

@@ -273,8 +273,9 @@ async function moveCopy(
   const promises: Promise<Response>[] = [];
 
   for (const item of items) {
-    const from = item.from;
-    const to = encodeURIComponent(removePrefix(item.to ?? ""));
+    const from = urlUtils.encodeResourceRoute(item.from);
+    const destinationPath = urlUtils.canonicalResourcePath(item.to ?? "");
+    const to = encodeURIComponent(destinationPath);
     const finalOverwrite =
       item.overwrite == undefined ? overwrite : item.overwrite;
     const finalRename = item.rename == undefined ? rename : item.rename;
@@ -290,11 +291,11 @@ async function moveCopy(
     const tagsStore = useTagsStore();
     outcomes.forEach((outcome, index) => {
       if (outcome.status !== "fulfilled") return;
-      const source = removePrefix(items[index].from);
+      const source = urlUtils.canonicalResourcePath(items[index].from);
       const encodedDestination = outcome.value.headers.get(
         "X-Resource-Destination"
       );
-      let destination = removePrefix(items[index].to ?? "");
+      let destination = urlUtils.canonicalResourcePath(items[index].to ?? "");
       if (encodedDestination) {
         try {
           destination = decodeURIComponent(encodedDestination);

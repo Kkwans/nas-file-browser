@@ -97,6 +97,7 @@ import { getFileTypeLabel } from "@/utils/fileListing";
 import { getResourceIconName } from "@/utils/fileIcons";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
+import url from "@/utils/url";
 import type { ConflictResult, MoveCopyItem } from "@/types/file";
 import * as upload from "@/utils/upload";
 import FileList from "./FileList.vue";
@@ -161,7 +162,7 @@ async function transfer() {
   if (!destination.value || props.mode === "info") return;
   const item: MoveCopyItem = {
     from: props.result.url,
-    to: `${destination.value}${encodeURIComponent(props.result.name)}`,
+    to: url.appendResourceRouteSegment(destination.value, props.result.name),
     name: props.result.name,
     size: props.result.size ?? undefined,
     modified: props.result.modified ?? undefined,

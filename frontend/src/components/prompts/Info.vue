@@ -178,7 +178,6 @@ import { useLayoutStore } from "@/stores/layout";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { files as api } from "@/api";
-import { removePrefix } from "@/api/utils";
 import url from "@/utils/url";
 import { summarizeDirectory } from "@/utils/directoryStats";
 import { getFileTypeLabel } from "@/utils/fileListing";
@@ -368,15 +367,17 @@ const renameFromInfo = async () => {
   }
 
   const oldLink = selectedResource.value.url;
-  const newLink =
-    url.removeLastDir(oldLink) + "/" + encodeURIComponent(nextName);
+  const newLink = url.appendResourceRouteSegment(
+    url.removeLastDir(oldLink),
+    nextName
+  );
   renaming.value = true;
   try {
     await api.move([{ from: oldLink, to: newLink }]);
     if (!isListing.value) {
       await router.push({ path: newLink });
     } else {
-      preselect.value = removePrefix(newLink);
+      preselect.value = url.canonicalResourcePath(newLink);
       reload.value = true;
     }
     closeHovers();

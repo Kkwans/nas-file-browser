@@ -42,6 +42,14 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain("再次尝试原视频");
   });
 
+  it("浏览器可能原生支持的 MP4 不再先等待后端编码探测", () => {
+    expect(videoPlayerSource).not.toContain("getMediaInformation");
+    expect(videoPlayerSource).not.toContain("正在检测视频格式");
+    expect(videoPlayerSource).toContain(
+      "const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));"
+    );
+  });
+
   it("大图生成期间先显示真实缩略图占位", () => {
     const previewSource = readFileSync(
       fileURLToPath(new URL("../../views/files/Preview.vue", import.meta.url)),

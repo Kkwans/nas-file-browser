@@ -29,6 +29,13 @@ img {
   max-width: 100%;
 }
 
+/* 本地图标统一脱离文字基线，避免按钮和菜单中的 SVG 产生光学上移/下沉。 */
+.app-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  vertical-align: middle;
+}
+
 audio,
 video {
   width: 100%;

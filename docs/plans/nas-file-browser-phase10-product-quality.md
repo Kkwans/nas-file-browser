@@ -297,3 +297,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 交付：源码提交 `e0ddcff2 fix(media): 复用带身份的预览缓存`、部署提交 `d62ea5c6 chore(deploy): 发布预览缓存复用镜像 r17` 均已推送 `master`。源码 CI `32609140762`、源码 Docs `32609140735`、部署 CI `32609297656` 均成功；随后文档提交 `06eb9ad6` 的 CI `32609420619` 与 Docs `32609420587` 也成功。NAS 主机本地仅重建 `filebrowser`；容器最终为 `healthy`，本机 HTTP `200`，r16 保留作回滚。
 - TX5pro Playwright 只读验收（`20260823T010251Z`）：真实图片和视频预览均两次 `200`，响应头均为 `private, max-age=86400`；第二次 `fetch(..., force-cache)` 的 `transferSize=0`、约 `2ms`，图片 `221406` bytes、视频封面 `6144` bytes 均复用缓存；页面无运行时错误。该证据覆盖重复打开/重复请求体验，不等价于所有冷盘首次打开都已低于秒级。
 - 同一部署的全站发布回归 `29` 步骤无失败、溢出、残留加载或小触摸目标；移动端触控回归运行号 `20260823T011252Z`，`files/sidebar/search/tasks/settings/analysis/preview` 均无运行时问题和外部请求。以上是回归证据，不代表新增 UI 代码。
+
+### 2026-08-23 媒体预览按钮无障碍标签与 r18 验收
+
+- 复现：图片预览工具栏的放大、缩小、适应屏幕、原始大小、旋转和切换缩放按钮只有 `title`，EPUB 字号按钮也没有 `aria-label`；鼠标提示不能替代键盘/辅助技术可访问名称。
+- 修复：`ExtendedImage.vue` 的七个图标按钮补齐中文 `aria-label` 并显式声明 `type="button"`；`Preview.vue` 的 EPUB 缩小/放大字号按钮补齐 `aria-label` 和 `type="button"`。复用现有 `AppIcon`，未改变图标、尺寸、媒体交互或移动端单击/双击/长按契约。
+- 验证：新增契约测试先在旧实现上失败，修复后媒体无障碍聚焦 Vitest `2/2`、目标 ESLint `--max-warnings=0` 通过；源码提交 `c53bc4e8` 已推送，GitHub Continuous Integration `32611168055`、Docs `32611168105` 均成功。
+- 发布：NAS 主机本地构建 `nas-file-browser:2026.8.23-phase10-media-a11y-r18` 成功，arm64 镜像摘要 `sha256:acce3881d6b9d6a12c839b31a6f6a20674b5864f7060e3ffd278833c95961b18`；Compose 提交 `34e65401` 已推送，CI `32611507867`、Docs `32611507847` 均成功。仅重建 `filebrowser`，容器 `running/healthy`，本机 `127.0.0.1:8888` 返回 `200`，r17 保留作回滚。
+- TX5pro Playwright 实际验收（运行约 `20260823T015947Z`）：通过 SSH 仅连接 TX5pro 执行浏览器，直接打开当前 NAS 部署中的真实 JPEG；七个图片工具按钮均同时存在预期 `aria-label`/`title`，缺失标签为 `0`，页面运行时错误为 `0`。NAS 主机上的构建、Compose、部署和健康检查均在本机执行。

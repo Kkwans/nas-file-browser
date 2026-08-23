@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.23-phase10-activity-refresh-r36
+    image: nas-file-browser:2026.8.23-phase10-sidebar-icons-r37
     build:
       context: .
       dockerfile: Dockerfile.custom

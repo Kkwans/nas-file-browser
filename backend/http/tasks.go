@@ -82,9 +82,10 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 			return nil, status, err
 		}
 		reserve := hlsServices[0].Reserve
-		if args.Format == "webm" {
+		switch args.Format {
+		case "webm":
 			reserve = hlsServices[0].ReserveWebM
-		} else if args.Format == "copy" {
+		case "copy":
 			reserve = hlsServices[0].ReserveCopy
 		}
 		_, created, reserveErr := reserve(input, func(job hls.Job) (string, error) {

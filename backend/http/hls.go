@@ -149,10 +149,6 @@ func mediaHLSAssetHandler(service *hls.Service) handleFunc {
 	})
 }
 
-func mediaHLSInput(d *data, owner *users.User, value string) (hls.Input, int, error) {
-	return mediaHLSInputWithContext(context.Background(), d, owner, value, true)
-}
-
 func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, value string, probeCodecs bool) (hls.Input, int, error) {
 	if owner == nil || !owner.Perm.Download {
 		return hls.Input{}, http.StatusForbidden, fmt.Errorf("没有兼容播放该视频的权限")

@@ -582,7 +582,7 @@
                     :aria-label="`删除分组 ${group.name}`"
                     @click.stop.prevent="deleteGroup(group.id)"
                   >
-                    <AppIcon name="x" :size="18" />
+                    <AppIcon name="trash" :size="16" :stroke-width="1.9" />
                   </button>
                 </template>
               </SidebarGroupHeader>

@@ -1068,3 +1068,14 @@ nav.sidebar .favorite-remove:focus-visible {
   border-color: color-mix(in srgb, var(--icon-red, #dc2626) 18%, transparent);
   opacity: 1;
 }
+
+nav.sidebar .favorite-group-header .section-action-btn {
+  color: var(--textTertiary, #94a3b8);
+}
+
+nav.sidebar .favorite-group-header .section-action-btn:hover,
+nav.sidebar .favorite-group-header .section-action-btn:focus-visible {
+  color: var(--icon-red, #dc2626);
+  background: color-mix(in srgb, var(--icon-red, #dc2626) 9%, transparent);
+  border-color: color-mix(in srgb, var(--icon-red, #dc2626) 18%, transparent);
+}

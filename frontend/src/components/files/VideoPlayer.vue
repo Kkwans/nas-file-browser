@@ -93,7 +93,7 @@
       <span>{{ compatibilityBadgeLabel }}</span>
       <AppIcon
         class="media-compatibility-badge__arrow"
-        :name="mediaIcon('expand_less')"
+        :name="mediaIcon('expand_more')"
         :size="17"
       />
     </button>

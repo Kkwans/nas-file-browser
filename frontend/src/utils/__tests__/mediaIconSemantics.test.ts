@@ -7,6 +7,7 @@ describe("media icon semantics", () => {
   it("maps preview controls to the shared local icon vocabulary", () => {
     expect(mediaIcon("chevron_left")).toBe("chevron-left");
     expect(mediaIcon("chevron_right")).toBe("chevron-right");
+    expect(mediaIcon("expand_more")).toBe("chevron-down");
     expect(mediaIcon("open_in_new")).toBe("external-link");
     expect(mediaIcon("file_download")).toBe("download");
     expect(mediaIcon("unknown-icon")).toBe("info");

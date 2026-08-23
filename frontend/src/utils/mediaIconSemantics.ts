@@ -14,6 +14,7 @@ const MEDIA_ICONS: Record<string, AppIconName> = {
   download: "download",
   error: "circle-alert",
   error_outline: "circle-alert",
+  expand_more: "chevron-down",
   expand_less: "chevron-up",
   feedback: "circle-alert",
   file_download: "download",

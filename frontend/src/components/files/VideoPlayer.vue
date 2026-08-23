@@ -218,6 +218,7 @@ import {
   getVideoSourceType,
   isKnownIncompatibleVideo,
   isPlaybackPositionSeekable,
+  supportsH264CompatibilityPlayback,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
@@ -536,7 +537,7 @@ const compatibilityCopy = computed(() => {
             : "此格式可能需要兼容播放",
         description: directPlaybackProbeBlocked.value
           ? "编码探测超时，已停止自动读取原视频。你可以手动尝试原视频，或启动兼容播放。"
-          : "只在你点击后，NAS 才会按需转换为 H.264/AAC 分段；不会自动转码其他视频。",
+          : "只在你点击后，NAS 才会按需生成浏览器可播放版本；不会自动转码其他视频。",
       };
   }
 });
@@ -557,7 +558,10 @@ const canCancelCompatibility = computed(() =>
 const canActivateCompatibility = computed(
   () =>
     !hlsActive.value &&
-    Boolean(compatibilityStatus.value?.playlistUrl) &&
+    Boolean(
+      compatibilityStatus.value?.playlistUrl ||
+      compatibilityStatus.value?.sourceUrl
+    ) &&
     (compatibilityStatus.value?.state === "streamable" ||
       compatibilityStatus.value?.state === "completed")
 );
@@ -707,13 +711,19 @@ function retryVideoSource() {
   if (!currentPlayer || !sourceAttached.value) return;
   const source = hlsActive.value ? activeHLSURL : props.source;
   if (!source) return;
+  const compatibilityIsWebM =
+    hlsActive.value &&
+    (compatibilityStatus.value?.format === "webm" ||
+      Boolean(compatibilityStatus.value?.sourceUrl));
   beginVideoLoading();
   currentPlayer.pause();
   currentPlayer.src({
     src: source,
-    type: hlsActive.value
-      ? "application/x-mpegURL"
-      : getVideoSourceType(props.source, props.path),
+    type: compatibilityIsWebM
+      ? "video/webm"
+      : hlsActive.value
+        ? "application/x-mpegURL"
+        : getVideoSourceType(props.source, props.path),
   });
   currentPlayer.load();
 }
@@ -726,7 +736,10 @@ async function startCompatibilityPlayback() {
   const request = ++compatibilityRequest;
   stopCompatibilityPolling();
   try {
-    const status = await mediaApi.startHLSPlayback(props.path);
+    const status = await mediaApi.startHLSPlayback(
+      props.path,
+      supportsH264CompatibilityPlayback() ? "hls" : "webm"
+    );
     if (disposed || request !== compatibilityRequest) return;
     applyCompatibilityStatus(status, request);
   } catch (error) {
@@ -761,10 +774,10 @@ function applyCompatibilityStatus(status: HLSPlaybackStatus, request: number) {
   compatibilityStatus.value = status;
   compatibilityNetworkError.value = "";
   if (
-    status.playlistUrl &&
+    (status.playlistUrl || status.sourceUrl) &&
     (status.state === "streamable" || status.state === "completed")
   ) {
-    activateHLSPlayback(status.playlistUrl);
+    activateCompatibilityPlayback(status);
   }
   if (["queued", "preparing", "streamable"].includes(status.state)) {
     scheduleCompatibilityPoll(status.id, request);
@@ -803,9 +816,11 @@ function stopCompatibilityPolling() {
   }
 }
 
-function activateHLSPlayback(playlistURL: string) {
+function activateCompatibilityPlayback(status: HLSPlaybackStatus) {
   const currentPlayer = player.value;
-  if (!currentPlayer || activeHLSURL === playlistURL) return;
+  const sourceURL = status.sourceUrl || status.playlistUrl;
+  if (!currentPlayer || !sourceURL || activeHLSURL === sourceURL) return;
+  const isWebM = status.format === "webm" || Boolean(status.sourceUrl);
   const resumeAt = Math.max(
     currentPlayer.currentTime() || 0,
     restoredPosition.value,
@@ -814,20 +829,25 @@ function activateHLSPlayback(playlistURL: string) {
   const volume = currentPlayer.volume();
   const muted = currentPlayer.muted();
   const playbackRate = currentPlayer.playbackRate();
-  activeHLSURL = playlistURL;
+  activeHLSURL = sourceURL;
   hlsActive.value = true;
   sourceAttached.value = true;
   beginVideoLoading();
   pendingResume = null;
   clearHLSResumeWait();
 
-  // Reset a failed direct-play tech before selecting the generated HLS source.
+  // Keep the existing HTML5 tech alive while selecting the generated source.
+  // Calling player.reset() here can asynchronously recreate the tech; a
+  // subsequent src() then gets queued behind the reset and no media request is
+  // issued in Chromium.
   currentPlayer.pause();
-  currentPlayer.reset();
   currentPlayer.volume(volume);
   currentPlayer.muted(muted);
   currentPlayer.playbackRate(playbackRate);
-  currentPlayer.src({ src: playlistURL, type: "application/x-mpegURL" });
+  currentPlayer.src({
+    src: sourceURL,
+    type: isWebM ? "video/webm" : "application/x-mpegURL",
+  });
   currentPlayer.one("loadedmetadata", () => {
     props.subtitles.forEach((subtitle, index) => {
       currentPlayer.addRemoteTextTrack(
@@ -842,6 +862,7 @@ function activateHLSPlayback(playlistURL: string) {
     });
   });
   waitForHLSResume(currentPlayer, resumeAt);
+  currentPlayer.load();
   playVideo(currentPlayer);
 }
 
@@ -938,9 +959,9 @@ function tryDirectPlayback() {
 }
 
 function useCompatibilityPlayback() {
-  const playlistURL = compatibilityStatus.value?.playlistUrl;
-  if (!playlistURL) return;
-  activateHLSPlayback(playlistURL);
+  const status = compatibilityStatus.value;
+  if (!status || (!status.playlistUrl && !status.sourceUrl)) return;
+  activateCompatibilityPlayback(status);
 }
 
 function resetCompatibility(path: string) {

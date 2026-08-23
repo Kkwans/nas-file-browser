@@ -134,6 +134,16 @@ func TestFFmpegArgsExposeGrowingPlaylistAsSeekableEvent(t *testing.T) {
 	}
 }
 
+func TestWebMArgsProduceBrowserSeekableCompatibilityFile(t *testing.T) {
+	args := webMArgs("/source.mkv", "/tmp/index.webm.tmp")
+	joined := strings.Join(args, "\x00")
+	for _, expected := range []string{"libvpx-vp9", "libopus", "-f\x00webm", "/tmp/index.webm.tmp"} {
+		if !strings.Contains(joined, expected) {
+			t.Fatalf("WebM args missing %q: %q", expected, joined)
+		}
+	}
+}
+
 func newFakeService(t *testing.T, workers int, maxBytes int64, delay time.Duration) *Service {
 	t.Helper()
 	directory := t.TempDir()

@@ -95,6 +95,30 @@ export function getVideoSourceType(source: string, fallbackPath = "") {
 }
 
 /**
+ * The bundled Chromium on some NAS installations deliberately omits the
+ * proprietary H.264 decoder.  Video.js then rejects HLS before requesting
+ * the playlist, so compatibility playback must use the browser's WebM path.
+ */
+export function supportsH264CompatibilityPlayback() {
+  if (typeof window === "undefined") return true;
+  const mediaSource = window.MediaSource;
+  if (mediaSource && typeof mediaSource.isTypeSupported === "function") {
+    if (
+      mediaSource.isTypeSupported(
+        'video/mp4; codecs="avc1.4d401f,mp4a.40.2"'
+      ) ||
+      mediaSource.isTypeSupported('video/mp4; codecs="avc1.4d400d,mp4a.40.2"')
+    ) {
+      return true;
+    }
+  }
+  const video = document.createElement("video");
+  return /maybe|probably/i.test(
+    video.canPlayType("application/vnd.apple.mpegurl")
+  );
+}
+
+/**
  * A growing HLS playlist can expose metadata before it exposes the segment
  * containing a saved position.  Do not call currentTime() until the browser
  * reports that the target is inside its seekable range; otherwise Video.js

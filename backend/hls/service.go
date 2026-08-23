@@ -21,10 +21,11 @@ import (
 )
 
 const (
-	DefaultMaxBytes = int64(10 << 30)
-	DefaultProfile  = "h264-main-720p-aac-hls4-v1"
-	playingLease    = 2 * time.Minute
-	maxFFmpegError  = 8 * 1024
+	DefaultMaxBytes    = int64(10 << 30)
+	DefaultProfile     = "h264-main-720p-aac-hls4-v1"
+	DefaultWebMProfile = "vp9-720p-opus-webm-v1"
+	playingLease       = 2 * time.Minute
+	maxFFmpegError     = 8 * 1024
 )
 
 var (
@@ -32,7 +33,7 @@ var (
 	ErrForbidden = errors.New("HLS cache access denied")
 	ErrState     = errors.New("HLS cache state does not allow this operation")
 	cacheIDRE    = regexp.MustCompile(`^[a-f0-9]{64}$`)
-	assetNameRE  = regexp.MustCompile(`^(index\.m3u8|segment-[0-9]{6}\.ts)$`)
+	assetNameRE  = regexp.MustCompile(`^(index\.m3u8|index\.webm|segment-[0-9]{6}\.ts)$`)
 )
 
 type State string
@@ -68,6 +69,13 @@ type Job struct {
 	Identity   string
 	SourcePath string
 	Profile    string
+}
+
+// IsWebMProfile reports whether a compatibility artifact is a complete WebM
+// file rather than an HLS playlist.  The profile is part of the cache key so
+// browsers with and without H.264 MSE support do not share incompatible data.
+func IsWebMProfile(profile string) bool {
+	return profile == DefaultWebMProfile
 }
 
 type Status struct {
@@ -154,6 +162,18 @@ func New(config Config) (*Service, error) {
 }
 
 func (service *Service) Reserve(input Input, start StartFunc) (Status, bool, error) {
+	return service.reserve(input, service.profile, start)
+}
+
+// ReserveWebM creates a compatibility artifact that can be played by
+// Chromium builds without proprietary H.264/MSE decoders.  It intentionally
+// waits until the complete WebM file is available before exposing it, which
+// gives the browser a normal seekable resource instead of a broken HLS source.
+func (service *Service) ReserveWebM(input Input, start StartFunc) (Status, bool, error) {
+	return service.reserve(input, DefaultWebMProfile, start)
+}
+
+func (service *Service) reserve(input Input, profile string, start StartFunc) (Status, bool, error) {
 	if input.UserID == 0 || input.Path == "" || input.Identity == "" || input.SourcePath == "" {
 		return Status{}, false, fmt.Errorf("invalid HLS source")
 	}
@@ -161,9 +181,9 @@ func (service *Service) Reserve(input Input, start StartFunc) (Status, bool, err
 		return Status{}, false, fmt.Errorf("HLS task starter is required")
 	}
 	job := Job{
-		ID:     cacheKey(input.UserID, input.Path, input.Identity, service.profile),
+		ID:     cacheKey(input.UserID, input.Path, input.Identity, profile),
 		UserID: input.UserID, Path: input.Path, Identity: input.Identity,
-		SourcePath: input.SourcePath, Profile: service.profile,
+		SourcePath: input.SourcePath, Profile: profile,
 	}
 
 	service.mu.Lock()
@@ -232,6 +252,9 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		service.finish(job.ID, StateFailed, err.Error(), 0)
 		return fmt.Errorf("create HLS work directory: %w", err)
+	}
+	if IsWebMProfile(job.Profile) {
+		return service.runWebM(ctx, job, directory)
 	}
 
 	playlist := filepath.Join(directory, "index.m3u8")
@@ -309,6 +332,63 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 	return nil
 }
 
+func (service *Service) runWebM(ctx context.Context, job Job, directory string) error {
+	temporary := filepath.Join(directory, "index.webm.tmp")
+	output := filepath.Join(directory, "index.webm")
+	args := webMArgs(job.SourcePath, temporary)
+	command := exec.CommandContext(ctx, service.ffmpegPath, args...)
+	stderr := cappedBuffer{limit: maxFFmpegError}
+	command.Stderr = &stderr
+	if err := command.Start(); err != nil {
+		message := fmt.Sprintf("FFmpeg WebM 转码启动失败: %v", err)
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
+	runErr := command.Wait()
+	if errors.Is(ctx.Err(), context.Canceled) {
+		service.finish(job.ID, StateCanceled, "任务已取消", 0)
+		_ = os.RemoveAll(directory)
+		return ctx.Err()
+	}
+	if runErr != nil {
+		message := strings.TrimSpace(stderr.String())
+		if message == "" {
+			message = runErr.Error()
+		}
+		message = "FFmpeg WebM 转码失败: " + message
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
+	if err := os.Rename(temporary, output); err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		_ = os.RemoveAll(directory)
+		return fmt.Errorf("publish WebM compatibility artifact: %w", err)
+	}
+	if !readyForProfile(directory, job.Profile) {
+		message := "FFmpeg WebM 转码未生成可播放文件"
+		service.finish(job.ID, StateFailed, message, 0)
+		_ = os.RemoveAll(directory)
+		return errors.New(message)
+	}
+
+	size, err := directorySize(directory)
+	if err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		return fmt.Errorf("measure WebM cache: %w", err)
+	}
+	service.finish(job.ID, StateCompleted, "", size)
+	if err := service.persist(job.ID); err != nil {
+		service.finish(job.ID, StateFailed, err.Error(), 0)
+		return fmt.Errorf("persist WebM cache metadata: %w", err)
+	}
+	service.mu.Lock()
+	service.cleanupLocked(job.ID)
+	service.mu.Unlock()
+	return nil
+}
+
 func (service *Service) Asset(id string, userID uint, name string) (string, State, error) {
 	if !assetNameRE.MatchString(name) {
 		return "", "", ErrNotFound
@@ -323,6 +403,9 @@ func (service *Service) Asset(id string, userID uint, name string) (string, Stat
 		return "", "", ErrForbidden
 	}
 	if current.State != StateStreamable && current.State != StateCompleted {
+		return "", current.State, ErrState
+	}
+	if name == "index.webm" && current.State != StateCompleted {
 		return "", current.State, ErrState
 	}
 	path := filepath.Join(service.entryDir(id), name)
@@ -412,7 +495,7 @@ func (service *Service) loadCompleted() error {
 			payload, readErr := os.ReadFile(filepath.Join(directory, "meta.json"))
 			var status Status
 			if readErr != nil || json.Unmarshal(payload, &status) != nil ||
-				status.ID != child.Name() || status.State != StateCompleted || !readyToStream(directory) {
+				status.ID != child.Name() || status.State != StateCompleted || !readyForProfile(directory, status.Profile) {
 				_ = os.RemoveAll(directory)
 				continue
 			}
@@ -488,6 +571,18 @@ func ffmpegArgs(source, segmentPattern, playlist string) []string {
 	}
 }
 
+func webMArgs(source, output string) []string {
+	return []string{
+		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
+		"-map", "0:v:0", "-map", "0:a:0?",
+		"-vf", "scale=w='trunc(min(1280,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2",
+		"-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "1.5M",
+		"-row-mt", "1", "-threads", "1", "-pix_fmt", "yuv420p",
+		"-c:a", "libopus", "-b:a", "128k", "-ac", "2",
+		"-f", "webm", output,
+	}
+}
+
 func readyToStream(directory string) bool {
 	playlist, err := os.Stat(filepath.Join(directory, "index.m3u8"))
 	if err != nil || playlist.Size() == 0 {
@@ -495,6 +590,14 @@ func readyToStream(directory string) bool {
 	}
 	segment, err := os.Stat(filepath.Join(directory, "segment-000000.ts"))
 	return err == nil && segment.Size() > 0
+}
+
+func readyForProfile(directory, profile string) bool {
+	if IsWebMProfile(profile) {
+		info, err := os.Stat(filepath.Join(directory, "index.webm"))
+		return err == nil && !info.IsDir() && info.Size() > 0
+	}
+	return readyToStream(directory)
 }
 
 func directorySize(directory string) (int64, error) {

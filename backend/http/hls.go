@@ -23,13 +23,15 @@ import (
 )
 
 type mediaHLSStartRequest struct {
-	Path string `json:"path"`
+	Path   string `json:"path"`
+	Format string `json:"format,omitempty"`
 }
 
 type mediaHLSTaskArgs struct {
 	Path     string `json:"path"`
 	CacheID  string `json:"cacheId"`
 	Identity string `json:"identity"`
+	Format   string `json:"format,omitempty"`
 }
 
 type mediaHLSResponse struct {
@@ -43,7 +45,9 @@ type mediaHLSResponse struct {
 	UpdatedAt    int64     `json:"updatedAt"`
 	LastAccessAt int64     `json:"lastAccessAt,omitempty"`
 	SizeBytes    int64     `json:"sizeBytes,omitempty"`
+	Format       string    `json:"format"`
 	PlaylistURL  string    `json:"playlistUrl,omitempty"`
+	SourceURL    string    `json:"sourceUrl,omitempty"`
 }
 
 func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFunc {
@@ -59,7 +63,13 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 			return status, err
 		}
 		var task *tasks.Task
-		cached, created, err := service.Reserve(input, func(job hls.Job) (string, error) {
+		reserve := service.Reserve
+		if request.Format == "webm" {
+			reserve = service.ReserveWebM
+		} else if request.Format != "" && request.Format != "hls" {
+			return http.StatusBadRequest, fmt.Errorf("不支持的兼容播放格式")
+		}
+		cached, created, err := reserve(input, func(job hls.Job) (string, error) {
 			task, err = enqueueMediaHLSTask(runtime, d, d.user, service, job, "")
 			if err != nil {
 				return "", err
@@ -125,6 +135,9 @@ func mediaHLSAssetHandler(service *hls.Service) handleFunc {
 		if strings.HasSuffix(name, ".m3u8") {
 			w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
 			w.Header().Set("Cache-Control", "private, no-cache")
+		} else if strings.HasSuffix(name, ".webm") {
+			w.Header().Set("Content-Type", "video/webm")
+			w.Header().Set("Cache-Control", "private, no-cache")
 		} else {
 			w.Header().Set("Content-Type", "video/mp2t")
 			w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
@@ -162,7 +175,11 @@ func mediaHLSInput(d *data, owner *users.User, value string) (hls.Input, int, er
 }
 
 func enqueueMediaHLSTask(runtime *tasks.Runtime, d *data, owner *users.User, service *hls.Service, job hls.Job, retryOf string) (*tasks.Task, error) {
-	args, err := json.Marshal(mediaHLSTaskArgs{Path: job.Path, CacheID: job.ID, Identity: job.Identity})
+	format := "hls"
+	if hls.IsWebMProfile(job.Profile) {
+		format = "webm"
+	}
+	args, err := json.Marshal(mediaHLSTaskArgs{Path: job.Path, CacheID: job.ID, Identity: job.Identity, Format: format})
 	if err != nil {
 		return nil, err
 	}
@@ -194,9 +211,18 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 		Identity: status.Identity, Profile: status.Profile, State: status.State,
 		Error: status.Error, UpdatedAt: status.UpdatedAt,
 		LastAccessAt: status.LastAccessAt, SizeBytes: status.SizeBytes,
+		Format: "hls",
+	}
+	if hls.IsWebMProfile(status.Profile) {
+		response.Format = "webm"
 	}
 	if status.State == hls.StateStreamable || status.State == hls.StateCompleted {
-		response.PlaylistURL = strings.TrimSuffix(baseURL, "/") + "/api/media/hls/" + status.ID + "/index.m3u8"
+		base := strings.TrimSuffix(baseURL, "/") + "/api/media/hls/" + status.ID + "/"
+		if response.Format == "webm" {
+			response.SourceURL = base + "index.webm"
+		} else {
+			response.PlaylistURL = base + "index.m3u8"
+		}
 	}
 	return response
 }

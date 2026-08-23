@@ -59,6 +59,16 @@ describe("媒体预览生命周期契约", () => {
     );
   });
 
+  it("兼容源切换不异步重置 Video.js tech", () => {
+    const activation = videoPlayerSource.slice(
+      videoPlayerSource.indexOf("function activateCompatibilityPlayback"),
+      videoPlayerSource.indexOf("function clearHLSResumeWait")
+    );
+    expect(activation).not.toContain("currentPlayer.reset()");
+    expect(activation).toContain("currentPlayer.load()");
+    expect(activation).toContain('type: isWebM ? "video/webm"');
+  });
+
   it("大图生成期间先显示真实缩略图占位", () => {
     const previewSource = readFileSync(
       fileURLToPath(new URL("../../views/files/Preview.vue", import.meta.url)),

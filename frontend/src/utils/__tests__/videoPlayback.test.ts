@@ -6,6 +6,7 @@ import {
   isKnownIncompatibleVideo,
   isPlaybackPositionSeekable,
   shouldPreflightVideoCodec,
+  supportsH264CompatibilityPlayback,
 } from "../videoPlayback";
 
 describe("视频播放源策略", () => {
@@ -66,5 +67,35 @@ describe("视频播放源策略", () => {
         Number.POSITIVE_INFINITY
       )
     ).toBe(false);
+  });
+
+  it("在没有 H.264 MSE 的 Chromium 上选择 WebM 兼容路径", () => {
+    const scope = globalThis as typeof globalThis & {
+      window?: { MediaSource?: unknown };
+      document?: { createElement: () => { canPlayType: () => string } };
+    };
+    const originalWindow = scope.window;
+    const originalDocument = scope.document;
+    Object.defineProperty(scope, "window", {
+      configurable: true,
+      value: { isTypeSupported: () => false },
+    });
+    Object.defineProperty(scope.window, "MediaSource", {
+      configurable: true,
+      value: { isTypeSupported: () => false },
+    });
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: { createElement: () => ({ canPlayType: () => "" }) },
+    });
+    expect(supportsH264CompatibilityPlayback()).toBe(false);
+    Object.defineProperty(scope, "window", {
+      configurable: true,
+      value: originalWindow,
+    });
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: originalDocument,
+    });
   });
 });

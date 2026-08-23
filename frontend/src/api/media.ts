@@ -81,7 +81,9 @@ export interface HLSPlaybackStatus {
   updatedAt: number;
   lastAccessAt?: number;
   sizeBytes?: number;
+  format?: "hls" | "webm";
   playlistUrl?: string;
+  sourceUrl?: string;
 }
 
 export function getPlayback(path: string): Promise<PlaybackPosition> {
@@ -201,12 +203,13 @@ export function getMediaInformation(
 }
 
 export async function startHLSPlayback(
-  path: string
+  path: string,
+  format: "hls" | "webm" = "hls"
 ): Promise<HLSPlaybackStatus> {
   const response = await fetchURL("/api/media/hls", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path }),
+    body: JSON.stringify(format === "hls" ? { path } : { path, format }),
   });
   return response.json() as Promise<HLSPlaybackStatus>;
 }

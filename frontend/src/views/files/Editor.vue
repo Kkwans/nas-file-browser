@@ -43,24 +43,28 @@
           <action
             app-icon="sparkles"
             label="即时渲染（类似 Typora）"
-            @action="switchMode('wysiwyg')"
-            :class="{ active: currentMode === 'wysiwyg' }"
+            class="editor-mode-action"
+            @action="switchMode('ir')"
+            :class="{ active: currentMode === 'ir' }"
           />
           <action
             app-icon="columns"
             label="分屏对照"
+            class="editor-mode-action"
             @action="switchMode('sv')"
             :class="{ active: currentMode === 'sv' }"
           />
           <action
             app-icon="eye"
             label="预览模式"
+            class="editor-mode-action"
             @action="switchMode('preview')"
             :class="{ active: currentMode === 'preview' }"
           />
           <action
             :app-icon="showLineNumbers ? 'list-ordered' : 'list'"
             :label="showLineNumbers ? '关闭行号' : '显示行号'"
+            class="editor-mode-action"
             @action="toggleLineNumbers()"
             :class="{ active: showLineNumbers }"
             :disabled="currentMode === 'sv'"
@@ -68,6 +72,7 @@
           <action
             app-icon="list-tree"
             :label="showOutline ? '关闭大纲' : '显示大纲'"
+            class="editor-mode-action"
             @action="toggleOutline()"
             :class="{ active: showOutline }"
           />
@@ -288,10 +293,10 @@ watch(codeLanguageQuery, () => {
   codeLanguageActiveIndex.value = 0;
 });
 
-type MarkdownMode = "wysiwyg" | "sv" | "preview";
+type MarkdownMode = "ir" | "sv" | "preview";
 type MarkdownEditMode = Exclude<MarkdownMode, "preview">;
 
-const currentMode = ref<MarkdownMode>("wysiwyg");
+const currentMode = ref<MarkdownMode>("ir");
 const showOutline = ref(true);
 let vditorInstance: VditorInstance | null = null;
 let aceEditor: Ace.Editor | null = null;
@@ -566,7 +571,7 @@ const initVditor = async (content: string) => {
   markdownBaselineReady = false;
   mdInitialized = false;
   userEdited = false;
-  await initVditorWithMode(content, "wysiwyg");
+  await initVditorWithMode(content, "ir");
 };
 
 const loadVditorResources = async () => {
@@ -656,6 +661,7 @@ const initVditorWithMode = async (
       markdown: {
         sanitize: true,
         toc: true,
+        codeBlockPreview: true,
       },
     },
     upload: {
@@ -927,14 +933,14 @@ const openCodeLanguagePicker = () => {
 };
 
 const getActiveMarkdownCodeBlockIndex = (): number | null => {
-  if (currentMode.value !== "wysiwyg") return null;
+  if (currentMode.value !== "ir") return null;
   const selection = window.getSelection();
   const anchor = selection?.anchorNode;
   const anchorElement =
     anchor?.nodeType === Node.ELEMENT_NODE
       ? (anchor as Element)
       : anchor?.parentElement;
-  const editor = document.querySelector("#vditor-mount .vditor-wysiwyg");
+  const editor = document.querySelector("#vditor-mount .vditor-ir");
   const activeBlock = anchorElement?.closest('[data-type="code-block"]');
   if (!editor || !activeBlock || !editor.contains(activeBlock)) return null;
 
@@ -1374,6 +1380,24 @@ const finishClose = () => {
   padding-inline: 0;
   justify-content: flex-start;
   transform: none;
+}
+
+/* 编辑器模式操作使用固定网格对齐，避免图标受字体行高和默认 padding 影响。 */
+#editor-container :deep(.editor-mode-action) {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  box-sizing: border-box;
+  place-items: center;
+  line-height: 0;
+}
+
+#editor-container :deep(.editor-mode-action > .app-icon) {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  line-height: 1;
 }
 
 /* Vditor 容器全屏 */

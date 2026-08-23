@@ -35,12 +35,20 @@ const quickPreviewSource = readFileSync(
 );
 
 describe("Markdown 编辑器交互契约", () => {
-  it("默认使用类似 Typora 的所见即所得模式", () => {
+  it("默认使用单一渲染面板的即时渲染模式", () => {
     expect(editorSource).toContain(
+      'const currentMode = ref<MarkdownMode>("ir")'
+    );
+    expect(editorSource).toContain('initVditorWithMode(content, "ir")');
+    expect(editorSource).toContain("switchMode('ir')");
+    expect(editorSource).toContain("codeBlockPreview: true");
+    expect(editorSource).toContain('class="editor-mode-action"');
+    expect(editorSource).toMatch(
+      /#editor-container :deep\(\.editor-mode-action\)\s*\{[\s\S]*line-height:\s*0;/
+    );
+    expect(editorSource).not.toContain(
       'const currentMode = ref<MarkdownMode>("wysiwyg")'
     );
-    expect(editorSource).toContain('initVditorWithMode(content, "wysiwyg")');
-    expect(editorSource).toContain("switchMode('wysiwyg')");
   });
 
   it("代码语言选择器使用顶部下拉面板而不是居中模态框", () => {

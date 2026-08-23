@@ -55,6 +55,7 @@ describe("Markdown 编辑器交互契约", () => {
     expect(resourceLoaderSource).toContain(
       "export function highlightMarkdownEditorPreviews("
     );
+    expect(resourceLoaderSource).toContain(".vditor-ir__preview pre > code");
     expect(editorSource).toContain(
       "highlightMarkdownEditorPreviews(currentMount)"
     );

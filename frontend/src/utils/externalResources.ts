@@ -93,7 +93,8 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
 
   container
     .querySelectorAll<HTMLElement>(
-      ".vditor-ir__preview > code, .vditor-wysiwyg__preview > code"
+      ".vditor-ir__preview pre > code, .vditor-ir__preview > code, " +
+        ".vditor-wysiwyg__preview pre > code, .vditor-wysiwyg__preview > code"
     )
     .forEach((codeEl) => {
       // `textContent` remains the original source even after highlight.js

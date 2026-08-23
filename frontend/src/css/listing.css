@@ -142,6 +142,27 @@
   );
 }
 
+#listing .item.is-drop-target {
+  background: color-mix(
+    in srgb,
+    var(--listing-accent) 10%,
+    var(--listing-surface)
+  );
+  box-shadow: inset 0 0 0 2px
+    color-mix(in srgb, var(--listing-accent) 62%, transparent);
+}
+
+#listing .details-table-row.is-drop-target > td {
+  background: color-mix(
+    in srgb,
+    var(--listing-accent) 10%,
+    var(--listing-surface)
+  );
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, var(--listing-accent) 62%, transparent),
+    inset 0 -2px 0 color-mix(in srgb, var(--listing-accent) 62%, transparent);
+}
+
 #listing .item.is-touch-pressed {
   background: color-mix(
     in srgb,

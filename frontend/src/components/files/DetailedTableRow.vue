@@ -4,12 +4,21 @@
     class="item details-table-row"
     role="row"
     tabindex="0"
+    :draggable="isDraggable"
+    @dragstart="dragStart"
+    @dragover="dragOver"
+    @dragleave="dragLeave"
+    @drop="drop"
+    @dragend="dragEnd"
     :data-dir="isDir"
     :data-type="type"
     :data-url="url"
     :data-index="index"
     :data-key="itemKey"
-    :class="{ 'is-touch-pressed': touchPressed }"
+    :class="{
+      'is-touch-pressed': touchPressed,
+      'is-drop-target': dropTargetActive,
+    }"
     :aria-label="name"
     :aria-selected="isSelected"
     @click="itemClick"
@@ -144,10 +153,17 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useTagsStore } from "@/stores/tags";
 import { files as api } from "@/api";
+import * as upload from "@/utils/upload";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { getFileTypeLabel, normalizeFileKey } from "@/utils/fileListing";
+import { appendResourceRouteSegment, encodeResourceRoute } from "@/utils/url";
+import {
+  canDropFilePaths,
+  readFileDragPayload,
+  writeFileDragPayload,
+} from "@/utils/fileDrag";
 import { resourceOpenRoute } from "@/utils/archivePath";
 import {
   getMobileTouchAction,
@@ -155,7 +171,11 @@ import {
   shouldOpenDetailedRowFromClick,
   shouldSuppressTouchContextMenu,
 } from "@/utils/layoutContract";
-import type { RiskLevel } from "@/types/file";
+import type {
+  ConflictingResource,
+  MoveCopyItem,
+  RiskLevel,
+} from "@/types/file";
 import type { FileActionMenuAction } from "@/utils/fileActionMenu";
 
 const $showError = inject<IToastError>("$showError")!;
@@ -195,6 +215,10 @@ const startPosition = ref<{ x: number; y: number } | null>(null);
 let longPressTimer: number | null = null;
 let mobileTapTimer: number | null = null;
 let touchResetTimer: number | null = null;
+const isDraggable = computed(
+  () => !props.readOnly && authStore.user?.perm.rename
+);
+const dropTargetActive = ref(false);
 onMounted(() => props.registerItem?.(itemKey.value, itemElement.value));
 onBeforeUnmount(() => {
   props.registerItem?.(itemKey.value, null);
@@ -231,6 +255,111 @@ const humanTime = computed(() =>
 const fileTypeLabel = computed(() =>
   getFileTypeLabel({ isDir: props.isDir, extension: props.extension })
 );
+
+const dragStart = (event: DragEvent) => {
+  if (fileStore.selectedCount === 0) {
+    fileStore.addSelected(itemKey.value);
+  } else if (!isSelected.value) {
+    fileStore.selectOnly(itemKey.value);
+  }
+  writeFileDragPayload(
+    event.dataTransfer,
+    fileStore.selectedItems.map((item) => item.path)
+  );
+};
+
+const dragOver = (event: DragEvent) => {
+  const paths = readFileDragPayload(event.dataTransfer);
+  if (
+    !props.isDir ||
+    paths.length === 0 ||
+    !canDropFilePaths(paths, props.path)
+  ) {
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+    dropTargetActive.value = false;
+    return;
+  }
+  event.preventDefault();
+  if (event.dataTransfer)
+    event.dataTransfer.dropEffect =
+      event.ctrlKey || event.metaKey ? "copy" : "move";
+  dropTargetActive.value = true;
+};
+
+const dragLeave = (event: DragEvent) => {
+  const relatedTarget = event.relatedTarget as Node | null;
+  if (!relatedTarget || !itemElement.value?.contains(relatedTarget)) {
+    dropTargetActive.value = false;
+  }
+};
+
+const dragEnd = () => {
+  dropTargetActive.value = false;
+};
+
+const drop = async (event: DragEvent) => {
+  dropTargetActive.value = false;
+  const draggedPaths = readFileDragPayload(event.dataTransfer);
+  if (!props.isDir || draggedPaths.length === 0) return;
+  event.preventDefault();
+  if (!canDropFilePaths(draggedPaths, props.path)) return;
+
+  const items: MoveCopyItem[] = fileStore.selectedItems
+    .filter((item) => draggedPaths.includes(normalizeFileKey(item.path)))
+    .map((item) => ({
+      from: encodeResourceRoute(item.path),
+      to: appendResourceRouteSegment(
+        encodeResourceRoute(props.path),
+        item.name
+      ),
+      name: item.name,
+      size: item.size,
+      modified: item.modified,
+      isDir: item.isDir,
+      overwrite: false,
+      rename: false,
+    }));
+  if (items.length === 0) return;
+
+  const destinationRoute = encodeResourceRoute(props.path);
+  const action = event.ctrlKey || event.metaKey ? api.copy : api.move;
+  try {
+    const conflict = await upload.checkConflict(items, destinationRoute);
+    if (conflict.length > 0) {
+      layoutStore.showHover({
+        prompt: "resolve-conflict",
+        props: { conflict },
+        confirm: (confirmEvent: Event, result: ConflictingResource[]) => {
+          confirmEvent.preventDefault();
+          layoutStore.closeHovers();
+          for (let i = result.length - 1; i >= 0; i--) {
+            const decision = result[i];
+            if (decision.checked.length === 2)
+              items[decision.index].rename = true;
+            else if (
+              decision.checked.length === 1 &&
+              decision.checked[0] === "origin"
+            ) {
+              items[decision.index].overwrite = true;
+            } else {
+              items.splice(decision.index, 1);
+            }
+          }
+          if (items.length > 0) {
+            void action(items, false, false)
+              .then(() => (fileStore.reload = true))
+              .catch($showError);
+          }
+        },
+      });
+      return;
+    }
+    await action(items, false, false);
+    fileStore.reload = true;
+  } catch (error) {
+    $showError(error instanceof Error ? error : new Error(String(error)));
+  }
+};
 
 const toggleFav = () => {
   if (props.path) favoritesStore.toggleFavorite(props.path, props.name);

@@ -7,7 +7,9 @@
     :draggable="isDraggable"
     @dragstart="dragStart"
     @dragover="dragOver"
+    @dragleave="dragLeave"
     @drop="drop"
+    @dragend="dragEnd"
     @click="itemClick"
     @keydown.enter.stop.prevent="open"
     @keydown.space.stop.prevent="itemClick"
@@ -23,7 +25,10 @@
     :data-url="url"
     :data-index="index"
     :data-key="itemKey"
-    :class="{ 'is-touch-pressed': touchPressed }"
+    :class="{
+      'is-touch-pressed': touchPressed,
+      'is-drop-target': dropTargetActive,
+    }"
     :aria-label="name"
     :aria-selected="isSelected"
     :data-ext="getExtension(name).toLowerCase()"
@@ -234,6 +239,12 @@ import {
 } from "@/utils/layoutContract";
 import { getFileTypeLabel, normalizeFileKey } from "@/utils/fileListing";
 import { resourceOpenRoute } from "@/utils/archivePath";
+import { appendResourceRouteSegment, encodeResourceRoute } from "@/utils/url";
+import {
+  canDropFilePaths,
+  readFileDragPayload,
+  writeFileDragPayload,
+} from "@/utils/fileDrag";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
@@ -307,20 +318,9 @@ const isSelected = computed(() => fileStore.selected.includes(itemKey.value));
 const isDraggable = computed(
   () => !props.readOnly && authStore.user?.perm.rename
 );
+const dropTargetActive = ref(false);
 
 onMounted(() => props.registerItem?.(itemKey.value, itemElement.value));
-
-const canDrop = computed(() => {
-  if (!props.isDir || props.readOnly) return false;
-
-  for (const item of fileStore.selectedItems) {
-    if (item.url === props.url) {
-      return false;
-    }
-  }
-
-  return true;
-});
 
 const normalizedRiskLevel = computed(() => props.riskLevel ?? "low");
 const inlineRiskLevel = computed<Exclude<RiskLevel, "low"> | null>(() => {
@@ -437,52 +437,66 @@ const fileTypeLabel = computed(() =>
   getFileTypeLabel({ isDir: props.isDir, extension: props.extension })
 );
 
-const dragStart = () => {
+const dragStart = (event: DragEvent) => {
   if (fileStore.selectedCount === 0) {
     fileStore.addSelected(itemKey.value);
-    return;
-  }
-
-  if (!isSelected.value) {
+  } else if (!isSelected.value) {
     fileStore.selectOnly(itemKey.value);
   }
+
+  writeFileDragPayload(
+    event.dataTransfer,
+    fileStore.selectedItems.map((item) => item.path)
+  );
 };
 
-const dragOver = (event: Event) => {
-  if (!canDrop.value) return;
-
+const dragOver = (event: DragEvent) => {
+  const paths = readFileDragPayload(event.dataTransfer);
+  if (
+    !props.isDir ||
+    paths.length === 0 ||
+    !canDropFilePaths(paths, props.path)
+  ) {
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+    dropTargetActive.value = false;
+    return;
+  }
   event.preventDefault();
-  let el = event.target as HTMLElement | null;
-  if (el !== null) {
-    for (let i = 0; i < 5; i++) {
-      if (!el?.classList.contains("item")) {
-        el = el?.parentElement ?? null;
-      }
-    }
+  if (event.dataTransfer)
+    event.dataTransfer.dropEffect =
+      event.ctrlKey || event.metaKey ? "copy" : "move";
+  dropTargetActive.value = true;
+};
 
-    if (el !== null) el.style.opacity = "1";
+const dragLeave = (event: DragEvent) => {
+  const relatedTarget = event.relatedTarget as Node | null;
+  if (!relatedTarget || !itemElement.value?.contains(relatedTarget)) {
+    dropTargetActive.value = false;
   }
 };
 
-const drop = async (event: Event) => {
-  if (!canDrop.value) return;
+const dragEnd = () => {
+  dropTargetActive.value = false;
+};
+
+const drop = async (event: DragEvent) => {
+  dropTargetActive.value = false;
+  const draggedPaths = readFileDragPayload(event.dataTransfer);
+  if (!props.isDir || draggedPaths.length === 0) return;
   event.preventDefault();
-
-  if (fileStore.selectedCount === 0) return;
-
-  let el = event.target as HTMLElement | null;
-  for (let i = 0; i < 5; i++) {
-    if (el !== null && !el.classList.contains("item")) {
-      el = el.parentElement;
-    }
-  }
+  if (!canDropFilePaths(draggedPaths, props.path)) return;
 
   const items: MoveCopyItem[] = [];
 
-  for (const selectedItem of fileStore.selectedItems) {
+  for (const selectedItem of fileStore.selectedItems.filter((item) =>
+    draggedPaths.includes(normalizeFileKey(item.path))
+  )) {
     items.push({
-      from: selectedItem.url,
-      to: props.url + encodeURIComponent(selectedItem.name),
+      from: encodeResourceRoute(selectedItem.path),
+      to: appendResourceRouteSegment(
+        encodeResourceRoute(props.path),
+        selectedItem.name
+      ),
       name: selectedItem.name,
       size: selectedItem.size,
       modified: selectedItem.modified,
@@ -492,17 +506,11 @@ const drop = async (event: Event) => {
     });
   }
 
-  // Get url from data attribute
-  if (el === null) {
-    return;
-  }
-  const path = el.dataset.url || props.url;
+  if (items.length === 0) return;
+  const destinationRoute = encodeResourceRoute(props.path);
 
   const action = (overwrite?: boolean, rename?: boolean) => {
-    const action =
-      (event as KeyboardEvent).ctrlKey || (event as KeyboardEvent).metaKey
-        ? api.copy
-        : api.move;
+    const action = event.ctrlKey || event.metaKey ? api.copy : api.move;
     action(items, overwrite, rename)
       .then(() => {
         fileStore.reload = true;
@@ -510,7 +518,7 @@ const drop = async (event: Event) => {
       .catch($showError);
   };
 
-  const conflict = await upload.checkConflict(items, path);
+  const conflict = await upload.checkConflict(items, destinationRoute);
 
   if (conflict.length > 0) {
     layoutStore.showHover({

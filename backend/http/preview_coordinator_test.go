@@ -16,6 +16,7 @@ import (
 
 	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/Kkwans/nas-file-browser/backend/img"
+	"github.com/spf13/afero"
 )
 
 func TestPreviewCoordinatorMergesConcurrentWork(t *testing.T) {
@@ -142,7 +143,7 @@ func TestPreviewCoordinatorKeepsWarmupWorkAfterLastWaiterLeaves(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
-		_, err := coordinator.Do(ctx, "thumb-key:warm=big", func(workCtx context.Context) ([]byte, error) {
+		_, err := coordinator.DoKeepAlive(ctx, "thumb-key", func(workCtx context.Context) ([]byte, error) {
 			close(workStarted)
 			select {
 			case <-workCtx.Done():
@@ -256,6 +257,97 @@ func TestLargeJPEGThumbnailWarmHintStoresBigAndThumbFromOneSourceDecode(t *testi
 	}
 	if got, ok, _ := cache.Load(context.Background(), previewCacheKey(file, PreviewSizeThumb)); !ok || string(got) != "thumb-preview" {
 		t.Fatalf("thumb cache = %q, exists=%t", got, ok)
+	}
+}
+
+func TestLargeJPEGWarmHintSharesInFlightBigPreviewWithRegularRequest(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	if err := afero.WriteFile(fs, "/photos/large.jpg", []byte("fixture"), 0o600); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+	file := &files.FileInfo{
+		Fs:        fs,
+		Path:      "/photos/large.jpg",
+		Name:      "large.jpg",
+		Extension: ".jpg",
+		Size:      ffmpegImagePreviewMinBytes,
+		ModTime:   time.Unix(10, 0),
+	}
+	cache := newMemoryPreviewCache()
+	coordinator := newPreviewCoordinator()
+	service := &blockingPreviewImageService{
+		bigStarted: make(chan struct{}),
+		releaseBig: make(chan struct{}),
+	}
+
+	warmResponse := httptest.NewRecorder()
+	warmDone := make(chan error, 1)
+	go func() {
+		_, err := handleImagePreview(
+			warmResponse,
+			httptest.NewRequest("GET", "/api/preview/thumb/photos/large.jpg?warm=big", nil),
+			service,
+			nil,
+			cache,
+			coordinator,
+			file,
+			PreviewSizeThumb,
+			true,
+			true,
+		)
+		warmDone <- err
+	}()
+
+	select {
+	case <-service.bigStarted:
+	case <-time.After(time.Second):
+		t.Fatal("warm request did not start the large preview")
+	}
+
+	regularResponse := httptest.NewRecorder()
+	regularDone := make(chan error, 1)
+	go func() {
+		_, err := handleImagePreview(
+			regularResponse,
+			httptest.NewRequest("GET", "/api/preview/big/photos/large.jpg", nil),
+			service,
+			nil,
+			cache,
+			coordinator,
+			file,
+			PreviewSizeBig,
+			true,
+			true,
+		)
+		regularDone <- err
+	}()
+
+	deadline := time.Now().Add(time.Second)
+	for {
+		coordinator.Lock()
+		flight := coordinator.flights[previewCacheKey(file, PreviewSizeBig)]
+		waiters := 0
+		if flight != nil {
+			waiters = flight.waiters
+		}
+		coordinator.Unlock()
+		if waiters == 2 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("large preview waiters = %d, want 2", waiters)
+		}
+		time.Sleep(time.Millisecond)
+	}
+	close(service.releaseBig)
+	if err := <-warmDone; err != nil {
+		t.Fatalf("warm request error: %v", err)
+	}
+	if err := <-regularDone; err != nil {
+		t.Fatalf("regular request error: %v", err)
+	}
+	if got := service.bigCalls(); got != 1 {
+		t.Fatalf("large preview resize calls = %d, want 1", got)
 	}
 }
 
@@ -404,6 +496,38 @@ type fakeImagePreviewGenerator struct {
 	bigCalls int
 }
 
+type blockingPreviewImageService struct {
+	mu         sync.Mutex
+	bigCount   int
+	bigStarted chan struct{}
+	releaseBig chan struct{}
+	startOnce  sync.Once
+}
+
+func (s *blockingPreviewImageService) FormatFromExtension(string) (img.Format, error) {
+	return img.FormatJpeg, nil
+}
+
+func (s *blockingPreviewImageService) Resize(_ context.Context, _ io.Reader, width, _ int, out io.Writer, _ ...img.Option) error {
+	if width == 1080 {
+		s.mu.Lock()
+		s.bigCount++
+		s.mu.Unlock()
+		s.startOnce.Do(func() { close(s.bigStarted) })
+		<-s.releaseBig
+		_, err := out.Write([]byte("big-preview"))
+		return err
+	}
+	_, err := out.Write([]byte("thumb-preview"))
+	return err
+}
+
+func (s *blockingPreviewImageService) bigCalls() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.bigCount
+}
+
 func (g *fakeImagePreviewGenerator) create(context.Context, *files.FileInfo, PreviewSize) ([]byte, error) {
 	g.bigCalls++
 	return append([]byte(nil), g.big...), nil
@@ -421,6 +545,7 @@ func (fakeImgService) Resize(_ context.Context, _ io.Reader, _, _ int, out io.Wr
 }
 
 type memoryPreviewCache struct {
+	mu     sync.RWMutex
 	values map[string][]byte
 }
 
@@ -429,16 +554,22 @@ func newMemoryPreviewCache() *memoryPreviewCache {
 }
 
 func (c *memoryPreviewCache) Store(_ context.Context, key string, value []byte) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.values[key] = append([]byte(nil), value...)
 	return nil
 }
 
 func (c *memoryPreviewCache) Load(_ context.Context, key string) ([]byte, bool, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	value, ok := c.values[key]
 	return append([]byte(nil), value...), ok, nil
 }
 
 func (c *memoryPreviewCache) Delete(_ context.Context, key string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	delete(c.values, key)
 	return nil
 }

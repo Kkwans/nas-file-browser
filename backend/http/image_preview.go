@@ -134,7 +134,16 @@ func createLargeJPEGThumbnailWarmup(
 		}
 		storePreviewCache(ctx, fileCache, bigKey, bigPreview)
 	}
+	return createLargeJPEGThumbnailFromBigPreview(ctx, imgSvc, fileCache, file, bigPreview)
+}
 
+func createLargeJPEGThumbnailFromBigPreview(
+	ctx context.Context,
+	imgSvc ImgService,
+	fileCache FileCache,
+	file *files.FileInfo,
+	bigPreview []byte,
+) ([]byte, error) {
 	thumbnail := &bytes.Buffer{}
 	if err := imgSvc.Resize(
 		ctx,

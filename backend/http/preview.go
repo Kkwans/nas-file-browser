@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -69,6 +68,18 @@ func newPreviewCoordinator() *previewCoordinator {
 }
 
 func (c *previewCoordinator) Do(ctx context.Context, key string, work func(context.Context) ([]byte, error)) ([]byte, error) {
+	return c.do(ctx, key, false, work)
+}
+
+// DoKeepAlive shares the same in-flight work as regular callers, but keeps the
+// producer alive when the initiating request is canceled.  This is used by
+// best-effort media warmups: a placeholder may be detached while the larger
+// preview is still useful to the next request.
+func (c *previewCoordinator) DoKeepAlive(ctx context.Context, key string, work func(context.Context) ([]byte, error)) ([]byte, error) {
+	return c.do(ctx, key, true, work)
+}
+
+func (c *previewCoordinator) do(ctx context.Context, key string, keepAlive bool, work func(context.Context) ([]byte, error)) ([]byte, error) {
 	c.Lock()
 	c.pruneFailures(time.Now())
 	if until, failed := c.failures[key]; failed {
@@ -84,7 +95,7 @@ func (c *previewCoordinator) Do(ctx context.Context, key string, work func(conte
 		flightCtx, cancel := context.WithCancel(context.Background())
 		flight = &previewFlight{
 			ctx: flightCtx, cancel: cancel, done: make(chan struct{}),
-			keepAlive: strings.HasSuffix(key, ":warm=big"),
+			keepAlive: keepAlive,
 		}
 		c.flights[key] = flight
 		go func() {
@@ -226,20 +237,37 @@ func handleImagePreview(
 	}
 	if !ok {
 		coordinatorKey := cacheKey
+		keepAlive := false
 		if warmLargeJPEG {
-			coordinatorKey += ":warm=big"
+			// Warm requests and the regular big-preview request must share one
+			// flight.  Otherwise a cold open can queue two full JPEG decodes
+			// behind the global FFmpeg worker, which is exactly the multi-second
+			// stall this path is meant to avoid.
+			coordinatorKey = previewCacheKey(file, PreviewSizeBig)
+			keepAlive = true
 		}
-		resizedImage, err = coordinator.Do(r.Context(), coordinatorKey, func(ctx context.Context) ([]byte, error) {
-			if warmLargeJPEG {
-				return createLargeJPEGThumbnailWarmup(ctx, imgSvc, ffmpegImage, fileCache, file)
+		if keepAlive {
+			resizedImage, err = coordinator.DoKeepAlive(r.Context(), coordinatorKey, func(ctx context.Context) ([]byte, error) {
+				if cached, exists, loadErr := loadPreviewCache(ctx, fileCache, coordinatorKey); loadErr != nil {
+					return nil, loadErr
+				} else if exists {
+					return cached, nil
+				}
+				return createImagePreview(ctx, imgSvc, ffmpegImage, fileCache, file, PreviewSizeBig)
+			})
+			if err == nil {
+				resizedImage, err = createLargeJPEGThumbnailFromBigPreview(r.Context(), imgSvc, fileCache, file, resizedImage)
 			}
-			if cached, exists, loadErr := loadPreviewCache(ctx, fileCache, cacheKey); loadErr != nil {
-				return nil, loadErr
-			} else if exists {
-				return cached, nil
-			}
-			return createImagePreview(ctx, imgSvc, ffmpegImage, fileCache, file, previewSize)
-		})
+		} else {
+			resizedImage, err = coordinator.Do(r.Context(), coordinatorKey, func(ctx context.Context) ([]byte, error) {
+				if cached, exists, loadErr := loadPreviewCache(ctx, fileCache, cacheKey); loadErr != nil {
+					return nil, loadErr
+				} else if exists {
+					return cached, nil
+				}
+				return createImagePreview(ctx, imgSvc, ffmpegImage, fileCache, file, previewSize)
+			})
+		}
 		if err != nil {
 			if errors.Is(err, errPreviewCoolingDown) {
 				return http.StatusServiceUnavailable, fmt.Errorf("缩略图生成暂时冷却，请稍后重试")

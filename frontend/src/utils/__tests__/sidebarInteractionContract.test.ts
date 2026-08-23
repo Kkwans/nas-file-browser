@@ -166,6 +166,7 @@ describe("侧边栏分组交互契约", () => {
     const cssSource = readSource("css/sidebar-refinement.css");
 
     expect(sidebarSource).toContain('class="favorite-remove"');
+    expect(sidebarSource).toContain('name="star-off"');
     expect(sidebarSource).toContain('role="button"');
     expect(sidebarSource).toContain('aria-label="取消收藏"');
     expect(sidebarSource).toContain("@keydown.enter.stop.prevent");

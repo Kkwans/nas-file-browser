@@ -24,4 +24,16 @@ describe("activity page UI contract", () => {
     expect(css).toContain("grid-template-columns: repeat(3, minmax(0, 1fr));");
     expect(css).toContain("overflow-x: visible;");
   });
+
+  it("刷新动作使用紧凑的次级按钮，不占满 Header 操作槽", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /\.activity-header-action\s*\{[\s\S]*?width:\s*auto;[\s\S]*?border:\s*1px solid var\(--borderPrimary\);/
+    );
+    expect(css).toContain(".activity-header-action:disabled");
+  });
 });

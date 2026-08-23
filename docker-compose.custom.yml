@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.23-phase10-sidebar-icons-r37
+    image: nas-file-browser:2026.8.23-phase10-listing-alignment-r38
     build:
       context: .
       dockerfile: Dockerfile.custom

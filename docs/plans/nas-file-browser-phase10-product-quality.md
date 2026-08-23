@@ -343,3 +343,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - NAS 本机镜像 `nas-file-browser:2026.8.23-phase10-media-title-r25` 已构建并仅重建 `filebrowser` 服务；容器为 `healthy`，`127.0.0.1:8888` 返回 `200`，r24 保留作回滚。
 - NAS 本机 Playwright 1440×900 实测报告保存在 `/tmp/nfb-media-r25.json`，截图为 `/tmp/nfb-media-r25.png`：媒体标题容器 `313.3×44px`，标题左上起点约 `(64,22.25)`、颜色 `rgb(255,255,255)`；前后按钮均 `48×48px`，图标均位于容器中心，页面 `scrollWidth=clientWidth=1440`。根目录四种布局、折叠侧栏、任务中心、操作历史和存储工具均完成当前部署截图复核，未观察到横向溢出。
 - 该模块只修复已复现的媒体 Header 宽度和侧栏操作图标，不宣称全站视觉问题已经完成；文件列表和页面级视觉仍按“内容起始线、图标视觉中心、文字基线、操作密度”继续审计。
+
+### 2026-08-23 全局 SVG 图标基线对齐与 r26 验收
+
+- 复现：本地 Lucide SVG 没有统一的基线/伸缩规则，图标位于不同按钮、菜单和卡片时可能出现光学上移、下沉或被压缩；这会放大侧栏、任务操作和文件卡片的排版不齐观感。
+- 修复：`base.css` 增加统一 `.app-icon` 表面契约：`display: inline-block`、`vertical-align: middle`、`flex: 0 0 auto`。不改变图标来源、语义、颜色或尺寸，仅稳定其布局参与方式；新增契约测试防止回归。
+- 验证：先运行新增测试确认旧实现失败，再修复；图标契约、侧栏交互、媒体 Header Vitest `20/20` 通过，目标 ESLint `--max-warnings=0` 和 Frontend typecheck 通过；源码提交 `0e9284cc` 已推送，GitHub Continuous Integration `32622404213`、Docs `32622404198` 均成功。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.23-phase10-icon-baseline-r26` 构建成功；Compose 提交 `f8fa02b3` 已推送，Docs `32622712222` 已成功，Continuous Integration 正在等待最终结果。仅重建 `filebrowser`，容器已 `healthy`，`127.0.0.1:8888` 返回 `200`，r25 保留作回滚。
+- NAS 本机 Playwright 1440×900 实测报告 `/tmp/nfb-files-r26-icon-baseline.json`、截图 `/tmp/nfb-files-r26-icon-baseline.png` 和 `/tmp/nfb-settings-r26-icon-baseline.png`：文件列表 `scrollWidth=clientWidth=1425`；侧栏图标命中区内的 SVG 均为稳定 `21–22px`，顶部操作图标均为 `20px`，计算样式为 `display:block`、`vertical-align:middle`、`flex:0 0 auto`；设置页、NAS 根目录和文件网格未观察到横向溢出或明显基线漂移。
+- 该模块只修复全局图标布局基础，不宣称用户截图中所有页面级对齐、字号、密度和图标选择问题已经完成；继续按页面证据推进，保留当前侧栏收藏移除不使用大号 `X` 的产品决策。

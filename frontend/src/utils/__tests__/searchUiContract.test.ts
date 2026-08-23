@@ -38,4 +38,19 @@ describe("search UI contract", () => {
     expect(searchPage).toContain("flex-wrap: wrap");
     expect(searchPage).not.toContain("overflow-x: auto");
   });
+
+  it("keeps desktop search controls large enough for reliable pointer targets", () => {
+    const searchPage = readFileSync(
+      resolve(process.cwd(), "src/views/SearchPage.vue"),
+      "utf8"
+    );
+    const resultExplorer = readFileSync(
+      resolve(process.cwd(), "src/components/search/ResultExplorer.vue"),
+      "utf8"
+    );
+
+    expect(searchPage).toContain("min-height: 2.5rem;");
+    expect(resultExplorer).toContain(".result-explorer-scope button {");
+    expect(resultExplorer).toContain("min-height: 2.5rem;");
+  });
 });

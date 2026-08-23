@@ -555,8 +555,8 @@ onUnmounted(() => {
 
 .search-page-actions button {
   display: inline-grid;
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   place-items: center;
   padding: 0;
   color: var(--textSecondary, #64748b);
@@ -620,7 +620,7 @@ onUnmounted(() => {
   flex: 0 0 auto;
   width: auto;
   min-width: max-content;
-  min-height: 2rem;
+  min-height: 2.5rem;
   gap: 0.25rem;
   padding: 0 0.625rem;
   color: var(--textSecondary, #475569);

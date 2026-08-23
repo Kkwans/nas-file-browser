@@ -18,7 +18,10 @@ describe("analysis page UI contract", () => {
 
   it("工具切换器占满工作区，两个工具共享同一条对齐基线", () => {
     const switcherSource = readFileSync(
-      resolve(process.cwd(), "src/components/analysis/AnalysisToolSwitcher.vue"),
+      resolve(
+        process.cwd(),
+        "src/components/analysis/AnalysisToolSwitcher.vue"
+      ),
       "utf8"
     );
 

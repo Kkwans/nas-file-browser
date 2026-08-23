@@ -35,6 +35,11 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain(
       'player.value.on("play", applyPendingResume)'
     );
+    expect(videoPlayerSource).toContain(
+      "const canTryDirectPlayback = computed("
+    );
+    expect(videoPlayerSource).toContain("isKnownIncompatibleVideo(props.path)");
+    expect(videoPlayerSource).toContain("再次尝试原视频");
   });
 
   it("大图生成期间先显示真实缩略图占位", () => {

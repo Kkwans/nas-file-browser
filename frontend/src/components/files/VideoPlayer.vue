@@ -172,13 +172,13 @@
             使用兼容版本
           </button>
           <button
-            v-if="directPlaybackProbeBlocked && !hlsActive"
+            v-if="canTryDirectPlayback"
             type="button"
             class="media-compatibility-action"
             @click.stop="tryDirectPlayback"
           >
             <AppIcon :name="mediaIcon('play_arrow')" :size="18" />
-            尝试原视频
+            {{ directPlaybackFailed ? "再次尝试原视频" : "尝试原视频" }}
           </button>
           <a
             v-if="showCompatibilityFallbacks"
@@ -589,6 +589,14 @@ const showCompatibilityFallbacks = computed(
     directPlaybackFailed.value ||
     directPlaybackProbeBlocked.value ||
     compatibilityStatus.value?.state === "failed"
+);
+
+const canTryDirectPlayback = computed(
+  () =>
+    !hlsActive.value &&
+    (isKnownIncompatibleVideo(props.path) ||
+      directPlaybackProbeBlocked.value ||
+      directPlaybackFailed.value)
 );
 
 const showCompatibilityBadge = computed(

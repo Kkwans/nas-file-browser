@@ -122,6 +122,13 @@ describe("media loading contract", () => {
     expect(imageSource).toContain("fullLoadStarted.value");
   });
 
+  it("媒体首屏优先，父目录导航列表延后加载", () => {
+    expect(previewSource).toContain("scheduleMediaListingLoad");
+    expect(previewSource).toContain("MEDIA_LISTING_DELAY_MS = 250");
+    expect(previewSource).toContain("loadListing(generation)");
+    expect(previewSource).toContain("isMediaResource(fileStore.req?.type)");
+  });
+
   it("uses a real server poster only for directly playable videos", () => {
     expect(previewSource).toContain(':poster="videoPosterUrl"');
     expect(previewSource).toContain("isKnownIncompatibleVideo(resource.path)");

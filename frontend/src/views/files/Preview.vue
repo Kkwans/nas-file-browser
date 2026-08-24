@@ -322,6 +322,8 @@ const getRendition = (_rendition: Rendition) => {
 };
 
 const mediaTypes: ResourceType[] = ["image", "video", "audio", "blob"];
+const isMediaResource = (type: ResourceType | undefined) =>
+  type !== undefined && mediaTypes.includes(type);
 
 const previousLink = ref<string>("");
 const nextLink = ref<string>("");
@@ -346,6 +348,9 @@ const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
 let previewGeneration = 0;
 let prefetchTimeout: number | null = null;
 let prefetchIdleId: number | null = null;
+let listingLoadTimer: number | null = null;
+let listingRequestController: AbortController | null = null;
+const MEDIA_LISTING_DELAY_MS = 250;
 
 type IdleWindow = Window & {
   requestIdleCallback?: (
@@ -367,9 +372,19 @@ const cancelNextPrefetch = () => {
   }
 };
 
+const cancelMediaListingLoad = () => {
+  if (listingLoadTimer !== null) {
+    window.clearTimeout(listingLoadTimer);
+    listingLoadTimer = null;
+  }
+  listingRequestController?.abort();
+  listingRequestController = null;
+};
+
 const resetMediaPrefetch = () => {
   previewGeneration += 1;
   cancelNextPrefetch();
+  cancelMediaListingLoad();
   currentImageReady.value = false;
   nextPrefetchEnabled.value = false;
   nextRaw.value = "";
@@ -523,6 +538,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cancelNextPrefetch();
+  cancelMediaListingLoad();
   window.removeEventListener("keydown", key);
   document.removeEventListener("fullscreenchange", onFullscreenChange);
 });
@@ -586,41 +602,37 @@ const key = (event: KeyboardEvent) => {
     close();
   }
 };
-const updatePreview = async (generation = previewGeneration) => {
-  if (player.value && player.value.paused && !player.value.ended) {
-    autoPlay.value = false;
-  }
 
-  const dirs = route.fullPath.split("/");
-  name.value = decodeURIComponent(dirs[dirs.length - 1]);
+const scheduleMediaListingLoad = (generation: number) => {
+  cancelMediaListingLoad();
+  listingLoadTimer = window.setTimeout(() => {
+    listingLoadTimer = null;
+    void loadListing(generation);
+  }, MEDIA_LISTING_DELAY_MS);
+};
 
-  // Load CSV content if it's a CSV file
-  if (isCsv.value && fileStore.req) {
-    csvContent.value = "";
-    csvError.value = "";
+const loadListing = async (generation: number) => {
+  if (generation !== previewGeneration || listing.value) return;
 
-    if (fileStore.req.size > CSV_MAX_SIZE) {
-      csvError.value = "CSV 文件过大";
-    } else {
-      if (fileStore.req.rawContent != null) {
-        csvContent.value = fileStore.req.rawContent;
-      } else {
-        csvContent.value = fileStore.req.content ?? "";
-      }
+  const controller = new AbortController();
+  listingRequestController = controller;
+  try {
+    const path = url.removeLastDir(route.path);
+    const res = await api.fetch(path, controller.signal);
+    if (generation !== previewGeneration) return;
+    listing.value = res.items;
+    updateNavigation(generation);
+  } catch (e: any) {
+    if (controller.signal.aborted || generation !== previewGeneration) return;
+    $showError(e);
+  } finally {
+    if (listingRequestController === controller) {
+      listingRequestController = null;
     }
   }
+};
 
-  if (!listing.value) {
-    try {
-      const path = url.removeLastDir(route.path);
-      const res = await api.fetch(path);
-      if (generation !== previewGeneration) return;
-      listing.value = res.items;
-    } catch (e: any) {
-      $showError(e);
-    }
-  }
-
+function updateNavigation(generation: number) {
   if (generation !== previewGeneration) return;
 
   syncAudioQueue();
@@ -651,6 +663,51 @@ const updatePreview = async (generation = previewGeneration) => {
       return;
     }
   }
+}
+
+const updatePreview = async (generation = previewGeneration) => {
+  if (player.value && player.value.paused && !player.value.ended) {
+    autoPlay.value = false;
+  }
+
+  const dirs = route.fullPath.split("/");
+  name.value = decodeURIComponent(dirs[dirs.length - 1]);
+
+  // Load CSV content if it's a CSV file
+  if (isCsv.value && fileStore.req) {
+    csvContent.value = "";
+    csvError.value = "";
+
+    if (fileStore.req.size > CSV_MAX_SIZE) {
+      csvError.value = "CSV 文件过大";
+    } else {
+      if (fileStore.req.rawContent != null) {
+        csvContent.value = fileStore.req.rawContent;
+      } else {
+        csvContent.value = fileStore.req.content ?? "";
+      }
+    }
+  }
+
+  if (!listing.value) {
+    if (isMediaResource(fileStore.req?.type)) {
+      // Directory listings are only needed for previous/next navigation. Let
+      // the current media request win the first network/CPU slot, then load
+      // the parent directory in the background.
+      scheduleMediaListingLoad(generation);
+      return;
+    }
+    try {
+      const path = url.removeLastDir(route.path);
+      const res = await api.fetch(path);
+      if (generation !== previewGeneration) return;
+      listing.value = res.items;
+    } catch (e: any) {
+      $showError(e);
+    }
+  }
+
+  updateNavigation(generation);
 };
 
 const syncAudioQueue = () => {

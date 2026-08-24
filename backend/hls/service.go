@@ -788,7 +788,11 @@ func webMArgs(source, output string) []string {
 		"-map", "0:v:0", "-map", "0:a:0?",
 		"-vf", "scale=w='trunc(min(1280,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2",
 		"-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "1.5M",
-		"-row-mt", "1", "-threads", "1", "-pix_fmt", "yuv420p",
+		// Keep the compatibility queue globally serial, but let the single
+		// active VP9 encode use two codec threads. On the NAS ARM host this
+		// materially shortens the first-play wait without increasing the
+		// number of simultaneous FFmpeg jobs.
+		"-row-mt", "1", "-threads", "2", "-pix_fmt", "yuv420p",
 		"-c:a", "libopus", "-b:a", "128k", "-ac", "2",
 		"-progress", "pipe:1",
 		"-f", "webm", output,

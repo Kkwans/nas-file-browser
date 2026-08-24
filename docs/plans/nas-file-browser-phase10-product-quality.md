@@ -469,4 +469,5 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - TDD/静态验证：新增分析工作区 UI 契约，先在旧实现上得到 `1 failed / 2 passed`，修复后分析 UI/无障碍契约 `7/7`、目标 ESLint、typecheck 和 production build 通过。源码提交 `08fec37c`、时间列修复 `f14e124e` 已推送；对应 CI `32751986780`、`32753471306` 和 Docs 均成功。
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-analysis-ui-r103`；Compose 提交 `871cd338`（r102）和 `b8936942`（r103）已推送，CI `32752878634`、`32754280483` 和 Docs 均成功。仅重建 `filebrowser`，r100 Compose/镜像保留作回滚；r103 容器 `running/healthy`，`127.0.0.1:8888/health` 返回 `{"status":"OK"}`。
 - NAS 本机 Playwright 真实验收：桌面 `1440×900` 和移动 `390×844` 的 `/analysis` 均无页面/控制台错误，页面级 `scrollWidth=clientWidth`；桌面工具切换器约 `58px` 高、运行面板约 `326px`、最近扫描约 `500px`，移动端对应约 `54px/477px/728px`。最近扫描每行仅有一个 `time` 节点，时间与“查看结果”共用右侧列；结果报告路由实际打开成功，标题、摘要、空结果和最近扫描均渲染，横向溢出为 `0`。截图：`/tmp/nfb-r103-desktop-analysis.png`、`/tmp/nfb-r103-mobile-analysis.png`、`/tmp/nfb-r103-desktop-analysis-result.png`。
+- r103 视频回归：NAS 本机 Chromium 对真实 VP9/Opus MKV 自动进入原始源，`readyState=4`、`duration=8.008s`、`seekable=[0,8.008]`，无兼容播放按钮和控制台错误；该证据仅覆盖浏览器明确支持的编码组合，H.264/HEVC 等仍按编码预检选择兼容播放。
 - 当前结论：该模块解决的是用户明确指出的存储工具页面层级、对齐、重复时间和操作入口问题；不宣称全站 UI 已完成，后续继续按真实截图审计其他页面的文字基线、图标语义、操作密度和状态反馈。

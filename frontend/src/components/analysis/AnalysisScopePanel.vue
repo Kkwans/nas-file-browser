@@ -145,39 +145,39 @@ function updateRootConfirmed(event: Event) {
 
 <style scoped>
 .analysis-run-panel {
-  margin-top: 16px;
+  margin-top: 14px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px
-    color-mix(in srgb, var(--textSecondary) 5%, transparent);
+  box-shadow: 0 4px 16px
+    color-mix(in srgb, var(--textSecondary) 4%, transparent);
 }
 
 .analysis-run-panel__header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 24px;
-  padding: 22px 24px;
+  gap: 18px;
+  padding: 18px 20px;
   border-bottom: 1px solid var(--borderPrimary);
 }
 
 .analysis-run-panel__intro {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 42px minmax(0, 1fr);
   min-width: 0;
   align-items: center;
-  gap: 15px;
+  gap: 13px;
 }
 
 .analysis-run-panel__mark {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
-  border-radius: 13px;
+  border-radius: 10px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 10%, transparent);
 }
@@ -192,7 +192,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__header h1 {
   color: var(--textSecondary);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -207,7 +207,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__description {
   max-width: 68ch;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--textPrimary);
   font-size: 12px;
   line-height: 1.55;
@@ -229,7 +229,7 @@ function updateRootConfirmed(event: Event) {
 }
 
 .analysis-run-panel__body {
-  padding: 22px 24px 24px;
+  padding: 18px 20px 20px;
 }
 
 .analysis-run-panel__section {
@@ -273,10 +273,10 @@ function updateRootConfirmed(event: Event) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  margin-top: 14px;
-  padding: 4px 4px 4px 14px;
+  margin-top: 12px;
+  padding: 3px 3px 3px 12px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
+  border-radius: 9px;
   color: var(--textPrimary);
   background: var(--surfaceSecondary);
 }
@@ -411,10 +411,10 @@ function updateRootConfirmed(event: Event) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 16px 24px 18px;
+  gap: 18px;
+  padding: 13px 20px 15px;
   border-top: 1px solid var(--borderPrimary);
-  background: color-mix(in srgb, var(--surfaceSecondary) 62%, transparent);
+  background: color-mix(in srgb, var(--surfaceSecondary) 46%, transparent);
 }
 
 .analysis-run-panel__section--confirm {

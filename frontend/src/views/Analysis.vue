@@ -804,9 +804,9 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1180px, calc(100% - 48px));
+  width: min(1200px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 24px 0 64px;
+  padding: 22px 0 60px;
 }
 
 .analysis-readonly-chip {

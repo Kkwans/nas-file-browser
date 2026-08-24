@@ -24,7 +24,7 @@
     <div class="analysis-run-panel__body">
       <div class="analysis-run-panel__section">
         <div class="analysis-run-panel__step">
-          <span>步骤 1</span>
+          <span aria-label="步骤 1">01</span>
           <div>
             <h2>选择扫描范围</h2>
             <p>支持文件或目录；父目录已包含的子路径会自动合并。</p>
@@ -86,7 +86,7 @@
         class="analysis-run-panel__section analysis-run-panel__section--confirm"
       >
         <div class="analysis-run-panel__step analysis-run-panel__step--confirm">
-          <span>步骤 2</span>
+          <span aria-label="步骤 2">02</span>
           <div>
             <h2>准备开始</h2>
             <p>不会后台定时扫描；每次都需要你主动开始。</p>
@@ -245,15 +245,15 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__step > span {
   display: inline-flex;
-  min-height: 30px;
+  width: 28px;
+  min-height: 28px;
   align-items: center;
-  padding: 0 9px;
-  border: 1px solid color-mix(in srgb, var(--blue) 22%, transparent);
-  border-radius: 8px;
+  justify-content: center;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 9%, transparent);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
 }
 
 .analysis-run-panel__step h2 {

@@ -48,6 +48,9 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain("isDefinitelyUnsupportedVideoCodec");
     expect(videoPlayerSource).toContain("preflightDirectPlayback");
     expect(videoPlayerSource).toContain("directPlaybackPreflightBlocked");
+    expect(videoPlayerSource).toContain(
+      "VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 2500"
+    );
   });
 
   it("兼容播放等待 HLS 可寻址范围后再恢复进度", () => {

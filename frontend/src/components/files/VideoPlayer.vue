@@ -313,6 +313,7 @@ let pendingResume: {
   waiting: boolean;
 } | null = null;
 const PLAYBACK_SAVE_INTERVAL_MS = 8_000;
+const VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 2500;
 let gesture:
   | {
       pointerId: number;
@@ -713,7 +714,10 @@ async function prepareDirectPlayback(path: string, source: string) {
 
 async function preflightDirectPlayback(path: string) {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 1200);
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS
+  );
   try {
     const info = await mediaApi.getMediaInformation(
       path,

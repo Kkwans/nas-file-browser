@@ -81,8 +81,12 @@
             <app-icon :name="entryIcon(entry)" :size="22" />
           </span>
           <span class="recent-entry-copy">
-            <strong :title="entry.name">{{ entry.name }}</strong>
-            <small :title="entry.path">{{ entry.path }}</small>
+            <strong :title="displayPath(entry.name)">{{
+              displayPath(entry.name)
+            }}</strong>
+            <small :title="displayPath(entry.path)">{{
+              displayPath(entry.path)
+            }}</small>
           </span>
           <time :datetime="new Date(entry.accessedAt).toISOString()">
             {{ dayjs(entry.accessedAt).fromNow() }}
@@ -108,6 +112,7 @@ import dayjs from "@/utils/date";
 import { getResourceIconName } from "@/utils/fileIcons";
 import { encodePath } from "@/utils/url";
 import { resourceOpenRoute } from "@/utils/archivePath";
+import { displayPath } from "@/utils/displayPath";
 
 const recentStore = useRecentStore();
 const $showError = inject<IToastError>("$showError")!;

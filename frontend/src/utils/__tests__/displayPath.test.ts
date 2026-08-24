@@ -10,4 +10,8 @@ describe("displayPath", () => {
     expect(displayPath("/tmp/100%/report.txt")).toBe("/tmp/100%/report.txt");
     expect(displayPath("/tmp/%E6%ZZ.txt")).toBe("/tmp/%E6%ZZ.txt");
   });
+
+  it("明确标记历史数据中的替换字符", () => {
+    expect(displayPath("/tmp/����.txt")).toBe("/tmp/（原始名称不可用）.txt");
+  });
 });

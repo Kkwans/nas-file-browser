@@ -147,7 +147,9 @@
                   statusLabel(entry.status)
                 }}</span>
               </div>
-              <p :title="entry.target">{{ entry.target }}</p>
+              <p :title="displayPath(entry.target)">
+                {{ displayPath(entry.target) }}
+              </p>
               <small v-if="entry.detail">{{ detailLabel(entry) }}</small>
             </div>
             <time :datetime="new Date(entry.createdAt).toISOString()">
@@ -178,6 +180,7 @@ import { computed, inject, onMounted, reactive } from "vue";
 import dayjs from "dayjs";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import { displayPath } from "@/utils/displayPath";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 import type {
   HistoryEntry,
@@ -290,9 +293,9 @@ function statusLabel(status: HistoryStatus) {
 
 function detailLabel(entry: HistoryEntry) {
   if (entry.action === "file.rename" || entry.action === "file.copy")
-    return `来源：${entry.detail}`;
+    return `来源：${displayPath(entry.detail ?? "")}`;
   if (entry.action === "trash.restore" && entry.detail !== entry.target)
-    return `原位置：${entry.detail}`;
+    return `原位置：${displayPath(entry.detail ?? "")}`;
   if (entry.action.startsWith("task.") || entry.action === "trash.clear")
     return `任务 ${entry.detail?.slice(-8)}`;
   return entry.detail;

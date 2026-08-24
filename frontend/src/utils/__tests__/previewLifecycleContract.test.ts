@@ -49,7 +49,7 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain("preflightDirectPlayback");
     expect(videoPlayerSource).toContain("directPlaybackPreflightBlocked");
     expect(videoPlayerSource).toContain(
-      "VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 2500"
+      "VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 900"
     );
   });
 

@@ -330,7 +330,11 @@ let pendingResume: {
   waiting: boolean;
 } | null = null;
 const PLAYBACK_SAVE_INTERVAL_MS = 8_000;
-const VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 2500;
+// A cold ffprobe on the NAS can occasionally wait on storage for several
+// seconds.  Do not make the player shell disappear for that whole interval:
+// after a short decision window we show the explicit compatibility action.
+// Browsers that advertise H.264 support skip this probe entirely.
+const VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 900;
 type DirectPlaybackPreflight = "allowed" | "blocked" | "unknown";
 let gesture:
   | {

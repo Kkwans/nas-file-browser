@@ -53,6 +53,19 @@ describe("媒体预览生命周期契约", () => {
     );
   });
 
+  it("对已知容器先按媒体编码判定，明确兼容的 VP9/Opus MKV 可原生播放", () => {
+    expect(videoPlayerSource).toContain("getNativeContainerPlayback");
+    expect(videoPlayerSource).toContain(
+      "const needsContainerPreflight = isKnownIncompatibleVideo(initialPath)"
+    );
+    expect(videoPlayerSource).toContain(
+      "needsContainerPreflight || needsCodecPreflight"
+    );
+    expect(videoPlayerSource).toMatch(
+      /getNativeContainerPlayback\(\s*path,\s*info\.videoCodec,\s*info\.audioCodec\s*\)/
+    );
+  });
+
   it("编码探测未知时不自动读取原视频", () => {
     expect(videoPlayerSource).toContain(
       'type DirectPlaybackPreflight = "allowed" | "blocked" | "unknown";'

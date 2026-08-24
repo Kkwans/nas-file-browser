@@ -245,6 +245,7 @@ import {
   type VideoGestureAxis,
 } from "@/utils/videoGestures";
 import {
+  getNativeContainerPlayback,
   getVideoSourceType,
   isDefinitelyUnsupportedVideoCodec,
   isKnownIncompatibleVideo,
@@ -389,10 +390,13 @@ onBeforeUnmount(() => {
 async function initVideoPlayer() {
   try {
     const initialPath = props.path;
+    const needsContainerPreflight = isKnownIncompatibleVideo(initialPath);
     const needsCodecPreflight =
       shouldPreflightVideoCodec(initialPath) &&
       !supportsH264CompatibilityPlayback();
-    if (needsCodecPreflight) {
+    const needsDirectPlaybackPreflight =
+      needsContainerPreflight || needsCodecPreflight;
+    if (needsDirectPlaybackPreflight) {
       progressMessage.value = "正在检查视频编码…";
       // Build the player shell immediately, but keep the source detached
       // until the metadata probe decides whether this browser can decode it.
@@ -402,7 +406,7 @@ async function initVideoPlayer() {
       videoLoadState.value = "idle";
     }
     const preflightPromise: Promise<DirectPlaybackPreflight> =
-      needsCodecPreflight
+      needsDirectPlaybackPreflight
         ? preflightDirectPlayback(initialPath)
         : Promise.resolve("allowed");
     const lang = document.documentElement.lang;
@@ -415,15 +419,14 @@ async function initVideoPlayer() {
       ? languageImports[lang]?.()
       : Promise.resolve(null);
     if (disposed || !videoPlayer.value || props.path !== initialPath) return;
-    const initialSource =
-      isKnownIncompatibleVideo(props.path) || needsCodecPreflight
-        ? {}
-        : {
-            sources: {
-              src: props.source,
-              type: getVideoSourceType(props.source, props.path),
-            },
-          };
+    const initialSource = needsDirectPlaybackPreflight
+      ? {}
+      : {
+          sources: {
+            src: props.source,
+            type: getVideoSourceType(props.source, props.path),
+          },
+        };
     player.value = videojs(
       videoPlayer.value,
       getOptions(props.options, { language: code }, initialSource, {
@@ -460,7 +463,7 @@ async function initVideoPlayer() {
       });
     if (sourceAttached.value) beginVideoLoading();
     const playbackPromise = restorePlayback(props.path);
-    if (needsCodecPreflight) {
+    if (needsDirectPlaybackPreflight) {
       const preflightResult = await preflightPromise;
       if (disposed || !videoPlayer.value || props.path !== initialPath) return;
       progressMessage.value = "";
@@ -792,14 +795,12 @@ function clearLoadStateTimer() {
 }
 
 async function prepareDirectPlayback(path: string, source: string) {
-  if (isKnownIncompatibleVideo(path)) {
-    sourceAttached.value = false;
-    setVideoLoadState("idle");
-    return;
-  }
+  const needsContainerPreflight = isKnownIncompatibleVideo(path);
   const needsCodecPreflight =
     shouldPreflightVideoCodec(path) && !supportsH264CompatibilityPlayback();
-  if (needsCodecPreflight) {
+  const needsDirectPlaybackPreflight =
+    needsContainerPreflight || needsCodecPreflight;
+  if (needsDirectPlaybackPreflight) {
     sourceAttached.value = false;
     setVideoLoadState("idle");
     const preflightResult = await preflightDirectPlayback(path);
@@ -829,13 +830,21 @@ async function preflightDirectPlayback(
       false,
       controller.signal
     );
+    const containerSupport = getNativeContainerPlayback(
+      path,
+      info.videoCodec,
+      info.audioCodec
+    );
+    if (containerSupport === "supported") return "allowed";
+    if (containerSupport === "unsupported") return "blocked";
     const codec = info.videoCodec?.trim().toLowerCase();
     // The bundled Chromium has no proprietary H.264 decoder.  Once the
     // inexpensive metadata probe confirms H.264 (or another codec known to
     // be unavailable), do not issue a large Range request that can only fail.
-    return codec === "h264" || isDefinitelyUnsupportedVideoCodec(codec)
-      ? "blocked"
-      : "allowed";
+    if (codec === "h264" || isDefinitelyUnsupportedVideoCodec(codec)) {
+      return "blocked";
+    }
+    return isKnownIncompatibleVideo(path) ? "unknown" : "allowed";
   } catch {
     // Do not fall back to the raw source when the probe is inconclusive: a
     // large unsupported video could otherwise be read until the browser fails.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getVideoSourceType,
+  getNativeContainerPlayback,
   isDefinitelyUnsupportedVideoCodec,
   isKnownIncompatibleVideo,
   isPlaybackPositionSeekable,
@@ -85,6 +86,47 @@ describe("视频播放源策略", () => {
     expect(isDefinitelyUnsupportedVideoCodec("h264")).toBe(false);
     expect(isDefinitelyUnsupportedVideoCodec("av1")).toBe(false);
     expect(isDefinitelyUnsupportedVideoCodec(undefined)).toBe(false);
+  });
+
+  it("只对浏览器明确支持的 VP9/Opus MKV 自动尝试原生播放", () => {
+    const scope = globalThis as typeof globalThis & {
+      window?: { MediaSource?: { isTypeSupported: () => boolean } };
+      document?: {
+        createElement: () => { canPlayType: (mime: string) => string };
+      };
+    };
+    const originalWindow = scope.window;
+    const originalDocument = scope.document;
+    Object.defineProperty(scope, "window", {
+      configurable: true,
+      value: { MediaSource: { isTypeSupported: () => false } },
+    });
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: {
+        createElement: () => ({
+          canPlayType: (mime: string) =>
+            mime === 'video/webm; codecs="vp9,opus"' ? "probably" : "",
+        }),
+      },
+    });
+    expect(getNativeContainerPlayback("/movie/demo.mkv", "vp9", "opus")).toBe(
+      "supported"
+    );
+    expect(getNativeContainerPlayback("/movie/demo.mkv", "h264", "aac")).toBe(
+      "unsupported"
+    );
+    expect(
+      getNativeContainerPlayback("/movie/demo.mkv", "mystery", "aac")
+    ).toBe("unknown");
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: originalDocument,
+    });
+    Object.defineProperty(scope, "window", {
+      configurable: true,
+      value: originalWindow,
+    });
   });
 
   it("只在 HLS 已暴露目标时间范围后应用续播位置", () => {

@@ -99,6 +99,49 @@ function normalizeCodec(codec?: string) {
   );
 }
 
+export type NativeContainerPlayback = "supported" | "unsupported" | "unknown";
+
+const NATIVE_WEBM_VIDEO_CODECS = new Set(["vp8", "vp9", "av1"]);
+const NATIVE_WEBM_AUDIO_CODECS = new Set(["opus", "vorbis"]);
+
+/**
+ * Returns a conservative decision for containers that are not safe to attach
+ * from the extension alone.  Chromium can decode WebM-compatible tracks from
+ * a Matroska file even when `canPlayType("video/x-matroska")` only says
+ * `maybe`; codec metadata lets us avoid both unnecessary remuxing and unsafe
+ * reads of H.264/unknown files.
+ */
+export function getNativeContainerPlayback(
+  path: string,
+  videoCodec?: string,
+  audioCodec?: string
+): NativeContainerPlayback {
+  if (extensionOf(path) !== "mkv") return "unknown";
+
+  const video = normalizeCodec(videoCodec);
+  const audio = normalizeCodec(audioCodec);
+  if (!video) return "unknown";
+
+  if (NATIVE_WEBM_VIDEO_CODECS.has(video)) {
+    if (audio && !NATIVE_WEBM_AUDIO_CODECS.has(audio)) return "unsupported";
+    if (typeof document === "undefined") return "unknown";
+    const codecs = audio ? `${video},${audio}` : video;
+    const support = document
+      .createElement("video")
+      .canPlayType(`video/webm; codecs="${codecs}"`);
+    return /maybe|probably/i.test(support) ? "supported" : "unsupported";
+  }
+
+  // H.264 is only safe to attach when the active browser advertises a
+  // proprietary decoder.  The current NAS Chromium does not, so it is
+  // rejected before any large Range request is made.
+  if (video === "h264") {
+    return supportsH264CompatibilityPlayback() ? "unknown" : "unsupported";
+  }
+  if (isDefinitelyUnsupportedVideoCodec(video)) return "unsupported";
+  return "unknown";
+}
+
 export function isDefinitelyUnsupportedVideoCodec(codec?: string) {
   const normalized = normalizeCodec(codec);
   return (

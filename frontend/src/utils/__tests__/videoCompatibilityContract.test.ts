@@ -39,6 +39,7 @@ describe("视频兼容播放依赖契约", () => {
     expect(videoPlayerSource).toContain("durationSeconds");
     expect(videoPlayerSource).toContain('role="progressbar"');
     expect(videoPlayerSource).toContain("compatibilityProgressPercent");
+    expect(videoPlayerSource).toContain("正在检查视频编码…");
     expect(videoPlayerSource).toContain(
       'v-if="compatibilityProgressSummary && !compatibilityProgressVisible"'
     );

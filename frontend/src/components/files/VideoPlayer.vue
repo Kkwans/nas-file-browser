@@ -388,17 +388,22 @@ onBeforeUnmount(() => {
 async function initVideoPlayer() {
   try {
     const initialPath = props.path;
-    const preflightPromise =
+    const needsCodecPreflight =
       shouldPreflightVideoCodec(initialPath) &&
-      !supportsH264CompatibilityPlayback()
-        ? preflightDirectPlayback(initialPath)
-        : Promise.resolve(false);
+      !supportsH264CompatibilityPlayback();
+    if (needsCodecPreflight) {
+      progressMessage.value = "正在检查视频编码…";
+    }
+    const preflightPromise = needsCodecPreflight
+      ? preflightDirectPlayback(initialPath)
+      : Promise.resolve(false);
     const lang = document.documentElement.lang;
     const [languagePack, preflightBlocked] = await Promise.all([
       (languageImports[lang] || languageImports.en)?.(),
       preflightPromise,
     ]);
     if (disposed || !videoPlayer.value || props.path !== initialPath) return;
+    if (needsCodecPreflight) progressMessage.value = "";
     if (preflightBlocked) markDirectPlaybackPreflightBlocked();
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);

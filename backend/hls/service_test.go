@@ -226,6 +226,30 @@ func TestCanCopyMediaRequiresBrowserCompatibleCodecs(t *testing.T) {
 	}
 }
 
+func TestCanCopyMediaRejectsH264ProfilesAndPixelFormatsBrowsersCannotDecode(t *testing.T) {
+	tests := []struct {
+		name        string
+		videoCodec  string
+		audioCodec  string
+		pixelFormat string
+		profile     string
+		bitDepth    int
+		want        bool
+	}{
+		{name: "ordinary eight bit 420", videoCodec: "h264", audioCodec: "aac", pixelFormat: "yuv420p", profile: "High", bitDepth: 8, want: true},
+		{name: "ten bit pixel format", videoCodec: "h264", audioCodec: "aac", pixelFormat: "yuv420p10le", profile: "High 10", bitDepth: 10, want: false},
+		{name: "four two two profile", videoCodec: "h264", audioCodec: "aac", pixelFormat: "yuv422p", profile: "High 4:2:2", bitDepth: 8, want: false},
+		{name: "unsupported pixel format", videoCodec: "h264", audioCodec: "aac", pixelFormat: "yuv444p", profile: "High 4:4:4 Predictive", bitDepth: 8, want: false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := CanCopyMediaWithDetails(test.videoCodec, test.audioCodec, test.pixelFormat, test.profile, test.bitDepth); got != test.want {
+				t.Fatalf("CanCopyMediaWithDetails(%q, %q, %q, %q, %d) = %v, want %v", test.videoCodec, test.audioCodec, test.pixelFormat, test.profile, test.bitDepth, got, test.want)
+			}
+		})
+	}
+}
+
 func TestCanCopyWebMMediaRequiresBrowserNativeCodecs(t *testing.T) {
 	tests := []struct {
 		name       string

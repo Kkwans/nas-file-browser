@@ -66,14 +66,10 @@ func TestSummarizeFFprobeKeepsLocationOptIn(t *testing.T) {
 	document.Format.Tags = map[string]string{
 		"TITLE": "Demo", "location-eng": "+10.0+20.0/",
 	}
-	document.Streams = append(document.Streams, struct {
-		CodecType  string `json:"codec_type"`
-		CodecName  string `json:"codec_name"`
-		Width      int    `json:"width"`
-		Height     int    `json:"height"`
-		Channels   int    `json:"channels"`
-		SampleRate string `json:"sample_rate"`
-	}{CodecType: "video", CodecName: "hevc", Width: 3840, Height: 2160})
+	document.Streams = append(document.Streams, ffprobeStream{
+		CodecType: "video", CodecName: "hevc", Width: 3840, Height: 2160,
+		PixelFormat: "yuv420p10le", Profile: "Main 10", BitsPerRawSample: "10",
+	})
 
 	without := summarizeFFprobe(document, false)
 	with := summarizeFFprobe(document, true)
@@ -82,5 +78,8 @@ func TestSummarizeFFprobeKeepsLocationOptIn(t *testing.T) {
 	}
 	if with.VideoCodec != "hevc" || with.Width != 3840 || with.Duration != 65.25 {
 		t.Fatalf("summary = %#v", with)
+	}
+	if with.VideoPixelFormat != "yuv420p10le" || with.VideoProfile != "Main 10" || with.VideoBitDepth != 10 {
+		t.Fatalf("video compatibility details = %#v", with)
 	}
 }

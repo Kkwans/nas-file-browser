@@ -96,7 +96,7 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 			// Prefer a seekable MP4 remux for H.264/AAC sources. If probing
 			// cannot prove the streams are copy-safe, keep the HLS fallback so
 			// HEVC/DTS and similar files still get a playable path.
-			if hls.CanCopyMedia(input.VideoCodec, input.AudioCodec) {
+			if hls.CanCopyMediaWithDetails(input.VideoCodec, input.AudioCodec, input.VideoPixelFormat, input.VideoProfile, input.VideoBitDepth) {
 				reserve = service.ReserveMP4Copy
 			}
 		} else if request.Format != "" && request.Format != "hls" {
@@ -220,8 +220,11 @@ func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, v
 		if probeErr == nil {
 			input.VideoCodec = probe.VideoCodec
 			input.AudioCodec = probe.AudioCodec
+			input.VideoPixelFormat = probe.VideoPixelFormat
+			input.VideoProfile = probe.VideoProfile
+			input.VideoBitDepth = probe.VideoBitDepth
 			input.DurationSeconds = probe.Duration
-			log.Printf("media HLS codec probe video=%q audio=%q", input.VideoCodec, input.AudioCodec)
+			log.Printf("media HLS codec probe video=%q audio=%q pix_fmt=%q profile=%q bit_depth=%d", input.VideoCodec, input.AudioCodec, input.VideoPixelFormat, input.VideoProfile, input.VideoBitDepth)
 		} else {
 			log.Printf("media HLS codec probe unavailable: %v", probeErr)
 		}
@@ -230,7 +233,7 @@ func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, v
 }
 
 func mediaHLSFormatForInput(input hls.Input) string {
-	if hls.CanCopyMedia(input.VideoCodec, input.AudioCodec) {
+	if hls.CanCopyMediaWithDetails(input.VideoCodec, input.AudioCodec, input.VideoPixelFormat, input.VideoProfile, input.VideoBitDepth) {
 		return "copy"
 	}
 	return "hls"

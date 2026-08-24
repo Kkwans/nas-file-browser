@@ -66,6 +66,12 @@ type Input struct {
 	SourcePath string
 	VideoCodec string
 	AudioCodec string
+	// VideoPixelFormat, VideoProfile and VideoBitDepth come from ffprobe. They
+	// keep a stream that merely names itself H.264 from being treated as
+	// browser-safe when it is actually 10-bit or 4:2:2/4:4:4.
+	VideoPixelFormat string
+	VideoProfile     string
+	VideoBitDepth    int
 	// DurationSeconds is the probed source duration used to render truthful
 	// compatibility progress while a WebM artifact is being generated.
 	DurationSeconds float64
@@ -110,9 +116,33 @@ func IsMP4CopyProfile(profile string) bool {
 // CanCopyMedia is deliberately conservative: copying an unsupported audio
 // stream would produce a fast but unusable compatibility artifact.
 func CanCopyMedia(videoCodec, audioCodec string) bool {
+	return CanCopyMediaWithDetails(videoCodec, audioCodec, "", "", 0)
+}
+
+// CanCopyMediaWithDetails is deliberately conservative. Chromium's broadly
+// available MP4 decoder expects 8-bit 4:2:0 H.264; a container carrying H.264
+// 10-bit, 4:2:2 or 4:4:4 still needs a compatibility encode even though the
+// codec name itself is "h264".
+func CanCopyMediaWithDetails(videoCodec, audioCodec, pixelFormat, profile string, bitDepth int) bool {
 	videoCodec = strings.ToLower(strings.TrimSpace(videoCodec))
 	audioCodec = strings.ToLower(strings.TrimSpace(audioCodec))
-	return videoCodec == "h264" && (audioCodec == "" || audioCodec == "aac")
+	if videoCodec != "h264" || (audioCodec != "" && audioCodec != "aac") {
+		return false
+	}
+	if bitDepth > 8 {
+		return false
+	}
+	pixelFormat = strings.ToLower(strings.TrimSpace(pixelFormat))
+	if pixelFormat != "" && pixelFormat != "yuv420p" && pixelFormat != "yuvj420p" {
+		return false
+	}
+	profile = strings.ToLower(strings.TrimSpace(profile))
+	for _, unsupported := range []string{"10", "12", "4:2:2", "4:4:4"} {
+		if strings.Contains(profile, unsupported) {
+			return false
+		}
+	}
+	return true
 }
 
 // CanCopyWebMMedia accepts browser-native WebM codec families so MKV/MOV

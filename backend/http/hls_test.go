@@ -127,6 +127,12 @@ func TestMediaHLSFormatUsesRemuxForCompatibleStreams(t *testing.T) {
 	if got := mediaHLSFormatForInput(hls.Input{VideoCodec: "h264", AudioCodec: "aac"}); got != "copy" {
 		t.Fatalf("compatible streams format = %q, want copy", got)
 	}
+	if got := mediaHLSFormatForInput(hls.Input{
+		VideoCodec: "h264", AudioCodec: "aac", VideoPixelFormat: "yuv420p10le",
+		VideoProfile: "High 10", VideoBitDepth: 10,
+	}); got != "hls" {
+		t.Fatalf("ten-bit H.264 format = %q, want hls", got)
+	}
 	if got := mediaHLSFormatForInput(hls.Input{VideoCodec: "hevc", AudioCodec: "aac"}); got != "hls" {
 		t.Fatalf("HEVC streams format = %q, want hls", got)
 	}

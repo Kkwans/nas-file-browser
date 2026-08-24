@@ -410,9 +410,9 @@
               :title="prefixSectionAriaLabel(section)"
               @click="togglePrefixSection(section.prefix || '')"
             >
-              <code class="listing-prefix-token" aria-hidden="true">{{
-                section.prefix
-              }}</code>
+              <span class="listing-prefix-token" aria-hidden="true">
+                <AppIcon name="list-tree" :size="18" />
+              </span>
               <span>{{ section.label }}</span>
               <span class="listing-prefix-count">{{ section.total }}</span>
               <AppIcon
@@ -500,9 +500,9 @@
                 :title="prefixSectionAriaLabel(section)"
                 @click="togglePrefixSection(section.prefix || '')"
               >
-                <code class="listing-prefix-token" aria-hidden="true">{{
-                  section.prefix
-                }}</code>
+                <span class="listing-prefix-token" aria-hidden="true">
+                  <AppIcon name="list-tree" :size="18" />
+                </span>
                 <span>{{ section.label }}</span>
                 <span class="listing-prefix-count">{{ section.total }}</span>
                 <AppIcon
@@ -606,9 +606,9 @@
                         :title="prefixSectionAriaLabel(section)"
                         @click="togglePrefixSection(section.prefix || '')"
                       >
-                        <code class="listing-prefix-token" aria-hidden="true">{{
-                          section.prefix
-                        }}</code>
+                        <span class="listing-prefix-token" aria-hidden="true">
+                          <AppIcon name="list-tree" :size="18" />
+                        </span>
                         <span>{{ section.label }}</span>
                         <span class="listing-prefix-count">{{
                           section.total

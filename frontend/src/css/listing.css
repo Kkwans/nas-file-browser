@@ -66,10 +66,10 @@
 
 #listing .listing-prefix-header .listing-prefix-token {
   display: inline-grid;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   place-items: center;
-  border-radius: 7px;
+  border-radius: 9px;
   border: 1px solid color-mix(in srgb, var(--listing-accent) 18%, transparent);
   color: var(--listing-accent);
   background: color-mix(in srgb, var(--listing-accent) 10%, transparent);
@@ -78,6 +78,11 @@
   font-weight: 800;
   line-height: 1;
   text-align: center;
+}
+
+#listing .listing-prefix-header .listing-prefix-token > .app-icon {
+  width: 18px;
+  height: 18px;
 }
 
 #listing .listing-prefix-count {

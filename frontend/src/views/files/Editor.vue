@@ -310,6 +310,7 @@ let initialContent = ""; // 文件初始内容，用于 close 时的内容比对
 let markdownBuffer = "";
 let editorGeneration = 0;
 let markdownPreviewHighlightTimer: number | null = null;
+let markdownHighlightObserver: MutationObserver | null = null;
 let markdownBaselineReady = false;
 let stopThemeObserver: (() => void) | null = null;
 
@@ -328,6 +329,38 @@ const scheduleMarkdownPreviewHighlight = (generation: number) => {
     const currentMount = document.getElementById("vditor-mount");
     if (currentMount) highlightMarkdownEditorPreviews(currentMount);
   }, 120);
+};
+
+const setupMarkdownPreviewHighlightObserver = (generation: number) => {
+  markdownHighlightObserver?.disconnect();
+  markdownHighlightObserver = null;
+  const mountEl = document.getElementById("vditor-mount");
+  if (!mountEl) return;
+
+  markdownHighlightObserver = new MutationObserver(() => {
+    if (generation !== editorGeneration || currentMode.value !== "ir") return;
+    const needsHighlight = Array.from(
+      mountEl.querySelectorAll<HTMLElement>(".vditor-ir__preview code")
+    ).some((code) => {
+      const rawSource = (code.textContent ?? "").replace(/\u200b/g, "");
+      return (
+        code.dataset.nfbHighlighted !== "true" ||
+        code.dataset.rawSource !== rawSource
+      );
+    });
+    if (needsHighlight) scheduleMarkdownPreviewHighlight(generation);
+  });
+  markdownHighlightObserver.observe(mountEl, {
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
+  scheduleMarkdownPreviewHighlight(generation);
+};
+
+const teardownMarkdownPreviewHighlightObserver = () => {
+  markdownHighlightObserver?.disconnect();
+  markdownHighlightObserver = null;
 };
 
 const restoreLineNumberPreference = () => {
@@ -409,6 +442,7 @@ onBeforeUnmount(() => {
     window.clearTimeout(markdownPreviewHighlightTimer);
     markdownPreviewHighlightTimer = null;
   }
+  teardownMarkdownPreviewHighlightObserver();
   _outlineHandlerBound = false;
   teardownMarkdownImagePreviews();
   if (vditorInstance) {
@@ -707,7 +741,7 @@ const initVditorWithMode = async (
       setupMarkdownImagePreviews();
       // 确保大纲目录点击可以跳转
       setupOutlineClickHandler();
-      scheduleMarkdownPreviewHighlight(generation);
+      setupMarkdownPreviewHighlightObserver(generation);
       if (currentMode.value === "preview") refreshMarkdownCodeBlocks();
     },
     input: () => {
@@ -1086,6 +1120,7 @@ const rebuildMarkdownMode = async (mode: MarkdownMode) => {
   const dirtyState = userEdited;
   markdownBuffer = content;
 
+  teardownMarkdownPreviewHighlightObserver();
   teardownMarkdownImagePreviews();
   try {
     vditorInstance.destroy();
@@ -1169,6 +1204,7 @@ const switchMode = async (mode: MarkdownMode) => {
   // userEdited 保持不变，因为用户之前可能已经编辑过
 
   // 销毁旧实例，按新模式重建（Vditor 不支持运行时切换模式）
+  teardownMarkdownPreviewHighlightObserver();
   teardownMarkdownImagePreviews();
   try {
     vditorInstance.destroy();

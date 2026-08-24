@@ -60,11 +60,18 @@ describe("Markdown 编辑器交互契约", () => {
       "highlightMarkdownEditorPreviews(currentMount)"
     );
     expect(editorSource).toContain(
+      "setupMarkdownPreviewHighlightObserver(generation)"
+    );
+    expect(resourceLoaderSource).toContain("nfbHighlighted");
+    expect(editorSource).toContain(
       "scheduleMarkdownPreviewHighlight(generation)"
     );
     expect(editorSource).toContain("}, 120);");
     expect(vditorStyles).toMatch(
       /\.vditor-ir__node--expand\s*>\s*\.vditor-ir__preview\s*\{[\s\S]*display:\s*none;/
+    );
+    expect(vditorStyles).toMatch(
+      /\.vditor-ir__node:not\(\.vditor-ir__node--expand\)\s*>\s*\.vditor-ir__marker--pre[\s\S]*display:\s*none\s*!important;/
     );
   });
 

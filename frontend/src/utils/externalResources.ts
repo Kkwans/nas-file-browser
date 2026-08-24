@@ -101,6 +101,15 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
       // inserts token spans, and therefore also picks up edits Vditor makes
       // before the next render pass.  Do not prefer a stale dataset cache.
       const rawSource = (codeEl.textContent ?? "").replace(/\u200b/g, "");
+      // Vditor can emit the same preview node more than once while an IR
+      // block settles. Skip a node that already contains our current source;
+      // this also prevents the observer from re-highlighting its own spans.
+      if (
+        codeEl.dataset.nfbHighlighted === "true" &&
+        codeEl.dataset.rawSource === rawSource
+      ) {
+        return;
+      }
       codeEl.dataset.rawSource = rawSource;
 
       const lang = resolveMarkdownCodeLanguage(codeEl.className, rawSource);
@@ -120,6 +129,7 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
         codeEl.classList.remove("hljs");
         codeEl.textContent = rawSource;
       }
+      codeEl.dataset.nfbHighlighted = "true";
     });
 }
 

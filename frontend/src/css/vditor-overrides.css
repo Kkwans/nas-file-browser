@@ -38,6 +38,12 @@
  * surface while focused; the syntax-coloured preview remains the single
  * surface when the block is idle.
  */
+#vditor-mount
+  .vditor-ir__node:not(.vditor-ir__node--expand)
+  > .vditor-ir__marker--pre {
+  display: none !important;
+}
+
 #vditor-mount .vditor-ir__node--expand > .vditor-ir__preview {
   display: none;
 }

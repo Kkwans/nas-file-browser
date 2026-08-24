@@ -245,7 +245,7 @@ function formatTime(value: number) {
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 190px;
+  grid-template-columns: 44px minmax(0, 1fr) 140px 104px;
   align-items: center;
   gap: 14px;
   min-height: 80px;
@@ -321,20 +321,15 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__side {
-  display: flex;
-  min-width: 190px;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 5px;
-  padding-left: 16px;
-  border-left: 1px solid var(--borderPrimary);
-  flex-direction: column;
+  display: contents;
 }
 
 .analysis-recent__time {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  grid-column: 3;
+  justify-self: end;
   color: var(--textPrimary);
   justify-content: flex-end;
   text-align: right;
@@ -369,6 +364,10 @@ function formatTime(value: number) {
 
 .analysis-recent__action {
   display: inline-flex;
+  grid-column: 4;
+  justify-self: end;
+  width: 104px;
+  box-sizing: border-box;
   min-height: 44px;
   align-items: center;
   justify-content: center;
@@ -429,6 +428,17 @@ function formatTime(value: number) {
     border-top: 1px solid var(--borderPrimary);
     border-left: 0;
     flex-direction: row;
+  }
+
+  .analysis-recent__time {
+    grid-column: auto;
+    justify-self: auto;
+  }
+
+  .analysis-recent__action {
+    grid-column: auto;
+    justify-self: auto;
+    width: auto;
   }
 
   .analysis-recent__action {

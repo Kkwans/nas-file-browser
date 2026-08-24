@@ -380,3 +380,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-video-preflight-r84`，摘要 `sha256:a381281114f6e46b71f3cd5813b1a6f1d7cbb3bcef91545c7fc4af9b00c94460`；只重建 `filebrowser`，容器 `running/healthy`，`/health` HTTP `200`，r83 保留作回滚。
 - NAS 本机 Playwright 实测（1440×900）：人为延迟 `/api/media/info` 3.5 秒时，只产生 1 个探测请求，未产生 `/api/raw`，视频 `currentSrc=""`、`readyState=0`，页面显示“编码探测超时，已停止自动读取原视频”，控制台/页面错误 `0`。真实 H.264/AAC MKV 和 MOV 点击“启动兼容播放”后均进入缓存 WebM，完整时长分别约 `60.101s`、`20.042s`，可拖动到约 `60%` 且 seekable 覆盖完整时长，运行时错误 `0`。
 - 当前结论：MKV/MOV 仍不能对所有浏览器和编码承诺无转码原生播放；当前可靠路径是浏览器明确支持时尝试原生，否则用户主动触发复用/重封装/转码兼容播放，并且在探测不确定时绝不自动读取原视频。
+
+### 2026-08-24 r85 任务与历史搜索输入对齐
+
+- NAS 本机 Playwright 390×844 移动审计复现：任务中心和操作历史搜索框的外层标签有 `44px` 命中区，但内部 `<input>` 只有约 `14px` 高，文字和光标的垂直对齐依赖浏览器默认样式；桌面同样只有约 `14px` 内容盒高度。同期审计未发现横向溢出、运行时错误或未命名按钮（日期筛选原生输入除外）。
+- 修复：任务中心与操作历史搜索输入统一 `box-sizing: border-box`、桌面最小高度 `40px`、移动端最小高度 `44px`、固定 `line-height: 1.4`；外层布局、筛选语义和数据请求不变。新增活动页 UI 契约测试，先在旧实现上得到 `1 failed / 5 passed`，修复后聚焦测试 `6/6` 通过。
+- 验证：目标 ESLint 通过；Frontend production build 通过（保留既有 ReCaptcha、运行时 `custom.css` 和大 chunk 警告）；源码提交 `129050dc` 已推送，GitHub CI `32710992858` 全部成功。部署提交 `5f1a5c3b` 已推送，GitHub CI `32711637881` 全部成功。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-activity-input-r85` 已构建；仅重建 `filebrowser`，容器为 `running/healthy`，`/health` HTTP `200`，r84 保留作回滚。
+- NAS 本机 Playwright 复验：桌面任务/历史搜索输入从约 `13.8px` 提升为 `40px`；移动端两页搜索输入为 `44px`，390px 页面 `scrollWidth=clientWidth`，控制台错误 `0`。本模块只修复搜索输入控件的实际对齐和命中高度，不宣称全站视觉问题已经完成。

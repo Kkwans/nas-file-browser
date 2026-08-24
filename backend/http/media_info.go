@@ -148,7 +148,12 @@ func defaultMediaProbe(ctx context.Context, path string, includeLocation bool) (
 		entries = "format:stream=codec_type,codec_name,width,height,channels,sample_rate"
 	}
 	command := exec.CommandContext(ctx, ffprobePath,
-		"-v", "error", "-show_entries", entries, "-of", "json", path,
+		"-v", "error",
+		// Container and stream headers are enough for the UI's codec decision.
+		// Bound probing so opening a video does not scan a large NAS file before
+		// the player can show its first useful state.
+		"-probesize", "1M", "-analyzeduration", "1M",
+		"-show_entries", entries, "-of", "json", path,
 	)
 	output, err := command.Output()
 	if err != nil {

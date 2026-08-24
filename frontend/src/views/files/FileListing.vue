@@ -109,9 +109,8 @@
             >
               <AppIcon :name="mode.icon" :size="19" />
               <span>{{ mode.label }}</span>
-              <i
+              <AppIcon
                 v-if="currentViewMode === mode.value"
-                class="check"
                 name="circle-check"
                 :size="18"
               />
@@ -129,9 +128,8 @@
               >
                 <AppIcon :name="size.icon" :size="19" />
                 <span>{{ size.label }}</span>
-                <i
+                <AppIcon
                   v-if="compactGridSize === size.value"
-                  class="check"
                   name="circle-check"
                   :size="18"
                 />
@@ -164,7 +162,7 @@
             >
               <AppIcon :name="opt.icon" :size="19" />
               <span>{{ opt.label }}</span>
-              <i
+              <AppIcon
                 v-if="currentSortBy === opt.by"
                 class="sort-arrow"
                 :name="listingSortDirectionIcon(currentSortAsc)"

@@ -53,6 +53,20 @@ describe("activity page UI contract", () => {
     );
   });
 
+  it("搜索输入本身继承表单命中高度并固定文字行高", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /\.task-filter-bar__search input,\s*\.history-filter-bar__search input\s*\{[^}]*box-sizing:\s*border-box;[^}]*min-height:\s*40px;[^}]*line-height:\s*1\.4;/s
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 520px\)[\s\S]*?\.task-filter-bar__search input,\s*\.history-filter-bar__search input\s*\{[^}]*min-height:\s*44px;/s
+    );
+  });
+
   it("用告警和停止语义区分失败与取消，避免状态列表堆叠巨大的叉号", () => {
     expect(tasksSource).toContain('failed: "circle-alert"');
     expect(tasksSource).toContain('canceled: "circle-stop"');

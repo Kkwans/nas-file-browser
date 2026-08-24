@@ -768,15 +768,19 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 10%, transparent);
 }
 
-.task-filter-bar__search input {
+.task-filter-bar__search input,
+.history-filter-bar__search input {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
+  min-height: 40px;
   padding: 0;
   border: 0;
   outline: 0;
   color: var(--textSecondary);
   background: transparent;
   font-size: 12px;
+  line-height: 1.4;
 }
 
 .task-filter-bar > select,
@@ -1136,17 +1140,6 @@
 .history-filter-bar__search:focus-within {
   border-color: color-mix(in srgb, var(--blue) 48%, var(--borderPrimary));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 10%, transparent);
-}
-
-.history-filter-bar__search input {
-  width: 100%;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  color: var(--textSecondary);
-  background: transparent;
-  font-size: 12px;
 }
 
 .history-filter-bar > select,
@@ -1712,6 +1705,11 @@
     inset: auto 10px 12px;
     box-sizing: border-box;
     width: auto;
+  }
+
+  .task-filter-bar__search input,
+  .history-filter-bar__search input {
+    min-height: 44px;
   }
 
   .task-batch-bar {

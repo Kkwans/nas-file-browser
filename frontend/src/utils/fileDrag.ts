@@ -31,7 +31,7 @@ export function writeFileDragPayload(
   paths: string[]
 ) {
   if (!dataTransfer) return;
-  const normalized = [...new Set(paths.map(normalizeFileKey))];
+  const normalized = [...new Set(paths.map(normalizeFileDragKey))];
   if (normalized.length === 0) return;
   const payload = JSON.stringify(normalized);
   try {
@@ -66,7 +66,7 @@ export function readFileDragPayload(
       ...new Set(
         parsed
           .filter((value): value is string => typeof value === "string")
-          .map(normalizeFileKey)
+          .map(normalizeFileDragKey)
       ),
     ];
   } catch {
@@ -86,13 +86,28 @@ export function clearFileDragPayload() {
 
 /** A folder cannot receive itself or one of its own descendants. */
 export function canDropFilePaths(paths: string[], target: string) {
-  const normalizedTarget = normalizeFileKey(target);
+  const normalizedTarget = normalizeFileDragKey(target);
   return paths.every((path) => {
-    const source = normalizeFileKey(path);
+    const source = normalizeFileDragKey(path);
     return (
       source !== normalizedTarget && !normalizedTarget.startsWith(`${source}/`)
     );
   });
+}
+
+/**
+ * Internal drags use the browser route rather than a decoded filesystem path.
+ * This is important for legacy filenames whose original bytes cannot be
+ * represented as a JavaScript UTF-8 string. Keep the route opaque and only
+ * normalize its trailing slash; retain the canonical path fallback for older
+ * callers and tests.
+ */
+export function normalizeFileDragKey(value: string) {
+  const trimmed = value.trim();
+  if (trimmed === "/files" || trimmed.startsWith("/files/")) {
+    return trimmed.replace(/\/+$/, "") || "/files";
+  }
+  return normalizeFileKey(trimmed);
 }
 
 export function fileNameFromPath(path: string) {

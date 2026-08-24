@@ -38,6 +38,16 @@ describe("file drag payload", () => {
     expect(canDropFilePaths(["/docs"], "/documents")).toBe(true);
   });
 
+  it("keeps percent-encoded routes opaque for legacy non-UTF8 names", () => {
+    const source = "/files/tmp/%D6%D0%CE%C4.txt";
+    const target = "/files/tmp/target/";
+    const data = transfer();
+    writeFileDragPayload(data, [source]);
+    expect(readFileDragPayload(data)).toEqual([source]);
+    expect(canDropFilePaths([source], target)).toBe(true);
+    expect(canDropFilePaths([source], `${source}/child`)).toBe(false);
+  });
+
   it("ignores external drops without the internal MIME type", () => {
     expect(readFileDragPayload(transfer())).toEqual([]);
   });

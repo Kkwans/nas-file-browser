@@ -59,14 +59,16 @@ export async function fetch(url: string, signal?: AbortSignal) {
     }
     throw e;
   }
-  data.url = `/files${url}`;
+  data.url = `/files${data.wirePath ?? url}`;
 
   if (data.isDir) {
     if (!data.url.endsWith("/")) data.url += "/";
     // Perhaps change the any
     data.items = data.items.map((item: ResourceItem, index: number) => {
       item.index = index;
-      item.url = `${data.url}${encodeURIComponent(item.name)}`;
+      item.url = item.wirePath
+        ? `/files${item.wirePath}`
+        : `${data.url}${encodeURIComponent(item.name)}`;
 
       if (item.isDir) {
         item.url += "/";
@@ -100,7 +102,7 @@ export async function fetchBatch(
     if (!result.item) return result;
     const item = result.item;
     item.index = index;
-    item.url = `/files${urlUtils.encodePath(item.path)}${item.isDir ? "/" : ""}`;
+    item.url = `/files${item.wirePath ?? urlUtils.encodePath(item.path)}${item.isDir ? "/" : ""}`;
     return { ...result, item };
   });
 }

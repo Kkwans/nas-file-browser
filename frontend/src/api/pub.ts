@@ -14,13 +14,15 @@ export async function fetch(url: string, password: string = "") {
   );
 
   const data = (await res.json()) as Resource;
-  data.url = `/share${url}`;
+  data.url = `/share${data.wirePath ?? url}`;
 
   if (data.isDir) {
     if (!data.url.endsWith("/")) data.url += "/";
     data.items = data.items.map((item: ResourceItem, index: number) => {
       item.index = index;
-      item.url = `${data.url}${encodeURIComponent(item.name)}`;
+      item.url = item.wirePath
+        ? `${data.url.replace(/\/+$/, "")}/${item.wirePath.replace(/^\/+/, "")}`
+        : `${data.url}${encodeURIComponent(item.name)}`;
 
       if (item.isDir) {
         item.url += "/";

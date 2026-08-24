@@ -158,7 +158,6 @@ import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { getFileTypeLabel, normalizeFileKey } from "@/utils/fileListing";
-import { appendResourceRouteSegment, encodeResourceRoute } from "@/utils/url";
 import {
   canDropFilePaths,
   clearFileDragPayload,
@@ -265,7 +264,7 @@ const dragStart = (event: DragEvent) => {
   }
   writeFileDragPayload(
     event.dataTransfer,
-    fileStore.selectedItems.map((item) => item.path)
+    fileStore.selectedItems.map((item) => item.url)
   );
 };
 
@@ -274,7 +273,7 @@ const dragOver = (event: DragEvent) => {
   if (
     !props.isDir ||
     paths.length === 0 ||
-    !canDropFilePaths(paths, props.path)
+    !canDropFilePaths(paths, props.url)
   ) {
     if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
     dropTargetActive.value = false;
@@ -305,16 +304,13 @@ const drop = async (event: DragEvent) => {
   clearFileDragPayload();
   if (!props.isDir || draggedPaths.length === 0) return;
   event.preventDefault();
-  if (!canDropFilePaths(draggedPaths, props.path)) return;
+  if (!canDropFilePaths(draggedPaths, props.url)) return;
 
   const items: MoveCopyItem[] = fileStore.selectedItems
-    .filter((item) => draggedPaths.includes(normalizeFileKey(item.path)))
+    .filter((item) => draggedPaths.includes(item.url.replace(/\/+$/, "")))
     .map((item) => ({
-      from: encodeResourceRoute(item.path),
-      to: appendResourceRouteSegment(
-        encodeResourceRoute(props.path),
-        item.name
-      ),
+      from: item.url,
+      to: `${props.url.replace(/\/+$/, "")}/${encodeURIComponent(item.name)}`,
       name: item.name,
       size: item.size,
       modified: item.modified,
@@ -324,7 +320,7 @@ const drop = async (event: DragEvent) => {
     }));
   if (items.length === 0) return;
 
-  const destinationRoute = encodeResourceRoute(props.path);
+  const destinationRoute = props.url;
   const action = event.ctrlKey || event.metaKey ? api.copy : api.move;
   try {
     const conflict = await upload.checkConflict(items, destinationRoute);

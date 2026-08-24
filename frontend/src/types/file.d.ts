@@ -18,6 +18,8 @@ interface ResourceBase {
   type: ResourceType;
   riskLevel: RiskLevel;
   url: string;
+  /** Original filesystem bytes encoded as a routable path by the backend. */
+  wirePath?: string;
 }
 
 export interface Resource extends ResourceBase {

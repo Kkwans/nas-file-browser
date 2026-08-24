@@ -46,6 +46,9 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toMatch(
       /#editor-container :deep\(\.editor-mode-action\)\s*\{[\s\S]*line-height:\s*0;/
     );
+    expect(editorSource).toMatch(
+      /#editor-container :deep\(\.editor-mode-action\)\s*\{[\s\S]*width:\s*2\.75rem;[\s\S]*height:\s*2\.75rem;/
+    );
     expect(editorSource).not.toContain(
       'const currentMode = ref<MarkdownMode>("wysiwyg")'
     );
@@ -66,6 +69,9 @@ describe("Markdown 编辑器交互契约", () => {
     expect(resourceLoaderSource).toContain("nfbHighlightMarkup");
     expect(editorSource).toContain(
       "scheduleMarkdownPreviewHighlight(generation)"
+    );
+    expect(editorSource).toMatch(
+      /const scheduleMarkdownPreviewHighlight = \(generation: number\) => \{[\s\S]*if \(markdownPreviewHighlightTimer !== null\) return;/
     );
     expect(editorSource).toContain("}, 120);");
     expect(vditorStyles).toMatch(

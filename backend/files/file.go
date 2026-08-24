@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"hash"
 	"image"
@@ -20,8 +21,10 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/spf13/afero"
+	"golang.org/x/text/encoding/simplifiedchinese"
 
 	fberrors "github.com/Kkwans/nas-file-browser/backend/errors"
 	"github.com/Kkwans/nas-file-browser/backend/risk"
@@ -53,6 +56,69 @@ type FileInfo struct {
 	Token      string            `json:"token,omitempty"`
 	currentDir []os.FileInfo     `json:"-"`
 	Resolution *ImageResolution  `json:"resolution,omitempty"`
+}
+
+// MarshalJSON keeps the filesystem path byte-for-byte intact internally while
+// exposing a display-safe name and a percent-encoded path to the browser.
+// Linux permits filenames that are not valid UTF-8 (for example legacy GBK
+// names). encoding/json otherwise replaces those bytes with U+FFFD, which
+// makes the item impossible to address again from the UI.
+func (i *FileInfo) MarshalJSON() ([]byte, error) {
+	type fileInfoAlias FileInfo
+	return json.Marshal(&struct {
+		*fileInfoAlias
+		Path     string `json:"path"`
+		Name     string `json:"name"`
+		WirePath string `json:"wirePath"`
+	}{
+		fileInfoAlias: (*fileInfoAlias)(i),
+		Path:          displayPath(i.Path),
+		Name:          displayName(i.Name),
+		WirePath:      encodeWirePath(i.Path),
+	})
+}
+
+func displayName(value string) string {
+	if utf8.ValidString(value) {
+		return value
+	}
+
+	decoded, err := simplifiedchinese.GB18030.NewDecoder().Bytes([]byte(value))
+	if err == nil {
+		return string(decoded)
+	}
+	return strings.ToValidUTF8(string(decoded), "�")
+}
+
+func displayPath(value string) string {
+	parts := strings.Split(value, "/")
+	for index, part := range parts {
+		parts[index] = displayName(part)
+	}
+	return strings.Join(parts, "/")
+}
+
+// encodeWirePath preserves path separators and escapes the original bytes of
+// every filename segment. The browser can send this URL back to the API even
+// when the underlying filename is not valid UTF-8.
+func encodeWirePath(value string) string {
+	const hexDigits = "0123456789ABCDEF"
+	var builder strings.Builder
+	for index := 0; index < len(value); index++ {
+		byteValue := value[index]
+		if byteValue == '/' ||
+			(byteValue >= 'a' && byteValue <= 'z') ||
+			(byteValue >= 'A' && byteValue <= 'Z') ||
+			(byteValue >= '0' && byteValue <= '9') ||
+			byteValue == '-' || byteValue == '.' || byteValue == '_' || byteValue == '~' {
+			builder.WriteByte(byteValue)
+			continue
+		}
+		builder.WriteByte('%')
+		builder.WriteByte(hexDigits[byteValue>>4])
+		builder.WriteByte(hexDigits[byteValue&0x0f])
+	}
+	return builder.String()
 }
 
 // FileOptions are the options when getting a file info.

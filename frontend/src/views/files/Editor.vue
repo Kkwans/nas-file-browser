@@ -320,9 +320,11 @@ const markdownOutlineKey = () =>
   getMarkdownOutlineStorageKey(authStore.user?.id);
 
 const scheduleMarkdownPreviewHighlight = (generation: number) => {
-  if (markdownPreviewHighlightTimer !== null) {
-    window.clearTimeout(markdownPreviewHighlightTimer);
-  }
+  // Vditor can emit a burst of mutations while an IR block settles. Keep the
+  // first pending pass instead of continually postponing highlighting until
+  // the mutation burst ends; the pass itself compares the current source and
+  // is safe to repeat when Vditor replaces the preview node.
+  if (markdownPreviewHighlightTimer !== null) return;
   markdownPreviewHighlightTimer = window.setTimeout(() => {
     markdownPreviewHighlightTimer = null;
     if (generation !== editorGeneration) return;
@@ -1445,8 +1447,8 @@ const finishClose = () => {
 /* 编辑器模式操作使用固定网格对齐，避免图标受字体行高和默认 padding 影响。 */
 #editor-container :deep(.editor-mode-action) {
   display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
   box-sizing: border-box;
   place-items: center;
   line-height: 0;

@@ -118,4 +118,15 @@ describe("媒体预览生命周期契约", () => {
       "if (!fullLoadStarted.value) startRawImageFallback(token);"
     );
   });
+
+  it("大图缩略图先完成后才允许原图作为兜底", () => {
+    const imageSource = readFileSync(
+      fileURLToPath(
+        new URL("../../components/files/ExtendedImage.vue", import.meta.url)
+      ),
+      "utf8"
+    );
+    expect(imageSource).toContain("const RAW_IMAGE_FALLBACK_DELAY_MS = 5000;");
+    expect(imageSource).toContain("Let the real thumbnail finish");
+  });
 });

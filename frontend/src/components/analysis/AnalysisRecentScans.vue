@@ -28,7 +28,13 @@
 
     <ul v-else class="analysis-recent__list">
       <li v-for="item in items" :key="item.id">
-        <span class="analysis-recent__tool" aria-hidden="true">
+        <span
+          :class="[
+            'analysis-recent__tool',
+            item.tool === 'storage' ? 'is-storage' : 'is-duplicates',
+          ]"
+          aria-hidden="true"
+        >
           <AppIcon
             :name="
               item.tool === 'storage'
@@ -160,30 +166,31 @@ function formatTime(value: number) {
 
 <style scoped>
 .analysis-recent {
-  margin-top: 14px;
+  margin-top: 20px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--surfacePrimary);
-  box-shadow: 0 4px 14px
-    color-mix(in srgb, var(--textSecondary) 3%, transparent);
+  box-shadow: 0 8px 24px
+    color-mix(in srgb, var(--textSecondary) 5%, transparent);
 }
 
 .analysis-recent__header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  padding: 13px 18px;
+  gap: 13px;
+  padding: 18px 22px;
   border-bottom: 1px solid var(--borderPrimary);
 }
 
 .analysis-recent__header-icon {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   place-items: center;
-  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
+  border-radius: 11px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 9%, transparent);
 }
@@ -196,20 +203,20 @@ function formatTime(value: number) {
 
 .analysis-recent__header h2 {
   color: var(--textSecondary);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .analysis-recent__header p {
   margin-top: 2px;
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .analysis-recent__header button {
-  min-height: 40px;
-  padding: 0 12px;
+  min-height: 38px;
+  padding: 0 14px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 8px;
+  border-radius: 9px;
   color: var(--blue);
   background: transparent;
   cursor: pointer;
@@ -217,7 +224,7 @@ function formatTime(value: number) {
 
 .analysis-recent__state {
   display: flex;
-  min-height: 76px;
+  min-height: 96px;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -238,11 +245,11 @@ function formatTime(value: number) {
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 150px;
+  grid-template-columns: 48px minmax(0, 1fr) 176px;
   align-items: center;
-  gap: 14px;
-  min-height: 80px;
-  padding: 11px 18px;
+  gap: 18px;
+  min-height: 94px;
+  padding: 15px 22px;
 }
 
 .analysis-recent__list li + li {
@@ -255,38 +262,47 @@ function formatTime(value: number) {
 
 .analysis-recent__tool {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   place-items: center;
-  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 13px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 9%, transparent);
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.analysis-recent__tool.is-duplicates {
+  color: #327bdc;
+}
+
+.analysis-recent__tool.is-storage {
+  color: #7a5bd6;
 }
 
 .analysis-recent__content {
   display: grid;
   min-width: 0;
-  gap: 4px;
+  gap: 6px;
 }
 
 .analysis-recent__headline {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .analysis-recent__headline strong {
   color: var(--textSecondary);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .analysis-recent__headline > span {
-  padding: 3px 7px;
-  border-radius: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
   color: var(--textPrimary);
   background: var(--surfaceSecondary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -304,8 +320,9 @@ function formatTime(value: number) {
 
 .analysis-recent__side {
   display: grid;
-  justify-items: end;
-  gap: 7px;
+  justify-items: stretch;
+  align-content: center;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -314,7 +331,9 @@ function formatTime(value: number) {
   align-items: center;
   gap: 4px;
   color: var(--textPrimary);
-  font-size: 10px;
+  justify-content: flex-end;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
@@ -324,7 +343,7 @@ function formatTime(value: number) {
   align-items: center;
   gap: 5px;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .analysis-recent__scope b {
@@ -337,7 +356,7 @@ function formatTime(value: number) {
 .analysis-recent__metrics {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -346,13 +365,14 @@ function formatTime(value: number) {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
-  gap: 4px;
-  padding: 0 9px 0 11px;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
   border: 1px solid color-mix(in srgb, var(--blue) 26%, var(--borderPrimary));
-  border-radius: 7px;
+  border-radius: 9px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -373,7 +393,7 @@ function formatTime(value: number) {
 
 @media (max-width: 620px) {
   .analysis-recent__header {
-    padding: 12px 14px;
+    padding: 16px;
   }
 
   .analysis-recent__header p {
@@ -381,14 +401,14 @@ function formatTime(value: number) {
   }
 
   .analysis-recent__list li {
-    grid-template-columns: 34px minmax(0, 1fr);
-    gap: 10px;
-    padding: 12px 14px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    padding: 15px 16px;
   }
 
   .analysis-recent__tool {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
   }
 
   .analysis-recent__side {
@@ -397,7 +417,7 @@ function formatTime(value: number) {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding-top: 3px;
+    padding-top: 6px;
   }
 
   .analysis-recent__action {

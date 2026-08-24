@@ -275,7 +275,14 @@ async function moveCopy(
   const promises: Promise<Response>[] = [];
 
   for (const item of items) {
-    const from = urlUtils.encodeResourceRoute(item.from);
+    // Listing URLs are already wire-safe routes. Keep them opaque so legacy
+    // non-UTF-8 bytes (for example `%D6%D0`) are sent to the backend once;
+    // re-encoding here would turn `%D6` into `%25D6` and target a different
+    // filename. Canonical paths still go through the normal encoder.
+    const from =
+      item.from === "/files" || item.from.startsWith("/files/")
+        ? item.from.replace(/\/+$/, "") || "/files"
+        : urlUtils.encodeResourceRoute(item.from);
     const destinationPath = urlUtils.canonicalResourcePath(item.to ?? "");
     const to = encodeURIComponent(destinationPath);
     const finalOverwrite =

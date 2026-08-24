@@ -21,6 +21,19 @@ describe("侧边栏分组交互契约", () => {
     expect(sidebarSource).not.toContain("navigateCategoryFirst");
   });
 
+  it("分组展开使用独立语义按钮，不能把删除等操作按钮嵌套在按钮内部", () => {
+    const headerSource = readSource(
+      "components/sidebar/SidebarGroupHeader.vue"
+    );
+
+    expect(headerSource).toContain('class="sidebar-group-toggle"');
+    expect(headerSource).toContain('type="button"');
+    expect(headerSource).not.toContain('role="button"');
+    expect(headerSource).not.toContain('tabindex="0"');
+    expect(headerSource).toContain(':aria-expanded="expanded"');
+    expect(headerSource).toContain("@click=\"$emit('toggle')\"");
+  });
+
   it("收藏夹分组和目录分类保持相同的单行五列布局", () => {
     const headerSource = readSource(
       "components/sidebar/SidebarGroupHeader.vue"

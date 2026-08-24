@@ -1,14 +1,12 @@
 <template>
-  <div
-    class="sidebar-group-header sidebar-level-two"
-    role="button"
-    tabindex="0"
-    :aria-expanded="expanded"
-    :aria-label="expanded ? `收起${label}` : `展开${label}`"
-    @click="$emit('toggle')"
-    @keydown.enter.prevent="$emit('toggle')"
-    @keydown.space.prevent="$emit('toggle')"
-  >
+  <div class="sidebar-group-header sidebar-level-two">
+    <button
+      class="sidebar-group-toggle"
+      type="button"
+      :aria-expanded="expanded"
+      :aria-label="expanded ? `收起${label}` : `展开${label}`"
+      @click="$emit('toggle')"
+    ></button>
     <AppIcon
       class="favorite-group-icon"
       :name="appIcon ?? resolveCategoryIcon(icon)"

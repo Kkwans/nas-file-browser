@@ -73,7 +73,7 @@ describe("media loading contract", () => {
     expect(imageSource).toContain("clearPlaceholderTimer");
     expect(imageSource).toContain("PLACEHOLDER_MAX_WAIT_MS");
     expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS");
-    expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS = 4000");
+    expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS = 1200");
     expect(imageSource).toContain("startRawImageFallback");
     expect(imageSource).toContain("placeholderFailed");
     expect(imageSource).toContain("placeholderIsFull");

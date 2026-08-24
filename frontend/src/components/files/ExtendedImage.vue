@@ -241,11 +241,11 @@ const PLACEHOLDER_MAX_WAIT_MS = 650;
 // scaled preview responds. Falling back to the inline original keeps the
 // viewer responsive while preserving the scaled-preview path when it wins.
 // The thumbnail and the 1080px preview share the single-image queue on the
-// NAS. Give the thumbnail enough time to finish before falling back to the
-// original, otherwise a slow thumbnail and a multi-megapixel raw decode can
-// compete for the same first paint. Once the thumbnail wins, this timer is
-// cleared and the scaled preview is allowed to finish in the background.
-const RAW_IMAGE_FALLBACK_DELAY_MS = 4000;
+// NAS. Give the thumbnail a bounded head start, then use the original when a
+// cold decode is still queued. The raw JPEG is typically available in well
+// under a second on the NAS, so this keeps the viewer responsive without
+// removing the real thumbnail path for normal requests.
+const RAW_IMAGE_FALLBACK_DELAY_MS = 1200;
 
 const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 

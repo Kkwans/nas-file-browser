@@ -32,7 +32,11 @@
         @start="startScan"
       />
 
-      <section v-if="currentTask" class="analysis-task-card" aria-live="polite">
+      <section
+        v-if="currentTask && !report && !storageReport"
+        class="analysis-task-card"
+        aria-live="polite"
+      >
         <div class="analysis-task-icon" :class="`is-${currentTask.status}`">
           <AppIcon :name="taskIcon" :size="23" />
         </div>

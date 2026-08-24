@@ -218,8 +218,15 @@ func TestLargeJPEGThumbnailsPreferNativeImagePipeline(t *testing.T) {
 	if !shouldPreferNativeImagePreview(largeJPEG, PreviewSizeThumb) {
 		t.Fatal("large JPEG thumbnails should prefer the native image pipeline")
 	}
-	if shouldPreferNativeImagePreview(largeJPEG, PreviewSizeBig) {
-		t.Fatal("large JPEG big previews should keep the FFmpeg path")
+	if !shouldPreferNativeImagePreview(largeJPEG, PreviewSizeBig) {
+		t.Fatal("moderate large JPEG big previews should prefer the native image pipeline")
+	}
+	oversizedJPEG := &files.FileInfo{
+		Extension: ".jpg",
+		Size:      nativeImagePreviewMaxBytes + 1,
+	}
+	if shouldPreferNativeImagePreview(oversizedJPEG, PreviewSizeBig) {
+		t.Fatal("oversized JPEG big previews should keep the bounded FFmpeg path")
 	}
 }
 

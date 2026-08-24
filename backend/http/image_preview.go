@@ -13,10 +13,13 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/img"
 )
 
-// Large JPEGs are expensive to fully decode in the Go image pipeline on the
-// NAS ARM CPU. FFmpeg already ships in the runtime image and can scale these
-// files without changing the public preview URL or cache contract.
+// Large JPEGs use a bounded native-first policy. The native Go pipeline can
+// reuse an embedded EXIF thumbnail and avoids starting a new FFmpeg process;
+// that matters on the NAS ARM CPU where process startup and a second decoder
+// can make a viewer wait several seconds. Very large files remain on the
+// FFmpeg path to keep peak Go decoder memory bounded.
 const ffmpegImagePreviewMinBytes = 4 * 1024 * 1024
+const nativeImagePreviewMaxBytes = 16 * 1024 * 1024
 
 type ffmpegImagePreviewService struct {
 	workers chan struct{}
@@ -116,7 +119,13 @@ func shouldUseFFmpegImagePreview(file *files.FileInfo, size PreviewSize) bool {
 }
 
 func shouldPreferNativeImagePreview(file *files.FileInfo, size PreviewSize) bool {
-	return size == PreviewSizeThumb && shouldUseFFmpegImagePreview(file, size)
+	if !shouldUseFFmpegImagePreview(file, size) {
+		return false
+	}
+	if size == PreviewSizeThumb {
+		return true
+	}
+	return size == PreviewSizeBig && file.Size <= nativeImagePreviewMaxBytes
 }
 
 // A full-size preview is requested immediately after the real thumbnail in

@@ -297,10 +297,10 @@ func createImagePreview(
 	previewSize PreviewSize,
 ) ([]byte, error) {
 	if shouldPreferNativeImagePreview(file, previewSize) {
-		// The existing Go pipeline can reuse an EXIF-embedded JPEG thumbnail
-		// without decoding the full source. Prefer it for listing/placeholder
-		// thumbnails; keep FFmpeg as a safe fallback for malformed metadata or
-		// JPEGs that do not contain a usable embedded thumbnail.
+		// The Go pipeline can reuse an EXIF-embedded JPEG thumbnail without
+		// decoding the full source. Prefer it for listing thumbnails and
+		// moderate-size viewer previews; keep FFmpeg as a safe fallback for
+		// malformed metadata or JPEGs without a usable embedded thumbnail.
 		generated, err := createPreview(ctx, imgSvc, fileCache, file, previewSize)
 		if err == nil {
 			return generated, nil

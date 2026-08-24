@@ -127,7 +127,7 @@
         </div>
         <p>{{ compatibilityCopy.description }}</p>
         <p
-          v-if="compatibilityProgressSummary"
+          v-if="compatibilityProgressSummary && !compatibilityProgressVisible"
           class="media-compatibility-card__progress"
         >
           {{ compatibilityProgressSummary }}；

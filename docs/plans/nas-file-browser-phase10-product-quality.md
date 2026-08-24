@@ -371,3 +371,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - NAS 本机发布：r28 Compose 提交 `8bd06ee9`（CI `32624626994` success）、r29 Compose 提交 `08037c46`（CI `32625404351` success）、r30 Compose 提交 `ac937b1b`（CI `32625861147`、Docs `32625861192` success）。三个版本均只重建 `filebrowser` 服务，r27 及中间版本保留作回滚；r30 容器最终 `running/healthy`，本机 HTTP `200`。
 - NAS 本机 Playwright 报告 `/tmp/nfb-video-r28-preflight.json` 证明 r28 超时后仍发出原视频请求，作为失败证据；r29 报告 `/tmp/nfb-video-r29-preflight.json` 已无原视频请求但短暂显示“任务状态错误”文案；r30 报告 `/tmp/nfb-video-r30b-preflight.json` 最终显示“暂时无法确认是否可直接播放”，视频元素保持 `readyState=0`、`networkState=0`、`src` 为空，只有 `/api/media/info` 请求且没有 `/api/raw` 请求，控制台错误 `0`。截图 `/tmp/nfb-video-r30b-preflight.png` 显示四个操作按统一底部操作区排列。
 - 当前结论：已阻止不支持/无法确认的 MP4 在用户未确认时自动读取大块原视频，兼容播放仍为显式 HLS 任务；尚未承诺所有 MKV/MOV 无转码原生播放，下一步应以浏览器实际 `canPlayType`、服务端编码信息和首帧可用性为依据，按格式逐项验证。
+
+### 2026-08-24 r84 编码探测未知保护与本机真实验收
+
+- 根因：r83 的编码预检在超时或网络失败时返回允许，随后自动绑定 `/api/raw`；探测未知会重新触发大文件读取和浏览器失败，仍可能表现为卡住或卡死。
+- 修复：`VideoPlayer.vue` 将预检结果改为 `allowed | blocked | unknown` 三态。`unknown` 保持源脱离，展示“暂时无法确认是否可直接播放”，只允许用户主动尝试原视频或启动兼容播放；路径切换也复用同一保护。新增契约测试覆盖未知分支。
+- 验证：旧实现先运行契约测试为 `1 failed / 6 passed`；修复后目标 ESLint `--max-warnings=0`、typecheck、Frontend Vitest `93 files / 341 tests`、production build 均通过。源码提交 `89d09df6`、部署提交 `dda296a5` 已推送；CI `32707667739`、Docs `32707667721` 以及部署 CI `32708252336`、Docs `32708252227` 均成功。
+- 发布：本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-video-preflight-r84`，摘要 `sha256:a381281114f6e46b71f3cd5813b1a6f1d7cbb3bcef91545c7fc4af9b00c94460`；只重建 `filebrowser`，容器 `running/healthy`，`/health` HTTP `200`，r83 保留作回滚。
+- NAS 本机 Playwright 实测（1440×900）：人为延迟 `/api/media/info` 3.5 秒时，只产生 1 个探测请求，未产生 `/api/raw`，视频 `currentSrc=""`、`readyState=0`，页面显示“编码探测超时，已停止自动读取原视频”，控制台/页面错误 `0`。真实 H.264/AAC MKV 和 MOV 点击“启动兼容播放”后均进入缓存 WebM，完整时长分别约 `60.101s`、`20.042s`，可拖动到约 `60%` 且 seekable 覆盖完整时长，运行时错误 `0`。
+- 当前结论：MKV/MOV 仍不能对所有浏览器和编码承诺无转码原生播放；当前可靠路径是浏览器明确支持时尝试原生，否则用户主动触发复用/重封装/转码兼容播放，并且在探测不确定时绝不自动读取原视频。

@@ -1233,3 +1233,22 @@ nav.sidebar .sidebar-rail-action > .app-icon {
 nav.sidebar .sidebar-section-header .section-toggle {
   font-size: 0.9375rem;
 }
+
+/* Mobile touch contract: the remove action is visually a quiet minus, but
+ * its keyboard/touch hit area must remain at least 44px. Widen only the
+ * trailing grid column so the favorite label and icon keep their alignment. */
+@media (max-width: 736px) {
+  nav.sidebar .favorite-item {
+    grid-template-columns:
+      var(--sidebar-level-two-icon-column) minmax(0, 1fr) 2.75rem;
+    min-height: 44px;
+  }
+
+  nav.sidebar .favorite-item > .favorite-remove {
+    flex-basis: 2.75rem;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 44px;
+    min-height: 44px;
+  }
+}

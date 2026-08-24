@@ -1570,6 +1570,7 @@
   }
 
   .activity-switcher a {
+    min-height: 44px;
     justify-content: center;
   }
 

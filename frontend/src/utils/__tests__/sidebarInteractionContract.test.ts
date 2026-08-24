@@ -177,6 +177,9 @@ describe("侧边栏分组交互契约", () => {
     expect(cssSource).toMatch(
       /nav\.sidebar \.favorite-remove > \.app-icon\s*\{[^}]*width:\s*1rem;[^}]*height:\s*1rem;/s
     );
+    expect(cssSource).toMatch(
+      /@media \(max-width: 736px\)[\s\S]*?nav\.sidebar \.favorite-item\s*\{[^}]*min-height:\s*44px;[\s\S]*?nav\.sidebar \.favorite-item > \.favorite-remove\s*\{[^}]*height:\s*44px;/
+    );
   });
 
   it("收藏与标签的落点线绘制在条目内部，避免被圆角容器裁掉", () => {

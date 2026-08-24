@@ -42,6 +42,17 @@ describe("activity page UI contract", () => {
     expect(css).toContain(".activity-header-action:disabled");
   });
 
+  it("手机端任务与历史切换保持 44px 触控高度", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /@media \(max-width: 520px\)[\s\S]*?\.activity-switcher a\s*\{[^}]*min-height:\s*44px;/
+    );
+  });
+
   it("用告警和停止语义区分失败与取消，避免状态列表堆叠巨大的叉号", () => {
     expect(tasksSource).toContain('failed: "circle-alert"');
     expect(tasksSource).toContain('canceled: "circle-stop"');

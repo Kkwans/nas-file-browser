@@ -1306,6 +1306,15 @@ nav.sidebar .favorite-item.drag-over-bottom {
     font-size: 12px;
   }
 
+  /* Keep breadcrumb links easy to tap without changing the compact visual
+   * rhythm of the bar. The label remains vertically centred inside the
+   * larger hit area. */
+  .breadcrumbs > a,
+  .breadcrumbs > span > a {
+    min-height: 44px;
+    justify-content: center;
+  }
+
   header > .header-trailing #dropdown {
     position: fixed;
     display: block;

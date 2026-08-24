@@ -393,22 +393,25 @@ async function initVideoPlayer() {
       !supportsH264CompatibilityPlayback();
     if (needsCodecPreflight) {
       progressMessage.value = "正在检查视频编码…";
+      // Build the player shell immediately, but keep the source detached
+      // until the metadata probe decides whether this browser can decode it.
+      // This keeps controls and status feedback visible during a slow NAS
+      // ffprobe instead of leaving a blank preview area.
+      sourceAttached.value = false;
+      videoLoadState.value = "idle";
     }
     const preflightPromise = needsCodecPreflight
       ? preflightDirectPlayback(initialPath)
       : Promise.resolve(false);
     const lang = document.documentElement.lang;
-    const [languagePack, preflightBlocked] = await Promise.all([
-      (languageImports[lang] || languageImports.en)?.(),
-      preflightPromise,
-    ]);
+    const languagePack = await (
+      languageImports[lang] || languageImports.en
+    )?.();
     if (disposed || !videoPlayer.value || props.path !== initialPath) return;
-    if (needsCodecPreflight) progressMessage.value = "";
-    if (preflightBlocked) markDirectPlaybackPreflightBlocked();
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);
     const initialSource =
-      isKnownIncompatibleVideo(props.path) || preflightBlocked
+      isKnownIncompatibleVideo(props.path) || needsCodecPreflight
         ? {}
         : {
             sources: {
@@ -434,7 +437,15 @@ async function initVideoPlayer() {
     player.value.on("stalled", onVideoWaiting);
     player.value.on("playing", onPlayerPlaying);
     if (sourceAttached.value) beginVideoLoading();
-    await restorePlayback(props.path);
+    const playbackPromise = restorePlayback(props.path);
+    if (needsCodecPreflight) {
+      const preflightBlocked = await preflightPromise;
+      if (disposed || !videoPlayer.value || props.path !== initialPath) return;
+      progressMessage.value = "";
+      if (preflightBlocked) markDirectPlaybackPreflightBlocked();
+      else attachDirectSource(initialPath, props.source);
+    }
+    await playbackPromise;
   } catch (error) {
     console.error("Error initializing video player:", error);
     showProgressMessage("视频播放器初始化失败");

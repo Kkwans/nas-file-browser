@@ -73,7 +73,7 @@ describe("media loading contract", () => {
     expect(imageSource).toContain("clearPlaceholderTimer");
     expect(imageSource).toContain("PLACEHOLDER_MAX_WAIT_MS");
     expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS");
-    expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS = 5000");
+    expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS = 2000");
     expect(imageSource).toContain("startRawImageFallback");
     expect(imageSource).toContain("placeholderFailed");
     expect(imageSource).toContain("placeholderIsFull");
@@ -112,6 +112,14 @@ describe("media loading contract", () => {
     expect(previewSource).toContain(
       'api.getPreviewURL(fileStore.req, "thumb")'
     );
+  });
+
+  it("缩略图就绪后大图仍迟迟未完成时才回退原文件", () => {
+    expect(imageSource).toContain("fullFallbackTimer");
+    expect(imageSource).toContain("armRawImageFallback");
+    expect(imageSource).toContain("clearFullFallbackTimer");
+    expect(imageSource).toContain("startRawImageFallback(token)");
+    expect(imageSource).toContain("fullLoadStarted.value");
   });
 
   it("uses a real server poster only for directly playable videos", () => {

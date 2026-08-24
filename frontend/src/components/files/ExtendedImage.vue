@@ -233,6 +233,7 @@ let tiffRequest: XMLHttpRequest | null = null;
 let loadToken = 0;
 let loadTimeout: number | null = null;
 let placeholderTimer: number | null = null;
+let fullFallbackTimer: number | null = null;
 const IMAGE_LOAD_TIMEOUT_MS = 30_000;
 // Give the real thumbnail a short head start so the first paint does not wait
 // behind the much more expensive 1080px preview on the single-image queue.
@@ -242,7 +243,7 @@ const PLACEHOLDER_MAX_WAIT_MS = 650;
 // with a huge original: downloading and decoding a 10K JPEG at the same time
 // can starve the thumbnail worker and make the first useful paint slower.
 // Keep a bounded raw fallback for a genuinely stalled preview service.
-const RAW_IMAGE_FALLBACK_DELAY_MS = 5000;
+const RAW_IMAGE_FALLBACK_DELAY_MS = 2000;
 
 const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 
@@ -332,6 +333,7 @@ const cancelImageLoad = () => {
     window.clearTimeout(placeholderTimer);
     placeholderTimer = null;
   }
+  clearFullFallbackTimer();
   if (loadTimeout !== null) {
     window.clearTimeout(loadTimeout);
     loadTimeout = null;
@@ -361,6 +363,34 @@ const clearPlaceholderTimer = () => {
     window.clearTimeout(placeholderTimer);
     placeholderTimer = null;
   }
+};
+
+const clearFullFallbackTimer = () => {
+  if (fullFallbackTimer !== null) {
+    window.clearTimeout(fullFallbackTimer);
+    fullFallbackTimer = null;
+  }
+};
+
+const armRawImageFallback = (token: number) => {
+  if (
+    !props.deferFullUntilPlaceholder ||
+    props.placeholderIsFull ||
+    !props.directSrc
+  ) {
+    return;
+  }
+  clearFullFallbackTimer();
+  fullFallbackTimer = window.setTimeout(() => {
+    fullFallbackTimer = null;
+    if (
+      token === loadToken &&
+      imageStatus.value === "loading" &&
+      fullLoadStarted.value
+    ) {
+      startRawImageFallback(token);
+    }
+  }, RAW_IMAGE_FALLBACK_DELAY_MS);
 };
 
 const sourceExtension = () =>
@@ -411,6 +441,7 @@ const startFullImageLoad = (token: number) => {
   armLoadTimeout(token);
   if (!props.placeholderIsFull && !decodeUTIF(token)) {
     imgex.value.src = props.src;
+    armRawImageFallback(token);
   } else if (props.placeholderIsFull) {
     // The warm thumbnail response is the same 1080px JPEG used by the
     // viewer. Reuse that URL so promotion is satisfied from the browser
@@ -429,6 +460,7 @@ const startRawImageFallback = (token: number) => {
   ) {
     return;
   }
+  clearFullFallbackTimer();
   // A slow full preview may already have started after the thumbnail loaded.
   // Abort that request before falling back to the original so two large image
   // responses never compete for the same viewer.
@@ -511,6 +543,7 @@ const failImageLoad = (token = loadToken) => {
     window.clearTimeout(placeholderTimer);
     placeholderTimer = null;
   }
+  clearFullFallbackTimer();
   placeholderFailed.value = true;
   if (tiffRequest) {
     const request = tiffRequest;
@@ -541,6 +574,7 @@ const onLoad = () => {
     window.clearTimeout(placeholderTimer);
     placeholderTimer = null;
   }
+  clearFullFallbackTimer();
   placeholderFailed.value = false;
   imageStatus.value = "ready";
   emit("ready");

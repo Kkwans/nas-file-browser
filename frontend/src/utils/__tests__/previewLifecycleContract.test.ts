@@ -126,7 +126,7 @@ describe("媒体预览生命周期契约", () => {
       ),
       "utf8"
     );
-    expect(imageSource).toContain("const RAW_IMAGE_FALLBACK_DELAY_MS = 5000;");
+    expect(imageSource).toContain("const RAW_IMAGE_FALLBACK_DELAY_MS = 2000;");
     expect(imageSource).toContain("Let the real thumbnail finish");
   });
 });

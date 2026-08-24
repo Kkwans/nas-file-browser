@@ -76,9 +76,13 @@ describe("media loading contract", () => {
     expect(imageSource).toContain("startRawImageFallback");
     expect(imageSource).toContain("placeholderFailed");
     expect(imageSource).toContain("placeholderIsFull");
+    expect(imageSource).toContain("deferFullUntilPlaceholder");
     expect(previewSource).toContain("if (isLargeJpegPreview.value)");
     expect(previewSource).toContain(
       'return api.getPreviewURL(fileStore.req, "thumb");'
+    );
+    expect(previewSource).toContain(
+      ':defer-full-until-placeholder="isLargeJpegPreview"'
     );
     expect(previewSource).not.toContain(
       ':placeholder-is-full="isLargeJpegPreview"'

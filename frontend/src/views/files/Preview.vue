@@ -130,6 +130,7 @@
           v-else-if="fileStore.req?.type == 'image'"
           :src="previewUrl"
           :placeholder-src="imagePlaceholderUrl"
+          :defer-full-until-placeholder="isLargeJpegPreview"
           :fallback-placeholder-src="imageFallbackPlaceholderUrl"
           :fileName="name"
           :fileSizeBytes="fileStore.req?.size || 0"

@@ -172,6 +172,8 @@ interface IProps {
   placeholderSrc?: string;
   /** The placeholder URL already contains the full preview bytes. */
   placeholderIsFull?: boolean;
+  /** Wait for a real thumbnail before starting the expensive full preview. */
+  deferFullUntilPlaceholder?: boolean;
   /** A lightweight thumbnail to keep visible while the original is loading. */
   fallbackPlaceholderSrc?: string;
   directSrc?: string;
@@ -186,6 +188,7 @@ const props = withDefaults(defineProps<IProps>(), {
   fileSizeBytes: () => 0,
   placeholderSrc: () => "",
   placeholderIsFull: false,
+  deferFullUntilPlaceholder: false,
   fallbackPlaceholderSrc: () => "",
   directSrc: () => "",
   downloadSrc: () => "",
@@ -414,12 +417,20 @@ const startFullImageLoad = (token: number) => {
 const startRawImageFallback = (token: number) => {
   if (
     token !== loadToken ||
-    fullLoadStarted.value ||
     imageStatus.value !== "loading" ||
     imgex.value === null ||
-    !props.placeholderIsFull
+    !props.directSrc ||
+    (!props.placeholderIsFull && !props.deferFullUntilPlaceholder)
   ) {
     return;
+  }
+  // A slow full preview may already have started after the thumbnail loaded.
+  // Abort that request before falling back to the original so two large image
+  // responses never compete for the same viewer.
+  if (fullLoadStarted.value) imgex.value.removeAttribute("src");
+  if (placeholderTimer !== null) {
+    window.clearTimeout(placeholderTimer);
+    placeholderTimer = null;
   }
   fullLoadStarted.value = true;
   armLoadTimeout(token);
@@ -451,7 +462,7 @@ const onPlaceholderError = () => {
     placeholderFailed.value = true;
     return;
   }
-  if (props.placeholderIsFull) {
+  if (props.placeholderIsFull || props.deferFullUntilPlaceholder) {
     startRawImageFallback(loadToken);
     return;
   }
@@ -468,13 +479,15 @@ const loadImage = () => {
     placeholderTimer = window.setTimeout(
       () => {
         placeholderTimer = null;
-        if (props.placeholderIsFull && props.directSrc) {
+        if (props.deferFullUntilPlaceholder && props.directSrc) {
+          startRawImageFallback(token);
+        } else if (props.placeholderIsFull && props.directSrc) {
           startRawImageFallback(token);
         } else {
           startFullImageLoad(token);
         }
       },
-      props.placeholderIsFull
+      props.placeholderIsFull || props.deferFullUntilPlaceholder
         ? RAW_IMAGE_FALLBACK_DELAY_MS
         : PLACEHOLDER_MAX_WAIT_MS
     );

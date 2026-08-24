@@ -112,6 +112,20 @@ describe("桌面侧边栏图标轨契约", () => {
     ).not.toBeNull();
   });
 
+  it("侧栏辅助文字不低于可读的字号层级", () => {
+    const cssSource = readSource("css/sidebar-refinement.css");
+
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.favorite-path\s*\{[^}]*font-size:\s*0\.6875rem;[^}]*line-height:\s*1\.25;/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.volume-usage\s*\{[^}]*font-size:\s*0\.6875rem;[^}]*font-variant-numeric:\s*tabular-nums;/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar > \.credits:last-child\s*\{[^}]*font-size:\s*0\.6875rem;[^}]*line-height:\s*1\.4;/s
+    );
+  });
+
   it("移动端保持完整抽屉并关闭桌面图标轨", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSource("css/sidebar-refinement.css");

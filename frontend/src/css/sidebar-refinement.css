@@ -1261,6 +1261,29 @@ nav.sidebar .sidebar-section-header .section-toggle {
   font-size: 0.9375rem;
 }
 
+/* 2026-08-25: secondary sidebar copy must remain readable at the normal
+ * 256px desktop width. Keep the primary labels unchanged, but raise the
+ * path, capacity and footer text above the old 9–10px optical floor. The
+ * capacity value remains a flex-shrink-safe trailing label so the progress
+ * bar gives up space before the text becomes unreadable. */
+nav.sidebar .favorite-path {
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  opacity: 0.9;
+}
+
+nav.sidebar .volume-usage {
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  opacity: 0.78;
+  font-variant-numeric: tabular-nums;
+}
+
+nav.sidebar > .credits:last-child {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
 /* Mobile touch contract: the remove action is visually a quiet minus, but
  * its keyboard/touch hit area must remain at least 44px. Widen only the
  * trailing grid column so the favorite label and icon keep their alignment. */

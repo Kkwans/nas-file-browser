@@ -122,8 +122,12 @@
               <AppIcon :name="itemIcon(item)" :size="24" />
             </div>
             <div class="trash-file-copy">
-              <strong :title="item.name">{{ item.name }}</strong>
-              <span :title="item.originalPath">{{ item.originalPath }}</span>
+              <strong :title="displayPath(item.name)">{{
+                displayPath(item.name)
+              }}</strong>
+              <span :title="displayPath(item.originalPath)">{{
+                displayPath(item.originalPath)
+              }}</span>
               <small v-if="item.error" class="trash-item-error">
                 <AppIcon name="circle-alert" :size="14" />
                 {{ item.error }}
@@ -205,7 +209,7 @@
           <AppIcon name="copy" :size="22" />
           <div>
             <h2 id="trash-conflict-title">原位置已有同名项目</h2>
-            <p>{{ conflictItem.originalPath }}</p>
+            <p>{{ displayPath(conflictItem.originalPath) }}</p>
           </div>
         </div>
         <div class="trash-conflict-options">
@@ -260,6 +264,7 @@ import AppIcon from "@/components/ui/AppIcon.vue";
 import { filesize } from "@/utils";
 import { getResourceIconName } from "@/utils/fileIcons";
 import type { AppIconName } from "@/components/ui/iconRegistry";
+import { displayPath } from "@/utils/displayPath";
 
 const authStore = useAuthStore();
 const trashStore = useTrashStore();
@@ -307,7 +312,7 @@ async function restoreItem(item: TrashItem, conflict: TrashConflict = "fail") {
     $showSuccess(
       result.path === item.originalPath
         ? "文件已恢复"
-        : `已恢复为 ${result.path}`
+        : `已恢复为 ${displayPath(result.path)}`
     );
   } catch (error) {
     if (

@@ -744,11 +744,7 @@ onBeforeUnmount(() => {
 .analysis-page {
   min-height: 100vh;
   color: var(--textSecondary);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surfaceSecondary) 52%, var(--background)),
-    var(--background) 34rem
-  );
+  background: var(--background);
 }
 
 .analysis-header-title,
@@ -808,9 +804,9 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1200px, calc(100% - 48px));
+  width: min(1180px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 20px 0 60px;
+  padding: 18px 0 48px;
 }
 
 .analysis-readonly-chip {
@@ -828,7 +824,7 @@ onBeforeUnmount(() => {
 .analysis-error {
   margin-top: 14px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
 }
 
@@ -991,7 +987,7 @@ onBeforeUnmount(() => {
 }
 
 .analysis-results-heading {
-  margin-top: 24px;
+  margin-top: 28px;
 }
 
 .analysis-readonly-chip {
@@ -1008,9 +1004,9 @@ onBeforeUnmount(() => {
 .analysis-summary-grid article {
   display: grid;
   gap: 6px;
-  padding: 17px 18px;
+  padding: 15px 17px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
 }
 
@@ -1022,7 +1018,7 @@ onBeforeUnmount(() => {
 
 .analysis-summary-grid strong {
   color: var(--textSecondary);
-  font-size: 29px;
+  font-size: 27px;
   letter-spacing: -0.03em;
 }
 

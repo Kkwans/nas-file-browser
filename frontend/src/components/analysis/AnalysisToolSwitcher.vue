@@ -41,9 +41,13 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 4px;
   width: 100%;
   max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
+  background: var(--surfaceSecondary);
   box-sizing: border-box;
   overflow: visible;
 }
@@ -52,14 +56,14 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   display: grid;
   position: relative;
   grid-template-columns: 34px minmax(0, 1fr);
-  min-height: 58px;
+  min-height: 54px;
   align-items: center;
   gap: 11px;
-  padding: 8px 16px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
   color: var(--textPrimary);
-  background: var(--surfacePrimary);
+  background: transparent;
   cursor: pointer;
   text-align: left;
   transition:
@@ -70,7 +74,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 }
 
 .analysis-tool-switcher button:hover {
-  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
 }
 
 .analysis-tool-switcher button:focus-visible {
@@ -80,20 +84,9 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher button.is-active {
   color: var(--blue);
-  border-color: color-mix(in srgb, var(--blue) 42%, var(--borderPrimary));
-  background: color-mix(in srgb, var(--blue) 6%, var(--surfacePrimary));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 18%, transparent);
-}
-
-.analysis-tool-switcher button.is-active::after {
-  position: absolute;
-  bottom: 8px;
-  left: 16px;
-  width: 24px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--blue);
-  content: "";
+  border-color: color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
+  background: var(--surfacePrimary);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
 }
 
 .analysis-tool-switcher__icon {
@@ -102,7 +95,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   height: 34px;
   place-items: center;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   color: currentColor;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
@@ -136,7 +129,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
   .analysis-tool-switcher button {
     grid-template-columns: 34px minmax(0, 1fr);
-    min-height: 58px;
+    min-height: 52px;
     gap: 10px;
     padding-inline: 12px;
   }
@@ -152,12 +145,6 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
   .analysis-tool-switcher small {
     font-size: 10px;
-  }
-
-  .analysis-tool-switcher button.is-active::after {
-    bottom: 7px;
-    left: 12px;
-    width: 22px;
   }
 }
 

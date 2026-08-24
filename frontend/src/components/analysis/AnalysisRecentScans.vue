@@ -169,13 +169,12 @@ function formatTime(value: number) {
 
 <style scoped>
 .analysis-recent {
-  margin-top: 16px;
+  margin-top: 14px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
-  box-shadow: 0 5px 18px
-    color-mix(in srgb, var(--textSecondary) 5%, transparent);
+  box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
 }
 
 .analysis-recent__header {
@@ -183,9 +182,9 @@ function formatTime(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 14px 18px;
+  padding: 13px 16px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: color-mix(in srgb, var(--surfaceSecondary) 28%, transparent);
+  background: var(--surfacePrimary);
 }
 
 .analysis-recent__header-icon {
@@ -250,11 +249,11 @@ function formatTime(value: number) {
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) minmax(228px, auto);
+  grid-template-columns: 40px minmax(0, 1fr) minmax(238px, auto);
   align-items: center;
-  gap: 14px;
-  min-height: 82px;
-  padding: 11px 18px;
+  gap: 16px;
+  min-height: 76px;
+  padding: 10px 16px;
   transition: background-color 120ms ease;
 }
 
@@ -268,8 +267,8 @@ function formatTime(value: number) {
 
 .analysis-recent__tool {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   place-items: center;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 11px;
@@ -305,12 +304,25 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__headline > span {
-  padding: 4px 8px;
-  border-radius: 6px;
+  position: relative;
+  padding: 0 0 0 11px;
+  border-radius: 0;
   color: var(--textPrimary);
-  background: var(--surfaceSecondary);
+  background: transparent;
   font-size: 12px;
   font-weight: 700;
+}
+
+.analysis-recent__headline > span::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+  transform: translateY(-50%);
 }
 
 .analysis-recent__headline > span.is-completed {
@@ -339,6 +351,8 @@ function formatTime(value: number) {
   display: grid;
   min-width: 0;
   gap: 3px;
+  justify-items: end;
+  text-align: right;
 }
 
 .analysis-recent__time-label {
@@ -374,28 +388,26 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__side {
-  display: grid;
-  grid-template-columns: minmax(124px, auto) 108px;
+  display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: flex-end;
+  gap: 16px;
   min-width: 0;
-  padding-left: 16px;
-  border-left: 1px solid var(--borderPrimary);
 }
 
 .analysis-recent__action {
   display: inline-flex;
-  width: 108px;
+  width: auto;
   box-sizing: border-box;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 11px;
-  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--borderPrimary));
-  border-radius: 9px;
+  padding: 0 4px 0 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+  background: transparent;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -407,8 +419,8 @@ function formatTime(value: number) {
 .analysis-recent__header button:hover,
 .analysis-recent__header button:focus-visible {
   outline: none;
-  border-color: color-mix(in srgb, var(--blue) 38%, var(--borderPrimary));
-  background: color-mix(in srgb, var(--blue) 8%, var(--surfacePrimary));
+  border-color: color-mix(in srgb, var(--blue) 22%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 6%, var(--surfacePrimary));
 }
 
 .analysis-recent__action:focus-visible,
@@ -438,14 +450,13 @@ function formatTime(value: number) {
 
   .analysis-recent__side {
     grid-column: 2;
-    display: grid;
+    display: flex;
     grid-template-columns: minmax(0, 1fr) auto;
     min-width: 0;
     align-items: center;
     gap: 10px;
     padding: 8px 0 0;
     border-top: 1px solid var(--borderPrimary);
-    border-left: 0;
   }
 
   .analysis-recent__time-block {
@@ -453,7 +464,6 @@ function formatTime(value: number) {
   }
 
   .analysis-recent__action {
-    grid-column: auto;
     justify-self: auto;
     width: auto;
   }

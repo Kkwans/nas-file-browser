@@ -60,15 +60,7 @@ func (s *ffmpegImagePreviewService) create(
 
 	var output bytes.Buffer
 	var stderr bytes.Buffer
-	command := exec.CommandContext(ctx, ffmpegPath,
-		"-hide_banner", "-loglevel", "error",
-		"-i", file.RealPath(),
-		"-map", "0:v:0", "-frames:v", "1",
-		"-vf", filter,
-		"-threads", "1", "-filter_threads", "1",
-		"-q:v", quality,
-		"-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
-	)
+	command := exec.CommandContext(ctx, ffmpegPath, ffmpegImageArgs(file.RealPath(), filter, quality)...)
 	command.Stdout = &output
 	command.Stderr = &stderr
 	if err := command.Run(); err != nil {
@@ -81,6 +73,21 @@ func (s *ffmpegImagePreviewService) create(
 		return nil, fmt.Errorf("FFmpeg 未生成有效的图片预览")
 	}
 	return output.Bytes(), nil
+}
+
+func ffmpegImageArgs(source, filter, quality string) []string {
+	return []string{
+		"-hide_banner", "-loglevel", "error",
+		"-i", source,
+		"-map", "0:v:0", "-frames:v", "1",
+		"-vf", filter,
+		// Keep the global image worker at one task, but let the active FFmpeg
+		// process use two internal threads. On the NAS ARM host this avoids
+		// making a single cold thumbnail wait several seconds on one core.
+		"-threads", "2", "-filter_threads", "2",
+		"-q:v", quality,
+		"-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
+	}
 }
 
 func ffmpegImageFilter(size PreviewSize) (filter, quality string, err error) {

@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -220,6 +221,16 @@ func TestFFmpegImageFilterPreservesPreviewGeometry(t *testing.T) {
 	filter, quality, err = ffmpegImageFilter(PreviewSizeThumb)
 	if err != nil || filter != "scale=256:256:force_original_aspect_ratio=increase:flags=fast_bilinear,crop=256:256" || quality != "5" {
 		t.Fatalf("thumb filter = %q, quality = %q, error = %v", filter, quality, err)
+	}
+}
+
+func TestFFmpegImageArgsUseTwoInternalThreadsWithoutRaisingTaskConcurrency(t *testing.T) {
+	args := ffmpegImageArgs("/source.jpg", "scale=256:256", "5")
+	joined := strings.Join(args, "\x00")
+	for _, expected := range []string{"-threads\x002", "-filter_threads\x002"} {
+		if !strings.Contains(joined, expected) {
+			t.Fatalf("image preview args missing %q: %q", expected, joined)
+		}
 	}
 }
 

@@ -21,10 +21,12 @@ describe("媒体预览生命周期契约", () => {
     expect(filesViewSource).toContain("`${fileStore.req.path}:${mode}`");
   });
 
-  it("已知不兼容格式不会在用户选择前绑定原视频源", () => {
-    expect(videoPlayerSource).toContain("isKnownIncompatibleVideo(props.path)");
+  it("先尝试浏览器原生源，明确不支持时再展示兼容播放", () => {
     expect(videoPlayerSource).toContain("const initialSource");
-    expect(videoPlayerSource).toMatch(/\? \{\}\s+: \{/);
+    expect(videoPlayerSource).toContain("src: props.source");
+    expect(videoPlayerSource).toContain(
+      "getVideoSourceType(props.source, props.path)"
+    );
     expect(videoPlayerSource).not.toContain("<source />");
     expect(videoPlayerSource).toContain(
       "'media-video-stage--awaiting-source': !sourceAttached"
@@ -38,44 +40,17 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain(
       "const canTryDirectPlayback = computed("
     );
-    expect(videoPlayerSource).toContain("isKnownIncompatibleVideo(props.path)");
+    expect(videoPlayerSource).toContain("directPlaybackFailed.value");
     expect(videoPlayerSource).toContain("再次尝试原视频");
   });
 
-  it("当前浏览器无法解码 H.264 时先预检 MP4 编码，避免读取整段原视频后才失败", () => {
-    expect(videoPlayerSource).toContain("shouldPreflightVideoCodec");
-    expect(videoPlayerSource).toContain("getMediaInformation");
-    expect(videoPlayerSource).toContain("isDefinitelyUnsupportedVideoCodec");
-    expect(videoPlayerSource).toContain("preflightDirectPlayback");
-    expect(videoPlayerSource).toContain("directPlaybackPreflightBlocked");
+  it("兼容播放只在原生源明确报错后可选启动", () => {
     expect(videoPlayerSource).toContain(
-      "VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 900"
+      'player.value.on("error", onPlayerError)'
     );
-  });
-
-  it("对已知容器先按媒体编码判定，明确兼容的 VP9/Opus MKV 可原生播放", () => {
-    expect(videoPlayerSource).toContain("getNativeContainerPlayback");
-    expect(videoPlayerSource).toContain(
-      "const needsContainerPreflight = isKnownIncompatibleVideo(initialPath)"
-    );
-    expect(videoPlayerSource).toContain(
-      "needsContainerPreflight || needsCodecPreflight"
-    );
-    expect(videoPlayerSource).toMatch(
-      /getNativeContainerPlayback\(\s*path,\s*info\.videoCodec,\s*info\.audioCodec\s*\)/
-    );
-  });
-
-  it("编码探测未知时不自动读取原视频", () => {
-    expect(videoPlayerSource).toContain(
-      'type DirectPlaybackPreflight = "allowed" | "blocked" | "unknown";'
-    );
-    expect(videoPlayerSource).toContain('return "unknown";');
-    expect(videoPlayerSource).toContain('preflightResult === "unknown"');
-    expect(videoPlayerSource).toContain("markDirectPlaybackProbeBlocked()");
-    expect(videoPlayerSource).not.toContain(
-      "// A probe outage must not make otherwise playable MP4 files unusable."
-    );
+    expect(videoPlayerSource).toContain("directPlaybackFailed.value = true");
+    expect(videoPlayerSource).toContain("startHLSPlayback(");
+    expect(videoPlayerSource).not.toContain("preflightDirectPlayback");
   });
 
   it("兼容播放等待 HLS 可寻址范围后再恢复进度", () => {

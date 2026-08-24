@@ -245,12 +245,8 @@ import {
   type VideoGestureAxis,
 } from "@/utils/videoGestures";
 import {
-  getNativeContainerPlayback,
   getVideoSourceType,
-  isDefinitelyUnsupportedVideoCodec,
-  isKnownIncompatibleVideo,
   isPlaybackPositionSeekable,
-  shouldPreflightVideoCodec,
   supportsH264CompatibilityPlayback,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
@@ -289,15 +285,13 @@ const brightness = ref(1);
 const restoredPosition = ref(0);
 const resumeApplied = ref(false);
 const progressMessage = ref("");
-const compatibilityPanelOpen = ref(isKnownIncompatibleVideo(props.path));
+const compatibilityPanelOpen = ref(false);
 const compatibilityBusy = ref(false);
 const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
-const directPlaybackProbeBlocked = ref(false);
-const directPlaybackPreflightBlocked = ref(false);
 const hlsActive = ref(false);
-const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));
+const sourceAttached = ref(true);
 type VideoLoadState = "idle" | "loading" | "stalled" | "ready" | "error";
 const videoLoadState = ref<VideoLoadState>(
   sourceAttached.value ? "loading" : "idle"
@@ -330,12 +324,6 @@ let pendingResume: {
   waiting: boolean;
 } | null = null;
 const PLAYBACK_SAVE_INTERVAL_MS = 8_000;
-// A cold ffprobe on the NAS can occasionally wait on storage for several
-// seconds.  Do not make the player shell disappear for that whole interval:
-// after a short decision window we show the explicit compatibility action.
-// Browsers that advertise H.264 support skip this probe entirely.
-const VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 900;
-type DirectPlaybackPreflight = "allowed" | "blocked" | "unknown";
 let gesture:
   | {
       pointerId: number;
@@ -361,7 +349,7 @@ watch(
     posterSource.value = "";
     brightness.value = 1;
     suppressPersistenceUntil = 0;
-    resetCompatibility(nextPath);
+    resetCompatibility();
     player.value.pause();
     player.value.reset();
     void prepareDirectPlayback(nextPath, nextSource);
@@ -394,25 +382,6 @@ onBeforeUnmount(() => {
 async function initVideoPlayer() {
   try {
     const initialPath = props.path;
-    const needsContainerPreflight = isKnownIncompatibleVideo(initialPath);
-    const needsCodecPreflight =
-      shouldPreflightVideoCodec(initialPath) &&
-      !supportsH264CompatibilityPlayback();
-    const needsDirectPlaybackPreflight =
-      needsContainerPreflight || needsCodecPreflight;
-    if (needsDirectPlaybackPreflight) {
-      progressMessage.value = "正在检查视频编码…";
-      // Build the player shell immediately, but keep the source detached
-      // until the metadata probe decides whether this browser can decode it.
-      // This keeps controls and status feedback visible during a slow NAS
-      // ffprobe instead of leaving a blank preview area.
-      sourceAttached.value = false;
-      videoLoadState.value = "idle";
-    }
-    const preflightPromise: Promise<DirectPlaybackPreflight> =
-      needsDirectPlaybackPreflight
-        ? preflightDirectPlayback(initialPath)
-        : Promise.resolve("allowed");
     const lang = document.documentElement.lang;
     const code = languageImports[lang] ? lang : "en";
     // Do not make the first useful player frame wait for a locale chunk. The
@@ -423,14 +392,12 @@ async function initVideoPlayer() {
       ? languageImports[lang]?.()
       : Promise.resolve(null);
     if (disposed || !videoPlayer.value || props.path !== initialPath) return;
-    const initialSource = needsDirectPlaybackPreflight
-      ? {}
-      : {
-          sources: {
-            src: props.source,
-            type: getVideoSourceType(props.source, props.path),
-          },
-        };
+    const initialSource = {
+      sources: {
+        src: props.source,
+        type: getVideoSourceType(props.source, props.path),
+      },
+    };
     player.value = videojs(
       videoPlayer.value,
       getOptions(props.options, { language: code }, initialSource, {
@@ -467,18 +434,6 @@ async function initVideoPlayer() {
       });
     if (sourceAttached.value) beginVideoLoading();
     const playbackPromise = restorePlayback(props.path);
-    if (needsDirectPlaybackPreflight) {
-      const preflightResult = await preflightPromise;
-      if (disposed || !videoPlayer.value || props.path !== initialPath) return;
-      progressMessage.value = "";
-      if (preflightResult === "blocked") {
-        markDirectPlaybackPreflightBlocked();
-      } else if (preflightResult === "unknown") {
-        markDirectPlaybackProbeBlocked();
-      } else {
-        attachDirectSource(initialPath, props.source);
-      }
-    }
     await playbackPromise;
   } catch (error) {
     console.error("Error initializing video player:", error);
@@ -563,7 +518,6 @@ function applyPendingResume() {
 
 const compatibilityState = computed<HLSPlaybackState | "idle" | "error">(() => {
   if (compatibilityStatus.value) return compatibilityStatus.value.state;
-  if (directPlaybackProbeBlocked.value) return "idle";
   if (compatibilityNetworkError.value) return "error";
   return "idle";
 });
@@ -645,18 +599,11 @@ const compatibilityCopy = computed(() => {
     default:
       return {
         icon: "movie_filter",
-        title: directPlaybackPreflightBlocked.value
-          ? "浏览器不支持此视频编码"
-          : directPlaybackProbeBlocked.value
-            ? "暂时无法确认是否可直接播放"
-            : directPlaybackFailed.value
-              ? "当前格式无法直接播放"
-              : "此格式可能需要兼容播放",
-        description: directPlaybackPreflightBlocked.value
-          ? "已读取视频元数据，当前浏览器无法解码该编码；不会继续读取原视频，请启动兼容播放。"
-          : directPlaybackProbeBlocked.value
-            ? "编码探测超时，已停止自动读取原视频。你可以手动尝试原视频，或启动兼容播放。"
-            : "只有点击后才会处理：浏览器支持的轨道只重新封装，当前浏览器缺少 H.264 解码器时才转为 WebM；原文件不会修改，完整兼容文件生成后可拖动进度。",
+        title: directPlaybackFailed.value
+          ? "当前浏览器无法直接播放"
+          : "此格式可能需要兼容播放",
+        description:
+          "原视频已先尝试浏览器原生 Range 播放；只有浏览器明确不支持时才会处理。兼容文件生成后支持拖动进度，原文件不会修改。",
       };
   }
 });
@@ -724,19 +671,11 @@ const canActivateCompatibility = computed(
 
 const showCompatibilityFallbacks = computed(
   () =>
-    directPlaybackFailed.value ||
-    directPlaybackProbeBlocked.value ||
-    directPlaybackPreflightBlocked.value ||
-    compatibilityStatus.value?.state === "failed"
+    directPlaybackFailed.value || compatibilityStatus.value?.state === "failed"
 );
 
 const canTryDirectPlayback = computed(
-  () =>
-    !hlsActive.value &&
-    (isKnownIncompatibleVideo(props.path) ||
-      directPlaybackProbeBlocked.value ||
-      directPlaybackPreflightBlocked.value ||
-      directPlaybackFailed.value)
+  () => !hlsActive.value && directPlaybackFailed.value
 );
 
 const showCompatibilityBadge = computed(
@@ -798,89 +737,14 @@ function clearLoadStateTimer() {
   }
 }
 
-async function prepareDirectPlayback(path: string, source: string) {
-  const needsContainerPreflight = isKnownIncompatibleVideo(path);
-  const needsCodecPreflight =
-    shouldPreflightVideoCodec(path) && !supportsH264CompatibilityPlayback();
-  const needsDirectPlaybackPreflight =
-    needsContainerPreflight || needsCodecPreflight;
-  if (needsDirectPlaybackPreflight) {
-    sourceAttached.value = false;
-    setVideoLoadState("idle");
-    const preflightResult = await preflightDirectPlayback(path);
-    if (preflightResult === "blocked") {
-      markDirectPlaybackPreflightBlocked();
-      return;
-    }
-    if (preflightResult === "unknown") {
-      markDirectPlaybackProbeBlocked();
-      return;
-    }
-  }
+function prepareDirectPlayback(path: string, source: string) {
   attachDirectSource(path, source);
-}
-
-async function preflightDirectPlayback(
-  path: string
-): Promise<DirectPlaybackPreflight> {
-  const controller = new AbortController();
-  const timeout = window.setTimeout(
-    () => controller.abort(),
-    VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS
-  );
-  try {
-    const info = await mediaApi.getMediaInformation(
-      path,
-      false,
-      controller.signal
-    );
-    const containerSupport = getNativeContainerPlayback(
-      path,
-      info.videoCodec,
-      info.audioCodec
-    );
-    if (containerSupport === "supported") return "allowed";
-    if (containerSupport === "unsupported") return "blocked";
-    const codec = info.videoCodec?.trim().toLowerCase();
-    // The bundled Chromium has no proprietary H.264 decoder.  Once the
-    // inexpensive metadata probe confirms H.264 (or another codec known to
-    // be unavailable), do not issue a large Range request that can only fail.
-    if (codec === "h264" || isDefinitelyUnsupportedVideoCodec(codec)) {
-      return "blocked";
-    }
-    return isKnownIncompatibleVideo(path) ? "unknown" : "allowed";
-  } catch {
-    // Do not fall back to the raw source when the probe is inconclusive: a
-    // large unsupported video could otherwise be read until the browser fails.
-    return "unknown";
-  } finally {
-    window.clearTimeout(timeout);
-  }
-}
-
-function markDirectPlaybackPreflightBlocked() {
-  directPlaybackPreflightBlocked.value = true;
-  directPlaybackProbeBlocked.value = false;
-  directPlaybackFailed.value = false;
-  sourceAttached.value = false;
-  setVideoLoadState("idle");
-  compatibilityPanelOpen.value = true;
-}
-
-function markDirectPlaybackProbeBlocked() {
-  directPlaybackProbeBlocked.value = true;
-  directPlaybackPreflightBlocked.value = false;
-  directPlaybackFailed.value = false;
-  sourceAttached.value = false;
-  setVideoLoadState("idle");
-  compatibilityPanelOpen.value = true;
 }
 
 function attachDirectSource(path: string, source: string) {
   if (disposed || path !== props.path) return;
   sourceAttached.value = true;
   directPlaybackFailed.value = false;
-  directPlaybackProbeBlocked.value = false;
   compatibilityPanelOpen.value = false;
   const currentPlayer = player.value;
   if (!currentPlayer) return;
@@ -1176,8 +1040,6 @@ function tryDirectPlayback() {
   activeHLSURL = "";
   hlsActive.value = false;
   directPlaybackFailed.value = false;
-  directPlaybackProbeBlocked.value = false;
-  directPlaybackPreflightBlocked.value = false;
   compatibilityNetworkError.value = "";
   sourceAttached.value = true;
   beginVideoLoading();
@@ -1195,7 +1057,7 @@ function useCompatibilityPlayback() {
   activateCompatibilityPlayback(status);
 }
 
-function resetCompatibility(path: string) {
+function resetCompatibility() {
   clearHLSResumeWait();
   compatibilityRequest++;
   stopCompatibilityPolling();
@@ -1203,16 +1065,14 @@ function resetCompatibility(path: string) {
   compatibilityNetworkError.value = "";
   compatibilityStatus.value = null;
   directPlaybackFailed.value = false;
-  directPlaybackProbeBlocked.value = false;
-  directPlaybackPreflightBlocked.value = false;
   hlsActive.value = false;
   activeHLSURL = "";
-  sourceAttached.value = !isKnownIncompatibleVideo(path);
+  sourceAttached.value = true;
   posterSource.value = "";
-  videoLoadState.value = sourceAttached.value ? "loading" : "idle";
+  videoLoadState.value = "loading";
   loadingOverlayVisible.value = false;
   clearLoadStateTimer();
-  compatibilityPanelOpen.value = isKnownIncompatibleVideo(path);
+  compatibilityPanelOpen.value = false;
 }
 
 function formatCacheSize(bytes: number) {

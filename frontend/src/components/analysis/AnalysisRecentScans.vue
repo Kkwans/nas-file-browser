@@ -51,9 +51,6 @@
               ]"
               >{{ statusLabel(item) }}</span
             >
-            <time :datetime="new Date(item.createdAt).toISOString()">
-              {{ formatTime(item.createdAt) }}
-            </time>
           </div>
           <p class="analysis-recent__scope" :title="item.scopes.join('、')">
             <AppIcon name="folder" :size="15" />

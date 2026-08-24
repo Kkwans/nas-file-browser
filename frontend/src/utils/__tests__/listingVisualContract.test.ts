@@ -21,6 +21,12 @@ const readListing = () =>
     "utf8"
   );
 
+const readWorkspace = () =>
+  readFileSync(
+    fileURLToPath(new URL("../../css/workspace-ui.css", import.meta.url)),
+    "utf8"
+  );
+
 describe("文件列表视觉契约", () => {
   it("特殊前缀和备份文件不通过整项透明度弱化", () => {
     const styles = readStyles();
@@ -41,12 +47,16 @@ describe("文件列表视觉契约", () => {
 
   it("详细网格把条目操作固定在卡片右上角，避免底部悬浮错位", () => {
     const styles = readListing();
+    const workspaceStyles = readWorkspace();
 
     expect(styles).toMatch(
       /#listing\.mosaic \.item-controls\s*\{[^}]*top:\s*8px;[^}]*right:\s*8px;[^}]*bottom:\s*auto;[^}]*left:\s*auto;/s
     );
     expect(styles).not.toMatch(
       /#listing\.mosaic \.item-controls\s*\{[^}]*transform:\s*translateX\(-50%\)/s
+    );
+    expect(workspaceStyles).toMatch(
+      /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*top:\s*8px;[^}]*right:\s*8px;[^}]*bottom:\s*auto;[^}]*left:\s*auto;[^}]*width:\s*auto;/s
     );
   });
 });

@@ -44,10 +44,10 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toContain("codeBlockPreview: true");
     expect(editorSource).toContain('class="editor-mode-action"');
     expect(editorSource).toMatch(
-      /#editor-container :deep\(\.editor-mode-action\)\s*\{[\s\S]*line-height:\s*0;/
+      /:global\(#editor-container \.editor-mode-action\)\s*\{[\s\S]*line-height:\s*0;/
     );
     expect(editorSource).toMatch(
-      /#editor-container :deep\(\.editor-mode-action\)\s*\{[\s\S]*width:\s*2\.75rem;[\s\S]*height:\s*2\.75rem;/
+      /:global\(#editor-container \.editor-mode-action\)\s*\{[\s\S]*width:\s*2\.75rem;[\s\S]*height:\s*2\.75rem;/
     );
     expect(editorSource).not.toContain(
       'const currentMode = ref<MarkdownMode>("wysiwyg")'

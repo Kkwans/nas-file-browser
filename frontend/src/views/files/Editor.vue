@@ -1445,7 +1445,7 @@ const finishClose = () => {
 }
 
 /* 编辑器模式操作使用固定网格对齐，避免图标受字体行高和默认 padding 影响。 */
-#editor-container :deep(.editor-mode-action) {
+:global(#editor-container .editor-mode-action) {
   display: grid;
   width: 2.75rem;
   height: 2.75rem;
@@ -1454,7 +1454,7 @@ const finishClose = () => {
   line-height: 0;
 }
 
-#editor-container :deep(.editor-mode-action > .app-icon) {
+:global(#editor-container .editor-mode-action > .app-icon) {
   display: block;
   width: 1.25rem;
   height: 1.25rem;

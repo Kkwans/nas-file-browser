@@ -166,8 +166,10 @@
 
         <section v-else class="analysis-clean-state">
           <AppIcon name="circle-check" :size="34" />
-          <h2>所选范围内没有确认的重复文件</h2>
-          <p>同名或同大小并不会被误判；只有完整 SHA-256 相同才会进入结果。</p>
+          <div class="analysis-clean-state__copy">
+            <h2>所选范围内没有确认的重复文件</h2>
+            <p>同名或同大小并不会被误判；只有完整 SHA-256 相同才会进入结果。</p>
+          </div>
         </section>
 
         <details v-if="report.skippedCount" class="analysis-skipped">
@@ -1373,13 +1375,17 @@ onBeforeUnmount(() => {
   background: color-mix(in srgb, #1ea672 10%, transparent);
 }
 
-.analysis-clean-state h2 {
+.analysis-clean-state__copy {
+  min-width: 0;
+}
+
+.analysis-clean-state__copy h2 {
   margin: 0;
   color: var(--textSecondary);
   font-size: 16px;
 }
 
-.analysis-clean-state p {
+.analysis-clean-state__copy p {
   margin: 5px 0 0;
   color: var(--textPrimary);
   font-size: 12px;

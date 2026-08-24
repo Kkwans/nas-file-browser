@@ -49,6 +49,9 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toMatch(
       /:global\(#editor-container \.editor-mode-action\)\s*\{[\s\S]*width:\s*2\.75rem;[\s\S]*height:\s*2\.75rem;/
     );
+    expect(editorSource).toMatch(
+      /:global\(header > \.header-trailing #dropdown \.editor-mode-action\)\s*\{[\s\S]*width:\s*2\.75rem;[\s\S]*height:\s*2\.75rem;/
+    );
     expect(editorSource).not.toContain(
       'const currentMode = ref<MarkdownMode>("wysiwyg")'
     );

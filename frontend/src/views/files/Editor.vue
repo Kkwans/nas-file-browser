@@ -1454,6 +1454,12 @@ const finishClose = () => {
   line-height: 0;
 }
 
+/* Header 的桌面下拉区有更高特异性，需显式覆盖其 40px 通用按钮尺寸。 */
+:global(header > .header-trailing #dropdown .editor-mode-action) {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
 :global(#editor-container .editor-mode-action > .app-icon) {
   display: block;
   width: 1.25rem;

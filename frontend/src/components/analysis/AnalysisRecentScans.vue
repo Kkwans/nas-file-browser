@@ -166,13 +166,13 @@ function formatTime(value: number) {
 
 <style scoped>
 .analysis-recent {
-  margin-top: 14px;
+  margin-top: 16px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--surfacePrimary);
-  box-shadow: 0 10px 28px
-    color-mix(in srgb, var(--textSecondary) 6%, transparent);
+  box-shadow: 0 5px 18px
+    color-mix(in srgb, var(--textSecondary) 5%, transparent);
 }
 
 .analysis-recent__header {
@@ -180,7 +180,7 @@ function formatTime(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 15px 18px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--borderPrimary);
   background: color-mix(in srgb, var(--surfaceSecondary) 28%, transparent);
 }
@@ -247,10 +247,10 @@ function formatTime(value: number) {
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 144px 96px;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(228px, auto);
   align-items: center;
   gap: 14px;
-  min-height: 84px;
+  min-height: 82px;
   padding: 11px 18px;
   transition: background-color 120ms ease;
 }
@@ -285,7 +285,7 @@ function formatTime(value: number) {
 .analysis-recent__content {
   display: grid;
   min-width: 0;
-  gap: 4px;
+  gap: 5px;
 }
 
 .analysis-recent__headline {
@@ -322,16 +322,10 @@ function formatTime(value: number) {
   background: color-mix(in srgb, var(--red) 8%, transparent);
 }
 
-.analysis-recent__side {
-  display: contents;
-}
-
 .analysis-recent__time {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  grid-column: 3;
-  justify-self: end;
   color: var(--textPrimary);
   justify-content: flex-end;
   text-align: right;
@@ -347,6 +341,7 @@ function formatTime(value: number) {
   gap: 5px;
   color: var(--textPrimary);
   font-size: 12px;
+  line-height: 1.35;
 }
 
 .analysis-recent__scope b {
@@ -360,25 +355,34 @@ function formatTime(value: number) {
   overflow: hidden;
   color: var(--textPrimary);
   font-size: 12px;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.analysis-recent__side {
+  display: grid;
+  grid-template-columns: minmax(124px, auto) 108px;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid var(--borderPrimary);
+}
+
 .analysis-recent__action {
   display: inline-flex;
-  grid-column: 4;
-  justify-self: end;
-  width: 96px;
+  width: 108px;
   box-sizing: border-box;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 4px;
-  border: 0;
+  padding: 0 10px;
+  border: 1px solid var(--borderPrimary);
   border-radius: 8px;
   color: var(--blue);
-  background: transparent;
+  background: var(--surfaceSecondary);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -390,8 +394,8 @@ function formatTime(value: number) {
 .analysis-recent__header button:hover,
 .analysis-recent__header button:focus-visible {
   outline: none;
-  border-color: transparent;
-  background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 8%, var(--surfacePrimary));
 }
 
 .analysis-recent__action:focus-visible,
@@ -444,6 +448,7 @@ function formatTime(value: number) {
   }
 
   .analysis-recent__action {
+    min-width: 102px;
     min-height: 44px;
   }
 }

@@ -41,14 +41,11 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
+  gap: 10px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
-  background: var(--surfacePrimary);
+  overflow: visible;
 }
 
 .analysis-tool-switcher button {
@@ -59,8 +56,8 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   align-items: center;
   gap: 11px;
   padding: 8px 16px;
-  border: 0;
-  border-right: 1px solid var(--borderPrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: 12px;
   color: var(--textPrimary);
   background: var(--surfacePrimary);
   cursor: pointer;
@@ -76,10 +73,6 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
 }
 
-.analysis-tool-switcher button:last-child {
-  border-right: 0;
-}
-
 .analysis-tool-switcher button:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
@@ -87,14 +80,16 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher button.is-active {
   color: var(--blue);
+  border-color: color-mix(in srgb, var(--blue) 42%, var(--borderPrimary));
   background: color-mix(in srgb, var(--blue) 6%, var(--surfacePrimary));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 18%, transparent);
 }
 
 .analysis-tool-switcher button.is-active::after {
   position: absolute;
-  bottom: 6px;
+  bottom: 8px;
   left: 16px;
-  width: 28px;
+  width: 24px;
   height: 3px;
   border-radius: 999px;
   background: var(--blue);
@@ -160,9 +155,9 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   }
 
   .analysis-tool-switcher button.is-active::after {
-    bottom: 5px;
+    bottom: 7px;
     left: 12px;
-    width: 24px;
+    width: 22px;
   }
 }
 

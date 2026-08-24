@@ -240,12 +240,12 @@ const PLACEHOLDER_MAX_WAIT_MS = 650;
 // A very large JPEG can spend several seconds in the NAS decoder before the
 // scaled preview responds. Falling back to the inline original keeps the
 // viewer responsive while preserving the scaled-preview path when it wins.
-// The warm 1080px preview can take several seconds on the NAS ARM CPU for a
-// multi-megapixel JPEG. Keep a short grace period for the scaled preview, then
-// fetch the original so the viewer can show real pixels instead of leaving the
-// user behind a spinner. The warm request remains shared and cacheable in the
-// background; this only changes which response wins the first paint.
-const RAW_IMAGE_FALLBACK_DELAY_MS = 1200;
+// The thumbnail and the 1080px preview share the single-image queue on the
+// NAS. Give the thumbnail enough time to finish before falling back to the
+// original, otherwise a slow thumbnail and a multi-megapixel raw decode can
+// compete for the same first paint. Once the thumbnail wins, this timer is
+// cleared and the scaled preview is allowed to finish in the background.
+const RAW_IMAGE_FALLBACK_DELAY_MS = 4000;
 
 const tiffSuffixes = new Set(["tif", "tiff", "dng", "cr2", "nef"]);
 
@@ -359,6 +359,13 @@ const armLoadTimeout = (token: number) => {
   }, IMAGE_LOAD_TIMEOUT_MS);
 };
 
+const clearPlaceholderTimer = () => {
+  if (placeholderTimer !== null) {
+    window.clearTimeout(placeholderTimer);
+    placeholderTimer = null;
+  }
+};
+
 const sourceExtension = () =>
   props.src.split(/[?#]/, 1)[0].split(".").pop()?.toLowerCase() ?? "";
 
@@ -402,6 +409,7 @@ const startFullImageLoad = (token: number) => {
   ) {
     return;
   }
+  clearPlaceholderTimer();
   fullLoadStarted.value = true;
   armLoadTimeout(token);
   if (!props.placeholderIsFull && !decodeUTIF(token)) {
@@ -428,10 +436,7 @@ const startRawImageFallback = (token: number) => {
   // Abort that request before falling back to the original so two large image
   // responses never compete for the same viewer.
   if (fullLoadStarted.value) imgex.value.removeAttribute("src");
-  if (placeholderTimer !== null) {
-    window.clearTimeout(placeholderTimer);
-    placeholderTimer = null;
-  }
+  clearPlaceholderTimer();
   fullLoadStarted.value = true;
   armLoadTimeout(token);
   if (props.fallbackPlaceholderSrc) {

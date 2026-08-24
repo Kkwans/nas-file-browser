@@ -70,9 +70,10 @@ describe("media loading contract", () => {
   it("大图 JPEG 先显示真实缩略图，再启动大图请求", () => {
     expect(imageSource).toContain("onPlaceholderLoad");
     expect(imageSource).toContain("startFullImageLoad");
+    expect(imageSource).toContain("clearPlaceholderTimer");
     expect(imageSource).toContain("PLACEHOLDER_MAX_WAIT_MS");
     expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS");
-    expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS = 1200");
+    expect(imageSource).toContain("RAW_IMAGE_FALLBACK_DELAY_MS = 4000");
     expect(imageSource).toContain("startRawImageFallback");
     expect(imageSource).toContain("placeholderFailed");
     expect(imageSource).toContain("placeholderIsFull");

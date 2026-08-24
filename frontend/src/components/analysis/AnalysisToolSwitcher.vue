@@ -1,13 +1,11 @@
 <template>
-  <nav class="analysis-tool-switcher" aria-label="选择存储工具" role="tablist">
+  <nav class="analysis-tool-switcher" aria-label="选择存储工具">
     <button
       v-for="tool in tools"
       :key="tool.id"
       type="button"
-      role="tab"
       :class="{ 'is-active': tool.id === activeTool }"
-      :aria-selected="tool.id === activeTool"
-      :tabindex="tool.id === activeTool ? 0 : -1"
+      :aria-pressed="tool.id === activeTool"
       @click="$emit('select', tool.id)"
     >
       <span class="analysis-tool-switcher__icon" aria-hidden="true">

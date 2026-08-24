@@ -41,6 +41,9 @@ describe("视频兼容播放依赖契约", () => {
     expect(videoPlayerSource).toContain("compatibilityProgressPercent");
     expect(videoPlayerSource).toContain("正在检查视频编码…");
     expect(videoPlayerSource).toContain(
+      "浏览器支持的轨道只重新封装，当前浏览器缺少 H.264 解码器时才转为 WebM"
+    );
+    expect(videoPlayerSource).toContain(
       'v-if="compatibilityProgressSummary && !compatibilityProgressVisible"'
     );
     expect(videoPlayerSource).toContain("完整兼容文件生成后即可拖动进度");

@@ -115,6 +115,10 @@ func shouldUseFFmpegImagePreview(file *files.FileInfo, size PreviewSize) bool {
 	return ext == ".jpg" || ext == ".jpeg"
 }
 
+func shouldPreferNativeImagePreview(file *files.FileInfo, size PreviewSize) bool {
+	return size == PreviewSizeThumb && shouldUseFFmpegImagePreview(file, size)
+}
+
 // A full-size preview is requested immediately after the real thumbnail in
 // the image viewer. When the viewer opts into warm=big, decode a large JPEG
 // only once, cache that result, and derive the thumbnail from the decoded

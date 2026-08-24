@@ -296,6 +296,20 @@ func createImagePreview(
 	file *files.FileInfo,
 	previewSize PreviewSize,
 ) ([]byte, error) {
+	if shouldPreferNativeImagePreview(file, previewSize) {
+		// The existing Go pipeline can reuse an EXIF-embedded JPEG thumbnail
+		// without decoding the full source. Prefer it for listing/placeholder
+		// thumbnails; keep FFmpeg as a safe fallback for malformed metadata or
+		// JPEGs that do not contain a usable embedded thumbnail.
+		generated, err := createPreview(ctx, imgSvc, fileCache, file, previewSize)
+		if err == nil {
+			return generated, nil
+		}
+		if ctxErr := context.Cause(ctx); ctxErr != nil {
+			return nil, ctxErr
+		}
+		log.Printf("WARNING: 原生 JPEG 缩略图失败，回退 FFmpeg: %v", err)
+	}
 	if ffmpegImage != nil && shouldUseFFmpegImagePreview(file, previewSize) {
 		generated, err := ffmpegImage.create(ctx, file, previewSize)
 		if err == nil {

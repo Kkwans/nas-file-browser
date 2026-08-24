@@ -213,6 +213,16 @@ func TestFFmpegImagePreviewWorkerBoundsAndPolicy(t *testing.T) {
 	}
 }
 
+func TestLargeJPEGThumbnailsPreferNativeImagePipeline(t *testing.T) {
+	largeJPEG := &files.FileInfo{Extension: ".jpg", Size: ffmpegImagePreviewMinBytes}
+	if !shouldPreferNativeImagePreview(largeJPEG, PreviewSizeThumb) {
+		t.Fatal("large JPEG thumbnails should prefer the native image pipeline")
+	}
+	if shouldPreferNativeImagePreview(largeJPEG, PreviewSizeBig) {
+		t.Fatal("large JPEG big previews should keep the FFmpeg path")
+	}
+}
+
 func TestFFmpegImageFilterPreservesPreviewGeometry(t *testing.T) {
 	filter, quality, err := ffmpegImageFilter(PreviewSizeBig)
 	if err != nil || filter != "scale=1080:1080:force_original_aspect_ratio=decrease" || quality != "3" {

@@ -388,3 +388,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 验证：目标 ESLint 通过；Frontend production build 通过（保留既有 ReCaptcha、运行时 `custom.css` 和大 chunk 警告）；源码提交 `129050dc` 已推送，GitHub CI `32710992858` 全部成功。部署提交 `5f1a5c3b` 已推送，GitHub CI `32711637881` 全部成功。
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-activity-input-r85` 已构建；仅重建 `filebrowser`，容器为 `running/healthy`，`/health` HTTP `200`，r84 保留作回滚。
 - NAS 本机 Playwright 复验：桌面任务/历史搜索输入从约 `13.8px` 提升为 `40px`；移动端两页搜索输入为 `44px`，390px 页面 `scrollWidth=clientWidth`，控制台错误 `0`。本模块只修复搜索输入控件的实际对齐和命中高度，不宣称全站视觉问题已经完成。
+
+### 2026-08-24 r86 侧栏分组按钮语义修复
+
+- 复现：侧栏分组根节点使用 `role="button"`，同时把“删除分组”等真实按钮渲染在其内部，形成嵌套交互语义；键盘焦点和辅助技术无法清晰区分展开动作与管理动作。
+- 修复：保留现有五列视觉布局、拖拽属性、图标和操作位置，移除根节点的 `role/tabindex/keydown`，增加同级透明 `button.sidebar-group-toggle` 负责整行展开/收起；操作区置于更高层级，避免被展开按钮拦截。为焦点状态补充 `:focus-visible` 轮廓。
+- 验证：新增契约测试先在旧实现上失败，修复后侧栏交互/图标轨聚焦 Vitest `26/26` 通过；Frontend lint `0 error / 0 warning`、typecheck、Vitest `93 files / 343 tests`、production build 均通过。源码提交 `82655314` 已推送。首次 CI 的 Vite 构建遇到 Node 24.19 `undici Parser.finish` 瞬时断言失败，未改依赖，重跑后 CI `32713429167` 全部成功。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-sidebar-a11y-r86` 构建成功；Compose 提交 `2e000a64` 已推送，Compose CI `32714239906`、Docs CI `32714239911` 均成功。仅重建 `filebrowser`，r85 Compose 备份位于 `/tmp/nfb-compose.custom.pre-r86-20260824-1800.yml`，r85 镜像保留作回滚；容器 `running/healthy`，`/health` HTTP `200`。
+- NAS 本机 Playwright 真实验收：桌面分组根节点不再有 `role/tabindex`，展开按钮与删除按钮同级；桌面展开按钮命中区约 `203×44px`、移动端约 `100%×54px`，键盘 `Enter/Space` 可稳定展开/收起，页面无横向溢出。全站桌面 `/files/`、`/tasks`、`/history`、`/analysis`、`/settings` 运行时错误和溢出均为 `0`；移动端五条核心路线也无运行时错误和溢出，剩余未命名项仅为原生日期/复选框等无可见文本控件。
+- 当前结论：本模块解决的是可复现的侧栏交互语义问题，不宣称所有页面级视觉问题已完成；继续按内容起始线、文字基线、图标光学中心、操作密度和真实交互证据推进下一项。

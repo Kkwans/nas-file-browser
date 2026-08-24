@@ -136,4 +136,37 @@ describe("视频播放源策略", () => {
       value: originalDocument,
     });
   });
+
+  it("浏览器支持 MP4 H.264 但不支持 HLS 时仍复用无损封装", () => {
+    const scope = globalThis as typeof globalThis & {
+      window?: { MediaSource?: unknown };
+      document?: {
+        createElement: () => { canPlayType: (mime: string) => string };
+      };
+    };
+    const originalWindow = scope.window;
+    const originalDocument = scope.document;
+    Object.defineProperty(scope, "window", {
+      configurable: true,
+      value: { MediaSource: { isTypeSupported: () => false } },
+    });
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: {
+        createElement: () => ({
+          canPlayType: (mime: string) =>
+            mime.startsWith("video/mp4") ? "probably" : "",
+        }),
+      },
+    });
+    expect(supportsH264CompatibilityPlayback()).toBe(true);
+    Object.defineProperty(scope, "window", {
+      configurable: true,
+      value: originalWindow,
+    });
+    Object.defineProperty(scope, "document", {
+      configurable: true,
+      value: originalDocument,
+    });
+  });
 });

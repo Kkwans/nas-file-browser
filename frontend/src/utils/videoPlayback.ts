@@ -133,6 +133,17 @@ export function supportsH264CompatibilityPlayback() {
     }
   }
   const video = document.createElement("video");
+  // MP4 playback and HLS/MSE support are separate browser capabilities. A
+  // desktop browser may decode H.264/AAC MP4 while deliberately omitting HLS;
+  // prefer the lossless MP4 remux in that case instead of forcing a VP9 encode.
+  if (
+    /maybe|probably/i.test(
+      video.canPlayType('video/mp4; codecs="avc1.4d401f,mp4a.40.2"')
+    ) ||
+    /maybe|probably/i.test(video.canPlayType("video/mp4"))
+  ) {
+    return true;
+  }
   return /maybe|probably/i.test(
     video.canPlayType("application/vnd.apple.mpegurl")
   );

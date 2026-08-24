@@ -218,7 +218,7 @@ func TestFFmpegImageFilterPreservesPreviewGeometry(t *testing.T) {
 		t.Fatalf("big filter = %q, quality = %q, error = %v", filter, quality, err)
 	}
 	filter, quality, err = ffmpegImageFilter(PreviewSizeThumb)
-	if err != nil || filter != "scale=256:256:force_original_aspect_ratio=increase,crop=256:256" || quality != "5" {
+	if err != nil || filter != "scale=256:256:force_original_aspect_ratio=increase:flags=fast_bilinear,crop=256:256" || quality != "5" {
 		t.Fatalf("thumb filter = %q, quality = %q, error = %v", filter, quality, err)
 	}
 }

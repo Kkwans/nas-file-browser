@@ -106,4 +106,16 @@ describe("媒体预览生命周期契约", () => {
       'class="image-ex-img image-ex-img-placeholder"'
     );
   });
+
+  it("大图请求已经启动后不再被超时回退抢占原图", () => {
+    const imageSource = readFileSync(
+      fileURLToPath(
+        new URL("../../components/files/ExtendedImage.vue", import.meta.url)
+      ),
+      "utf8"
+    );
+    expect(imageSource).toContain(
+      "if (!fullLoadStarted.value) startRawImageFallback(token);"
+    );
+  });
 });

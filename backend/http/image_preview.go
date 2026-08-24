@@ -88,7 +88,10 @@ func ffmpegImageFilter(size PreviewSize) (filter, quality string, err error) {
 	case PreviewSizeBig:
 		return "scale=1080:1080:force_original_aspect_ratio=decrease", "3", nil
 	case PreviewSizeThumb:
-		return "scale=256:256:force_original_aspect_ratio=increase,crop=256:256", "5", nil
+		// A listing thumbnail is intentionally low quality.  Fast bilinear
+		// scaling avoids spending seconds on a full-quality downsample of
+		// 8K/10K JPEGs while keeping the real image content recognizable.
+		return "scale=256:256:force_original_aspect_ratio=increase:flags=fast_bilinear,crop=256:256", "5", nil
 	default:
 		return "", "", fmt.Errorf("不支持的图片预览尺寸 %s", size.String())
 	}

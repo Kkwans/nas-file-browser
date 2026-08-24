@@ -485,9 +485,9 @@ const loadImage = () => {
       () => {
         placeholderTimer = null;
         if (props.deferFullUntilPlaceholder && props.directSrc) {
-          startRawImageFallback(token);
+          if (!fullLoadStarted.value) startRawImageFallback(token);
         } else if (props.placeholderIsFull && props.directSrc) {
-          startRawImageFallback(token);
+          if (!fullLoadStarted.value) startRawImageFallback(token);
         } else {
           startFullImageLoad(token);
         }

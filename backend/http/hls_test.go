@@ -161,9 +161,9 @@ func TestMediaHLSReserveForFormatPreservesExplicitArtifactType(t *testing.T) {
 func TestMediaHLSStatusResponseMarksRemuxProfile(t *testing.T) {
 	response := mediaHLSStatusResponse("", hls.Status{
 		ID: "copy-id", UserID: 1, Path: "/movie.mkv", Identity: "v1",
-		Profile: hls.DefaultCopyProfile, State: hls.StateCompleted, ProcessedSeconds: 12.5,
+		Profile: hls.DefaultCopyProfile, State: hls.StateCompleted, ProcessedSeconds: 12.5, DurationSeconds: 20.042,
 	})
-	if response.Format != "copy" || response.PlaylistURL == "" || response.ProcessedSeconds != 12.5 {
+	if response.Format != "copy" || response.PlaylistURL == "" || response.ProcessedSeconds != 12.5 || response.DurationSeconds != 20.042 {
 		t.Fatalf("copy response = %#v", response)
 	}
 }

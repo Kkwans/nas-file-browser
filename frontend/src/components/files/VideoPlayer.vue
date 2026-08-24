@@ -127,19 +127,35 @@
         </div>
         <p>{{ compatibilityCopy.description }}</p>
         <p
-          v-if="
-            compatibilityStatus?.format === 'webm' &&
-            compatibilityStatus.processedSeconds
-          "
+          v-if="compatibilityProgressSummary"
           class="media-compatibility-card__progress"
         >
-          已转换
-          {{ formatMediaTime(compatibilityStatus.processedSeconds) }}；
+          {{ compatibilityProgressSummary }}；
           <template v-if="compatibilityStatus?.state === 'completed'">
             兼容文件已生成，可拖动进度。
           </template>
           <template v-else>完整兼容文件生成后即可拖动进度。</template>
         </p>
+        <div
+          v-if="compatibilityProgressVisible"
+          class="media-compatibility-progress"
+          role="progressbar"
+          aria-label="兼容视频生成进度"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="compatibilityProgressPercent"
+          :aria-valuetext="compatibilityProgressText"
+        >
+          <span class="media-compatibility-progress__track">
+            <span
+              class="media-compatibility-progress__value"
+              :style="{ width: `${compatibilityProgressPercent}%` }"
+            ></span>
+          </span>
+          <span class="media-compatibility-progress__text">
+            {{ compatibilityProgressText }}
+          </span>
+        </div>
         <small v-if="compatibilityNetworkError" role="alert">
           <AppIcon :name="mediaIcon('cloud_off')" :size="16" />
           {{ compatibilityNetworkError }}
@@ -593,6 +609,43 @@ const compatibilityCopy = computed(() => {
             : "只在你点击后，NAS 才会按需生成浏览器可播放版本；不会自动转码其他视频。",
       };
   }
+});
+
+const compatibilityProgressPercent = computed(() => {
+  const status = compatibilityStatus.value;
+  const duration = status?.durationSeconds ?? 0;
+  const processed = status?.processedSeconds ?? 0;
+  if (!duration || !Number.isFinite(duration)) return 0;
+  return Math.min(100, Math.max(0, (processed / duration) * 100));
+});
+
+const compatibilityProgressSummary = computed(() => {
+  const status = compatibilityStatus.value;
+  if (status?.format !== "webm") return "";
+  if (!status.processedSeconds && !status.durationSeconds) return "";
+  const processed = formatMediaTime(status.processedSeconds ?? 0);
+  const duration = status.durationSeconds
+    ? ` / ${formatMediaTime(status.durationSeconds)}`
+    : "";
+  return `已转换 ${processed}${duration}`;
+});
+
+const compatibilityProgressVisible = computed(() => {
+  const status = compatibilityStatus.value;
+  return (
+    status?.format === "webm" &&
+    status.durationSeconds !== undefined &&
+    status.durationSeconds > 0 &&
+    (status.state === "queued" || status.state === "preparing") &&
+    !hlsActive.value
+  );
+});
+
+const compatibilityProgressText = computed(() => {
+  const status = compatibilityStatus.value;
+  if (!status || !compatibilityProgressVisible.value) return "";
+  if (status.state === "queued") return "等待兼容播放队列";
+  return `已转换 ${formatMediaTime(status.processedSeconds ?? 0)} / ${formatMediaTime(status.durationSeconds ?? 0)}`;
 });
 
 const canStartCompatibility = computed(
@@ -1612,6 +1665,34 @@ const languageImports: LanguageImports = {
   font-size: 13px;
   line-height: 1.55;
   overflow-wrap: anywhere;
+}
+
+.media-compatibility-progress {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.media-compatibility-progress__track {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 13%);
+  border-radius: 999px;
+}
+
+.media-compatibility-progress__value {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: #7cb5ff;
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.media-compatibility-progress__text {
+  color: rgb(235 242 255 / 68%);
+  font-size: 12px;
 }
 
 .media-compatibility-card__body > .media-compatibility-card__progress {

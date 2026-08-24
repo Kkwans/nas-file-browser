@@ -47,6 +47,7 @@ type mediaHLSResponse struct {
 	LastAccessAt     int64     `json:"lastAccessAt,omitempty"`
 	SizeBytes        int64     `json:"sizeBytes,omitempty"`
 	ProcessedSeconds float64   `json:"processedSeconds,omitempty"`
+	DurationSeconds  float64   `json:"durationSeconds,omitempty"`
 	Format           string    `json:"format"`
 	PlaylistURL      string    `json:"playlistUrl,omitempty"`
 	SourceURL        string    `json:"sourceUrl,omitempty"`
@@ -219,6 +220,7 @@ func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, v
 		if probeErr == nil {
 			input.VideoCodec = probe.VideoCodec
 			input.AudioCodec = probe.AudioCodec
+			input.DurationSeconds = probe.Duration
 			log.Printf("media HLS codec probe video=%q audio=%q", input.VideoCodec, input.AudioCodec)
 		} else {
 			log.Printf("media HLS codec probe unavailable: %v", probeErr)
@@ -278,6 +280,7 @@ func mediaHLSStatusResponse(baseURL string, status hls.Status) mediaHLSResponse 
 		Error: status.Error, UpdatedAt: status.UpdatedAt,
 		LastAccessAt: status.LastAccessAt, SizeBytes: status.SizeBytes,
 		ProcessedSeconds: status.ProcessedSeconds,
+		DurationSeconds:  status.DurationSeconds,
 		Format:           "hls",
 	}
 	if hls.IsWebMProfile(status.Profile) {

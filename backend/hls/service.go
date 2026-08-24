@@ -66,15 +66,19 @@ type Input struct {
 	SourcePath string
 	VideoCodec string
 	AudioCodec string
+	// DurationSeconds is the probed source duration used to render truthful
+	// compatibility progress while a WebM artifact is being generated.
+	DurationSeconds float64
 }
 
 type Job struct {
-	ID         string
-	UserID     uint
-	Path       string
-	Identity   string
-	SourcePath string
-	Profile    string
+	ID              string
+	UserID          uint
+	Path            string
+	Identity        string
+	SourcePath      string
+	Profile         string
+	DurationSeconds float64
 }
 
 // IsWebMProfile reports whether a compatibility artifact is a complete WebM
@@ -136,7 +140,10 @@ type Status struct {
 	// expose a playable artifact until the complete file is ready.  It is
 	// deliberately a duration, not a guessed percentage.
 	ProcessedSeconds float64 `json:"processedSeconds,omitempty"`
-	UserID           uint    `json:"userId"`
+	// DurationSeconds is the source duration paired with ProcessedSeconds.
+	// It may be zero when codec probing was unavailable.
+	DurationSeconds float64 `json:"durationSeconds,omitempty"`
+	UserID          uint    `json:"userId"`
 }
 
 type entry struct {
@@ -248,6 +255,7 @@ func (service *Service) reserve(input Input, profile string, start StartFunc) (S
 		ID:     cacheKey(input.UserID, input.Path, input.Identity, profile),
 		UserID: input.UserID, Path: input.Path, Identity: input.Identity,
 		SourcePath: input.SourcePath, Profile: profile,
+		DurationSeconds: input.DurationSeconds,
 	}
 
 	service.mu.Lock()
@@ -261,6 +269,7 @@ func (service *Service) reserve(input Input, profile string, start StartFunc) (S
 	current := &entry{Status: Status{
 		ID: job.ID, UserID: job.UserID, Path: job.Path, Identity: job.Identity,
 		Profile: job.Profile, State: StateQueued, UpdatedAt: now,
+		DurationSeconds: job.DurationSeconds,
 	}, sourcePath: job.SourcePath}
 	service.entries[job.ID] = current
 	taskID, err := start(job)

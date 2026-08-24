@@ -15,7 +15,7 @@ import (
 
 func TestReserveMergesSameSourceAndRunCreatesReusableCache(t *testing.T) {
 	service := newFakeService(t, 1, DefaultMaxBytes, 0)
-	input := Input{UserID: 7, Path: "/电影/示例.mkv", Identity: "12:34", SourcePath: "/source.mkv"}
+	input := Input{UserID: 7, Path: "/电影/示例.mkv", Identity: "12:34", SourcePath: "/source.mkv", DurationSeconds: 20.042}
 	var starts atomic.Int32
 	var job Job
 	start := func(candidate Job) (string, error) {
@@ -26,6 +26,9 @@ func TestReserveMergesSameSourceAndRunCreatesReusableCache(t *testing.T) {
 	first, created, err := service.Reserve(input, start)
 	if err != nil || !created {
 		t.Fatalf("first reserve = %#v, %v, %v", first, created, err)
+	}
+	if first.DurationSeconds != input.DurationSeconds || job.DurationSeconds != input.DurationSeconds {
+		t.Fatalf("duration was not carried into cache job: status=%#v job=%#v", first, job)
 	}
 	second, created, err := service.Reserve(input, start)
 	if err != nil || created || second.ID != first.ID || starts.Load() != 1 {

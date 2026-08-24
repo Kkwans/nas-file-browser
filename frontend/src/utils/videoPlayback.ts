@@ -139,8 +139,7 @@ export function supportsH264CompatibilityPlayback() {
   if (
     /maybe|probably/i.test(
       video.canPlayType('video/mp4; codecs="avc1.4d401f,mp4a.40.2"')
-    ) ||
-    /maybe|probably/i.test(video.canPlayType("video/mp4"))
+    )
   ) {
     return true;
   }

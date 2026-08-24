@@ -246,10 +246,10 @@ function formatTime(value: number) {
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 214px;
+  grid-template-columns: 44px minmax(0, 1fr) 176px;
   align-items: center;
   gap: 14px;
-  min-height: 78px;
+  min-height: 84px;
   padding: 12px 18px;
   transition: background-color 120ms ease;
 }
@@ -322,12 +322,14 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__side {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  justify-items: end;
-  gap: 10px;
-  min-width: 0;
+  display: flex;
+  min-width: 176px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  padding-left: 18px;
+  border-left: 1px solid var(--borderPrimary);
+  flex-direction: column;
 }
 
 .analysis-recent__time {
@@ -337,7 +339,7 @@ function formatTime(value: number) {
   color: var(--textPrimary);
   justify-content: flex-end;
   text-align: right;
-  font-size: 12px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -372,8 +374,8 @@ function formatTime(value: number) {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 8px;
-  border: 0;
+  padding: 0 7px 0 10px;
+  border: 1px solid transparent;
   border-radius: 7px;
   color: var(--blue);
   background: transparent;
@@ -419,11 +421,15 @@ function formatTime(value: number) {
 
   .analysis-recent__side {
     grid-column: 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    min-width: 0;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
-    padding-top: 6px;
+    padding: 8px 0 0;
+    border-top: 1px solid var(--borderPrimary);
+    border-left: 0;
+    flex-direction: row;
   }
 
   .analysis-recent__action {

@@ -207,7 +207,7 @@ function updateRootConfirmed(event: Event) {
 }
 
 .analysis-run-panel__description {
-  max-width: 68ch;
+  max-width: none;
   margin-top: 4px;
   color: var(--textPrimary);
   font-size: 12px;

@@ -104,9 +104,11 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
       // Vditor can emit the same preview node more than once while an IR
       // block settles. Skip a node that already contains our current source;
       // this also prevents the observer from re-highlighting its own spans.
+      const hasHighlightMarkup = Boolean(codeEl.querySelector("span"));
       if (
         codeEl.dataset.nfbHighlighted === "true" &&
-        codeEl.dataset.rawSource === rawSource
+        codeEl.dataset.rawSource === rawSource &&
+        (hasHighlightMarkup || codeEl.dataset.nfbHighlightMarkup === "false")
       ) {
         return;
       }
@@ -130,6 +132,12 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
         codeEl.textContent = rawSource;
       }
       codeEl.dataset.nfbHighlighted = "true";
+      // Vditor may later replace the preview's innerHTML while retaining the
+      // data attributes. Remember whether this pass produced token markup so
+      // the observer can repair a preview whose spans were discarded.
+      codeEl.dataset.nfbHighlightMarkup = codeEl.querySelector("span")
+        ? "true"
+        : "false";
     });
 }
 

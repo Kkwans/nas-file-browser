@@ -343,9 +343,11 @@ const setupMarkdownPreviewHighlightObserver = (generation: number) => {
       mountEl.querySelectorAll<HTMLElement>(".vditor-ir__preview code")
     ).some((code) => {
       const rawSource = (code.textContent ?? "").replace(/\u200b/g, "");
+      const hasHighlightMarkup = Boolean(code.querySelector("span"));
       return (
         code.dataset.nfbHighlighted !== "true" ||
-        code.dataset.rawSource !== rawSource
+        code.dataset.rawSource !== rawSource ||
+        (code.dataset.nfbHighlightMarkup === "true" && !hasHighlightMarkup)
       );
     });
     if (needsHighlight) scheduleMarkdownPreviewHighlight(generation);

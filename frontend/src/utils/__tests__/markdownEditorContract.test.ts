@@ -63,6 +63,7 @@ describe("Markdown 编辑器交互契约", () => {
       "setupMarkdownPreviewHighlightObserver(generation)"
     );
     expect(resourceLoaderSource).toContain("nfbHighlighted");
+    expect(resourceLoaderSource).toContain("nfbHighlightMarkup");
     expect(editorSource).toContain(
       "scheduleMarkdownPreviewHighlight(generation)"
     );

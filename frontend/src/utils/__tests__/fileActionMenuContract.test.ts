@@ -20,7 +20,7 @@ describe("文件操作区契约", () => {
     expect(rowSource).not.toContain("drive_file_move");
   });
 
-  it("详细网格使用底部操作条，触屏始终可达", () => {
+  it("详细网格使用右上操作条，触屏始终可达", () => {
     const itemSource = readSource("components/files/ListingItem.vue");
     const listingStyles = readSource("css/listing.css");
     const workspaceStyles = readSource("css/workspace-ui.css");
@@ -28,7 +28,7 @@ describe("文件操作区契约", () => {
     expect(itemSource).toContain("v-if=\"viewMode === 'mosaic'\"");
     expect(itemSource).toContain('@select="runFileAction"');
     expect(listingStyles).toMatch(
-      /#listing\.mosaic \.item-controls\s*\{[^}]*bottom:\s*10px;[^}]*left:\s*50%;/s
+      /#listing\.mosaic \.item-controls\s*\{[^}]*top:\s*8px;[^}]*right:\s*8px;[^}]*bottom:\s*auto;[^}]*left:\s*auto;/s
     );
     expect(listingStyles).toMatch(
       /@media \(hover: none\), \(pointer: coarse\)[\s\S]*\.file-action-menu-host\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s

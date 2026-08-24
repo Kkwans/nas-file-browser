@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.24-phase10-video-progress-r76
+    image: nas-file-browser:2026.8.24-phase10-video-preflight-status-r77
     build:
       context: .
       dockerfile: Dockerfile.custom

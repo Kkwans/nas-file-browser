@@ -461,3 +461,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 验证：先运行新增边界测试确认旧实现编译失败，再实现；`go test ./img ./http -count=1` 通过，`git diff --check` 通过。源码提交 `d560861f` 已推送，GitHub CI `32746456358` 和 Docs `32746456107` 成功。
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-preview-r100`，镜像摘要 `sha256:a61cd1f64f99833a8da205a72c1be87d1d9d8677f63074abdda186f6acb3ae2b`；部署提交 `22a0d489` 已推送，CI `32747372240`、Docs `32747372154` 成功。仅重建 `filebrowser`，容器最终 `running/healthy`，`/health` 返回 `200`，r99 Compose 与镜像保留作回滚。
 - NAS 本机 Playwright/真实 HTTP：全新 `8.8MB` JPEG 冷副本的直接预览请求 `thumb=1531ms/12040B`、`big=993ms/158184B`，均 `200 image/jpeg`；另一全新 UI 副本在页面内 `thumb` 约 `537ms` 返回、`big` 约 `687ms` 返回，`2.2s` 采样时已显示 `1080×810`、状态 `ready`，页面 `scrollWidth=clientWidth=1440`、控制台错误 `0`。该证据证明中等大 JPEG 已不再固定等待 FFmpeg，但不等价于所有超大图、RAW/TIFF 或冷盘首次读取均秒开。
+
+### 2026-08-24 r102–r103 存储工具页面视觉层级与时间列修复
+
+- 真实审计发现：存储工具首屏把工具切换、重复文件说明、范围输入和最近扫描堆成多层大卡片；最近扫描每行的时间与“查看结果”不在同一稳定列，字体层级偏小，移动端操作区被迫下沉，整体缺少明确的主动作。
+- 修复：保留扫描、任务轮询、报告和路由契约，只重构 `AnalysisToolSwitcher`、`AnalysisScopePanel`、`AnalysisRecentScans` 及 Analysis 报告样式。工具切换收紧为统一对齐的双栏控件；扫描面板合并重复说明并压缩垂直留白；最近扫描改为“图标/内容/时间与操作”三列，时间与结果入口只渲染一次，移动端改为内容下方的稳定操作行；报告摘要、排行和重复文件项同步提升可读字号并统一圆角、边框和间距。
+- TDD/静态验证：新增分析工作区 UI 契约，先在旧实现上得到 `1 failed / 2 passed`，修复后分析 UI/无障碍契约 `7/7`、目标 ESLint、typecheck 和 production build 通过。源码提交 `08fec37c`、时间列修复 `f14e124e` 已推送；对应 CI `32751986780`、`32753471306` 和 Docs 均成功。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-analysis-ui-r103`；Compose 提交 `871cd338`（r102）和 `b8936942`（r103）已推送，CI `32752878634`、`32754280483` 和 Docs 均成功。仅重建 `filebrowser`，r100 Compose/镜像保留作回滚；r103 容器 `running/healthy`，`127.0.0.1:8888/health` 返回 `{"status":"OK"}`。
+- NAS 本机 Playwright 真实验收：桌面 `1440×900` 和移动 `390×844` 的 `/analysis` 均无页面/控制台错误，页面级 `scrollWidth=clientWidth`；桌面工具切换器约 `58px` 高、运行面板约 `326px`、最近扫描约 `500px`，移动端对应约 `54px/477px/728px`。最近扫描每行仅有一个 `time` 节点，时间与“查看结果”共用右侧列；结果报告路由实际打开成功，标题、摘要、空结果和最近扫描均渲染，横向溢出为 `0`。截图：`/tmp/nfb-r103-desktop-analysis.png`、`/tmp/nfb-r103-mobile-analysis.png`、`/tmp/nfb-r103-desktop-analysis-result.png`。
+- 当前结论：该模块解决的是用户明确指出的存储工具页面层级、对齐、重复时间和操作入口问题；不宣称全站 UI 已完成，后续继续按真实截图审计其他页面的文字基线、图标语义、操作密度和状态反馈。

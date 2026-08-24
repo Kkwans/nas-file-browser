@@ -55,10 +55,10 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   display: grid;
   position: relative;
   grid-template-columns: 34px minmax(0, 1fr);
-  min-height: 64px;
+  min-height: 58px;
   align-items: center;
   gap: 11px;
-  padding: 10px 18px;
+  padding: 8px 16px;
   border: 0;
   border-right: 1px solid var(--borderPrimary);
   color: var(--textPrimary);
@@ -92,11 +92,11 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher button.is-active::after {
   position: absolute;
-  right: 18px;
-  bottom: 0;
-  left: 18px;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
+  bottom: 6px;
+  left: 16px;
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
   background: var(--blue);
   content: "";
 }
@@ -160,8 +160,9 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   }
 
   .analysis-tool-switcher button.is-active::after {
-    right: 12px;
+    bottom: 5px;
     left: 12px;
+    width: 24px;
   }
 }
 

@@ -338,7 +338,7 @@ function formatTime(value: number) {
   color: var(--textPrimary);
   justify-content: flex-end;
   text-align: right;
-  font-size: 10px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

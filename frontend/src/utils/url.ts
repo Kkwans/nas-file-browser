@@ -88,6 +88,14 @@ export function encodeResourceRoute(value: string) {
 
 /** Appends one literal filename segment while preserving URL encoding rules. */
 export function appendResourceRouteSegment(parent: string, name: string) {
+  // Keep an already encoded UI route opaque. decodeURIComponent cannot decode
+  // legacy non-UTF-8 bytes such as `%D6%D0`, and re-encoding that placeholder
+  // would turn it into `%25D6` and make rename/move requests target a
+  // different file. New segments are still encoded exactly once.
+  if (isFilesRoute(parent)) {
+    const base = parent.replace(/\/+$/, "") || FILES_ROUTE_PREFIX;
+    return `${base}/${encodeURIComponent(name)}`;
+  }
   const base = canonicalResourcePath(parent).replace(/\/+$/, "");
   return encodeResourceRoute(`${base || "/"}/${name}`);
 }

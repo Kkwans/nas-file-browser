@@ -45,4 +45,15 @@ describe("URL path helpers", () => {
       )
     ).toBe("/files/volume2/%E7%94%B5%E5%BD%B1/%E6%96%B0%20%E5%90%8D%E7%A7%B0");
   });
+
+  it("keeps opaque percent routes for legacy non-UTF8 names", () => {
+    expect(
+      appendResourceRouteSegment(
+        "/files/tmp/%D6%D0%CE%C4.txt",
+        "中文-重命名.txt"
+      )
+    ).toBe(
+      "/files/tmp/%D6%D0%CE%C4.txt/%E4%B8%AD%E6%96%87-%E9%87%8D%E5%91%BD%E5%90%8D.txt"
+    );
+  });
 });

@@ -330,6 +330,7 @@ let pendingResume: {
 } | null = null;
 const PLAYBACK_SAVE_INTERVAL_MS = 8_000;
 const VIDEO_CODEC_PREFLIGHT_TIMEOUT_MS = 2500;
+type DirectPlaybackPreflight = "allowed" | "blocked" | "unknown";
 let gesture:
   | {
       pointerId: number;
@@ -400,9 +401,10 @@ async function initVideoPlayer() {
       sourceAttached.value = false;
       videoLoadState.value = "idle";
     }
-    const preflightPromise = needsCodecPreflight
-      ? preflightDirectPlayback(initialPath)
-      : Promise.resolve(false);
+    const preflightPromise: Promise<DirectPlaybackPreflight> =
+      needsCodecPreflight
+        ? preflightDirectPlayback(initialPath)
+        : Promise.resolve("allowed");
     const lang = document.documentElement.lang;
     const code = languageImports[lang] ? lang : "en";
     // Do not make the first useful player frame wait for a locale chunk. The
@@ -459,11 +461,16 @@ async function initVideoPlayer() {
     if (sourceAttached.value) beginVideoLoading();
     const playbackPromise = restorePlayback(props.path);
     if (needsCodecPreflight) {
-      const preflightBlocked = await preflightPromise;
+      const preflightResult = await preflightPromise;
       if (disposed || !videoPlayer.value || props.path !== initialPath) return;
       progressMessage.value = "";
-      if (preflightBlocked) markDirectPlaybackPreflightBlocked();
-      else attachDirectSource(initialPath, props.source);
+      if (preflightResult === "blocked") {
+        markDirectPlaybackPreflightBlocked();
+      } else if (preflightResult === "unknown") {
+        markDirectPlaybackProbeBlocked();
+      } else {
+        attachDirectSource(initialPath, props.source);
+      }
     }
     await playbackPromise;
   } catch (error) {
@@ -790,18 +797,27 @@ async function prepareDirectPlayback(path: string, source: string) {
     setVideoLoadState("idle");
     return;
   }
-  if (
-    shouldPreflightVideoCodec(path) &&
-    !supportsH264CompatibilityPlayback() &&
-    (await preflightDirectPlayback(path))
-  ) {
-    markDirectPlaybackPreflightBlocked();
-    return;
+  const needsCodecPreflight =
+    shouldPreflightVideoCodec(path) && !supportsH264CompatibilityPlayback();
+  if (needsCodecPreflight) {
+    sourceAttached.value = false;
+    setVideoLoadState("idle");
+    const preflightResult = await preflightDirectPlayback(path);
+    if (preflightResult === "blocked") {
+      markDirectPlaybackPreflightBlocked();
+      return;
+    }
+    if (preflightResult === "unknown") {
+      markDirectPlaybackProbeBlocked();
+      return;
+    }
   }
   attachDirectSource(path, source);
 }
 
-async function preflightDirectPlayback(path: string) {
+async function preflightDirectPlayback(
+  path: string
+): Promise<DirectPlaybackPreflight> {
   const controller = new AbortController();
   const timeout = window.setTimeout(
     () => controller.abort(),
@@ -817,10 +833,13 @@ async function preflightDirectPlayback(path: string) {
     // The bundled Chromium has no proprietary H.264 decoder.  Once the
     // inexpensive metadata probe confirms H.264 (or another codec known to
     // be unavailable), do not issue a large Range request that can only fail.
-    return codec === "h264" || isDefinitelyUnsupportedVideoCodec(codec);
+    return codec === "h264" || isDefinitelyUnsupportedVideoCodec(codec)
+      ? "blocked"
+      : "allowed";
   } catch {
-    // A probe outage must not make otherwise playable MP4 files unusable.
-    return false;
+    // Do not fall back to the raw source when the probe is inconclusive: a
+    // large unsupported video could otherwise be read until the browser fails.
+    return "unknown";
   } finally {
     window.clearTimeout(timeout);
   }
@@ -829,6 +848,15 @@ async function preflightDirectPlayback(path: string) {
 function markDirectPlaybackPreflightBlocked() {
   directPlaybackPreflightBlocked.value = true;
   directPlaybackProbeBlocked.value = false;
+  directPlaybackFailed.value = false;
+  sourceAttached.value = false;
+  setVideoLoadState("idle");
+  compatibilityPanelOpen.value = true;
+}
+
+function markDirectPlaybackProbeBlocked() {
+  directPlaybackProbeBlocked.value = true;
+  directPlaybackPreflightBlocked.value = false;
   directPlaybackFailed.value = false;
   sourceAttached.value = false;
   setVideoLoadState("idle");

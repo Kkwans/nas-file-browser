@@ -53,6 +53,18 @@ describe("媒体预览生命周期契约", () => {
     );
   });
 
+  it("编码探测未知时不自动读取原视频", () => {
+    expect(videoPlayerSource).toContain(
+      'type DirectPlaybackPreflight = "allowed" | "blocked" | "unknown";'
+    );
+    expect(videoPlayerSource).toContain('return "unknown";');
+    expect(videoPlayerSource).toContain('preflightResult === "unknown"');
+    expect(videoPlayerSource).toContain("markDirectPlaybackProbeBlocked()");
+    expect(videoPlayerSource).not.toContain(
+      "// A probe outage must not make otherwise playable MP4 files unusable."
+    );
+  });
+
   it("兼容播放等待 HLS 可寻址范围后再恢复进度", () => {
     expect(videoPlayerSource).toContain("isPlaybackPositionSeekable");
     expect(videoPlayerSource).toContain('"durationchange"');

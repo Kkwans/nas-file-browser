@@ -130,7 +130,6 @@
           v-else-if="fileStore.req?.type == 'image'"
           :src="previewUrl"
           :placeholder-src="imagePlaceholderUrl"
-          :placeholder-is-full="isLargeJpegPreview"
           :fallback-placeholder-src="imageFallbackPlaceholderUrl"
           :fileName="name"
           :fileSizeBytes="fileStore.req?.size || 0"
@@ -441,12 +440,6 @@ const previewUrl = computed(() => {
   return api.getDownloadURL(fileStore.req, true);
 });
 
-const imagePlaceholderUrl = computed(() => {
-  if (fileStore.req?.type !== "image") return "";
-  if (fullSize.value) return api.getPreviewURL(fileStore.req, "thumb");
-  return api.getPreviewURL(fileStore.req, "thumb", { warm: "big" });
-});
-
 const LARGE_JPEG_PREVIEW_MIN_BYTES = 4 * 1024 * 1024;
 const isLargeJpegPreview = computed(() => {
   const resource = fileStore.req;
@@ -456,6 +449,18 @@ const isLargeJpegPreview = computed(() => {
     resource.size >= LARGE_JPEG_PREVIEW_MIN_BYTES &&
     (extension === ".jpg" || extension === ".jpeg")
   );
+});
+
+const imagePlaceholderUrl = computed(() => {
+  if (fileStore.req?.type !== "image") return "";
+  if (fullSize.value) return api.getPreviewURL(fileStore.req, "thumb");
+  // A cold 1080px decode can take seconds on the NAS ARM CPU.  Large JPEGs
+  // must paint their real thumbnail first; the full preview starts only after
+  // that thumbnail has loaded, instead of hiding the first useful pixels
+  // behind a `warm=big` request.
+  if (isLargeJpegPreview.value)
+    return api.getPreviewURL(fileStore.req, "thumb");
+  return api.getPreviewURL(fileStore.req, "thumb", { warm: "big" });
 });
 
 const imageFallbackPlaceholderUrl = computed(() => {

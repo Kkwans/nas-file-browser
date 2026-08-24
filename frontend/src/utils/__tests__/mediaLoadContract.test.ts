@@ -67,7 +67,7 @@ describe("media loading contract", () => {
     expect(imageSource).toContain('@load="onPlaceholderLoad"');
   });
 
-  it("先完成真实缩略图，再启动大图请求", () => {
+  it("大图 JPEG 先显示真实缩略图，再启动大图请求", () => {
     expect(imageSource).toContain("onPlaceholderLoad");
     expect(imageSource).toContain("startFullImageLoad");
     expect(imageSource).toContain("PLACEHOLDER_MAX_WAIT_MS");
@@ -76,7 +76,11 @@ describe("media loading contract", () => {
     expect(imageSource).toContain("startRawImageFallback");
     expect(imageSource).toContain("placeholderFailed");
     expect(imageSource).toContain("placeholderIsFull");
+    expect(previewSource).toContain("if (isLargeJpegPreview.value)");
     expect(previewSource).toContain(
+      'return api.getPreviewURL(fileStore.req, "thumb");'
+    );
+    expect(previewSource).not.toContain(
       ':placeholder-is-full="isLargeJpegPreview"'
     );
   });

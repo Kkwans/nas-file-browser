@@ -230,8 +230,10 @@ import {
 } from "@/utils/videoGestures";
 import {
   getVideoSourceType,
+  isDefinitelyUnsupportedVideoCodec,
   isKnownIncompatibleVideo,
   isPlaybackPositionSeekable,
+  shouldPreflightVideoCodec,
   supportsH264CompatibilityPlayback,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
@@ -276,6 +278,7 @@ const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
 const directPlaybackProbeBlocked = ref(false);
+const directPlaybackPreflightBlocked = ref(false);
 const hlsActive = ref(false);
 const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));
 type VideoLoadState = "idle" | "loading" | "stalled" | "ready" | "error";
@@ -367,21 +370,30 @@ onBeforeUnmount(() => {
 
 async function initVideoPlayer() {
   try {
+    const initialPath = props.path;
+    const preflightPromise =
+      shouldPreflightVideoCodec(initialPath) &&
+      !supportsH264CompatibilityPlayback()
+        ? preflightDirectPlayback(initialPath)
+        : Promise.resolve(false);
     const lang = document.documentElement.lang;
-    const languagePack = await (
-      languageImports[lang] || languageImports.en
-    )?.();
-    if (disposed || !videoPlayer.value) return;
+    const [languagePack, preflightBlocked] = await Promise.all([
+      (languageImports[lang] || languageImports.en)?.(),
+      preflightPromise,
+    ]);
+    if (disposed || !videoPlayer.value || props.path !== initialPath) return;
+    if (preflightBlocked) markDirectPlaybackPreflightBlocked();
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);
-    const initialSource = isKnownIncompatibleVideo(props.path)
-      ? {}
-      : {
-          sources: {
-            src: props.source,
-            type: getVideoSourceType(props.source, props.path),
-          },
-        };
+    const initialSource =
+      isKnownIncompatibleVideo(props.path) || preflightBlocked
+        ? {}
+        : {
+            sources: {
+              src: props.source,
+              type: getVideoSourceType(props.source, props.path),
+            },
+          };
     player.value = videojs(
       videoPlayer.value,
       getOptions(props.options, { language: code }, initialSource, {
@@ -566,14 +578,18 @@ const compatibilityCopy = computed(() => {
     default:
       return {
         icon: "movie_filter",
-        title: directPlaybackProbeBlocked.value
-          ? "暂时无法确认是否可直接播放"
-          : directPlaybackFailed.value
-            ? "当前格式无法直接播放"
-            : "此格式可能需要兼容播放",
-        description: directPlaybackProbeBlocked.value
-          ? "编码探测超时，已停止自动读取原视频。你可以手动尝试原视频，或启动兼容播放。"
-          : "只在你点击后，NAS 才会按需生成浏览器可播放版本；不会自动转码其他视频。",
+        title: directPlaybackPreflightBlocked.value
+          ? "浏览器不支持此视频编码"
+          : directPlaybackProbeBlocked.value
+            ? "暂时无法确认是否可直接播放"
+            : directPlaybackFailed.value
+              ? "当前格式无法直接播放"
+              : "此格式可能需要兼容播放",
+        description: directPlaybackPreflightBlocked.value
+          ? "已读取视频元数据，当前浏览器无法解码该编码；不会继续读取原视频，请启动兼容播放。"
+          : directPlaybackProbeBlocked.value
+            ? "编码探测超时，已停止自动读取原视频。你可以手动尝试原视频，或启动兼容播放。"
+            : "只在你点击后，NAS 才会按需生成浏览器可播放版本；不会自动转码其他视频。",
       };
   }
 });
@@ -606,6 +622,7 @@ const showCompatibilityFallbacks = computed(
   () =>
     directPlaybackFailed.value ||
     directPlaybackProbeBlocked.value ||
+    directPlaybackPreflightBlocked.value ||
     compatibilityStatus.value?.state === "failed"
 );
 
@@ -614,6 +631,7 @@ const canTryDirectPlayback = computed(
     !hlsActive.value &&
     (isKnownIncompatibleVideo(props.path) ||
       directPlaybackProbeBlocked.value ||
+      directPlaybackPreflightBlocked.value ||
       directPlaybackFailed.value)
 );
 
@@ -682,7 +700,46 @@ async function prepareDirectPlayback(path: string, source: string) {
     setVideoLoadState("idle");
     return;
   }
+  if (
+    shouldPreflightVideoCodec(path) &&
+    !supportsH264CompatibilityPlayback() &&
+    (await preflightDirectPlayback(path))
+  ) {
+    markDirectPlaybackPreflightBlocked();
+    return;
+  }
   attachDirectSource(path, source);
+}
+
+async function preflightDirectPlayback(path: string) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 1200);
+  try {
+    const info = await mediaApi.getMediaInformation(
+      path,
+      false,
+      controller.signal
+    );
+    const codec = info.videoCodec?.trim().toLowerCase();
+    // The bundled Chromium has no proprietary H.264 decoder.  Once the
+    // inexpensive metadata probe confirms H.264 (or another codec known to
+    // be unavailable), do not issue a large Range request that can only fail.
+    return codec === "h264" || isDefinitelyUnsupportedVideoCodec(codec);
+  } catch {
+    // A probe outage must not make otherwise playable MP4 files unusable.
+    return false;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+function markDirectPlaybackPreflightBlocked() {
+  directPlaybackPreflightBlocked.value = true;
+  directPlaybackProbeBlocked.value = false;
+  directPlaybackFailed.value = false;
+  sourceAttached.value = false;
+  setVideoLoadState("idle");
+  compatibilityPanelOpen.value = true;
 }
 
 function attachDirectSource(path: string, source: string) {
@@ -986,6 +1043,7 @@ function tryDirectPlayback() {
   hlsActive.value = false;
   directPlaybackFailed.value = false;
   directPlaybackProbeBlocked.value = false;
+  directPlaybackPreflightBlocked.value = false;
   compatibilityNetworkError.value = "";
   sourceAttached.value = true;
   beginVideoLoading();
@@ -1012,6 +1070,7 @@ function resetCompatibility(path: string) {
   compatibilityStatus.value = null;
   directPlaybackFailed.value = false;
   directPlaybackProbeBlocked.value = false;
+  directPlaybackPreflightBlocked.value = false;
   hlsActive.value = false;
   activeHLSURL = "";
   sourceAttached.value = !isKnownIncompatibleVideo(path);

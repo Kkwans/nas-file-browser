@@ -42,12 +42,12 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain("再次尝试原视频");
   });
 
-  it("浏览器可能原生支持的 MP4 不再先等待后端编码探测", () => {
-    expect(videoPlayerSource).not.toContain("getMediaInformation");
-    expect(videoPlayerSource).not.toContain("正在检测视频格式");
-    expect(videoPlayerSource).toContain(
-      "const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));"
-    );
+  it("当前浏览器无法解码 H.264 时先预检 MP4 编码，避免读取整段原视频后才失败", () => {
+    expect(videoPlayerSource).toContain("shouldPreflightVideoCodec");
+    expect(videoPlayerSource).toContain("getMediaInformation");
+    expect(videoPlayerSource).toContain("isDefinitelyUnsupportedVideoCodec");
+    expect(videoPlayerSource).toContain("preflightDirectPlayback");
+    expect(videoPlayerSource).toContain("directPlaybackPreflightBlocked");
   });
 
   it("兼容播放等待 HLS 可寻址范围后再恢复进度", () => {

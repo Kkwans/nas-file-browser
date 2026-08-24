@@ -22,8 +22,13 @@ describe("媒体预览生命周期契约", () => {
   });
 
   it("先尝试浏览器原生源，明确不支持时再展示兼容播放", () => {
+    expect(videoPlayerSource).toContain("isKnownIncompatibleVideo");
+    expect(videoPlayerSource).toContain(
+      "const sourceAttached = ref(!isKnownIncompatibleVideo(props.path))"
+    );
     expect(videoPlayerSource).toContain("const initialSource");
     expect(videoPlayerSource).toContain("src: props.source");
+    expect(videoPlayerSource).toContain("{ sources: [] }");
     expect(videoPlayerSource).toContain(
       "getVideoSourceType(props.source, props.path)"
     );
@@ -42,6 +47,7 @@ describe("媒体预览生命周期契约", () => {
     );
     expect(videoPlayerSource).toContain("directPlaybackFailed.value");
     expect(videoPlayerSource).toContain("再次尝试原视频");
+    expect(videoPlayerSource).toContain("function detachDirectSource()");
   });
 
   it("兼容播放只在原生源明确报错后可选启动", () => {

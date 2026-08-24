@@ -247,6 +247,7 @@ import {
 import {
   getVideoSourceType,
   isPlaybackPositionSeekable,
+  isKnownIncompatibleVideo,
   supportsH264CompatibilityPlayback,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
@@ -291,7 +292,12 @@ const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
 const hlsActive = ref(false);
-const sourceAttached = ref(true);
+// Do not attach containers that the active browser has already declared
+// unsupported.  Attaching them makes Chromium issue a full metadata/range
+// request before it can show the compatibility action, which is especially
+// painful on NAS-hosted MKV/MOV files.  The user can still explicitly retry
+// the original source from the compatibility panel.
+const sourceAttached = ref(!isKnownIncompatibleVideo(props.path));
 type VideoLoadState = "idle" | "loading" | "stalled" | "ready" | "error";
 const videoLoadState = ref<VideoLoadState>(
   sourceAttached.value ? "loading" : "idle"
@@ -392,12 +398,14 @@ async function initVideoPlayer() {
       ? languageImports[lang]?.()
       : Promise.resolve(null);
     if (disposed || !videoPlayer.value || props.path !== initialPath) return;
-    const initialSource = {
-      sources: {
-        src: props.source,
-        type: getVideoSourceType(props.source, props.path),
-      },
-    };
+    const initialSource = sourceAttached.value
+      ? {
+          sources: {
+            src: props.source,
+            type: getVideoSourceType(props.source, props.path),
+          },
+        }
+      : { sources: [] };
     player.value = videojs(
       videoPlayer.value,
       getOptions(props.options, { language: code }, initialSource, {
@@ -433,6 +441,7 @@ async function initVideoPlayer() {
         // locale chunk cannot be loaded from the local bundle.
       });
     if (sourceAttached.value) beginVideoLoading();
+    else compatibilityPanelOpen.value = true;
     const playbackPromise = restorePlayback(props.path);
     await playbackPromise;
   } catch (error) {
@@ -738,7 +747,24 @@ function clearLoadStateTimer() {
 }
 
 function prepareDirectPlayback(path: string, source: string) {
+  if (!shouldAttachDirectSource(path)) {
+    detachDirectSource();
+    return;
+  }
   attachDirectSource(path, source);
+}
+
+function shouldAttachDirectSource(path: string) {
+  return !isKnownIncompatibleVideo(path);
+}
+
+function detachDirectSource() {
+  sourceAttached.value = false;
+  directPlaybackFailed.value = false;
+  compatibilityPanelOpen.value = true;
+  videoLoadState.value = "idle";
+  loadingOverlayVisible.value = false;
+  clearLoadStateTimer();
 }
 
 function attachDirectSource(path: string, source: string) {
@@ -1067,12 +1093,12 @@ function resetCompatibility() {
   directPlaybackFailed.value = false;
   hlsActive.value = false;
   activeHLSURL = "";
-  sourceAttached.value = true;
+  sourceAttached.value = shouldAttachDirectSource(props.path);
   posterSource.value = "";
-  videoLoadState.value = "loading";
+  videoLoadState.value = sourceAttached.value ? "loading" : "idle";
   loadingOverlayVisible.value = false;
   clearLoadStateTimer();
-  compatibilityPanelOpen.value = false;
+  compatibilityPanelOpen.value = !sourceAttached.value;
 }
 
 function formatCacheSize(bytes: number) {

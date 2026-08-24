@@ -32,4 +32,20 @@ describe("analysis page UI contract", () => {
       /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/
     );
   });
+
+  it("分析工作区把扫描动作和最近记录保持在清晰的对齐列中", () => {
+    const scopeSource = readFileSync(
+      resolve(process.cwd(), "src/components/analysis/AnalysisScopePanel.vue"),
+      "utf8"
+    );
+    const recentSource = readFileSync(
+      resolve(process.cwd(), "src/components/analysis/AnalysisRecentScans.vue"),
+      "utf8"
+    );
+
+    expect(scopeSource).toContain('class="analysis-run-panel__intro"');
+    expect(scopeSource).toContain('class="analysis-run-panel__section"');
+    expect(recentSource).toContain('class="analysis-recent__side"');
+    expect(recentSource).toContain('class="analysis-recent__time"');
+  });
 });

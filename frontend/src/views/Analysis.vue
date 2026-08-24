@@ -796,7 +796,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 18px 0 56px;
+  padding: 14px 0 56px;
 }
 
 .analysis-readonly-chip {
@@ -814,7 +814,7 @@ onBeforeUnmount(() => {
 .analysis-error {
   margin-top: 14px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surfacePrimary);
 }
 
@@ -977,7 +977,7 @@ onBeforeUnmount(() => {
 }
 
 .analysis-results-heading {
-  margin-top: 22px;
+  margin-top: 24px;
 }
 
 .analysis-readonly-chip {
@@ -994,21 +994,21 @@ onBeforeUnmount(() => {
 .analysis-summary-grid article {
   display: grid;
   gap: 4px;
-  padding: 16px;
+  padding: 14px 15px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
 }
 
 .analysis-summary-grid small,
 .analysis-summary-grid span {
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .analysis-summary-grid strong {
   color: var(--textSecondary);
-  font-size: 22px;
+  font-size: 24px;
   letter-spacing: -0.03em;
 }
 
@@ -1050,7 +1050,7 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 9px;
-  padding: 11px 12px;
+  padding: 10px 12px;
   border: 1px solid var(--borderPrimary);
   border-radius: 10px;
   background: var(--surfacePrimary);
@@ -1076,12 +1076,12 @@ onBeforeUnmount(() => {
 }
 
 .storage-scope-grid strong {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .storage-scope-grid small {
   color: var(--textPrimary);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .storage-rankings {
@@ -1095,7 +1095,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 13px;
+  border-radius: 11px;
   background: var(--surfacePrimary);
 }
 
@@ -1104,7 +1104,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 46px;
+  min-height: 44px;
   padding: 0 13px;
   border-bottom: 1px solid var(--borderPrimary);
   background: var(--surfaceSecondary);
@@ -1112,13 +1112,13 @@ onBeforeUnmount(() => {
 
 .storage-rankings > article > header > span {
   color: var(--textSecondary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .storage-rankings > article > header > small {
   color: var(--textPrimary);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .storage-rankings > article > div {
@@ -1132,8 +1132,8 @@ onBeforeUnmount(() => {
   grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  min-height: 62px;
-  padding: 5px 12px;
+  min-height: 66px;
+  padding: 6px 12px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textSecondary);
   text-decoration: none;
@@ -1179,12 +1179,12 @@ onBeforeUnmount(() => {
 }
 
 .storage-rankings a strong {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .storage-rankings a small {
   color: var(--textPrimary);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .storage-rankings em {
@@ -1228,7 +1228,7 @@ onBeforeUnmount(() => {
 .duplicate-group {
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 13px;
+  border-radius: 11px;
   background: var(--surfacePrimary);
 }
 
@@ -1237,7 +1237,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 13px 15px;
+  padding: 12px 15px;
   border-bottom: 1px solid var(--borderPrimary);
   background: var(--surfaceSecondary);
 }
@@ -1261,20 +1261,20 @@ onBeforeUnmount(() => {
 
 .duplicate-group header strong {
   color: var(--textSecondary);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .duplicate-group header small {
   margin-top: 3px;
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .duplicate-group code {
   max-width: 180px;
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 9px;
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1284,8 +1284,8 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 10px;
-  min-height: 54px;
-  padding: 6px 14px;
+  min-height: 58px;
+  padding: 7px 14px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textSecondary);
   text-decoration: none;
@@ -1331,13 +1331,13 @@ onBeforeUnmount(() => {
 }
 
 .duplicate-file-list strong {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .duplicate-file-list small,
 .duplicate-file-list time {
   color: var(--textPrimary);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .analysis-clean-state {

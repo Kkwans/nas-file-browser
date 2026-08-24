@@ -1,10 +1,12 @@
 <template>
   <section class="analysis-recent" aria-labelledby="analysis-recent-title">
     <div class="analysis-recent__header">
-      <span aria-hidden="true">最近</span>
+      <span class="analysis-recent__header-icon" aria-hidden="true">
+        <AppIcon name="history" :size="18" />
+      </span>
       <div>
         <h2 id="analysis-recent-title">最近扫描</h2>
-        <p>只显示你的扫描；范围、状态和关键结果集中在一行查看。</p>
+        <p>只显示你的扫描记录，范围、状态和结果一目了然。</p>
       </div>
       <button v-if="error" type="button" @click="$emit('retry')">
         重新加载
@@ -59,17 +61,26 @@
           </p>
           <p class="analysis-recent__metrics">{{ metricsLabel(item) }}</p>
         </div>
-        <router-link
-          class="analysis-recent__action"
-          :to="{
-            path: '/analysis',
-            query: { tool: item.tool, task: item.id },
-          }"
-          :aria-label="`${itemToolLabel(item)}：${actionLabel(item)}`"
-        >
-          {{ actionLabel(item) }}
-          <AppIcon name="chevron-right" :size="17" />
-        </router-link>
+        <div class="analysis-recent__side">
+          <time
+            class="analysis-recent__time"
+            :datetime="new Date(item.createdAt).toISOString()"
+          >
+            <AppIcon name="clock" :size="14" />
+            {{ formatTime(item.createdAt) }}
+          </time>
+          <router-link
+            class="analysis-recent__action"
+            :to="{
+              path: '/analysis',
+              query: { tool: item.tool, task: item.id },
+            }"
+            :aria-label="`${itemToolLabel(item)}：${actionLabel(item)}`"
+          >
+            <span>{{ actionLabel(item) }}</span>
+            <AppIcon name="chevron-right" :size="16" />
+          </router-link>
+        </div>
       </li>
     </ul>
   </section>
@@ -155,8 +166,10 @@ function formatTime(value: number) {
   margin-top: 14px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surfacePrimary);
+  box-shadow: 0 4px 14px
+    color-mix(in srgb, var(--textSecondary) 3%, transparent);
 }
 
 .analysis-recent__header {
@@ -164,20 +177,18 @@ function formatTime(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
+  padding: 13px 18px;
   border-bottom: 1px solid var(--borderPrimary);
 }
 
-.analysis-recent__header > span {
+.analysis-recent__header-icon {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 9px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 9%, transparent);
-  font-size: 10px;
-  font-weight: 800;
 }
 
 .analysis-recent__header h2,
@@ -188,13 +199,13 @@ function formatTime(value: number) {
 
 .analysis-recent__header h2 {
   color: var(--textSecondary);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .analysis-recent__header p {
   margin-top: 2px;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .analysis-recent__header button {
@@ -230,11 +241,11 @@ function formatTime(value: number) {
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-columns: 40px minmax(0, 1fr) 150px;
   align-items: center;
-  gap: 11px;
-  min-height: 88px;
-  padding: 11px 16px;
+  gap: 14px;
+  min-height: 80px;
+  padding: 11px 18px;
 }
 
 .analysis-recent__list li + li {
@@ -247,10 +258,10 @@ function formatTime(value: number) {
 
 .analysis-recent__tool {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   place-items: center;
-  border-radius: 9px;
+  border-radius: 10px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 9%, transparent);
 }
@@ -274,7 +285,7 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__headline > span {
-  padding: 2px 6px;
+  padding: 3px 7px;
   border-radius: 5px;
   color: var(--textPrimary);
   background: var(--surfaceSecondary);
@@ -294,8 +305,17 @@ function formatTime(value: number) {
   background: color-mix(in srgb, var(--red) 8%, transparent);
 }
 
-.analysis-recent__headline time {
-  margin-left: auto;
+.analysis-recent__side {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+  min-width: 0;
+}
+
+.analysis-recent__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--textPrimary);
   font-size: 10px;
   white-space: nowrap;
@@ -320,7 +340,7 @@ function formatTime(value: number) {
 .analysis-recent__metrics {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -330,9 +350,11 @@ function formatTime(value: number) {
   min-height: 44px;
   align-items: center;
   gap: 4px;
-  padding: 0 8px 0 11px;
-  border-radius: 8px;
+  padding: 0 9px 0 11px;
+  border: 1px solid color-mix(in srgb, var(--blue) 26%, var(--borderPrimary));
+  border-radius: 7px;
   color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
   font-size: 11px;
   font-weight: 700;
   text-decoration: none;
@@ -343,7 +365,8 @@ function formatTime(value: number) {
 .analysis-recent__header button:hover,
 .analysis-recent__header button:focus-visible {
   outline: none;
-  background: var(--hover);
+  border-color: color-mix(in srgb, var(--blue) 48%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
 }
 
 .analysis-recent__action:focus-visible,
@@ -353,7 +376,7 @@ function formatTime(value: number) {
 
 @media (max-width: 620px) {
   .analysis-recent__header {
-    padding: 13px 14px;
+    padding: 12px 14px;
   }
 
   .analysis-recent__header p {
@@ -362,7 +385,7 @@ function formatTime(value: number) {
 
   .analysis-recent__list li {
     grid-template-columns: 34px minmax(0, 1fr);
-    gap: 9px;
+    gap: 10px;
     padding: 12px 14px;
   }
 
@@ -371,19 +394,17 @@ function formatTime(value: number) {
     height: 34px;
   }
 
-  .analysis-recent__headline {
-    flex-wrap: wrap;
-  }
-
-  .analysis-recent__headline time {
-    width: 100%;
-    margin-left: 0;
+  .analysis-recent__side {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 3px;
   }
 
   .analysis-recent__action {
-    grid-column: 2;
-    justify-self: start;
-    margin-left: -11px;
+    min-height: 44px;
   }
 }
 

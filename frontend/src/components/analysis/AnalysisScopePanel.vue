@@ -1,83 +1,96 @@
 <template>
   <section class="analysis-run-panel" aria-labelledby="analysis-title">
     <div class="analysis-run-panel__header">
-      <span class="analysis-run-panel__mark" aria-hidden="true">
-        <AppIcon :name="content.icon" :size="24" />
-      </span>
-      <div>
-        <h1 id="analysis-title">{{ content.title }}</h1>
-        <p>{{ content.description }}</p>
+      <div class="analysis-run-panel__intro">
+        <span class="analysis-run-panel__mark" aria-hidden="true">
+          <AppIcon :name="content.icon" :size="22" />
+        </span>
+        <div>
+          <p class="analysis-run-panel__eyebrow">
+            {{ content.label }} · 只读扫描
+          </p>
+          <h1 id="analysis-title">{{ content.title }}</h1>
+          <p class="analysis-run-panel__description">
+            {{ content.description }}
+          </p>
+        </div>
       </div>
       <span class="analysis-run-panel__safety">
         <AppIcon name="shield-check" :size="16" />
-        只读 · 并发 1
+        并发 1
       </span>
     </div>
 
     <div class="analysis-run-panel__body">
-      <div class="analysis-run-panel__step">
-        <span>步骤 1</span>
-        <div>
-          <h2>选择扫描范围</h2>
-          <p>支持文件或目录；父目录已包含的子路径会自动合并。</p>
+      <div class="analysis-run-panel__section">
+        <div class="analysis-run-panel__step">
+          <span>步骤 1</span>
+          <div>
+            <h2>选择扫描范围</h2>
+            <p>支持文件或目录；父目录已包含的子路径会自动合并。</p>
+          </div>
+          <small aria-live="polite">{{ scopes.length }} / 32</small>
         </div>
-        <small aria-live="polite">{{ scopes.length }} / 32</small>
-      </div>
 
-      <form class="analysis-run-panel__input" @submit.prevent="$emit('add')">
-        <AppIcon name="folder" :size="19" />
-        <input
-          :value="scopeInput"
-          type="text"
-          autocomplete="off"
-          placeholder="例如 /照片/2026"
-          aria-label="添加扫描路径"
-          @input="updateScopeInput"
-        />
-        <button type="submit" :disabled="!scopeInput.trim()">添加范围</button>
-      </form>
+        <form class="analysis-run-panel__input" @submit.prevent="$emit('add')">
+          <AppIcon name="folder" :size="19" />
+          <input
+            :value="scopeInput"
+            type="text"
+            autocomplete="off"
+            placeholder="输入路径，例如 /照片/2026"
+            aria-label="添加扫描路径"
+            @input="updateScopeInput"
+          />
+          <button type="submit" :disabled="!scopeInput.trim()">添加范围</button>
+        </form>
 
-      <div
-        v-if="scopes.length"
-        class="analysis-run-panel__scopes"
-        aria-label="已选扫描范围"
-      >
-        <span v-for="scope in scopes" :key="scope">
-          <AppIcon name="folder" :size="16" />
-          <b :title="scope">{{ scope }}</b>
-          <button
-            type="button"
-            :aria-label="`移除 ${scope}`"
-            @click="$emit('remove', scope)"
-          >
-            <AppIcon name="x" :size="16" />
-          </button>
-        </span>
-      </div>
-      <div v-else class="analysis-run-panel__empty">
-        <AppIcon name="info" :size="18" />
-        <span>从文件列表选中项目后点击“分析”，或在这里输入路径。</span>
-      </div>
+        <div
+          v-if="scopes.length"
+          class="analysis-run-panel__scopes"
+          aria-label="已选扫描范围"
+        >
+          <span v-for="scope in scopes" :key="scope">
+            <AppIcon name="folder" :size="16" />
+            <b :title="scope">{{ scope }}</b>
+            <button
+              type="button"
+              :aria-label="`移除 ${scope}`"
+              @click="$emit('remove', scope)"
+            >
+              <AppIcon name="x" :size="16" />
+            </button>
+          </span>
+        </div>
+        <div v-else class="analysis-run-panel__empty">
+          <AppIcon name="info" :size="17" />
+          <span>从文件列表选中项目后点击“分析”，或在这里输入路径。</span>
+        </div>
 
-      <label v-if="includesRoot" class="analysis-run-panel__root-confirm">
-        <input
-          :checked="rootConfirmed"
-          type="checkbox"
-          @change="updateRootConfirmed"
-        />
-        <span>
-          <strong>确认扫描整个可访问范围</strong>
-          根目录可能唤醒更多磁盘并持续较长时间，可随时在任务中心取消。
-        </span>
-      </label>
+        <label v-if="includesRoot" class="analysis-run-panel__root-confirm">
+          <input
+            :checked="rootConfirmed"
+            type="checkbox"
+            @change="updateRootConfirmed"
+          />
+          <span>
+            <strong>确认扫描整个可访问范围</strong>
+            根目录可能唤醒更多磁盘并持续较长时间，可随时在任务中心取消。
+          </span>
+        </label>
+      </div>
     </div>
 
     <footer class="analysis-run-panel__footer">
-      <div class="analysis-run-panel__step analysis-run-panel__step--confirm">
-        <span>步骤 2</span>
-        <div>
-          <h2>确认并运行</h2>
-          <p>不会后台定时扫描；每次都需要你主动开始。</p>
+      <div
+        class="analysis-run-panel__section analysis-run-panel__section--confirm"
+      >
+        <div class="analysis-run-panel__step analysis-run-panel__step--confirm">
+          <span>步骤 2</span>
+          <div>
+            <h2>准备开始</h2>
+            <p>不会后台定时扫描；每次都需要你主动开始。</p>
+          </div>
         </div>
       </div>
       <button
@@ -135,31 +148,40 @@ function updateRootConfirmed(event: Event) {
   margin-top: 12px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px
-    color-mix(in srgb, var(--textSecondary) 5%, transparent);
+  box-shadow: 0 4px 14px
+    color-mix(in srgb, var(--textSecondary) 4%, transparent);
 }
 
 .analysis-run-panel__header {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 18px 20px;
+  gap: 16px;
+  padding: 15px 18px;
   border-bottom: 1px solid var(--borderPrimary);
+}
+
+.analysis-run-panel__intro {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
 }
 
 .analysis-run-panel__mark {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 10%, transparent);
 }
 
+.analysis-run-panel__intro > div,
 .analysis-run-panel__header h1,
 .analysis-run-panel__header p,
 .analysis-run-panel__step h2,
@@ -169,27 +191,35 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__header h1 {
   color: var(--textSecondary);
-  font-size: 18px;
-  line-height: 1.35;
+  font-size: 17px;
+  line-height: 1.3;
   letter-spacing: -0.01em;
 }
 
-.analysis-run-panel__header p {
+.analysis-run-panel__eyebrow {
+  margin-bottom: 3px !important;
+  color: var(--blue);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.analysis-run-panel__description {
   max-width: 68ch;
   margin-top: 4px;
   color: var(--textPrimary);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .analysis-run-panel__safety {
   display: inline-flex;
-  min-height: 32px;
+  min-height: 30px;
   align-items: center;
   gap: 6px;
-  padding: 0 9px;
+  padding: 0 10px;
   border: 1px solid color-mix(in srgb, #16845d 22%, var(--borderPrimary));
-  border-radius: 8px;
+  border-radius: 7px;
   color: #16845d;
   background: color-mix(in srgb, #1ea672 7%, transparent);
   font-size: 11px;
@@ -198,22 +228,27 @@ function updateRootConfirmed(event: Event) {
 }
 
 .analysis-run-panel__body {
-  padding: 18px 20px 16px;
+  padding: 15px 18px;
+}
+
+.analysis-run-panel__section {
+  min-width: 0;
 }
 
 .analysis-run-panel__step {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 
 .analysis-run-panel__step > span {
   display: inline-flex;
-  min-height: 24px;
+  min-height: 26px;
   align-items: center;
-  padding: 0 7px;
-  border-radius: 6px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--blue) 16%, transparent);
+  border-radius: 7px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 9%, transparent);
   font-size: 10px;
@@ -222,14 +257,14 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__step h2 {
   color: var(--textSecondary);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .analysis-run-panel__step p,
 .analysis-run-panel__step small {
   margin-top: 2px;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .analysis-run-panel__input {
@@ -237,17 +272,17 @@ function updateRootConfirmed(event: Event) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
-  padding: 4px 4px 4px 11px;
+  margin-top: 11px;
+  padding: 3px 3px 3px 11px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
+  border-radius: 9px;
   color: var(--textPrimary);
   background: var(--surfaceSecondary);
 }
 
 .analysis-run-panel__input input {
   min-width: 0;
-  min-height: 40px;
+  min-height: 38px;
   border: 0;
   outline: 0;
   color: var(--textSecondary);
@@ -256,7 +291,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__input button,
 .analysis-run-panel__start {
-  min-height: 40px;
+  min-height: 38px;
   border: 0;
   border-radius: 8px;
   cursor: pointer;
@@ -264,7 +299,7 @@ function updateRootConfirmed(event: Event) {
 }
 
 .analysis-run-panel__input button {
-  padding: 0 14px;
+  padding: 0 13px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
 }
@@ -279,7 +314,7 @@ function updateRootConfirmed(event: Event) {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  margin-top: 10px;
+  margin-top: 9px;
 }
 
 .analysis-run-panel__scopes > span {
@@ -288,7 +323,7 @@ function updateRootConfirmed(event: Event) {
   align-items: center;
   gap: 6px;
   max-width: 100%;
-  min-height: 40px;
+  min-height: 36px;
   padding-left: 10px;
   border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
   border-radius: 8px;
@@ -331,28 +366,28 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__empty {
   display: flex;
-  min-height: 40px;
+  min-height: 36px;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 9px;
   padding: 0 11px;
   border: 1px dashed var(--borderPrimary);
   border-radius: 8px;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .analysis-run-panel__root-confirm {
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  margin-top: 11px;
-  padding: 10px 11px;
+  margin-top: 10px;
+  padding: 9px 10px;
   border: 1px solid
     color-mix(in srgb, var(--icon-orange) 26%, var(--borderPrimary));
   border-radius: 8px;
   background: color-mix(in srgb, var(--icon-orange) 6%, transparent);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.5;
 }
 
@@ -376,9 +411,13 @@ function updateRootConfirmed(event: Event) {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 20px;
+  padding: 11px 18px;
   border-top: 1px solid var(--borderPrimary);
-  background: color-mix(in srgb, var(--surfaceSecondary) 72%, transparent);
+  background: color-mix(in srgb, var(--surfaceSecondary) 48%, transparent);
+}
+
+.analysis-run-panel__section--confirm {
+  flex: 1;
 }
 
 .analysis-run-panel__step--confirm {
@@ -387,14 +426,14 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__start {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 0 15px;
+  padding: 0 14px;
   color: #fff;
   background: var(--blue);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--blue) 22%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--blue) 18%, transparent);
 }
 
 .analysis-run-panel__start:not(:disabled):active {
@@ -403,22 +442,17 @@ function updateRootConfirmed(event: Event) {
 
 @media (max-width: 680px) {
   .analysis-run-panel__header {
-    grid-template-columns: 42px minmax(0, 1fr);
-    padding: 15px;
-  }
-
-  .analysis-run-panel__mark {
-    width: 42px;
-    height: 42px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px;
   }
 
   .analysis-run-panel__safety {
-    grid-column: 2;
     justify-self: start;
   }
 
   .analysis-run-panel__body {
-    padding: 15px;
+    padding: 14px;
   }
 
   .analysis-run-panel__input input,
@@ -429,7 +463,8 @@ function updateRootConfirmed(event: Event) {
   .analysis-run-panel__footer {
     align-items: stretch;
     flex-direction: column;
-    padding: 12px 15px 15px;
+    gap: 10px;
+    padding: 11px 14px 14px;
   }
 
   .analysis-run-panel__start {

@@ -41,25 +41,29 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
+  gap: 3px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 4px;
+  padding: 3px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
-  background: var(--surfaceSecondary);
+  border-radius: 10px;
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 72%,
+    var(--surfacePrimary)
+  );
 }
 
 .analysis-tool-switcher button {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  min-height: 48px;
+  grid-template-columns: 32px minmax(0, 1fr);
+  min-height: 50px;
   align-items: center;
-  gap: 9px;
-  padding: 5px 10px;
+  gap: 10px;
+  padding: 5px 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 7px;
   color: var(--textPrimary);
   background: transparent;
   cursor: pointer;
@@ -82,13 +86,13 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher button.is-active {
   color: var(--blue);
   background: var(--surfacePrimary);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--textSecondary) 8%, transparent);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--textSecondary) 8%, transparent);
 }
 
 .analysis-tool-switcher__icon {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border-radius: 8px;
   color: currentColor;
@@ -109,6 +113,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher small {
   overflow: hidden;
+  color: var(--textPrimary);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -121,8 +126,8 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
   .analysis-tool-switcher button {
     grid-template-columns: 30px minmax(0, 1fr);
-    min-height: 48px;
-    padding-inline: 7px;
+    min-height: 46px;
+    padding-inline: 8px;
   }
 
   .analysis-tool-switcher__icon {

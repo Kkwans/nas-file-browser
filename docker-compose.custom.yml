@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.24-phase10-media-probe-fast-r79
+    image: nas-file-browser:2026.8.24-phase10-video-shell-r80
     build:
       context: .
       dockerfile: Dockerfile.custom

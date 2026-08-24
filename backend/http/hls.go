@@ -54,6 +54,24 @@ type mediaHLSResponse struct {
 
 const mediaHLSCodecProbeTimeout = 5 * time.Second
 
+// reserveHLSForFormat keeps retries on the same artifact contract as the
+// original compatibility task. In particular, an mp4-copy retry must remain a
+// remux and must not silently fall back to a full HLS transcode.
+func reserveHLSForFormat(service *hls.Service, format string) func(hls.Input, hls.StartFunc) (hls.Status, bool, error) {
+	switch format {
+	case "webm":
+		return service.ReserveWebM
+	case "webm-copy":
+		return service.ReserveWebMCopy
+	case "mp4-copy":
+		return service.ReserveMP4Copy
+	case "copy":
+		return service.ReserveCopy
+	default:
+		return service.Reserve
+	}
+}
+
 func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		var request mediaHLSStartRequest

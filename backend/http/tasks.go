@@ -81,15 +81,7 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 		if err != nil {
 			return nil, status, err
 		}
-		reserve := hlsServices[0].Reserve
-		switch args.Format {
-		case "webm":
-			reserve = hlsServices[0].ReserveWebM
-		case "webm-copy":
-			reserve = hlsServices[0].ReserveWebMCopy
-		case "copy":
-			reserve = hlsServices[0].ReserveCopy
-		}
+		reserve := reserveHLSForFormat(hlsServices[0], args.Format)
 		_, created, reserveErr := reserve(input, func(job hls.Job) (string, error) {
 			retry, err = enqueueMediaHLSTask(runtime, d, owner, hlsServices[0], job, original.ID)
 			if err != nil {

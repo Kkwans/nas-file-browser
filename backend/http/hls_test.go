@@ -132,6 +132,32 @@ func TestMediaHLSFormatUsesRemuxForCompatibleStreams(t *testing.T) {
 	}
 }
 
+func TestMediaHLSReserveForFormatPreservesExplicitArtifactType(t *testing.T) {
+	service := newHTTPHLSService(t, false)
+	input := hls.Input{
+		UserID: 1, Path: "/movie.mkv", Identity: "v1", SourcePath: "/source.mkv",
+	}
+	wantProfiles := map[string]string{
+		"hls":       hls.DefaultProfile,
+		"copy":      hls.DefaultCopyProfile,
+		"mp4-copy":  hls.DefaultMP4CopyProfile,
+		"webm":      hls.DefaultWebMProfile,
+		"webm-copy": hls.DefaultWebMCopyProfile,
+	}
+	for format, wantProfile := range wantProfiles {
+		t.Run(format, func(t *testing.T) {
+			var gotProfile string
+			status, created, err := reserveHLSForFormat(service, format)(input, func(job hls.Job) (string, error) {
+				gotProfile = job.Profile
+				return "task-" + format, nil
+			})
+			if err != nil || !created || status.Profile != wantProfile || gotProfile != wantProfile {
+				t.Fatalf("format=%q status=%#v created=%v profile=%q want=%q err=%v", format, status, created, gotProfile, wantProfile, err)
+			}
+		})
+	}
+}
+
 func TestMediaHLSStatusResponseMarksRemuxProfile(t *testing.T) {
 	response := mediaHLSStatusResponse("", hls.Status{
 		ID: "copy-id", UserID: 1, Path: "/movie.mkv", Identity: "v1",

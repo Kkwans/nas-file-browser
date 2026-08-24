@@ -806,7 +806,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   width: min(1200px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 22px 0 60px;
+  padding: 20px 0 60px;
 }
 
 .analysis-readonly-chip {
@@ -856,7 +856,7 @@ onBeforeUnmount(() => {
 .analysis-results-heading h2 {
   margin: 0;
   color: var(--textSecondary);
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .analysis-results-heading p {
@@ -1004,7 +1004,7 @@ onBeforeUnmount(() => {
 .analysis-summary-grid article {
   display: grid;
   gap: 6px;
-  padding: 18px 18px;
+  padding: 17px 18px;
   border: 1px solid var(--borderPrimary);
   border-radius: 12px;
   background: var(--surfacePrimary);
@@ -1018,7 +1018,7 @@ onBeforeUnmount(() => {
 
 .analysis-summary-grid strong {
   color: var(--textSecondary);
-  font-size: 28px;
+  font-size: 29px;
   letter-spacing: -0.03em;
 }
 

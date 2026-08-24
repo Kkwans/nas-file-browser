@@ -453,3 +453,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 先新增失败契约，修复后聚焦媒体加载 Vitest `2 files / 21 tests`、目标 ESLint、typecheck 通过；源码提交 `9dfa6022` 已推送，CI `32742653007`、Docs `32742651364` 均成功。
 - r99 arm64 镜像摘要 `sha256:185c0f0d7151d9d1bdef6f04d2e0116e17b0f9a0f06feabce1ce7a9859488d06`；部署提交 `01189593` 已推送，CI `32743689250`、Docs `32743689276` 成功。仅重建 `filebrowser`，`/health` 为 `200`，r98 Compose 和镜像保留作回滚。
 - NAS 本机 Playwright 对全新 `8.8MB` JPEG 副本观察到：缩略图请求在约 `1.48s` 发出并于 `1.67s` 返回，父目录列表在其后约 `1.63s` 才发出；缩略图不再被目录列表推迟。原图回退仍受 NAS 原始文件读取速度影响，约 `8.2s` 返回，但缩略图在此期间保持可见，页面/控制台错误 `0`。该证据支持“首屏先可见”，不宣称所有冷盘原图已秒开。
+
+### 2026-08-24 r100 中等大图原生管线加速
+
+- 根因：r99 已将父目录列表延后，但 `4MB` 以上 JPEG 的 `big` 预览仍固定先启动 FFmpeg；在 NAS ARM 主机上，单次 FFmpeg 进程和解码会让完整预览等待数秒。临时基准对同一约 `8.8MB` JPEG 的 Go 原生管线约 `619ms`，旧 FFmpeg 大图路径约 `6–8s`。
+- 修复：新增有界 native-first 策略：大于 `4MB` 的 JPEG 缩略图继续优先原生管线；`big` 预览在 `<=16MB` 时也优先原生管线，失败自动回退既有 FFmpeg；超过 `16MB` 的大图保留 FFmpeg 路径，限制原生解码峰值内存。缓存键、URL、真实图像内容和全局并发上限不变。
+- 验证：先运行新增边界测试确认旧实现编译失败，再实现；`go test ./img ./http -count=1` 通过，`git diff --check` 通过。源码提交 `d560861f` 已推送，GitHub CI `32746456358` 和 Docs `32746456107` 成功。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.24-phase10-preview-r100`，镜像摘要 `sha256:a61cd1f64f99833a8da205a72c1be87d1d9d8677f63074abdda186f6acb3ae2b`；部署提交 `22a0d489` 已推送，CI `32747372240`、Docs `32747372154` 成功。仅重建 `filebrowser`，容器最终 `running/healthy`，`/health` 返回 `200`，r99 Compose 与镜像保留作回滚。
+- NAS 本机 Playwright/真实 HTTP：全新 `8.8MB` JPEG 冷副本的直接预览请求 `thumb=1531ms/12040B`、`big=993ms/158184B`，均 `200 image/jpeg`；另一全新 UI 副本在页面内 `thumb` 约 `537ms` 返回、`big` 约 `687ms` 返回，`2.2s` 采样时已显示 `1080×810`、状态 `ready`，页面 `scrollWidth=clientWidth=1440`、控制台错误 `0`。该证据证明中等大 JPEG 已不再固定等待 FFmpeg，但不等价于所有超大图、RAW/TIFF 或冷盘首次读取均秒开。

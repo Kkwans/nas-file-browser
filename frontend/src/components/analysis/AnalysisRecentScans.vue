@@ -26,7 +26,18 @@
       还没有{{ toolLabel }}记录，完成一次扫描后会显示在这里。
     </div>
 
-    <ul v-else class="analysis-recent__list">
+    <div
+      v-if="!loading && !error && items.length"
+      class="analysis-recent__columns"
+      aria-hidden="true"
+    >
+      <span></span>
+      <span>范围与结果</span>
+      <span>扫描时间</span>
+      <span>操作</span>
+    </div>
+
+    <ul v-if="!loading && !error && items.length" class="analysis-recent__list">
       <li v-for="item in items" :key="item.id">
         <span
           :class="[
@@ -169,12 +180,12 @@ function formatTime(value: number) {
 
 <style scoped>
 .analysis-recent {
-  margin-top: 14px;
+  margin-top: 24px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--surfacePrimary);
-  box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 4%);
 }
 
 .analysis-recent__header {
@@ -182,18 +193,18 @@ function formatTime(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 13px 16px;
+  padding: 17px 22px;
   border-bottom: 1px solid var(--borderPrimary);
   background: var(--surfacePrimary);
 }
 
 .analysis-recent__header-icon {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
-  border-radius: 10px;
+  border-radius: 11px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 9%, transparent);
 }
@@ -206,21 +217,21 @@ function formatTime(value: number) {
 
 .analysis-recent__header h2 {
   color: var(--textSecondary);
-  font-size: 16px;
+  font-size: 17px;
   letter-spacing: -0.01em;
 }
 
 .analysis-recent__header p {
   margin-top: 2px;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .analysis-recent__header button {
-  min-height: 38px;
-  padding: 0 14px;
+  min-height: 44px;
+  padding: 0 15px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 9px;
+  border-radius: 8px;
   color: var(--blue);
   background: transparent;
   cursor: pointer;
@@ -247,13 +258,34 @@ function formatTime(value: number) {
   list-style: none;
 }
 
-.analysis-recent__list li {
+.analysis-recent__columns {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) minmax(238px, auto);
+  grid-template-columns: 40px minmax(0, 1fr) 176px 104px;
   align-items: center;
   gap: 16px;
-  min-height: 76px;
-  padding: 10px 16px;
+  min-height: 32px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--borderPrimary);
+  color: var(--textPrimary);
+  background: var(--surfaceSecondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.analysis-recent__columns span:nth-child(3),
+.analysis-recent__columns span:nth-child(4) {
+  text-align: right;
+}
+
+.analysis-recent__list li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 176px 104px;
+  align-items: center;
+  gap: 16px;
+  min-height: 82px;
+  padding: 13px 22px;
   transition: background-color 120ms ease;
 }
 
@@ -327,22 +359,21 @@ function formatTime(value: number) {
 
 .analysis-recent__headline > span.is-completed {
   color: #16845d;
-  background: color-mix(in srgb, #1ea672 10%, transparent);
 }
 
 .analysis-recent__headline > span.is-failed,
 .analysis-recent__headline > span.is-interrupted,
 .analysis-recent__headline > span.is-result-unavailable {
   color: var(--red);
-  background: color-mix(in srgb, var(--red) 8%, transparent);
 }
 
 .analysis-recent__time {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--textPrimary);
+  color: var(--textSecondary);
   font-size: 12px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -366,14 +397,14 @@ function formatTime(value: number) {
   min-width: 0;
   align-items: center;
   gap: 5px;
-  color: var(--textPrimary);
+  color: var(--textSecondary);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .analysis-recent__scope b {
   overflow: hidden;
-  font-weight: 600;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -381,33 +412,29 @@ function formatTime(value: number) {
 .analysis-recent__metrics {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .analysis-recent__side {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
-  min-width: 0;
+  display: contents;
 }
 
 .analysis-recent__action {
   display: inline-flex;
-  width: auto;
+  width: 104px;
   box-sizing: border-box;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 4px 0 8px;
-  border: 1px solid transparent;
-  border-radius: 7px;
+  padding: 0 10px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 8px;
   color: var(--blue);
-  background: transparent;
+  background: var(--surfacePrimary);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -419,8 +446,8 @@ function formatTime(value: number) {
 .analysis-recent__header button:hover,
 .analysis-recent__header button:focus-visible {
   outline: none;
-  border-color: color-mix(in srgb, var(--blue) 22%, var(--borderPrimary));
-  background: color-mix(in srgb, var(--blue) 6%, var(--surfacePrimary));
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
 }
 
 .analysis-recent__action:focus-visible,
@@ -431,6 +458,10 @@ function formatTime(value: number) {
 @media (max-width: 620px) {
   .analysis-recent__header {
     padding: 14px 16px;
+  }
+
+  .analysis-recent__columns {
+    display: none;
   }
 
   .analysis-recent__header p {
@@ -450,12 +481,12 @@ function formatTime(value: number) {
 
   .analysis-recent__side {
     grid-column: 2;
-    display: flex;
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     min-width: 0;
     align-items: center;
     gap: 10px;
-    padding: 8px 0 0;
+    padding: 10px 0 0;
     border-top: 1px solid var(--borderPrimary);
   }
 
@@ -474,7 +505,7 @@ function formatTime(value: number) {
   }
 
   .analysis-recent__action {
-    min-width: 102px;
+    min-width: 104px;
     min-height: 44px;
   }
 }

@@ -20,6 +20,8 @@ describe("media icon semantics", () => {
     expect(mediaIcon("rotate_right")).toBe("rotate-cw");
     expect(mediaIcon("brightness_6")).toBe("sun");
     expect(mediaIcon("volume_up")).toBe("volume-2");
+    expect(mediaIcon("forward_10")).toBe("skip-forward");
+    expect(mediaIcon("replay_10")).toBe("skip-back");
   });
 
   it("maps document and audio controls without falling back to font icons", () => {

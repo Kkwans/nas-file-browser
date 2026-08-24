@@ -1350,31 +1350,40 @@ onBeforeUnmount(() => {
 
 .analysis-clean-state {
   display: grid;
-  justify-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  justify-items: start;
+  gap: 16px;
   margin-top: 12px;
-  padding: 38px 20px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
-  background: var(--surfacePrimary);
-  text-align: center;
+  padding: 22px 24px;
+  border: 1px solid color-mix(in srgb, #1ea672 22%, var(--borderPrimary));
+  border-radius: 12px;
+  background: color-mix(in srgb, #1ea672 4%, var(--surfacePrimary));
+  text-align: left;
 }
 
 .analysis-clean-state > .app-icon {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
+  padding: 9px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, #1ea672 22%, transparent);
+  border-radius: 12px;
   color: #16845d;
+  background: color-mix(in srgb, #1ea672 10%, transparent);
 }
 
 .analysis-clean-state h2 {
-  margin: 10px 0 0;
+  margin: 0;
   color: var(--textSecondary);
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .analysis-clean-state p {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .analysis-skipped {

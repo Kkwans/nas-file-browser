@@ -404,12 +404,15 @@ async function initVideoPlayer() {
       ? preflightDirectPlayback(initialPath)
       : Promise.resolve(false);
     const lang = document.documentElement.lang;
-    const languagePack = await (
-      languageImports[lang] || languageImports.en
-    )?.();
-    if (disposed || !videoPlayer.value || props.path !== initialPath) return;
     const code = languageImports[lang] ? lang : "en";
-    videojs.addLanguage(code, languagePack.default);
+    // Do not make the first useful player frame wait for a locale chunk. The
+    // controls and compatibility state are more important than translated
+    // labels during a slow NAS cold start; the local language pack is applied
+    // to the already-visible shell as soon as it is available.
+    const languagePackPromise = languageImports[lang]
+      ? languageImports[lang]?.()
+      : Promise.resolve(null);
+    if (disposed || !videoPlayer.value || props.path !== initialPath) return;
     const initialSource =
       isKnownIncompatibleVideo(props.path) || needsCodecPreflight
         ? {}
@@ -436,6 +439,23 @@ async function initVideoPlayer() {
     player.value.on("waiting", onVideoWaiting);
     player.value.on("stalled", onVideoWaiting);
     player.value.on("playing", onPlayerPlaying);
+    void languagePackPromise
+      ?.then((languagePack) => {
+        if (
+          !languagePack ||
+          disposed ||
+          !player.value ||
+          props.path !== initialPath
+        ) {
+          return;
+        }
+        videojs.addLanguage(code, languagePack.default);
+        player.value.language(code);
+      })
+      .catch(() => {
+        // The player remains usable with Video.js' built-in labels when a
+        // locale chunk cannot be loaded from the local bundle.
+      });
     if (sourceAttached.value) beginVideoLoading();
     const playbackPromise = restorePlayback(props.path);
     if (needsCodecPreflight) {

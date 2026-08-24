@@ -133,4 +133,11 @@ describe("media loading contract", () => {
     expect(videoSource).toContain('next === "stalled" ? 320 : 240');
     expect(videoSource).toContain("prefers-reduced-motion: reduce");
   });
+
+  it("视频播放器壳体不等待本地语言包冷启动", () => {
+    expect(videoSource).toContain("const languagePackPromise");
+    expect(videoSource).toContain("player.value = videojs(");
+    expect(videoSource).toContain("void languagePackPromise");
+    expect(videoSource).not.toContain("const languagePack = await");
+  });
 });

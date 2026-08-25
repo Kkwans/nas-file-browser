@@ -687,3 +687,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - TDD/静态验证：新增详细网格视觉契约先在旧样式上得到 `1 failed / 4 passed`，修复后聚焦契约 `5/5`；前端完整 lint、typecheck、Vitest `96 files / 376 tests` 和 `git diff --check` 均通过。源码提交 `2fa541da` 已推送。
 - 发布：Compose 提交 `ae6354ce` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-grid-r164`，镜像 ID `sha256:6410c096c9cf155789f08210834bea63fe6db9ae9dfe8e95cc1d9842b5efde4f`；仅重建 `filebrowser`，r163 镜像与 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，无法宣称详细网格坐标和截图已验收；待浏览器环境可用后必须补做桌面、窄容器、移动端和触屏操作可达性回归。
+
+### 2026-08-25 r165 存储工具整页视觉层级收敛
+
+- 用户明确指出查找重复文件页的问题不是顶部单卡，而是整页的文字、图标、排版和列表时间/查看结果区域都缺少精致度。源码和既有截图确认原页面仍存在工具切换胶囊、列表左侧彩色强调轨、最近扫描外层阴影和桌面厚重结果按钮等叠层语言。
+- 修复：工具切换改为无外框的两段式下划线导航，图标去除多余色块；最近扫描去除左侧彩色轨和外层阴影，列标题回到轻量透明表头；桌面“查看结果/查看详情”改为右侧轻量文本动作，移动端继续保留带边界的 `44px` 触摸目标。数据、扫描任务、结果路由、筛选和只读语义不变。
+- TDD/静态验证：新增视觉契约先在旧样式上得到 `2 failed / 6 passed`，修复并更新既有尺寸契约后分析 UI/无障碍测试 `15/15`；前端完整 lint、typecheck、Vitest `96 files / 378 tests`、production build 和 `git diff --check` 均通过。源码提交 `bc5713c8` 已推送。
+- 发布：Compose 提交 `07f70974` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r165`，镜像 ID `sha256:1c9d625d4b55c0b805931424911fbf89a945a5b78c1c207b2691a2f76de9dd87`；仅重建 `filebrowser`，r164 镜像与 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，无法宣称 r165 的实际像素坐标和截图已验收；待浏览器环境可用后必须补做桌面、窄容器、390px 移动端、键盘焦点和结果入口回归。

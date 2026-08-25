@@ -39,20 +39,16 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 <style scoped>
 .analysis-tool-switcher {
-  display: inline-flex;
+  display: grid;
   flex: 0 0 auto;
   width: min(100%, 480px);
   max-width: 100%;
-  align-items: stretch;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 8px;
-  background: color-mix(
-    in srgb,
-    var(--surfaceSecondary) 48%,
-    var(--surfacePrimary)
-  );
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--borderPrimary);
+  background: transparent;
   box-sizing: border-box;
 }
 
@@ -62,12 +58,13 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   flex: 1 1 0;
   grid-template-columns: 34px minmax(0, 1fr);
   min-width: 0;
-  min-height: 46px;
+  min-height: 52px;
   align-items: center;
   gap: 10px;
-  padding: 5px 13px;
-  border: 1px solid transparent;
-  border-radius: 6px;
+  padding: 7px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   color: var(--textPrimary);
   background: transparent;
   cursor: pointer;
@@ -80,7 +77,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 }
 
 .analysis-tool-switcher button:hover {
-  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--blue) 4%, transparent);
 }
 
 .analysis-tool-switcher button:focus-visible {
@@ -90,9 +87,8 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher button.is-active {
   color: var(--blue);
-  border-color: color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
-  background: color-mix(in srgb, var(--blue) 6%, var(--surfacePrimary));
-  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--blue) 72%, transparent);
+  border-bottom: 2px solid var(--blue);
+  background: color-mix(in srgb, var(--blue) 5%, transparent);
 }
 
 .analysis-tool-switcher__icon {
@@ -101,9 +97,9 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   height: 34px;
   place-items: center;
   border: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   color: currentColor;
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  background: transparent;
 }
 
 .analysis-tool-switcher button > span:last-child {

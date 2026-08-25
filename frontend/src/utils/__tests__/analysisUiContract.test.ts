@@ -36,7 +36,7 @@ describe("analysis page UI contract", () => {
     );
 
     expect(switcherSource).toMatch(
-      /\.analysis-tool-switcher\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?max-width:\s*100%;/
+      /\.analysis-tool-switcher\s*\{[\s\S]*?display:\s*grid;[\s\S]*?max-width:\s*100%;/
     );
     expect(switcherSource).toMatch(
       /@media\s*\(max-width:\s*520px\)[\s\S]*?\.analysis-tool-switcher\s*\{[\s\S]*?width:\s*100%;/
@@ -79,7 +79,7 @@ describe("analysis page UI contract", () => {
       /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*92px;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*36px;/
+      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*32px;/
     );
     expect(recentSource).toMatch(
       /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*12px;/
@@ -98,6 +98,37 @@ describe("analysis page UI contract", () => {
     );
     expect(recentSource).toMatch(
       /\.analysis-recent__action\s*\{[\s\S]*?border:\s*1px solid color-mix/
+    );
+  });
+
+  it("存储工具使用安静的分段导航，不把工具切换做成厚重胶囊", () => {
+    const switcherSource = readFileSync(
+      resolve(
+        process.cwd(),
+        "src/components/analysis/AnalysisToolSwitcher.vue"
+      ),
+      "utf8"
+    );
+
+    expect(switcherSource).toMatch(
+      /\.analysis-tool-switcher\s*\{[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent;/
+    );
+    expect(switcherSource).toMatch(
+      /\.analysis-tool-switcher button\.is-active\s*\{[\s\S]*?border-bottom:\s*2px solid/
+    );
+  });
+
+  it("最近扫描悬停不绘制彩色左轨，桌面结果动作保持轻量", () => {
+    const recentSource = readFileSync(
+      resolve(process.cwd(), "src/components/analysis/AnalysisRecentScans.vue"),
+      "utf8"
+    );
+
+    expect(recentSource).toMatch(
+      /\.analysis-recent__list li:hover\s*\{[\s\S]*?box-shadow:\s*none;/
+    );
+    expect(recentSource).toMatch(
+      /\.analysis-recent__action\s*\{[\s\S]*?width:\s*auto;[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent;/
     );
   });
 });

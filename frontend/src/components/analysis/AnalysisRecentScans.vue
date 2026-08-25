@@ -192,8 +192,7 @@ function formatClock(value: number) {
   border: 1px solid var(--borderPrimary);
   border-radius: 12px;
   background: var(--surfacePrimary);
-  box-shadow: 0 6px 18px
-    color-mix(in srgb, var(--textSecondary) 4%, transparent);
+  box-shadow: none;
 }
 
 .analysis-recent__header {
@@ -208,13 +207,13 @@ function formatClock(value: number) {
 
 .analysis-recent__header-icon {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
-  border-radius: 10px;
+  border: 0;
+  border-radius: 6px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
+  background: color-mix(in srgb, var(--blue) 7%, transparent);
 }
 
 .analysis-recent__header h2,
@@ -282,7 +281,7 @@ function formatClock(value: number) {
   padding: 0 20px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textPrimary);
-  background: var(--surfaceSecondary);
+  background: transparent;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -295,9 +294,7 @@ function formatClock(value: number) {
 .analysis-recent__list li {
   min-height: 92px;
   padding: 14px 20px;
-  transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+  transition: background-color 160ms ease;
 }
 
 .analysis-recent__list li + li {
@@ -306,7 +303,7 @@ function formatClock(value: number) {
 
 .analysis-recent__list li:hover {
   background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
-  box-shadow: inset 3px 0 color-mix(in srgb, var(--blue) 56%, transparent);
+  box-shadow: none;
 }
 
 .analysis-recent__tool {
@@ -448,17 +445,17 @@ function formatClock(value: number) {
 .analysis-recent__action {
   display: inline-flex;
   justify-self: end;
-  width: 118px;
+  width: auto;
   box-sizing: border-box;
-  min-height: 36px;
+  min-height: 32px;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 6px;
-  padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
-  border-radius: 7px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
+  background: transparent;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -476,7 +473,7 @@ function formatClock(value: number) {
 .analysis-recent__header button:focus-visible {
   outline: none;
   background: color-mix(in srgb, var(--blue) 11%, var(--surfacePrimary));
-  border-color: color-mix(in srgb, var(--blue) 40%, var(--borderPrimary));
+  border-color: transparent;
 }
 
 .analysis-recent__action:active {
@@ -530,6 +527,9 @@ function formatClock(value: number) {
     width: auto;
     min-width: 112px;
     min-height: 44px;
+    padding: 0 10px;
+    border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
+    background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
   }
 }
 

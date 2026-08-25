@@ -555,3 +555,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：Compose 提交 `a9eddf39` 已推送，GitHub Continuous Integration `32815748122` 与 Docs `32815748134` 全部成功；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r148`，摘要 `sha256:4ec3cb93208e4af11cd2549408cdb2ff3c5db45b6816212b8e00cf726e1c0f97`。仅重建 `filebrowser`，r147 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - NAS 本机 Playwright 真实验收：桌面 `1440px`、移动 `390px` 访问 `/files/`、`/tasks`、`/history`、`/analysis`、`/settings/profile`，所有页面 `scrollWidth=clientWidth`，页面/控制台错误均为 `0`。分析页截图 `/tmp/nfb-r148-audit-analysis.png` 与 `/tmp/nfb-r148-audit-mobile-analysis.png` 显示首屏标题、说明和工具切换共用稳定基线；桌面最近扫描时间与“查看结果”保持独立稳定列，移动端操作行仍保持 `44px` 触摸目标。
 - 当前结论：r148 只收敛分析工具首屏的重复语义和视觉留白，不改变业务流程；用户指出的“整个页面文字、图标、排版都不精致”仍需继续按真实截图拆分为独立模块审计，下一轮优先检查任务中心/操作历史的移动密度与状态层级，不以本轮修复宣称全站完成。
+
+### 2026-08-25 r149 任务操作行与历史时间线光学对齐
+
+- 真实 r148 截图复核确认：手机任务列表在每行只有一个“归档/查看结果”动作时，旧的两列网格会留下半列空洞，动作与内容没有明确分隔；操作历史时间线的轨道中心与圆点中心存在约 `1–2px` 光学偏差，缩小后看起来像断线。
+- 修复：移动任务行的操作区改为独立的底部分隔行，动作统一右对齐，单个动作设定稳定最小宽度，不再使用两列网格制造空白；桌面动作保持原有右侧操作列。历史时间线轨道改为 `left:18px; width:1px`，与现有节点盒模型中心对齐；任务状态、筛选、归档、重试和历史数据契约不变。
+- TDD/静态验证：新增活动页契约先在旧实现上得到 `2 failed / 6 passed`，修复后活动页契约 `8/8`、前端完整 Vitest `95 files / 367 tests`、lint、typecheck 和 `git diff --check` 均通过。源码提交 `3a1204d0` 已推送，GitHub Continuous Integration `32817381432` 与 Docs `32817381348` 成功。
+- 发布：Compose 提交 `0ea7108b` 已推送，GitHub Continuous Integration `32817750750` 与 Docs `32817750780` 全部成功；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-activity-r149`，摘要 `sha256:1db8b02de8502b386ce92e41097da1de94c22f9390a21b632ef1c0c3ab75b8c7`。仅重建 `filebrowser`，r148 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本机 Playwright 真实验收：桌面 `1440px`、移动 `390px` 的 `/tasks`、`/history` 以及 `/files/`、`/analysis`、`/settings/profile` 回归均无页面/控制台错误，页面 `scrollWidth=clientWidth`。任务列表移动截图 `/tmp/nfb-r149-audit-mobile-tasks.png` 中操作按钮与内容下方分隔线对齐；历史桌面/移动截图 `/tmp/nfb-r149-audit-history.png`、`/tmp/nfb-r149-audit-mobile-history.png` 中轨道和节点保持连续，原有时间、筛选和分页行为未变。
+- 当前结论：r149 解决的是任务/历史列表的局部对齐和操作密度问题，不把“无横向溢出”误报成全站精致度完成；下一轮继续以真实截图审计文件列表、侧栏图标语义和 Markdown/媒体页面的文字基线与图标光学中心。

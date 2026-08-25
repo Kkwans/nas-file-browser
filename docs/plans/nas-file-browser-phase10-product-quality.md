@@ -492,3 +492,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - NAS 本机 Playwright 真实验收：报告页桌面 `1440×900`、移动 `390×900` 无页面/控制台错误、无横向溢出；报告入口的 `aria-expanded` 和范围面板展开行为保持正确。移动报告时间在 r139 为单行，状态芯片右对齐。最近扫描桌面首行约 `1102×96px`，执行时间块与操作按钮同一稳定列，按钮约 `112×44px`；移动首行约 `344×163px`，时间与按钮位于内容下方分隔行，页面 `scrollWidth=clientWidth=390`。空间分布初始页桌面/移动同样无溢出和控制台错误，统一视觉样式未破坏扫描面板。
 - 截图：`/tmp/nfb-analysis-result-r139-1440-collapsed.png`、`/tmp/nfb-analysis-result-r139-1440-expanded.png`、`/tmp/nfb-analysis-result-r139-390-collapsed.png`、`/tmp/nfb-r126-analysis-rail-1440.png`、`/tmp/nfb-r126-analysis-rail-390.png`、`/tmp/nfb-analysis-storage-r139-1440.png`、`/tmp/nfb-analysis-storage-r139-390.png`。
 - 当前结论：存储工具页面已完成一轮以信息层级、对齐和可读性为核心的真实 UI 修订，但这不等于全站视觉已经完成；继续审计其他页面时仍以可复现的用户体验问题和最小独立模块为准，不为追求改动量重复改已通过页面。
+
+### 2026-08-25 r140 剪贴板目录类型修复
+
+- 代码审计确认：文件列表的复制/剪切状态只保存 `from/name/size/modified`，粘贴时又把每项硬编码为 `isDir: false`。因此复制或剪切文件夹后，冲突检查和后端操作会丢失目录语义；这不是 UI 偏好，而是实际文件操作缺陷。
+- 修复：`ClipItem` 显式保存 `isDir`；复制/剪切时从选中资源写入，粘贴时原样传给 `PasteItem`。拖拽移动链路不改，仍复用已有的 `selectedItem.isDir` 和冲突处理。
+- TDD/静态验证：新增剪贴板目录类型契约，旧实现先得到 `1 failed / 1 passed`，修复后剪贴板契约 + 文件列表回归 `11/11` 通过；目标 ESLint、typecheck、`git diff --check` 通过。源码提交 `782456df`、Compose 提交 `1b4e86e5` 已推送。
+- 发布：本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-files-clipboard-r140` 已构建；Compose 因首次本地标签拼写不一致触发了一次可恢复的按配置构建，最终仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。r139 镜像仍保留作回滚，未修改数据库、用户文件或未跟踪文件。
+- NAS 本机 Playwright 轻量回归：四种文件布局均 `scrollWidth=clientWidth=1440`，无页面/控制台错误；详情列表首项文字和操作布局正常。真实拖拽移动此前已在 r91–r93 验收，本次类型修复不改变该链路。
+- 当前结论：该模块修复了目录剪贴板操作的实际数据契约问题；不把它夸大为重新实现拖拽，也不宣称所有文件操作已完成，继续按真实复现推进下一项。

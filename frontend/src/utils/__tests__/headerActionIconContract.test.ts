@@ -11,7 +11,7 @@ describe("文件工具栏图标契约", () => {
     const actionSource = readSource("components/header/Action.vue");
     const registrySource = readSource("components/ui/iconRegistry.ts");
 
-    expect(actionSource).toContain(':name="resolvedIconName"');
+    expect(actionSource).toContain(':icon="resolvedIconName"');
     expect(actionSource).toContain("appIcon?: AppIconName");
     expect(actionSource).toContain("resolveLegacyAppIcon");
     expect(registrySource).toContain("menu: Menu");

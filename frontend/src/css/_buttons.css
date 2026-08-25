@@ -139,3 +139,116 @@
   box-shadow: none;
   transform: none;
 }
+
+/* Shared icon-button primitive. The button owns the hit area; the SVG is
+ * always a content-sized glyph and never contributes hidden padding. */
+.icon-button {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  margin: 0;
+  padding: 0.375rem 0.625rem;
+  color: var(--action, var(--textPrimary));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  line-height: 1;
+  text-align: center;
+  vertical-align: middle;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.icon-button > .app-icon {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.icon-button--sm {
+  min-height: 2rem;
+  min-width: 2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.icon-button--lg {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+}
+
+.icon-button:hover:not(:disabled) {
+  color: var(--blue, #1677ff);
+  background: color-mix(in srgb, var(--blue, #1677ff) 8%, transparent);
+}
+
+.icon-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--blue, #1677ff));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue, #1677ff) 14%, transparent);
+}
+
+.icon-button.is-active {
+  color: var(--blue, #1677ff);
+  background: color-mix(in srgb, var(--blue, #1677ff) 10%, transparent);
+  border-color: color-mix(in srgb, var(--blue, #1677ff) 22%, transparent);
+}
+
+.icon-button--primary {
+  color: var(--blue, #1677ff);
+}
+
+.icon-button--danger {
+  color: var(--icon-red, #dc2626);
+}
+
+.icon-button--danger:hover:not(:disabled) {
+  color: var(--icon-red, #dc2626);
+  background: color-mix(in srgb, var(--icon-red, #dc2626) 9%, transparent);
+}
+
+.icon-button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.icon-button__counter {
+  display: inline-grid;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  place-items: center;
+  color: var(--iconSecondary, #fff);
+  background: var(--blue, #1677ff);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-button {
+    transition: none;
+  }
+}

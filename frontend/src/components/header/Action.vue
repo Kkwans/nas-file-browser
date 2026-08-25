@@ -1,20 +1,20 @@
 <template>
-  <button
-    @click="action"
-    :aria-label="label"
-    :title="label"
-    :disabled="disabled"
+  <IconButton
     class="action"
+    :icon="resolvedIconName"
+    :icon-size="iconSize"
+    :label="label"
+    :counter="counter"
+    :disabled="disabled"
+    @click="action"
   >
-    <AppIcon :name="resolvedIconName" :size="iconSize" :stroke-width="1.9" />
-    <span>{{ label }}</span>
-    <span v-if="counter && counter > 0" class="counter">{{ counter }}</span>
-  </button>
+    <span v-if="label">{{ label }}</span>
+  </IconButton>
 </template>
 
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
-import AppIcon from "@/components/ui/AppIcon.vue";
+import IconButton from "@/components/ui/IconButton.vue";
 import {
   resolveLegacyAppIcon,
   type AppIconName,

@@ -66,8 +66,9 @@ describe("桌面侧边栏图标轨契约", () => {
     const cssSource = readSource("css/sidebar-refinement.css");
     const iconRegistrySource = readSource("components/ui/iconRegistry.ts");
 
-    expect(cssSource).toContain("--sidebar-primary-icon-size: 1.25rem");
-    expect(cssSource).toContain("--sidebar-primary-icon-column: 1.75rem");
+    expect(cssSource).toContain("--sidebar-primary-icon-size: 1.375rem");
+    expect(cssSource).toContain("--sidebar-primary-icon-column: 2rem");
+    expect(cssSource).toContain("--sidebar-rail-icon-size: 1.375rem");
     expect(cssSource).toMatch(
       /\.sidebar-rail-action\s*\{[^}]*width:\s*2\.75rem;[^}]*height:\s*2\.75rem;/s
     );
@@ -97,7 +98,8 @@ describe("桌面侧边栏图标轨契约", () => {
     expect(iconRegistrySource).toContain("FolderTree");
     expect(iconRegistrySource).toContain("SlidersHorizontal");
     expect(iconRegistrySource).toContain("HardDrive");
-    expect(cssSource).toContain("--sidebar-icon-size: 1.25rem");
+    expect(cssSource).toContain("--sidebar-icon-size: 1.375rem");
+    expect(cssSource).toContain("--sidebar-icon-column: 2rem");
     expect(cssSource).toContain(
       "nav.sidebar .favorite-item > .favorite-icon:not(.favorite-drag-handle),"
     );

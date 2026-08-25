@@ -80,8 +80,10 @@
             <time
               class="analysis-recent__time"
               :datetime="new Date(item.createdAt).toISOString()"
+              :aria-label="`完成时间 ${formatTime(item.createdAt)}`"
             >
-              {{ formatTime(item.createdAt) }}
+              <span>{{ formatDate(item.createdAt) }}</span>
+              <b>{{ formatClock(item.createdAt) }}</b>
             </time>
           </div>
           <router-link
@@ -174,16 +176,25 @@ function actionLabel(item: AnalysisRecentItem) {
 function formatTime(value: number) {
   return dayjs(value).format("YYYY-MM-DD HH:mm");
 }
+
+function formatDate(value: number) {
+  return dayjs(value).format("YYYY-MM-DD");
+}
+
+function formatClock(value: number) {
+  return dayjs(value).format("HH:mm");
+}
 </script>
 
 <style scoped>
 .analysis-recent {
-  margin-top: 28px;
+  margin-top: 32px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--surfacePrimary);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--textSecondary) 3%, transparent);
+  box-shadow: 0 8px 24px
+    color-mix(in srgb, var(--textSecondary) 5%, transparent);
 }
 
 .analysis-recent__header {
@@ -191,24 +202,24 @@ function formatTime(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 16px 18px 14px;
+  padding: 18px 22px 16px;
   border-bottom: 1px solid var(--borderPrimary);
   background: color-mix(
     in srgb,
-    var(--surfaceSecondary) 28%,
+    var(--surfaceSecondary) 44%,
     var(--surfacePrimary)
   );
 }
 
 .analysis-recent__header-icon {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  border: 0;
-  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
+  border-radius: 10px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 8%, transparent);
+  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
 }
 
 .analysis-recent__header h2,
@@ -219,7 +230,7 @@ function formatTime(value: number) {
 
 .analysis-recent__header h2 {
   color: var(--textSecondary);
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.25;
   letter-spacing: -0.01em;
 }
@@ -263,13 +274,17 @@ function formatTime(value: number) {
   list-style: none;
 }
 
-.analysis-recent__columns {
+.analysis-recent__columns,
+.analysis-recent__list li {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 174px 110px;
+  grid-template-columns: 40px minmax(0, 1fr) 150px 132px;
   align-items: center;
-  gap: 16px;
-  min-height: 36px;
-  padding: 0 18px;
+  gap: 18px;
+}
+
+.analysis-recent__columns {
+  min-height: 38px;
+  padding: 0 22px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textPrimary);
   background: color-mix(in srgb, var(--surfaceSecondary) 42%, transparent);
@@ -284,13 +299,11 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__list li {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 174px 110px;
-  align-items: center;
-  gap: 16px;
-  min-height: 82px;
-  padding: 13px 18px;
-  transition: background-color 120ms ease;
+  min-height: 84px;
+  padding: 14px 22px;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .analysis-recent__list li + li {
@@ -298,18 +311,19 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__list li:hover {
-  background: color-mix(in srgb, var(--hover) 65%, transparent);
+  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
+  box-shadow: inset 3px 0 color-mix(in srgb, var(--blue) 56%, transparent);
 }
 
 .analysis-recent__tool {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   place-items: center;
-  border: 0;
-  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, var(--borderPrimary));
+  border-radius: 11px;
   color: var(--blue);
-  background: color-mix(in srgb, currentColor 9%, transparent);
+  background: color-mix(in srgb, currentColor 7%, var(--surfacePrimary));
 }
 
 .analysis-recent__tool.is-duplicates {
@@ -323,7 +337,7 @@ function formatTime(value: number) {
 .analysis-recent__content {
   display: grid;
   min-width: 0;
-  gap: 4px;
+  gap: 5px;
 }
 
 .analysis-recent__headline {
@@ -335,7 +349,7 @@ function formatTime(value: number) {
 
 .analysis-recent__headline strong {
   color: var(--textSecondary);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.3;
 }
 
@@ -371,24 +385,35 @@ function formatTime(value: number) {
   color: var(--red);
 }
 
-.analysis-recent__time {
-  display: inline-flex;
-  align-items: center;
-  color: var(--textSecondary);
-  font-size: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
 .analysis-recent__time-block {
   display: grid;
   min-width: 0;
-  justify-items: start;
+  justify-items: end;
   gap: 2px;
-  padding-left: 16px;
-  border-left: 1px solid var(--borderPrimary);
-  text-align: left;
+  text-align: right;
+}
+
+.analysis-recent__time {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--textSecondary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.analysis-recent__time span {
+  color: var(--textPrimary);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.analysis-recent__time b {
+  color: var(--textSecondary);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .analysis-recent__scope {
@@ -411,7 +436,7 @@ function formatTime(value: number) {
 .analysis-recent__metrics {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -424,21 +449,26 @@ function formatTime(value: number) {
 .analysis-recent__action {
   display: inline-flex;
   justify-self: end;
-  width: 110px;
+  width: 132px;
   box-sizing: border-box;
   min-height: 38px;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
+  border-radius: 8px;
   color: var(--blue);
-  background: transparent;
+  background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
 }
 
 .analysis-recent__action:hover,
@@ -446,8 +476,12 @@ function formatTime(value: number) {
 .analysis-recent__header button:hover,
 .analysis-recent__header button:focus-visible {
   outline: none;
-  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
-  border-color: color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 11%, var(--surfacePrimary));
+  border-color: color-mix(in srgb, var(--blue) 40%, var(--borderPrimary));
+}
+
+.analysis-recent__action:active {
+  transform: translateY(1px);
 }
 
 .analysis-recent__action:focus-visible,
@@ -457,7 +491,7 @@ function formatTime(value: number) {
 
 @media (max-width: 620px) {
   .analysis-recent__header {
-    padding: 16px 4px 12px;
+    padding: 16px 14px 12px;
   }
 
   .analysis-recent__columns {
@@ -469,15 +503,10 @@ function formatTime(value: number) {
   }
 
   .analysis-recent__list li {
-    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr);
     gap: 10px;
     min-height: 0;
-    padding: 14px 4px;
-  }
-
-  .analysis-recent__tool {
-    width: 34px;
-    height: 34px;
+    padding: 15px 14px;
   }
 
   .analysis-recent__side {
@@ -491,29 +520,23 @@ function formatTime(value: number) {
     border-top: 1px solid var(--borderPrimary);
   }
 
-  .analysis-recent__time-block {
-    min-width: 0;
+  .analysis-recent__time-block,
+  .analysis-recent__time {
     justify-items: start;
-    padding-left: 0;
-    border-left: 0;
     text-align: left;
   }
 
   .analysis-recent__action {
     justify-self: auto;
     width: auto;
-    min-width: 110px;
+    min-width: 112px;
     min-height: 44px;
-  }
-
-  .analysis-recent__time {
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .analysis-recent__list li {
+  .analysis-recent__list li,
+  .analysis-recent__action {
     transition: none;
   }
 }

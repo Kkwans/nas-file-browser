@@ -62,7 +62,7 @@ describe("analysis page UI contract", () => {
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain("<span>完成时间</span>");
     expect(recentSource).toMatch(
-      /grid-template-columns:\s*34px\s+minmax\(0, 1fr\)\s+174px\s+110px/
+      /grid-template-columns:\s*40px\s+minmax\(0, 1fr\)\s+150px\s+132px/
     );
     expect(recentSource).toContain("display: contents;");
   });
@@ -74,13 +74,13 @@ describe("analysis page UI contract", () => {
     );
 
     expect(recentSource).toMatch(
-      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*82px;/
+      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*84px;/
     );
     expect(recentSource).toMatch(
       /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*38px;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*10px;/
+      /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*14px;/
     );
   });
 
@@ -91,11 +91,11 @@ describe("analysis page UI contract", () => {
     );
 
     expect(recentSource).not.toContain('class="analysis-recent__time-label"');
-    expect(recentSource).toMatch(
-      /\.analysis-recent__time-block\s*\{[\s\S]*?border-left:\s*1px solid var\(--borderPrimary\)/
+    expect(recentSource).not.toMatch(
+      /\.analysis-recent__time-block\s*\{[\s\S]*?border-left:/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?border:\s*1px solid transparent;/
+      /\.analysis-recent__action\s*\{[\s\S]*?border:\s*1px solid color-mix/
     );
   });
 });

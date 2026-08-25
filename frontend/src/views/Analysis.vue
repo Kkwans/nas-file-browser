@@ -873,9 +873,9 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1240px, calc(100% - 64px));
+  width: min(1280px, calc(100% - 72px));
   margin: 0 auto;
-  padding: 22px 0 72px;
+  padding: 30px 0 84px;
 }
 
 .analysis-workspace__topline {
@@ -883,7 +883,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .analysis-workspace__context {
@@ -893,16 +893,16 @@ onBeforeUnmount(() => {
 .analysis-workspace__context > span {
   display: block;
   color: var(--textSecondary);
-  font-size: 17px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
 
 .analysis-workspace__context p {
   max-width: 42rem;
-  margin: 3px 0 0;
+  margin: 5px 0 0;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
 }
 
@@ -916,11 +916,11 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
-  min-height: 50px;
-  margin-top: 12px;
-  padding: 7px 14px;
+  min-height: 54px;
+  margin-top: 14px;
+  padding: 8px 16px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--textSecondary);
   background: color-mix(
     in srgb,
@@ -1215,8 +1215,8 @@ onBeforeUnmount(() => {
   gap: 0;
   margin-top: 18px;
   overflow: hidden;
-  border-top: 1px solid var(--borderPrimary);
-  border-bottom: 1px solid var(--borderPrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: 12px;
   background: color-mix(in srgb, var(--surfacePrimary) 72%, transparent);
 }
 

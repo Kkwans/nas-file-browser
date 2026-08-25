@@ -618,3 +618,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r156`，镜像 ID `sha256:25952a095aa4b538a02306a787f0b0429d1612039d3aa8bba24dea3e178352c8`；仅重建 `filebrowser`，r155 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - NAS 本地 Playwright 真实验收：桌面 `/analysis` 无横向溢出和控制台错误，最近扫描首行约 `1178×104px`，右侧合并栏 `148px`，时间约 `55×32px`、结果入口 `118×36px`；移动首行约 `344×167px`，时间与结果入口位于同一分隔操作行，结果入口 `112×44px`。全站桌面回归路由也保持 `scrollWidth=clientWidth=1440`、页面/控制台错误 `0`。截图：`/tmp/nfb-analysis-r136-1440.png`、`/tmp/nfb-analysis-r136-390.png`、`/tmp/nfb-r156-audit-analysis.png`。
 - 当前结论：r156 进一步消除了存储工具列表右侧时间/结果动作的漂浮感，并降低首屏装饰层级；用户指出的全站图标、文件列表、Markdown 和媒体精致度仍需继续按真实截图拆成独立模块，不以本轮宣称全站完成。
+
+### 2026-08-25 r157 侧栏图标比例与导航节奏修正
+
+- 用户继续指出侧栏图标尺寸、文字和整体对齐缺少精致度。真实 r156 截图确认侧栏图标虽然拥有足够的点击区域，但 glyph 被压缩到约 `20px`，与 `44px` 导航行及主内容图标的视觉重量不匹配；这属于图标比例问题，不改变侧栏信息架构、折叠语义或任何导航入口。
+- 修复：将侧栏主导航、用户区和图标轨的图标统一提升到 `1.375rem`（22px），图标列统一为 `2rem`（32px），同时保留原有 `44px` 触摸/键盘命中区域；桌面展开和折叠模式共用同一尺寸 token，避免不同区域各自缩放。新增/更新侧栏契约，防止未来再次回退到 20px 压缩值。
+- TDD/静态验证：侧栏契约先在旧实现上得到 `2 failed / 7 passed`，修复后 `9/9`；前端 lint、typecheck、`git diff --check` 通过。源码提交 `03086ead` 已推送，Compose 发布提交 `f6a44362` 已推送；CI `32840519455`/Docs `32840519439`（源码）及当前 Compose CI `32841000597`/Docs `32841000595` 已启动，后两者等待 GitHub 完成。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-sidebar-r157`，镜像 ID `sha256:e26a65a4b3a415e4e4acace3c7940cf399c86a181cbf438d12237c28f991c604`；仅重建 `filebrowser`，r156 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本地 Playwright 真实验收：桌面展开侧栏为 `256px`，页面 `scrollWidth=clientWidth=1440`，页面与控制台错误均为 `0`；侧栏截图 `/tmp/nfb-r156-sidebar-expanded.png`（脚本沿用既有路径，内容为 r157 部署后截图）显示图标、文字和分组行保持同一基线，NAS 根目录入口、收藏、项目、标签、存储卷等语义未改变。全站桌面回归 `/files/`、`/tasks`、`/history`、`/analysis`、`/settings/profile`、`/recent`、`/trash`、`/search` 同样无横向溢出和控制台错误。
+- 当前结论：r157 只收敛侧栏图标光学比例和节奏，不把它描述成整站视觉完成；下一块优先处理任务中心整页的列表信息层级、时间/查看结果动作和图标语义，并继续使用真实截图闭环。

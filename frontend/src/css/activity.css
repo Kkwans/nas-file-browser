@@ -1065,6 +1065,10 @@
   gap: 8px;
 }
 
+.task-row .task-card-actions > :only-child {
+  min-width: 110px;
+}
+
 .task-card-actions button,
 .task-card-actions a {
   min-height: 44px;
@@ -1243,8 +1247,8 @@
   z-index: 0;
   top: 0;
   bottom: 0;
-  left: 16px;
-  width: 2px;
+  left: 18px;
+  width: 1px;
   background: color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
   content: "";
 }
@@ -1547,7 +1551,10 @@
 
   .task-row .task-card-actions {
     grid-column: 2;
-    justify-content: flex-start;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    border-top: 1px solid var(--borderPrimary);
   }
 
   .history-entry {
@@ -1746,12 +1753,9 @@
   }
 
   .task-row .task-card-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .task-row .task-card-actions > * {
-    justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .history-entry {

@@ -84,4 +84,31 @@ describe("activity page UI contract", () => {
     expect(mediaIconSource).toContain('cancel: "circle-stop"');
     expect(mediaIconSource).toContain('sentiment_dissatisfied: "frown"');
   });
+
+  it("手机任务操作使用独立对齐行，单个动作不留下半列空洞", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toContain("border-top: 1px solid var(--borderPrimary);");
+    expect(css).toMatch(
+      /@media \(max-width: 520px\)[\s\S]*?\.task-row \.task-card-actions\s*\{[\s\S]*?display:\s*flex;[\s\S]*?justify-content:\s*flex-end;/
+    );
+    expect(css).toContain(".task-row .task-card-actions > :only-child");
+  });
+
+  it("操作历史时间线的轨道与时间点使用同一光学中心", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /\.history-ledger__entries::before\s*\{[\s\S]*?left:\s*18px;[\s\S]*?width:\s*1px;/
+    );
+    expect(css).toMatch(
+      /\.history-entry-line span\s*\{[\s\S]*?left:\s*1px;[\s\S]*?width:\s*11px;[\s\S]*?height:\s*11px;/
+    );
+  });
 });

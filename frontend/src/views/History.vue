@@ -128,6 +128,10 @@
       </section>
 
       <section v-else class="history-ledger" aria-label="操作历史列表">
+        <div class="history-ledger__header" aria-hidden="true">
+          <span>操作记录</span>
+          <span>时间</span>
+        </div>
         <div class="history-ledger__entries">
           <article
             v-for="entry in historyStore.items"

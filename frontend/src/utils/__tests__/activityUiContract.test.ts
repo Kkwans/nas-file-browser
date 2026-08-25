@@ -148,4 +148,26 @@ describe("activity page UI contract", () => {
       /\.history-entry-line span\s*\{[\s\S]*?left:\s*1px;[\s\S]*?width:\s*11px;[\s\S]*?height:\s*11px;/
     );
   });
+
+  it("操作历史为记录与时间建立稳定列标题，避免时间漂浮在边缘", () => {
+    const historySource = readFileSync(
+      resolve(process.cwd(), "src/views/History.vue"),
+      "utf8"
+    );
+    expect(historySource).toContain('class="history-ledger__header"');
+    expect(historySource).toMatch(
+      /class="history-ledger__header"[\s\S]*?操作记录[\s\S]*?时间/m
+    );
+
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+    expect(css).toMatch(
+      /\.history-ledger__header\s*\{[\s\S]*?grid-template-columns:\s*14px 40px minmax\(0, 1fr\) 132px;/
+    );
+    expect(css).toMatch(
+      /\.history-entry time\s*\{[\s\S]*?border-left:\s*1px solid color-mix/
+    );
+  });
 });

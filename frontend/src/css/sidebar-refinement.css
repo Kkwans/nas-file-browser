@@ -1315,15 +1315,15 @@ nav.sidebar > .credits:last-child {
   nav.sidebar:not(.sidebar--rail) .sidebar-section-header {
     min-height: 2.75rem;
     padding: 0.125rem 0.25rem 0.125rem 0.5rem;
-    border-color: transparent;
+    border-color: transparent !important;
     border-radius: 0.5rem;
-    background: transparent;
+    background: transparent !important;
   }
 
   nav.sidebar:not(.sidebar--rail) .sidebar-section-header:hover,
   nav.sidebar:not(.sidebar--rail) .sidebar-section-header:focus-within {
-    border-color: transparent;
-    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent);
+    border-color: transparent !important;
+    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent) !important;
   }
 
   nav.sidebar:not(.sidebar--rail) .sidebar-section-header .section-toggle {
@@ -1339,9 +1339,9 @@ nav.sidebar > .credits:last-child {
   nav.sidebar:not(.sidebar--rail) .sidebar-group-header,
   nav.sidebar:not(.sidebar--rail) .favorite-group-header,
   nav.sidebar:not(.sidebar--rail) .category-group-header {
-    border-color: transparent;
+    border-color: transparent !important;
     border-radius: 0.5rem;
-    background: transparent;
+    background: transparent !important;
   }
 
   nav.sidebar:not(.sidebar--rail) .sidebar-group-header:hover,
@@ -1350,7 +1350,7 @@ nav.sidebar > .credits:last-child {
   nav.sidebar:not(.sidebar--rail) .favorite-group-header:focus-visible,
   nav.sidebar:not(.sidebar--rail) .category-group-header:hover,
   nav.sidebar:not(.sidebar--rail) .category-group-header:focus-visible {
-    border-color: transparent;
-    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent);
+    border-color: transparent !important;
+    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent) !important;
   }
 }

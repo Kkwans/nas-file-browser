@@ -1776,4 +1776,40 @@ nav.sidebar .favorite-item.drag-over-bottom {
     opacity: 1;
     pointer-events: auto;
   }
+
+  #listing.mosaic .item > .item-controls .item-icon-button,
+  #listing.mosaic .item > .item-controls .file-action-menu-host {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Headless/mobile viewport checks do not always advertise a coarse pointer,
+ * even though the compact phone layout still needs every action to remain
+ * visible and reachable. Keep the same bottom rail for the layout breakpoint
+ * itself, then let the pointer media query above add the touch-specific
+ * affordances when the device exposes them. */
+@media (max-width: 736px) {
+  #listing.mosaic .item > .item-controls {
+    top: auto;
+    right: 12px;
+    bottom: 10px;
+    left: 12px;
+    width: auto;
+    min-height: 50px;
+    justify-content: flex-end;
+    padding: 3px 0 0;
+    border: 0;
+    border-top: 1px solid var(--borderPrimary, #e2e7ed);
+    border-radius: 0;
+    background: transparent;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #listing.mosaic .item > .item-controls .item-icon-button,
+  #listing.mosaic .item > .item-controls .file-action-menu-host {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }

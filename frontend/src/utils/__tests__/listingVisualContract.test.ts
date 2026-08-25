@@ -52,4 +52,15 @@ describe("文件列表视觉契约", () => {
       /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*transform:\s*translateX\(-50%\)/s
     );
   });
+
+  it("手机断点保持底部操作栏及其子按钮可见", () => {
+    const workspaceStyles = readWorkspace();
+
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width: 736px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?top:\s*auto;[\s\S]*?bottom:\s*10px;[\s\S]*?opacity:\s*1;/s
+    );
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width: 736px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls \.item-icon-button,[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/s
+    );
+  });
 });

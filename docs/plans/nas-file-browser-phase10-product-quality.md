@@ -719,3 +719,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - TDD/静态验证：新增入口视觉契约先在旧样式上失败，修复后分析 UI 契约 `9/9`；前端完整 Vitest `96 files / 380 tests`、lint、typecheck、production build 和 `git diff --check` 通过。源码提交 `44466257` 已推送。
 - 发布：Compose 提交 `3a8861b0` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r168`，镜像 ID `sha256:da60717e8feb22deb449f9a7838fa0bb7388077cfe3e541bba199dc4f6de8176`；仅重建 `filebrowser`，r167/r166 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，不能宣称 r168 的像素坐标、扫描入口交互和移动端截图已通过真实浏览器验收；待浏览器环境可用后需补做 1440/1024/390px、键盘焦点、根目录确认和扫描结果返回回归。
+
+### 2026-08-25 r169 文件夹图标统一视觉语义
+
+- 用户持续指出文件夹图标在不同布局中不够精致、缺少统一识别度。代码审计确认四种布局最终都复用 `FileThumbnail`，因此没有新增第二套图标资源或替换真实媒体缩略图。
+- 修复：普通文件夹的本地 Lucide 语义图标增加轻量填充和统一描边比例，网格、紧凑网格、紧凑列表和详细列表共享同一视觉语义；风险资源仍使用中/高风险原生图标，媒体仍优先显示真实缩略图。
+- TDD/静态验证：风险/列表视觉契约 `7 + 5` 通过；前端完整 Vitest `96 files / 381 tests`、lint、typecheck、production build 和 `git diff --check` 通过。源码提交 `0a2ba0bd` 已推送。
+- 发布：Compose 提交 `be4b6660` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-listing-r169`，镜像 ID `sha256:b060ccf662d1f2d63b99323291c71cfd486df7b45e88edecb5f28e6163d9aeff`；仅重建 `filebrowser`，r168/r167 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，不能宣称 r169 的四种布局图标坐标、触屏尺寸和风险图标截图已通过真实浏览器验收；待浏览器环境可用后需补做桌面、窄容器、390px 移动端和高/中风险路径回归。

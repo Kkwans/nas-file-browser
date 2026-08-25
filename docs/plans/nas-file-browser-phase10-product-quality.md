@@ -711,3 +711,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - TDD/静态验证：活动页契约 `14/14`；前端完整 Vitest `96 files / 379 tests`，lint、typecheck、production build 和 `git diff --check` 通过。源码提交 `5e4632a9` 已推送。
 - 发布：Compose 提交 `16105637` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tasks-r167`，镜像 ID `sha256:ebbd004d7de8c5684f0d0f967bedb4aea7c9f1553c1e9879b5564c11487588c1`；仅重建 `filebrowser`，r166/r165 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，不能宣称 r167 的像素坐标、结果弹窗和移动端截图已通过真实浏览器验收；待浏览器环境可用后需补做桌面、窄容器、390px 移动端、键盘焦点和任务结果返回定位回归。
+
+### 2026-08-25 r168 分析扫描入口视觉层级收敛
+
+- 用户指出存储工具页的问题是整页层级混乱，而非单个顶部卡片。复核确认扫描入口存在外层阴影、右侧蓝色确认面板、偏大的标题与重复留白，导致工作区像多层营销卡片叠加。
+- 修复：扫描入口移除外层阴影，圆角和内边距收紧；图标标记改为轻量色面；右侧“准备开始”区域回到普通表面，不改变步骤、范围确认、并发提示、取消和启动动作；分析工作区顶部标题、间距和底部留白同步收敛。扫描逻辑、任务接口、结果报告和移动端 `44px` 控件均未改变。
+- TDD/静态验证：新增入口视觉契约先在旧样式上失败，修复后分析 UI 契约 `9/9`；前端完整 Vitest `96 files / 380 tests`、lint、typecheck、production build 和 `git diff --check` 通过。源码提交 `44466257` 已推送。
+- 发布：Compose 提交 `3a8861b0` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r168`，镜像 ID `sha256:da60717e8feb22deb449f9a7838fa0bb7388077cfe3e541bba199dc4f6de8176`；仅重建 `filebrowser`，r167/r166 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，不能宣称 r168 的像素坐标、扫描入口交互和移动端截图已通过真实浏览器验收；待浏览器环境可用后需补做 1440/1024/390px、键盘焦点、根目录确认和扫描结果返回回归。

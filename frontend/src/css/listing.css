@@ -247,6 +247,11 @@
   );
 }
 
+#listing .file-thumbnail > .app-resource-icon--folder {
+  fill: color-mix(in srgb, currentColor 14%, transparent);
+  stroke-width: 1.7;
+}
+
 #listing .file-thumbnail > .risk-resource-icon {
   box-sizing: border-box;
   display: grid;

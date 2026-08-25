@@ -103,4 +103,14 @@ describe("risk presentation contract", () => {
       /#listing\.compact-grid \.item\s*\{[^}]*--resource-icon-size:\s*64px/s
     );
   });
+
+  it("普通文件夹使用统一的轻量填充图标，不影响真实媒体缩略图", () => {
+    expect(thumbnailSource).toContain("app-resource-icon--folder");
+    expect(listingStyles).toMatch(
+      /#listing \.file-thumbnail > \.app-resource-icon--folder\s*\{[\s\S]*?fill:\s*color-mix\(/s
+    );
+    expect(listingStyles).toMatch(
+      /#listing \.file-thumbnail > img\s*\{[\s\S]*?object-fit:\s*cover;/s
+    );
+  });
 });

@@ -39,6 +39,7 @@
     <AppIcon
       v-else
       class="file-type-icon app-resource-icon"
+      :class="{ 'app-resource-icon--folder': isDir }"
       :name="resourceIconName"
       :size="64"
       :stroke-width="1.85"

@@ -110,7 +110,7 @@ describe("activity page UI contract", () => {
       "utf8"
     );
     expect(css).toMatch(
-      /\.task-row\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(148px, auto\);/
+      /\.task-row\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(176px, auto\);/
     );
     expect(css).toContain(".task-row__aside");
     expect(css).toContain(".task-row__time");
@@ -119,7 +119,7 @@ describe("activity page UI contract", () => {
   it("任务列表为内容与更新时间/操作建立明确的列标题和分隔", () => {
     expect(tasksSource).toContain('class="task-list__header"');
     expect(tasksSource).toMatch(
-      /class="task-list__header"[\s\S]*?任务[\s\S]*?最近更新与操作/m
+      /class="task-list__header"[\s\S]*?任务[\s\S]*?更新时间 \/ 操作/m
     );
 
     const css = readFileSync(
@@ -127,7 +127,7 @@ describe("activity page UI contract", () => {
       "utf8"
     );
     expect(css).toMatch(
-      /\.task-list__header\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(148px, auto\);/
+      /\.task-list__header\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(176px, auto\);/
     );
     expect(css).toMatch(
       /\.task-row__aside\s*\{[\s\S]*?border-left:\s*1px solid color-mix/
@@ -164,10 +164,30 @@ describe("activity page UI contract", () => {
       "utf8"
     );
     expect(css).toMatch(
-      /\.history-ledger__header\s*\{[\s\S]*?grid-template-columns:\s*14px 40px minmax\(0, 1fr\) 132px;/
+      /\.history-ledger__header\s*\{[\s\S]*?grid-template-columns:\s*14px 40px minmax\(0, 1fr\) 144px;/
     );
     expect(css).toMatch(
       /\.history-entry time\s*\{[\s\S]*?border-left:\s*1px solid color-mix/
     );
+  });
+
+  it("活动页使用轻量标签导航和稳定的时间操作列", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /\.activity-switcher\s*\{[\s\S]*?border-bottom:\s*1px solid var\(--borderPrimary\);[\s\S]*?border-radius:\s*0;/
+    );
+    expect(css).toMatch(
+      /\.activity-switcher a\[aria-current="page"\]\s*\{[\s\S]*?box-shadow:\s*inset 0 -2px var\(--blue\);/
+    );
+    expect(css).toMatch(/\.task-row\s*\{[\s\S]*?minmax\(176px, auto\);/);
+    expect(css).toMatch(
+      /\.task-row__time\s*\{[\s\S]*?justify-items:\s*start;[\s\S]*?text-align:\s*left;/
+    );
+    expect(css).toContain(".task-result-action");
+    expect(css).toMatch(/\.history-entry time\s*\{[\s\S]*?text-align:\s*left;/);
   });
 });

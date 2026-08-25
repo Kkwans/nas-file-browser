@@ -194,7 +194,7 @@
       <section v-else class="activity-list task-list" aria-label="任务列表">
         <div class="task-list__header" aria-hidden="true">
           <span>任务</span>
-          <span>最近更新与操作</span>
+          <span>更新时间 / 操作</span>
         </div>
         <article
           v-for="task in tasksStore.items"
@@ -315,7 +315,7 @@
               <button
                 v-if="resultRoute(task)"
                 type="button"
-                class="primary"
+                class="primary task-result-action"
                 @click="resultTask = task"
               >
                 <app-icon :name="resultIcon(task.type)" :size="17" />查看结果

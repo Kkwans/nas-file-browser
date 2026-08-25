@@ -20,4 +20,15 @@ describe("标签控件无障碍契约", () => {
       expect(source).toContain(`aria-label="${label}"`);
     }
   });
+
+  it("标签管理器标题不继承全局固定 Header 定位", () => {
+    const source = readSource("components/TagManager.vue");
+
+    expect(source).toMatch(
+      /\.tag-manager-header\s*\{[\s\S]*?position:\s*static;[\s\S]*?width:\s*auto;[\s\S]*?height:\s*auto;/
+    );
+    expect(source).toMatch(
+      /\.tag-manager-header:hover\s*\{[\s\S]*?box-shadow:\s*none;/
+    );
+  });
 });

@@ -370,9 +370,24 @@ function close() {
 }
 
 .tag-manager-header {
+  position: static;
+  z-index: auto;
+  top: auto;
+  left: auto;
+  width: auto;
+  height: auto;
+  padding: 0;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: none;
+}
+
+.tag-manager-header:hover {
+  box-shadow: none;
 }
 
 .tag-manager-header h3,

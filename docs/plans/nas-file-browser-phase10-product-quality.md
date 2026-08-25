@@ -609,3 +609,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 
 - 发布：Compose 提交 `ae3698e2` 已推送，Compose CI `32836958992` 的前端、后端、race、Docker 构建全部成功；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-activity-r155`，镜像 ID `sha256:7f12455e9bbe9d1e89ae4ab321adb59f9309a56d437db059c76c11ed6d3aa652`。仅重建 `filebrowser`，r154 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - NAS 本地 Playwright 真实验收：桌面 `1440×900` 任务首行约 `1178×110px`，右侧时间栏 `132px`，操作按钮 `110×36px`；移动 `390×844` 首行约 `344×180px`，时间和操作位于内容下方同一分隔行。`/tasks`、`/history`、`/files/`、`/analysis`、`/settings/profile`、`/recent`、`/trash`、`/search` 均无页面/控制台错误，桌面和移动 `scrollWidth=clientWidth`。截图：`/tmp/nfb-r155-audit-tasks.png`、`/tmp/nfb-r155-audit-history.png`、`/tmp/nfb-r155-audit-mobile-tasks.png`、`/tmp/nfb-r155-audit-mobile-history.png`。
+
+### 2026-08-25 r156 分析页最近扫描三列层级收敛
+
+- 用户复核确认存储工具的问题是整页精致度不足，而不只是顶部；“完成时间”和“查看结果”在宽屏上像相互漂浮的孤立元素。真实截图和 DOM 坐标显示旧结构使用四列并将时间、动作作为独立网格子项，右侧留白过大，首屏说明卡和最近扫描卡也重复使用较重的背景层。
+- 修复：保留扫描、报告、任务和路由契约，将最近扫描改为图标 / 扫描记录 / 完成与操作三列；时间和结果入口放入同一右侧垂直栏，列标题合并为“完成与操作”，结果按钮收紧为轻量固定宽度动作。扫描面板和最近扫描容器同步收紧圆角、阴影、内边距、标题字号和工作区宽度，减少多层卡片造成的视觉噪声；移动端仍保留内容下方分隔操作行和 `44px` 触摸目标。
+- TDD/静态验证：分析 UI/无障碍契约 `13/13`、前端完整 Vitest `95 files / 370 tests`、ESLint、typecheck、production build 和 `git diff --check` 均通过。源码提交 `60c2e62f`、Compose 发布提交 `14ab8848` 已推送；GitHub CI `32839628566`、Docs `32839628585` 正在运行。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r156`，镜像 ID `sha256:25952a095aa4b538a02306a787f0b0429d1612039d3aa8bba24dea3e178352c8`；仅重建 `filebrowser`，r155 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本地 Playwright 真实验收：桌面 `/analysis` 无横向溢出和控制台错误，最近扫描首行约 `1178×104px`，右侧合并栏 `148px`，时间约 `55×32px`、结果入口 `118×36px`；移动首行约 `344×167px`，时间与结果入口位于同一分隔操作行，结果入口 `112×44px`。全站桌面回归路由也保持 `scrollWidth=clientWidth=1440`、页面/控制台错误 `0`。截图：`/tmp/nfb-analysis-r136-1440.png`、`/tmp/nfb-analysis-r136-390.png`、`/tmp/nfb-r156-audit-analysis.png`。
+- 当前结论：r156 进一步消除了存储工具列表右侧时间/结果动作的漂浮感，并降低首屏装饰层级；用户指出的全站图标、文件列表、Markdown 和媒体精致度仍需继续按真实截图拆成独立模块，不以本轮宣称全站完成。

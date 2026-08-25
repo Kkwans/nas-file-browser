@@ -471,3 +471,13 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - NAS 本机 Playwright 真实验收：桌面 `1440×900` 和移动 `390×844` 的 `/analysis` 均无页面/控制台错误，页面级 `scrollWidth=clientWidth`；桌面工具切换器约 `58px` 高、运行面板约 `326px`、最近扫描约 `500px`，移动端对应约 `54px/477px/728px`。最近扫描每行仅有一个 `time` 节点，时间与“查看结果”共用右侧列；结果报告路由实际打开成功，标题、摘要、空结果和最近扫描均渲染，横向溢出为 `0`。截图：`/tmp/nfb-r103-desktop-analysis.png`、`/tmp/nfb-r103-mobile-analysis.png`、`/tmp/nfb-r103-desktop-analysis-result.png`。
 - r103 视频回归：NAS 本机 Chromium 对真实 VP9/Opus MKV 自动进入原始源，`readyState=4`、`duration=8.008s`、`seekable=[0,8.008]`，无兼容播放按钮和控制台错误；该证据仅覆盖浏览器明确支持的编码组合，H.264/HEVC 等仍按编码预检选择兼容播放。
 - 当前结论：该模块解决的是用户明确指出的存储工具页面层级、对齐、重复时间和操作入口问题；不宣称全站 UI 已完成，后续继续按真实截图审计其他页面的文字基线、图标语义、操作密度和状态反馈。
+
+### 2026-08-25 r137 报告页结果优先与扫描入口收纳
+
+- 真实审计发现：存储工具报告页仍把完整扫描范围表单固定放在结果摘要之前，报告用户每次查看结果都要先穿过一整块重复表单；这正是“顶部一大坨、结果列表和查看结果层级被挤压”的可复现页面问题。
+- 修复：当路由已有分析报告时，默认只展示工具切换、可展开的“再次运行扫描”入口、报告摘要和最近扫描；点击入口才展开原有范围表单。没有报告的初始工作区保持完整扫描流程不变，扫描、工具切换、任务返回和范围数据契约不变。
+- 验证：新增无障碍契约覆盖 `aria-expanded` 和按状态挂载范围面板；分析 UI/无障碍 Vitest `8/8`、目标 ESLint、typecheck、`git diff --check` 通过。源码提交 `e85da2e8`、Compose 发布提交 `0a781bbb` 已推送，GitHub CI `32798920592` 与 `32799433124`、Docs CI `32798920567` 与 `32799433111` 均成功。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r137`，仅重建 `filebrowser`；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r136 Compose 和镜像保留作回滚。
+- NAS 本机 Playwright 真实验收：报告页桌面 `1440×900` 与移动 `390×900` 初始状态均显示收纳入口、范围面板未挂载、`aria-expanded=false`；点击后面板可见、`aria-expanded=true`；两种尺寸 `scrollWidth=clientWidth`，控制台错误 `0`。截图：`/tmp/nfb-analysis-result-r137-1440-collapsed.png`、`/tmp/nfb-analysis-result-r137-1440-expanded.png`、`/tmp/nfb-analysis-result-r137-390-collapsed.png`、`/tmp/nfb-analysis-result-r137-390-expanded.png`。
+- 同轮回归：当前 r137 的 Markdown 即时渲染复核显示空闲代码块只显示渲染面、聚焦代码块只显示编辑面，带语言标识的 `bash` 代码块有 Highlight.js 语法着色；当前未复现用户旧截图中的双代码块和纯黑代码问题，不做重复改动。
+- 当前结论：报告页已从“扫描表单优先”调整为“结果优先”；任务、历史、搜索、最近访问、回收站、设置和四种文件列表布局的当前本机截图未发现新的可证明溢出或错误，继续以真实复现为准推进下一项，不以一次截图宣称全站完成。

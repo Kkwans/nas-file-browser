@@ -110,7 +110,7 @@ describe("activity page UI contract", () => {
       "utf8"
     );
     expect(css).toMatch(
-      /\.task-row\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(176px, auto\);/
+      /\.task-row\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(236px, auto\);/
     );
     expect(css).toContain(".task-row__aside");
     expect(css).toContain(".task-row__time");
@@ -127,7 +127,7 @@ describe("activity page UI contract", () => {
       "utf8"
     );
     expect(css).toMatch(
-      /\.task-list__header\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(176px, auto\);/
+      /\.task-list__header\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(236px, auto\);/
     );
     expect(css).toMatch(
       /\.task-row__aside\s*\{[\s\S]*?border-left:\s*1px solid color-mix/
@@ -183,11 +183,28 @@ describe("activity page UI contract", () => {
     expect(css).toMatch(
       /\.activity-switcher a\[aria-current="page"\]\s*\{[\s\S]*?box-shadow:\s*inset 0 -2px var\(--blue\);/
     );
-    expect(css).toMatch(/\.task-row\s*\{[\s\S]*?minmax\(176px, auto\);/);
+    expect(css).toMatch(/\.task-row\s*\{[\s\S]*?minmax\(236px, auto\);/);
     expect(css).toMatch(
       /\.task-row__time\s*\{[\s\S]*?justify-items:\s*start;[\s\S]*?text-align:\s*left;/
     );
     expect(css).toContain(".task-result-action");
     expect(css).toMatch(/\.history-entry time\s*\{[\s\S]*?text-align:\s*left;/);
+  });
+
+  it("任务行将更新时间与主要操作收敛到同一侧栏，避免右侧上下漂浮", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /\.task-row__aside\s*\{[\s\S]*?min-width:\s*236px;[\s\S]*?grid-template-columns:\s*minmax\(78px, 1fr\) auto;/
+    );
+    expect(css).toMatch(
+      /\.task-row__time\s*\{[\s\S]*?justify-items:\s*end;[\s\S]*?text-align:\s*right;/
+    );
+    expect(css).toMatch(
+      /\.task-row__aside \.task-card-actions\s*\{[\s\S]*?grid-column:\s*2;/
+    );
   });
 });

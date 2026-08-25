@@ -605,9 +605,9 @@ header > .header-center {
 
 #listing.compact-list .item {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  min-height: 62px;
-  padding: 8px 12px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  min-height: 60px;
+  padding: 7px 12px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: var(--surfacePrimary, #fff);
@@ -631,11 +631,11 @@ header > .header-center {
 #listing.compact-list .item > div:first-child > img,
 #listing.compact-list .item > div:first-child > video,
 #listing.compact-list .item > div:first-child > .file-type-icon {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 4px;
   object-fit: cover;
-  font-size: 40px;
+  font-size: 34px;
 }
 
 #listing.compact-list .item > .item-controls {
@@ -666,7 +666,7 @@ header > .header-center {
 
 #listing.compact-list .item-name {
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 620;
   line-height: 19px;
   text-overflow: ellipsis;
@@ -677,7 +677,7 @@ header > .header-center {
   grid-area: meta;
   align-self: start;
   color: var(--textSecondary, #718096);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 17px;
 }
 
@@ -691,7 +691,8 @@ header > .header-center {
 #listing.compact-list .modified {
   margin: 0;
   color: var(--textSecondary, #718096);
-  font-size: 11px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
   line-height: 17px;
   text-align: right;
   white-space: nowrap;

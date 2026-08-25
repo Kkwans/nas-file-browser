@@ -98,6 +98,24 @@ describe("activity page UI contract", () => {
     expect(css).toContain(".task-row .task-card-actions > :only-child");
   });
 
+  it("任务项将时间与操作放进稳定的右侧栏，避免查看结果漂浮在列表边缘", () => {
+    expect(tasksSource).toContain('class="task-row__aside"');
+    expect(tasksSource).toContain('class="task-row__time"');
+    expect(tasksSource).toMatch(
+      /<div class="task-row__aside">[\s\S]*?class="task-row__time"[\s\S]*?class="task-card-actions"/m
+    );
+
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+    expect(css).toMatch(
+      /\.task-row\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(132px, auto\);/
+    );
+    expect(css).toContain(".task-row__aside");
+    expect(css).toContain(".task-row__time");
+  });
+
   it("操作历史时间线的轨道与时间点使用同一光学中心", () => {
     const css = readFileSync(
       resolve(process.cwd(), "src/css/activity.css"),

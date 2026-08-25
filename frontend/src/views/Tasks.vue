@@ -214,9 +214,6 @@
               >
             </div>
             <div class="task-card-meta">
-              <span
-                ><app-icon name="clock" :size="14" />{{ taskTime(task) }}</span
-              >
               <span v-if="authStore.user?.perm.admin"
                 ><app-icon name="user" :size="14" />{{
                   task.ownerName || `用户 ${task.userId}`
@@ -277,48 +274,65 @@
             </details>
           </div>
 
-          <div class="task-card-actions">
-            <button
-              v-if="canCancel(task.status)"
-              type="button"
-              :disabled="busyIds.has(task.id)"
-              @click="cancelTask(task)"
+          <div class="task-row__aside">
+            <time
+              class="task-row__time"
+              :datetime="
+                new Date(
+                  task.finishedAt || task.startedAt || task.createdAt
+                ).toISOString()
+              "
+              :title="
+                exactTime(task.finishedAt || task.startedAt || task.createdAt)
+              "
             >
-              <app-icon name="circle-stop" :size="17" />取消
-            </button>
-            <button
-              v-if="canRetry(task)"
-              type="button"
-              class="primary"
-              :disabled="busyIds.has(task.id)"
-              @click="retryTask(task)"
-            >
-              <app-icon name="retry" :size="17" />重试
-            </button>
-            <button
-              v-if="resultRoute(task)"
-              type="button"
-              class="primary"
-              @click="resultTask = task"
-            >
-              <app-icon :name="resultIcon(task.type)" :size="17" />查看结果
-            </button>
-            <button
-              v-if="task.archivedAt"
-              type="button"
-              :disabled="busyIds.has(task.id)"
-              @click="restoreTask(task)"
-            >
-              <app-icon name="archive-restore" :size="17" />恢复
-            </button>
-            <button
-              v-else-if="canArchive(task)"
-              type="button"
-              :disabled="busyIds.has(task.id)"
-              @click="archiveTask(task)"
-            >
-              <app-icon name="archive" :size="17" />归档
-            </button>
+              <span>最近更新</span>
+              <strong>{{ taskTime(task) }}</strong>
+            </time>
+
+            <div class="task-card-actions">
+              <button
+                v-if="canCancel(task.status)"
+                type="button"
+                :disabled="busyIds.has(task.id)"
+                @click="cancelTask(task)"
+              >
+                <app-icon name="circle-stop" :size="17" />取消
+              </button>
+              <button
+                v-if="canRetry(task)"
+                type="button"
+                class="primary"
+                :disabled="busyIds.has(task.id)"
+                @click="retryTask(task)"
+              >
+                <app-icon name="retry" :size="17" />重试
+              </button>
+              <button
+                v-if="resultRoute(task)"
+                type="button"
+                class="primary"
+                @click="resultTask = task"
+              >
+                <app-icon :name="resultIcon(task.type)" :size="17" />查看结果
+              </button>
+              <button
+                v-if="task.archivedAt"
+                type="button"
+                :disabled="busyIds.has(task.id)"
+                @click="restoreTask(task)"
+              >
+                <app-icon name="archive-restore" :size="17" />恢复
+              </button>
+              <button
+                v-else-if="canArchive(task)"
+                type="button"
+                :disabled="busyIds.has(task.id)"
+                @click="archiveTask(task)"
+              >
+                <app-icon name="archive" :size="17" />归档
+              </button>
+            </div>
           </div>
         </article>
 

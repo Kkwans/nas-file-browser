@@ -922,11 +922,11 @@
 
 .task-row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 132px;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(132px, auto);
   align-items: start;
-  gap: 14px;
-  min-height: 88px;
-  padding: 15px 18px;
+  gap: 16px;
+  min-height: 96px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--borderPrimary);
   transition: background-color var(--motion-fast);
 }
@@ -946,6 +946,39 @@
 
 .task-row__content {
   min-width: 0;
+}
+
+.task-row__aside {
+  display: grid;
+  min-width: 132px;
+  align-self: stretch;
+  justify-items: end;
+  align-content: space-between;
+  gap: 10px;
+}
+
+.task-row__time {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--textPrimary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.task-row__time span {
+  color: var(--textPrimary);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.task-row__time strong {
+  color: var(--textSecondary);
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .task-row .task-icon {
@@ -1063,6 +1096,7 @@
   align-self: center;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .task-row .task-card-actions > :only-child {
@@ -1073,6 +1107,13 @@
 .task-card-actions a {
   min-height: 44px;
   justify-content: center;
+}
+
+.task-row__aside .task-card-actions button,
+.task-row__aside .task-card-actions a {
+  min-height: 36px;
+  padding-inline: 10px;
+  border-radius: 8px;
 }
 
 .task-card-actions button:disabled {
@@ -1321,7 +1362,7 @@
 }
 
 .history-entry-copy strong {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 680;
 }
 
@@ -1367,7 +1408,7 @@
 
 .history-entry time {
   color: var(--textSecondary);
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
@@ -1549,12 +1590,27 @@
     min-height: 0;
   }
 
-  .task-row .task-card-actions {
+  .task-row__aside {
     grid-column: 2;
-    display: flex;
-    justify-content: flex-end;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    align-self: auto;
+    min-width: 0;
     padding-top: 10px;
     border-top: 1px solid var(--borderPrimary);
+  }
+
+  .task-row__time {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .task-row .task-card-actions {
+    grid-column: auto;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0;
+    border-top: 0;
   }
 
   .history-entry {
@@ -1750,6 +1806,10 @@
 
   .task-row {
     padding: 12px 11px;
+  }
+
+  .task-row__time {
+    justify-items: start;
   }
 
   .task-row .task-card-actions {

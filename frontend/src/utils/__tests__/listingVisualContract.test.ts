@@ -63,4 +63,15 @@ describe("文件列表视觉契约", () => {
       /@media \(max-width: 736px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls \.item-icon-button,[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/s
     );
   });
+
+  it("详细网格的操作按钮在底部操作带内居中，避免图标贴在右侧形成空洞", () => {
+    const workspaceStyles = readWorkspace();
+
+    expect(workspaceStyles).toMatch(
+      /@media \(min-width: 737px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?background:\s*color-mix\(/s
+    );
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width: 736px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;/s
+    );
+  });
 });

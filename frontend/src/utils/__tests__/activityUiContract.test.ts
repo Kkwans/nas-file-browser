@@ -110,10 +110,29 @@ describe("activity page UI contract", () => {
       "utf8"
     );
     expect(css).toMatch(
-      /\.task-row\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(132px, auto\);/
+      /\.task-row\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(148px, auto\);/
     );
     expect(css).toContain(".task-row__aside");
     expect(css).toContain(".task-row__time");
+  });
+
+  it("任务列表为内容与更新时间/操作建立明确的列标题和分隔", () => {
+    expect(tasksSource).toContain('class="task-list__header"');
+    expect(tasksSource).toMatch(
+      /class="task-list__header"[\s\S]*?任务[\s\S]*?最近更新与操作/m
+    );
+
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+    expect(css).toMatch(
+      /\.task-list__header\s*\{[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) minmax\(148px, auto\);/
+    );
+    expect(css).toMatch(
+      /\.task-row__aside\s*\{[\s\S]*?border-left:\s*1px solid color-mix/
+    );
+    expect(css).toContain(".task-row__aside .task-card-actions button.primary");
   });
 
   it("操作历史时间线的轨道与时间点使用同一光学中心", () => {

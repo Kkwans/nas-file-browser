@@ -920,9 +920,33 @@
   background: var(--surfacePrimary);
 }
 
+.task-list__header {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(148px, auto);
+  gap: 16px;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--borderPrimary);
+  color: var(--textPrimary);
+  background: color-mix(in srgb, var(--surfaceSecondary) 42%, var(--surfacePrimary));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.task-list__header span:first-child {
+  grid-column: 2;
+}
+
+.task-list__header span:last-child {
+  grid-column: 3;
+  text-align: right;
+}
+
 .task-row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) minmax(132px, auto);
+  grid-template-columns: 44px minmax(0, 1fr) minmax(148px, auto);
   align-items: start;
   gap: 16px;
   min-height: 96px;
@@ -950,11 +974,13 @@
 
 .task-row__aside {
   display: grid;
-  min-width: 132px;
+  min-width: 148px;
   align-self: stretch;
   justify-items: end;
   align-content: space-between;
   gap: 10px;
+  padding-left: 16px;
+  border-left: 1px solid color-mix(in srgb, var(--borderPrimary) 78%, transparent);
 }
 
 .task-row__time {
@@ -997,7 +1023,7 @@
 .task-row__heading strong {
   overflow: hidden;
   color: var(--textSecondary);
-  font-size: 15px;
+  font-size: 15.5px;
   line-height: 1.3;
   font-weight: 700;
   text-overflow: ellipsis;
@@ -1042,7 +1068,7 @@
 .task-card-meta {
   margin-top: 7px;
   gap: 7px 16px;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
 .task-progress {
@@ -1114,6 +1140,19 @@
   min-height: 36px;
   padding-inline: 10px;
   border-radius: 8px;
+}
+
+.task-row__aside .task-card-actions button.primary,
+.task-row__aside .task-card-actions a.primary {
+  min-width: 116px;
+  color: var(--blue);
+  border-color: color-mix(in srgb, var(--blue) 30%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 8%, var(--surfacePrimary));
+}
+
+.task-row__aside .task-card-actions button.primary:hover,
+.task-row__aside .task-card-actions a.primary:hover {
+  background: color-mix(in srgb, var(--blue) 14%, var(--surfacePrimary));
 }
 
 .task-card-actions button:disabled {
@@ -1590,6 +1629,10 @@
     min-height: 0;
   }
 
+  .task-list__header {
+    display: none;
+  }
+
   .task-row__aside {
     grid-column: 2;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1597,6 +1640,8 @@
     align-self: auto;
     min-width: 0;
     padding-top: 10px;
+    padding-left: 0;
+    border-left: 0;
     border-top: 1px solid var(--borderPrimary);
   }
 

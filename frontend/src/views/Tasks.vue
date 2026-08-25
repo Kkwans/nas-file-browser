@@ -192,6 +192,10 @@
       </section>
 
       <section v-else class="activity-list task-list" aria-label="任务列表">
+        <div class="task-list__header" aria-hidden="true">
+          <span>任务</span>
+          <span>最近更新与操作</span>
+        </div>
         <article
           v-for="task in tasksStore.items"
           :id="`task-${task.id}`"

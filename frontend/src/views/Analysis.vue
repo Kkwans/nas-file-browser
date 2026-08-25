@@ -17,7 +17,13 @@
     </header-bar>
 
     <main class="analysis-workspace">
-      <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
+      <div class="analysis-workspace__topline">
+        <div class="analysis-workspace__context">
+          <span>分析工作区</span>
+          <p>选择只读工具，指定范围后开始一次扫描</p>
+        </div>
+        <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
+      </div>
 
       <div class="analysis-run-shell" :class="{ 'has-report': hasReport }">
         <button
@@ -115,14 +121,28 @@
 
       <template v-if="report && activeTool === 'duplicates'">
         <section class="analysis-results-heading">
-          <div>
-            <span>03</span>
-            <div>
+          <div class="analysis-results-heading__main">
+            <span class="analysis-results-heading__icon" aria-hidden="true">
+              <AppIcon name="analysis-duplicates" :size="20" />
+            </span>
+            <div class="analysis-results-heading__copy">
+              <span class="analysis-results-heading__eyebrow"
+                >重复文件 · 分析报告</span
+              >
               <h2>确认结果</h2>
-              <p>{{ completedTime }} · {{ report.scopes.join("、") }}</p>
+              <p>
+                <time>{{ completedTime }}</time>
+                <span aria-hidden="true">·</span>
+                <span :title="report.scopes.join('、')">{{
+                  report.scopes.join("、")
+                }}</span>
+              </p>
             </div>
           </div>
-          <span class="analysis-readonly-chip">只读报告</span>
+          <span class="analysis-readonly-chip">
+            <AppIcon name="shield-check" :size="14" />
+            只读报告
+          </span>
         </section>
 
         <section class="analysis-summary-grid" aria-label="重复文件分析摘要">
@@ -217,17 +237,34 @@
 
       <template v-if="storageReport && activeTool === 'storage'">
         <section class="analysis-results-heading">
-          <div>
-            <span>03</span>
-            <div>
+          <div class="analysis-results-heading__main">
+            <span class="analysis-results-heading__icon" aria-hidden="true">
+              <AppIcon name="analysis-storage" :size="20" />
+            </span>
+            <div class="analysis-results-heading__copy">
+              <span class="analysis-results-heading__eyebrow"
+                >空间分布 · 分析报告</span
+              >
               <h2>空间分布</h2>
               <p>
-                {{ completedTime }} ·
-                {{ storageReport.scopes.map((scope) => scope.path).join("、") }}
+                <time>{{ completedTime }}</time>
+                <span aria-hidden="true">·</span>
+                <span
+                  :title="
+                    storageReport.scopes.map((scope) => scope.path).join('、')
+                  "
+                >
+                  {{
+                    storageReport.scopes.map((scope) => scope.path).join("、")
+                  }}
+                </span>
               </p>
             </div>
           </div>
-          <span class="analysis-readonly-chip">实时只读报告</span>
+          <span class="analysis-readonly-chip">
+            <AppIcon name="shield-check" :size="14" />
+            实时只读报告
+          </span>
         </section>
 
         <section class="analysis-summary-grid" aria-label="存储空间分析摘要">
@@ -836,9 +873,36 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1220px, calc(100% - 48px));
+  width: min(1240px, calc(100% - 56px));
   margin: 0 auto;
-  padding: 16px 0 48px;
+  padding: 24px 0 64px;
+}
+
+.analysis-workspace__topline {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.analysis-workspace__context {
+  min-width: 0;
+}
+
+.analysis-workspace__context > span {
+  display: block;
+  color: var(--textSecondary);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.analysis-workspace__context p {
+  margin: 4px 0 0;
+  color: var(--textPrimary);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .analysis-run-shell {
@@ -945,33 +1009,61 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.analysis-results-heading > div {
+.analysis-results-heading__main {
   justify-content: flex-start;
+  min-width: 0;
 }
 
-.analysis-results-heading > div > span {
+.analysis-results-heading__icon {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   place-items: center;
-  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--blue) 20%, var(--borderPrimary));
+  border-radius: 12px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 9%, transparent);
+  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
+}
+
+.analysis-results-heading__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.analysis-results-heading__eyebrow {
+  overflow: hidden;
+  color: var(--blue);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .analysis-results-heading h2 {
   margin: 0;
   color: var(--textSecondary);
-  font-size: 18px;
+  font-size: 21px;
+  letter-spacing: -0.02em;
 }
 
 .analysis-results-heading p {
-  margin: 3px 0 0;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  overflow: hidden;
   color: var(--textPrimary);
   font-size: 12px;
+}
+
+.analysis-results-heading p span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .analysis-cancel-action {
@@ -1096,27 +1188,40 @@ onBeforeUnmount(() => {
 }
 
 .analysis-results-heading {
-  margin-top: 28px;
+  margin-top: 32px;
 }
 
 .analysis-readonly-chip {
-  padding: 6px 9px;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border: 1px solid color-mix(in srgb, #16845d 22%, var(--borderPrimary));
+  border-radius: 8px;
 }
 
 .analysis-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 16px;
+  gap: 0;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 14px;
+  background: var(--surfacePrimary);
 }
 
 .analysis-summary-grid article {
   display: grid;
   gap: 6px;
-  padding: 15px 17px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
-  background: var(--surfacePrimary);
+  min-width: 0;
+  padding: 18px 20px;
+  border-right: 1px solid var(--borderPrimary);
+}
+
+.analysis-summary-grid article:last-child {
+  border-right: 0;
 }
 
 .analysis-summary-grid small,
@@ -1127,7 +1232,7 @@ onBeforeUnmount(() => {
 
 .analysis-summary-grid strong {
   color: var(--textSecondary);
-  font-size: 27px;
+  font-size: 29px;
   letter-spacing: -0.03em;
 }
 
@@ -1137,7 +1242,7 @@ onBeforeUnmount(() => {
 }
 
 .analysis-summary-grid .analysis-summary-highlight {
-  border-color: color-mix(in srgb, #1ea672 24%, var(--borderPrimary));
+  border-right-color: color-mix(in srgb, #1ea672 18%, var(--borderPrimary));
   background: color-mix(in srgb, #1ea672 5%, var(--surfacePrimary));
 }
 
@@ -1549,7 +1654,17 @@ onBeforeUnmount(() => {
 @media (max-width: 760px) {
   .analysis-workspace {
     width: min(100% - 20px, 1120px);
-    padding-top: 12px;
+    padding-top: 18px;
+  }
+
+  .analysis-workspace__topline {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .analysis-tool-switcher {
+    width: 100%;
   }
 
   .analysis-run-toggle {
@@ -1558,6 +1673,15 @@ onBeforeUnmount(() => {
 
   .analysis-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .analysis-summary-grid article {
+    border-right: 0;
+    border-bottom: 1px solid var(--borderPrimary);
+  }
+
+  .analysis-summary-grid article:last-child {
+    border-bottom: 0;
   }
 
   .storage-rankings {
@@ -1586,6 +1710,14 @@ onBeforeUnmount(() => {
   .analysis-results-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .analysis-results-heading__main {
+    width: 100%;
+  }
+
+  .analysis-results-heading__copy {
+    max-width: calc(100% - 54px);
   }
 
   .duplicate-group > header {

@@ -35,7 +35,8 @@ describe("存储工具无障碍契约", () => {
     expect(analysisSource).toContain("<AnalysisScopePanel");
     expect(scopePanelSource).toContain("步骤 1");
     expect(scopePanelSource).toContain("步骤 2");
-    expect(analysisSource).toContain("<span>03</span>");
+    expect(analysisSource).toContain('class="analysis-results-heading__icon"');
+    expect(analysisSource).toContain('name="analysis-duplicates"');
     expect(analysisSource).not.toContain('class="analysis-hero"');
   });
 

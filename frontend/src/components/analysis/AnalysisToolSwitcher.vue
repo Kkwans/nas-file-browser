@@ -40,12 +40,14 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 <style scoped>
 .analysis-tool-switcher {
   display: inline-flex;
+  flex: 0 0 auto;
+  width: min(100%, 480px);
   max-width: 100%;
   align-items: stretch;
-  gap: 3px;
-  padding: 3px;
+  gap: 4px;
+  padding: 4px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 9px;
+  border-radius: 12px;
   background: color-mix(
     in srgb,
     var(--surfaceSecondary) 86%,
@@ -57,14 +59,15 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher button {
   display: grid;
   position: relative;
-  grid-template-columns: 30px minmax(0, auto);
-  min-width: 220px;
-  min-height: 48px;
+  flex: 1 1 0;
+  grid-template-columns: 34px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 54px;
   align-items: center;
   gap: 9px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 9px;
   color: var(--textPrimary);
   background: transparent;
   cursor: pointer;
@@ -94,11 +97,11 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher__icon {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
   color: currentColor;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
@@ -111,7 +114,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher strong {
   color: var(--textSecondary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -119,7 +122,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher small {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -135,7 +138,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   .analysis-tool-switcher button {
     grid-template-columns: 30px minmax(0, 1fr);
     min-width: 0;
-    min-height: 50px;
+    min-height: 52px;
     gap: 10px;
     padding-inline: 12px;
   }

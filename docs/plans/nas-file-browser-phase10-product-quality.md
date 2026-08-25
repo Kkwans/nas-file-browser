@@ -546,3 +546,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - NAS 本地 Playwright 脚本 `/tmp/nfb-r147-native-mkv.mjs`：真实 VP9/Opus MKV `/tmp/nfb-acceptance-vp9-opus-r50.mkv` 产生 `media/info` 探测 `1` 次、无 HLS 请求，原始源 `readyState=4`、`duration=8.008s`、`seekable=[0,8.008]`，兼容播放按钮不存在，页面/控制台错误 `0`；截图 `/tmp/nfb-r147-native-mkv.png`。
 - 同脚本验证真实 H.264/AAC MKV 与 H.264/AAC MOV：均显示兼容播放入口、无自动 HLS 请求、页面/控制台错误 `0`。这不是回退，而是当前 Chromium 没有 H.264 解码/MSE 能力的事实限制；用户主动启动兼容播放后，r147 仍可生成完整 WebM 并拖动进度。实测 H.264/AAC MKV 兼容产物 `duration=20.042s`、`seekable=[0,20.042]`，从约 `9.06s` 拖到 `2.18s` 成功，错误 `0`。
 - 当前结论：项目不再“所有 MKV/MOV 一律先转码”。浏览器支持的编码组合直接播放并可 seek；H.264/HEVC/DTS 等当前浏览器不支持的组合只能走用户主动兼容播放、下载或外部播放器。后续可在具备 H.264 解码的浏览器上补做 MOV/H.264 原生实机验收，但不能在当前 Chromium 上伪称已验证。
+
+### 2026-08-25 r148 分析工具首屏层级收敛
+
+- 用户复核指出存储工具页的视觉问题不只是顶部卡片，而是整页层级、文字基线、工具切换和扫描入口之间的关系不够精致。当前代码中全局 Header 已明确使用“存储工具”，工作区再使用“分析工作区”会造成重复语义；真实截图同时显示工作区顶部留白和工具切换间距偏大。
+- 修复：将工作区入口标题改为面向用户的“开始一次分析”，保留原有说明、工具切换、扫描流程、报告数据和最近扫描结构；桌面工作区顶部留白由 `30px` 收敛至 `22px`，标题字号由 `19px` 收敛至 `17px`，工具切换间距和标题说明间距同步收紧；移动端保留完整触摸目标，仅收紧顶部和工具切换间距。新增 UI 契约，禁止重复的“分析工作区”首屏文案。
+- 验证：先在旧实现上运行新增契约得到 `1 failed / 4 passed`，修复后分析 UI/无障碍契约 `12/12`、前端完整 Vitest `95 files / 365 tests`、lint、typecheck 和 `git diff --check` 均通过。源码提交 `12919a52` 已推送，GitHub Continuous Integration `32815338986` 与 Docs `32815338998` 成功。
+- 发布：Compose 提交 `a9eddf39` 已推送，GitHub Continuous Integration `32815748122` 与 Docs `32815748134` 全部成功；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r148`，摘要 `sha256:4ec3cb93208e4af11cd2549408cdb2ff3c5db45b6816212b8e00cf726e1c0f97`。仅重建 `filebrowser`，r147 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本机 Playwright 真实验收：桌面 `1440px`、移动 `390px` 访问 `/files/`、`/tasks`、`/history`、`/analysis`、`/settings/profile`，所有页面 `scrollWidth=clientWidth`，页面/控制台错误均为 `0`。分析页截图 `/tmp/nfb-r148-audit-analysis.png` 与 `/tmp/nfb-r148-audit-mobile-analysis.png` 显示首屏标题、说明和工具切换共用稳定基线；桌面最近扫描时间与“查看结果”保持独立稳定列，移动端操作行仍保持 `44px` 触摸目标。
+- 当前结论：r148 只收敛分析工具首屏的重复语义和视觉留白，不改变业务流程；用户指出的“整个页面文字、图标、排版都不精致”仍需继续按真实截图拆分为独立模块审计，下一轮优先检查任务中心/操作历史的移动密度与状态层级，不以本轮修复宣称全站完成。

@@ -510,3 +510,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r141` 构建成功；仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r140 镜像和 Compose 保留作回滚。
 - NAS 本机 Playwright 真实验收：桌面空间报告顶部命中正常全局 Header（`存储工具/主动、只读、低并发`），排行标题为 `position: static`，页面横向溢出 `0`、控制台错误 `0`；桌面最近扫描列计算为 `40px 689px 165px 112px`，首行 `1102×96px`，时间列与 `112×44px` 操作按钮对齐；移动首行 `344×163px`，时间与操作位于内容下方分隔行，`scrollWidth=clientWidth=390`，控制台错误 `0`。截图：`/tmp/nfb-analysis-r141-1440-storage.png`、`/tmp/nfb-analysis-r141-1440-recent.png`、`/tmp/nfb-analysis-r141-390-storage.png`、`/tmp/nfb-analysis-r141-390-recent.png`。
 - 当前结论：本模块解决了一个可证明的全局 Header 覆盖回归，并把用户明确指出的时间/查看结果区域改成稳定列；不宣称分析页或全站视觉已全部完成，后续继续按真实截图审计文字基线、图标光学中心和操作密度。
+
+### 2026-08-25 r142 扫描动作栏层级重构
+
+- 真实截图复核发现：初始扫描页的“准备开始”被做成右侧嵌套卡片，外层工作区、内层边框和背景重复，造成顶部内容厚重、动作与范围表单不在同一视觉层级。
+- 修复：保留步骤、范围输入、根目录确认、取消和主动扫描语义，仅移除动作栏自身的独立边框/背景/圆角；桌面以 `1px` 竖向分隔与范围表单同层，移动端改为顶部横向分隔，按钮继续保持 `44px` 最小命中高。标题图标与字号同步收紧，减少无意义垂直留白。
+- 验证：新增层级契约先在旧实现上失败，修复后分析 UI/无障碍契约 `10/10`、目标 ESLint、typecheck、Prettier 通过。源码提交 `31665b86`、Compose 提交 `2cc8743c` 已推送。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r142` 已构建；仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r141 镜像和 Compose 保留作回滚。
+- NAS 本机 Playwright 真实验收：桌面初始扫描面板约 `1104×276px`，动作栏约 `270×135px`、左分隔 `1px`，开始按钮 `245×48px`，页面横向溢出 `0`；移动面板约 `346×544px`，动作栏顶部横向分隔 `1px`、左分隔 `0`，开始按钮 `312×44px`，页面横向溢出 `0`。截图：`/tmp/nfb-analysis-r142-1440-initial.png`、`/tmp/nfb-analysis-r142-390-initial.png`。
+- 当前结论：初始分析流程现在是一个连续工作区，不再把动作区伪装成独立小卡；报告页和最近扫描列在 r141 的真实验收结果保持不变，继续按全站审计推进。

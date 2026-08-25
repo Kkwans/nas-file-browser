@@ -47,7 +47,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-radius: 10px;
   background: color-mix(
     in srgb,
     var(--surfaceSecondary) 86%,
@@ -62,12 +62,12 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   flex: 1 1 0;
   grid-template-columns: 34px minmax(0, 1fr);
   min-width: 0;
-  min-height: 54px;
+  min-height: 50px;
   align-items: center;
   gap: 9px;
   padding: 6px 14px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 8px;
   color: var(--textPrimary);
   background: transparent;
   cursor: pointer;
@@ -90,9 +90,9 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher button.is-active {
   color: var(--blue);
-  border-color: color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
-  background: var(--surfacePrimary);
-  box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
+  border-color: color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
+  box-shadow: none;
 }
 
 .analysis-tool-switcher__icon {
@@ -101,7 +101,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   height: 34px;
   place-items: center;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   color: currentColor;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
@@ -114,7 +114,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher strong {
   color: var(--textSecondary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -122,7 +122,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher small {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;

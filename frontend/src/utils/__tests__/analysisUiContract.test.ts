@@ -52,7 +52,7 @@ describe("analysis page UI contract", () => {
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain('class="analysis-recent__time-label"');
     expect(recentSource).toMatch(
-      /grid-template-columns:\s*36px\s+minmax\(0, 1fr\)\s+minmax\(135px, 150px\)\s+96px/
+      /grid-template-columns:\s*34px\s+minmax\(0, 1fr\)\s+174px\s+110px/
     );
     expect(recentSource).toContain("display: contents;");
   });
@@ -64,7 +64,7 @@ describe("analysis page UI contract", () => {
     );
 
     expect(recentSource).toMatch(
-      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*72px;/
+      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*76px;/
     );
     expect(recentSource).toMatch(
       /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*36px;/

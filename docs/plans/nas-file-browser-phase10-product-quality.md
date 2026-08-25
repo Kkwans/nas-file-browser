@@ -573,3 +573,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：Compose 提交 \`1074bef3\` 已推送，GitHub Continuous Integration \`32821764647\` 与 Docs 同步成功；NAS 本机 ARM64 镜像 \`nas-file-browser:2026.8.25-phase10-analysis-r150\`，本地镜像 ID \`sha256:de00092dad48bcce7dd3d330dabafda0665560de7f063dedc107e5d467224893\`。仅重建 \`filebrowser\`，r149 镜像和 Compose 保留作回滚；容器 \`running/healthy\`，\`/health\` 返回 \`{"status":"OK"}\`。
 - NAS 本地 Playwright 真实验收：桌面 \`1440×900\`、移动 \`390×844\` 的 \`/analysis\` 与全站回归路由均无控制台错误和横向溢出；分析报告、空间分布报告和四种文件列表布局均能正常渲染。r150 分析截图：\`/tmp/nfb-r150-analysis-audit-analysis.png\`、\`/tmp/nfb-r150-analysis-audit-mobile-analysis.png\`、\`/tmp/nfb-r150-analysis-report.png\`、\`/tmp/nfb-r150-storage-report.png\`；四种文件布局截图：\`/tmp/nfb-r150-layout-详细网格.png\`、\`/tmp/nfb-r150-layout-紧凑网格.png\`、\`/tmp/nfb-r150-layout-详细列表.png\`、\`/tmp/nfb-r150-layout-紧凑列表.png\`。
 - 当前结论：r150 收敛了用户明确指出的时间/结果操作列视觉问题，但仍不宣称全站 UI 完成；当前继续基于真实截图审计文件列表风险图标、侧栏语义和媒体/Markdown 页面，不为了改动量重复重做已验证模块。
+
+### 2026-08-25 r151–r152 账户设置卡片高度与移动端空白修复
+
+- 真实 r149/r150 设置截图确认：账户设置左侧包含特殊前缀与编辑器主题的长表单，右侧修改密码卡片被旧的行/列伸展规则撑出大面积空白，导致内容基线和页面密度不协调。
+- r151 修复：账户设置网格改为按内容高度对齐，密码卡片不再被左侧长表单拉伸；新增设置 UI 契约。源码提交 `4dd637a0`、Compose 提交 `834e36d0` 已推送，GitHub CI `32824297308`、Docs `32824297354` 均成功。NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-settings-r151`，镜像 ID `sha256:bc0f1cc71371d2e66ed8f0e43be33a49a140b8405b52e8bf27eddb2a55c5dabd`，容器健康检查返回 `{"status":"OK"}`。
+- r151 NAS 本地 Playwright 桌面 `1440×900` 与移动 `390×844` 全站回归路由均无页面/控制台错误和横向溢出；桌面设置截图 `/tmp/nfb-r151-settings-audit-settings.png` 显示两张卡片不再等高。移动实测发现右卡仍受设置页 `flex: 1 1 30rem` 的窄屏基准撑出约 `160px` 空白，作为下一步可复现问题保留。
+- r152 修复：在 `1200px` 以下让账户设置列使用 `flex: 0 0 auto`，让密码卡片按自身内容收敛；先新增窄屏契约，再修复。源码提交 `4ff6b4eb`、Compose 提交 `68237d56` 已推送；源码 CI `32825998417`、Compose CI `32826290269`、Docs CI `32825998376`/`32826290318` 均成功。NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-settings-r152`，镜像 ID `sha256:69cb2523df32e69e7dd328b8024371c1afa7979a45508b6788b8508b9c84bb87`，仅重建 `filebrowser`，r151 保留作回滚。
+- r152 NAS 本地 Playwright 移动 `390×844` 全站回归 `/files/`、`/tasks`、`/history`、`/analysis`、`/settings/profile`、`/recent`、`/trash`、`/search`：每页 `scrollWidth=clientWidth=390`，页面/控制台错误均为 `0`；设置截图 `/tmp/nfb-r152-settings-mobile-audit-mobile-settings.png` 显示密码卡片已按内容高度收敛，底部空白消失。桌面 r151 截图仍用于对照，下一轮继续审计文件列表、侧栏图标和媒体/Markdown 页面。
+- 当前结论：账户设置的可复现高度/空白问题已在桌面与移动端分别修复并通过真实部署验收；这只完成一个独立视觉模块，不宣称全站 UI 已完成。

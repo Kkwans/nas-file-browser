@@ -70,6 +70,7 @@ export type DownloadFormat =
 export interface ClipItem {
   from: string;
   name: string;
+  isDir: boolean;
   size?: number;
   modified?: string;
 }

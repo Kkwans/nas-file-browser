@@ -1418,6 +1418,7 @@ const copyCut = (event: Event | KeyboardEvent): void => {
     items.push({
       from: item.url,
       name: item.name,
+      isDir: item.isDir,
       size: item.size,
       modified: item.modified,
     });
@@ -1449,7 +1450,7 @@ const paste = async (event: Event) => {
       name: item.name,
       size: item.size ?? 0, // ClipboardItem.size is optional, default to 0
       modified: item.modified,
-      isDir: false, // clipboard items don't have isDir
+      isDir: item.isDir,
       overwrite: false,
       rename: clipboardStore.path == route.path,
     });

@@ -191,20 +191,20 @@ describe("activity page UI contract", () => {
     expect(css).toMatch(/\.history-entry time\s*\{[\s\S]*?text-align:\s*left;/);
   });
 
-  it("任务行将更新时间与主要操作收敛到同一侧栏，避免右侧上下漂浮", () => {
+  it("任务行将更新时间与主要操作收敛到同一侧栏，并按垂直节奏分层", () => {
     const css = readFileSync(
       resolve(process.cwd(), "src/css/activity.css"),
       "utf8"
     );
 
     expect(css).toMatch(
-      /\.task-row__aside\s*\{[\s\S]*?min-width:\s*236px;[\s\S]*?grid-template-columns:\s*minmax\(78px, 1fr\) auto;/
+      /\.task-row__aside\s*\{[\s\S]*?min-width:\s*236px;[\s\S]*?grid-template-columns:\s*1fr;[\s\S]*?grid-template-rows:\s*auto auto;/
     );
     expect(css).toMatch(
       /\.task-row__time\s*\{[\s\S]*?justify-items:\s*end;[\s\S]*?text-align:\s*right;/
     );
     expect(css).toMatch(
-      /\.task-row__aside \.task-card-actions\s*\{[\s\S]*?grid-column:\s*2;/
+      /\.task-row__aside \.task-card-actions\s*\{[\s\S]*?grid-column:\s*1;[\s\S]*?grid-row:\s*2;/
     );
   });
 

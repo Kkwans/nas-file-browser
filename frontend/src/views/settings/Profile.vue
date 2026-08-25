@@ -420,6 +420,12 @@ const addPrefix = () => {
   height: auto;
 }
 
+@media (max-width: 1200px) {
+  .profile-settings-grid > .column {
+    flex: 0 0 auto;
+  }
+}
+
 .setting-toggle-list {
   display: grid;
   gap: 8px;

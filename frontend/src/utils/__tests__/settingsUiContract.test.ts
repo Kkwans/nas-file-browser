@@ -50,5 +50,8 @@ describe("settings UI contract", () => {
     expect(profile).toMatch(
       /\.profile-settings-grid\s*>\s*\.column\s*>\s*\.card\s*\{[\s\S]*?height:\s*auto;/
     );
+    expect(profile).toMatch(
+      /@media\s*\(max-width:\s*1200px\)[\s\S]*?\.profile-settings-grid\s*>\s*\.column\s*\{[\s\S]*?flex:\s*0\s+0\s+auto;/
+    );
   });
 });

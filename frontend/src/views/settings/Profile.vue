@@ -1,5 +1,5 @@
 <template>
-  <div class="row">
+  <div class="row profile-settings-grid">
     <div class="column">
       <form class="card" @submit="updateSettings">
         <div class="card-title">
@@ -410,6 +410,14 @@ const addPrefix = () => {
 .account-preferences {
   display: grid;
   gap: 24px;
+}
+
+.profile-settings-grid {
+  align-items: flex-start;
+}
+
+.profile-settings-grid > .column > .card {
+  height: auto;
 }
 
 .setting-toggle-list {

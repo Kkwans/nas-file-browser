@@ -36,4 +36,19 @@ describe("settings UI contract", () => {
     expect(profile).toContain(":name=\"rule.visible ? 'eye' : 'eye-off'\"");
     expect(registry).toContain('"eye-off"');
   });
+
+  it("账户设置两列按内容高度对齐，密码卡片不被左侧长表单撑满", () => {
+    const profile = readFileSync(
+      resolve(process.cwd(), "src/views/settings/Profile.vue"),
+      "utf8"
+    );
+
+    expect(profile).toContain('class="row profile-settings-grid"');
+    expect(profile).toMatch(
+      /\.profile-settings-grid\s*\{[\s\S]*?align-items:\s*flex-start;/
+    );
+    expect(profile).toMatch(
+      /\.profile-settings-grid\s*>\s*\.column\s*>\s*\.card\s*\{[\s\S]*?height:\s*auto;/
+    );
+  });
 });

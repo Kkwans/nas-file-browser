@@ -90,6 +90,20 @@ Phase 9 是原 P0–P2 完成后的发布质量修订。按 R-P0、R-P1、R-P2 �
 - 最终证据保存在 `.codex-tmp/phase9-evidence/phase9f-release-audit/20260809T143117Z/`；该目录属于本地验收产物，不纳入 Git。
 - 未删除用户文件、数据库、旧镜像或回滚备份；`.codex-tmp/`、`database/` 和同步冲突 Compose 文件保持原样未跟踪。
 
+## 继续审计记录（2026-08-25）
+
+### r144：存储工具工作区视觉层级收敛
+
+- 真实 NAS 页面复现后确认：分析页的主要问题不是单个顶部卡片，而是整体存在过多阴影、圆角和大尺寸操作控件；最近扫描行高为 96px，执行时间与结果入口的视觉重量不匹配。
+- `AnalysisScopePanel` 收敛为无阴影的紧凑工作面板，保留范围输入、根目录确认、并发提示和主动启动流程。
+- `AnalysisRecentScans` 改为稳定的四列表格节奏：图标、扫描记录、执行时间、操作；桌面行高约 72px，结果入口降为轻量文本动作，移动端保持 44px 触摸目标。
+- 同步压缩工作区宽度、工具说明和报告列表间距；不改变扫描 API、任务状态、报告结果或路由。
+- 代码提交：`90491310 fix(analysis): 收敛存储工具页面视觉层级`。
+- Frontend 聚焦验证：Analysis UI/无障碍契约 `11/11` 通过；ESLint 零 error/warning；typecheck 通过；Prettier 检查通过。
+- 构建镜像：`nas-file-browser:2026.8.25-phase10-analysis-r144`；Compose 提交：`7efd24b6 chore(deploy): 发布存储工具视觉精修镜像r144`。
+- NAS 部署：仅重建 `filebrowser`，容器 `running/healthy`，健康检查通过。
+- NAS 本地 Playwright：1440px 和 390px 均无横向溢出；最近扫描列表的执行时间、查看结果入口坐标稳定；点击结果可进入报告；控制台无 error。
+
 ## 回滚
 
 - 每次部署使用明确不可变镜像标签并保留上一版本。

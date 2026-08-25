@@ -60,7 +60,7 @@ describe("analysis page UI contract", () => {
     expect(scopeSource).toContain('class="analysis-run-panel__section"');
     expect(recentSource).toContain('class="analysis-recent__side"');
     expect(recentSource).toContain('class="analysis-recent__time"');
-    expect(recentSource).toContain('class="analysis-recent__time-label"');
+    expect(recentSource).toContain("<span>完成时间</span>");
     expect(recentSource).toMatch(
       /grid-template-columns:\s*34px\s+minmax\(0, 1fr\)\s+174px\s+110px/
     );
@@ -81,6 +81,21 @@ describe("analysis page UI contract", () => {
     );
     expect(recentSource).toMatch(
       /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*10px;/
+    );
+  });
+
+  it("最近扫描的时间列只保留一次列标题，操作列使用轻量对齐动作", () => {
+    const recentSource = readFileSync(
+      resolve(process.cwd(), "src/components/analysis/AnalysisRecentScans.vue"),
+      "utf8"
+    );
+
+    expect(recentSource).not.toContain('class="analysis-recent__time-label"');
+    expect(recentSource).toMatch(
+      /\.analysis-recent__time-block\s*\{[\s\S]*?border-left:\s*1px solid var\(--borderPrimary\)/
+    );
+    expect(recentSource).toMatch(
+      /\.analysis-recent__action\s*\{[\s\S]*?border:\s*1px solid transparent;/
     );
   });
 });

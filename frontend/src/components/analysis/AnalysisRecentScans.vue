@@ -77,10 +77,6 @@
         </div>
         <div class="analysis-recent__side">
           <div class="analysis-recent__time-block">
-            <span class="analysis-recent__time-label" aria-hidden="true">
-              <AppIcon name="clock" :size="13" />
-              完成时间
-            </span>
             <time
               class="analysis-recent__time"
               :datetime="new Date(item.createdAt).toISOString()"
@@ -389,22 +385,10 @@ function formatTime(value: number) {
   display: grid;
   min-width: 0;
   justify-items: start;
-  gap: 3px;
+  gap: 2px;
+  padding-left: 16px;
+  border-left: 1px solid var(--borderPrimary);
   text-align: left;
-}
-
-.analysis-recent__time-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--textPrimary);
-  font-size: 11px;
-  line-height: 1.2;
-  letter-spacing: 0.03em;
-}
-
-.analysis-recent__time-label .app-icon {
-  color: currentColor;
 }
 
 .analysis-recent__scope {
@@ -447,10 +431,10 @@ function formatTime(value: number) {
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--borderPrimary));
-  border-radius: 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
+  background: transparent;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -463,6 +447,7 @@ function formatTime(value: number) {
 .analysis-recent__header button:focus-visible {
   outline: none;
   background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
+  border-color: color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
 }
 
 .analysis-recent__action:focus-visible,
@@ -509,11 +494,9 @@ function formatTime(value: number) {
   .analysis-recent__time-block {
     min-width: 0;
     justify-items: start;
+    padding-left: 0;
+    border-left: 0;
     text-align: left;
-  }
-
-  .analysis-recent__time-label {
-    display: inline-flex;
   }
 
   .analysis-recent__action {

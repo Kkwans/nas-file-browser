@@ -149,17 +149,17 @@ function updateRootConfirmed(event: Event) {
   margin-top: 0;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 4%);
+  box-shadow: none;
 }
 
 .analysis-run-panel__header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 16px;
-  padding: 18px 24px;
+  gap: 14px;
+  padding: 15px 20px;
   border-bottom: 1px solid var(--borderPrimary);
   background: color-mix(
     in srgb,
@@ -170,19 +170,19 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__intro {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   min-width: 0;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .analysis-run-panel__mark {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 10%, transparent);
 }
@@ -197,7 +197,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__header h1 {
   color: var(--textSecondary);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -214,21 +214,21 @@ function updateRootConfirmed(event: Event) {
   max-width: none;
   margin-top: 4px;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
 .analysis-run-panel__safety {
   display: inline-flex;
-  min-height: 34px;
+  min-height: 30px;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
+  padding: 0 10px;
   border: 1px solid color-mix(in srgb, #16845d 28%, var(--borderPrimary));
   border-radius: 9px;
   color: #16845d;
   background: color-mix(in srgb, #1ea672 7%, transparent);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -237,8 +237,8 @@ function updateRootConfirmed(event: Event) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(236px, 270px);
   align-items: stretch;
-  gap: 24px;
-  padding: 20px 24px 22px;
+  gap: 20px;
+  padding: 17px 20px 19px;
 }
 
 .analysis-run-panel__section {

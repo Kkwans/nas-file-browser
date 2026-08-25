@@ -873,7 +873,7 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1240px, calc(100% - 56px));
+  width: min(1200px, calc(100% - 56px));
   margin: 0 auto;
   padding: 24px 0 64px;
 }
@@ -882,8 +882,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 20px;
+  margin-bottom: 12px;
 }
 
 .analysis-workspace__context {
@@ -893,15 +893,15 @@ onBeforeUnmount(() => {
 .analysis-workspace__context > span {
   display: block;
   color: var(--textSecondary);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
 .analysis-workspace__context p {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -915,11 +915,11 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
-  min-height: 58px;
-  margin-top: 18px;
-  padding: 8px 14px;
+  min-height: 52px;
+  margin-top: 12px;
+  padding: 7px 12px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
+  border-radius: 9px;
   color: var(--textSecondary);
   background: color-mix(
     in srgb,

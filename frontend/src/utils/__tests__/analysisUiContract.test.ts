@@ -52,8 +52,25 @@ describe("analysis page UI contract", () => {
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain('class="analysis-recent__time-label"');
     expect(recentSource).toMatch(
-      /grid-template-columns:\s*40px\s+minmax\(0, 1fr\)\s+minmax\(145px, 165px\)\s+112px/
+      /grid-template-columns:\s*36px\s+minmax\(0, 1fr\)\s+minmax\(135px, 150px\)\s+96px/
     );
     expect(recentSource).toContain("display: contents;");
+  });
+
+  it("最近扫描使用紧凑的表格节奏，动作入口不抢夺报告内容", () => {
+    const recentSource = readFileSync(
+      resolve(process.cwd(), "src/components/analysis/AnalysisRecentScans.vue"),
+      "utf8"
+    );
+
+    expect(recentSource).toMatch(
+      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*72px;/
+    );
+    expect(recentSource).toMatch(
+      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*36px;/
+    );
+    expect(recentSource).toMatch(
+      /\.analysis-recent\s*\{[\s\S]*?box-shadow:\s*none;/
+    );
   });
 });

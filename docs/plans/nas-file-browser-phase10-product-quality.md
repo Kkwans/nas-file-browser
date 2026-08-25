@@ -528,3 +528,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tags-r143` 已构建；仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r142 镜像和 Compose 保留作回滚。
 - NAS 本机 Playwright 真实验收：标题实际位于弹窗内部，`position: static`，标题区域约 `622×42px`，弹窗约 `672×434px`，顶部命中元素恢复为页面全局 Header，页面横向溢出 `0`、控制台错误 `0`。截图：`/tmp/nfb-tag-manager-r143.png`。
 - 当前结论：这次修复消除了一个跨组件的全局 Header 样式污染模式；后续继续检查其他仍使用原生 `<header>` 的弹窗/面板，避免同类结构回归。
+
+### 2026-08-25 r146 存储工具整页视觉层级再收敛
+
+- 用户复核指出存储工具页的问题不是单个顶部区域，而是整页的文字、图标、排版、时间列和“查看结果”入口缺少统一的视觉系统。真实截图确认工具切换器、扫描面板和最近扫描同时承担过多边框、圆角、重复标签和小字号信息，导致页面像多个独立卡片拼接。
+- 修复：保留扫描、任务轮询、报告和路由契约，重新收敛 `Analysis.vue`、`AnalysisScopePanel`、`AnalysisToolSwitcher` 和 `AnalysisRecentScans` 的工作区宽度、标题层级、工具切换状态、扫描面板表单、报告摘要带、排行列表和最近扫描行。最近扫描固定为图标/记录/完成时间/操作四列，时间列不再重复“执行时间”语义，结果入口统一尺寸和对齐；移动端继续保持内容下方的稳定操作行与 `44px` 触摸目标。
+- 验证：分析 UI/无障碍契约 `11/11`、目标 ESLint、typecheck、Prettier 和 production build 通过；GitHub Continuous Integration `32811518799` 的前后端 lint、前端测试、Go race test、生产构建和 Docker 构建全部成功。源码提交 `021ccd07`、Compose 发布提交 `04d5b692` 已推送。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r146`，仅重建 `filebrowser`；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r145 镜像和 Compose 保留作回滚。
+- NAS 本地 Playwright 真实验收：桌面 `1440×900` 工作区无横向溢出，运行面板约 `1096×250px`，最近扫描约 `1096×544px`，首行约 `1094×86px`，时间值 `12px`、查看结果入口 `110×38px`；移动 `390×844` 无横向溢出，运行面板约 `346×522px`，最近扫描约 `346×841px`，首行约 `344×153px`，查看结果入口 `110×44px`；桌面/移动页面错误和控制台错误均为 `0`。截图：`/tmp/nfb-r106-analysis-desktop.png`、`/tmp/nfb-r106-analysis-mobile.png`。
+- 当前结论：本轮将用户指出的存储工具整页视觉问题落到统一排版和真实部署验证；不宣称全站 UI 已完成，后续继续审计媒体播放、文件列表图标/风险标识、Markdown 编辑器和其它页面的精致度与体验。

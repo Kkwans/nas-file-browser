@@ -51,5 +51,9 @@ describe("analysis page UI contract", () => {
     expect(recentSource).toContain('class="analysis-recent__side"');
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain('class="analysis-recent__time-label"');
+    expect(recentSource).toMatch(
+      /grid-template-columns:\s*40px\s+minmax\(0, 1fr\)\s+minmax\(145px, 165px\)\s+112px/
+    );
+    expect(recentSource).toContain("display: contents;");
   });
 });

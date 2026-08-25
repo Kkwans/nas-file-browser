@@ -33,7 +33,8 @@
     >
       <span></span>
       <span>扫描记录</span>
-      <span>执行时间与操作</span>
+      <span>执行时间</span>
+      <span>操作</span>
     </div>
 
     <ul v-if="!loading && !error && items.length" class="analysis-recent__list">
@@ -76,7 +77,9 @@
         </div>
         <div class="analysis-recent__side">
           <div class="analysis-recent__time-block">
-            <span class="analysis-recent__time-label">执行时间</span>
+            <span class="analysis-recent__time-label" aria-hidden="true"
+              >执行时间</span
+            >
             <time
               class="analysis-recent__time"
               :datetime="new Date(item.createdAt).toISOString()"
@@ -258,7 +261,7 @@ function formatTime(value: number) {
 
 .analysis-recent__columns {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 280px;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(145px, 165px) 112px;
   align-items: center;
   gap: 16px;
   min-height: 36px;
@@ -268,17 +271,17 @@ function formatTime(value: number) {
   background: var(--surfaceSecondary);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.analysis-recent__columns span:nth-child(3) {
+.analysis-recent__columns span:nth-child(3),
+.analysis-recent__columns span:nth-child(4) {
   text-align: right;
 }
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 280px;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(145px, 165px) 112px;
   align-items: center;
   gap: 18px;
   min-height: 96px;
@@ -377,12 +380,13 @@ function formatTime(value: number) {
 .analysis-recent__time-block {
   display: grid;
   min-width: 0;
-  justify-items: end;
+  justify-items: start;
   gap: 4px;
-  text-align: right;
+  text-align: left;
 }
 
 .analysis-recent__time-label {
+  display: none;
   color: var(--textPrimary);
   font-size: 10px;
   letter-spacing: 0.03em;
@@ -415,11 +419,7 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__side {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
+  display: contents;
 }
 
 .analysis-recent__action {
@@ -496,6 +496,10 @@ function formatTime(value: number) {
     min-width: 0;
     justify-items: start;
     text-align: left;
+  }
+
+  .analysis-recent__time-label {
+    display: block;
   }
 
   .analysis-recent__action {

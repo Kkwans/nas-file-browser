@@ -46,6 +46,12 @@ describe("存储工具无障碍契约", () => {
     expect(analysisSource).toContain('v-if="!hasReport || showRunPanel"');
   });
 
+  it("分析报告卡片不复用会继承全局定位规则的原生 header", () => {
+    expect(analysisSource).toContain('class="storage-ranking-header"');
+    expect(analysisSource).toContain('class="duplicate-group__header"');
+    expect(analysisSource).not.toMatch(/<header(?:\s|>)/);
+  });
+
   it("运行面板不复用会触发全局定位规则的 header 元素", () => {
     expect(scopePanelSource).toContain(
       '<div class="analysis-run-panel__header">'

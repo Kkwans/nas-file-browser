@@ -180,7 +180,7 @@
             :key="group.sha256"
             class="duplicate-group"
           >
-            <header>
+            <div class="duplicate-group__header" role="heading" aria-level="3">
               <div>
                 <span>{{ String(index + 1).padStart(2, "0") }}</span>
                 <div>
@@ -194,7 +194,7 @@
               <code :title="group.sha256"
                 >SHA-256 {{ group.sha256.slice(0, 12) }}…</code
               >
-            </header>
+            </div>
             <div class="duplicate-file-list">
               <router-link
                 v-for="file in group.files"
@@ -320,10 +320,10 @@
 
         <section class="storage-rankings" aria-label="存储占用排行">
           <article>
-            <header>
+            <div class="storage-ranking-header" role="heading" aria-level="3">
               <span>目录大小</span>
               <small>包含全部后代文件</small>
-            </header>
+            </div>
             <div v-if="storageReport.largestDirectories.length">
               <router-link
                 v-for="(directory, index) in storageReport.largestDirectories"
@@ -356,10 +356,10 @@
           </article>
 
           <article>
-            <header>
+            <div class="storage-ranking-header" role="heading" aria-level="3">
               <span>大文件</span>
               <small>按实际文件大小排序</small>
-            </header>
+            </div>
             <div v-if="storageReport.largestFiles.length">
               <router-link
                 v-for="(file, index) in storageReport.largestFiles"
@@ -1328,7 +1328,7 @@ onBeforeUnmount(() => {
   background: var(--surfacePrimary);
 }
 
-.storage-rankings > article > header {
+.storage-rankings > article > .storage-ranking-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1339,13 +1339,13 @@ onBeforeUnmount(() => {
   background: var(--surfaceSecondary);
 }
 
-.storage-rankings > article > header > span {
+.storage-rankings > article > .storage-ranking-header > span {
   color: var(--textSecondary);
   font-size: 14px;
   font-weight: 700;
 }
 
-.storage-rankings > article > header > small {
+.storage-rankings > article > .storage-ranking-header > small {
   color: var(--textPrimary);
   font-size: 11px;
 }
@@ -1461,7 +1461,7 @@ onBeforeUnmount(() => {
   background: var(--surfacePrimary);
 }
 
-.duplicate-group > header {
+.duplicate-group > .duplicate-group__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1471,29 +1471,29 @@ onBeforeUnmount(() => {
   background: var(--surfaceSecondary);
 }
 
-.duplicate-group > header > div {
+.duplicate-group > .duplicate-group__header > div {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.duplicate-group > header > div > span {
+.duplicate-group > .duplicate-group__header > div > span {
   color: var(--blue);
   font-size: 11px;
   font-weight: 800;
 }
 
-.duplicate-group header strong,
-.duplicate-group header small {
+.duplicate-group__header strong,
+.duplicate-group__header small {
   display: block;
 }
 
-.duplicate-group header strong {
+.duplicate-group__header strong {
   color: var(--textSecondary);
   font-size: 13px;
 }
 
-.duplicate-group header small {
+.duplicate-group__header small {
   margin-top: 3px;
   color: var(--textPrimary);
   font-size: 11px;
@@ -1729,7 +1729,7 @@ onBeforeUnmount(() => {
     align-self: flex-end;
   }
 
-  .duplicate-group > header {
+  .duplicate-group > .duplicate-group__header {
     align-items: flex-start;
     flex-direction: column;
   }

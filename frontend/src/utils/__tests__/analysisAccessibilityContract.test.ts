@@ -39,6 +39,12 @@ describe("存储工具无障碍契约", () => {
     expect(analysisSource).not.toContain('class="analysis-hero"');
   });
 
+  it("报告页把再次扫描收纳为可展开入口", () => {
+    expect(analysisSource).toContain('class="analysis-run-toggle"');
+    expect(analysisSource).toContain(':aria-expanded="showRunPanel"');
+    expect(analysisSource).toContain('v-if="!hasReport || showRunPanel"');
+  });
+
   it("运行面板不复用会触发全局定位规则的 header 元素", () => {
     expect(scopePanelSource).toContain(
       '<div class="analysis-run-panel__header">'

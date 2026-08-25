@@ -19,18 +19,45 @@
     <main class="analysis-workspace">
       <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
 
-      <AnalysisScopePanel
-        v-model:scope-input="scopeInput"
-        v-model:root-confirmed="rootConfirmed"
-        :tool="activeTool"
-        :scopes="scopes"
-        :includes-root="includesRoot"
-        :can-start="canStart"
-        :starting="starting"
-        @add="addScope"
-        @remove="removeScope"
-        @start="startScan"
-      />
+      <div class="analysis-run-shell" :class="{ 'has-report': hasReport }">
+        <button
+          v-if="hasReport"
+          type="button"
+          class="analysis-run-toggle"
+          :aria-expanded="showRunPanel"
+          @click="showRunPanel = !showRunPanel"
+        >
+          <span class="analysis-run-toggle__icon" aria-hidden="true">
+            <AppIcon name="scan" :size="19" />
+          </span>
+          <span class="analysis-run-toggle__copy">
+            <strong>再次运行扫描</strong>
+            <small>
+              {{ activeTool === "storage" ? "空间分布" : "重复文件" }} ·
+              {{ scopes.length }} 个范围
+            </small>
+          </span>
+          <AppIcon
+            :name="showRunPanel ? 'chevron-up' : 'chevron-down'"
+            :size="18"
+            aria-hidden="true"
+          />
+        </button>
+
+        <AnalysisScopePanel
+          v-if="!hasReport || showRunPanel"
+          v-model:scope-input="scopeInput"
+          v-model:root-confirmed="rootConfirmed"
+          :tool="activeTool"
+          :scopes="scopes"
+          :includes-root="includesRoot"
+          :can-start="canStart"
+          :starting="starting"
+          @add="addScope"
+          @remove="removeScope"
+          @start="startScan"
+        />
+      </div>
 
       <section
         v-if="currentTask && !report && !storageReport"
@@ -394,6 +421,7 @@ const canceling = ref(false);
 const currentTask = ref<TaskItem | null>(null);
 const report = ref<DuplicateReport | null>(null);
 const storageReport = ref<StorageReport | null>(null);
+const showRunPanel = ref(false);
 const loadError = ref("");
 const recentScans = ref<AnalysisRecentItem[]>([]);
 const recentLoading = ref(false);
@@ -426,6 +454,7 @@ const canStart = computed(
     !starting.value &&
     !isTaskActive.value
 );
+const hasReport = computed(() => Boolean(report.value || storageReport.value));
 const taskProgress = computed(() => {
   const task = currentTask.value;
   if (!task || task.totalItems <= 0) return 0;
@@ -494,6 +523,7 @@ function selectTool(tool: AnalysisTool) {
   currentTask.value = null;
   report.value = null;
   storageReport.value = null;
+  showRunPanel.value = false;
   loadError.value = "";
   void router.push({
     path: "/analysis",
@@ -525,6 +555,7 @@ async function startScan() {
   loadError.value = "";
   report.value = null;
   storageReport.value = null;
+  showRunPanel.value = false;
   try {
     const task =
       tool === "storage"
@@ -613,6 +644,7 @@ async function loadReport(taskId: string) {
       storageReport.value = null;
       scopes.value = [...report.value.scopes];
     }
+    showRunPanel.value = false;
     loadError.value = "";
   } catch (error) {
     if (disposed || currentTask.value?.id !== taskId) return;
@@ -807,6 +839,83 @@ onBeforeUnmount(() => {
   width: min(1220px, calc(100% - 48px));
   margin: 0 auto;
   padding: 16px 0 48px;
+}
+
+.analysis-run-shell {
+  min-width: 0;
+}
+
+.analysis-run-toggle {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 58px;
+  margin-top: 18px;
+  padding: 8px 14px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
+  color: var(--textSecondary);
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 76%,
+    var(--surfacePrimary)
+  );
+  cursor: pointer;
+  text-align: left;
+}
+
+.analysis-run-toggle:hover,
+.analysis-run-toggle:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--blue) 34%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+}
+
+.analysis-run-toggle:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+.analysis-run-toggle__icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
+  border-radius: 9px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 9%, transparent);
+}
+
+.analysis-run-toggle__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.analysis-run-toggle__copy strong,
+.analysis-run-toggle__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-run-toggle__copy strong {
+  font-size: 13px;
+}
+
+.analysis-run-toggle__copy small {
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+
+.analysis-run-toggle > .app-icon {
+  color: var(--textPrimary);
+}
+
+.analysis-run-shell.has-report :deep(.analysis-run-panel) {
+  margin-top: 12px;
 }
 
 .analysis-readonly-chip {
@@ -1441,6 +1550,10 @@ onBeforeUnmount(() => {
   .analysis-workspace {
     width: min(100% - 20px, 1120px);
     padding-top: 12px;
+  }
+
+  .analysis-run-toggle {
+    min-height: 54px;
   }
 
   .analysis-summary-grid {

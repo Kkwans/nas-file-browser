@@ -582,3 +582,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - r152 修复：在 `1200px` 以下让账户设置列使用 `flex: 0 0 auto`，让密码卡片按自身内容收敛；先新增窄屏契约，再修复。源码提交 `4ff6b4eb`、Compose 提交 `68237d56` 已推送；源码 CI `32825998417`、Compose CI `32826290269`、Docs CI `32825998376`/`32826290318` 均成功。NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-settings-r152`，镜像 ID `sha256:69cb2523df32e69e7dd328b8024371c1afa7979a45508b6788b8508b9c84bb87`，仅重建 `filebrowser`，r151 保留作回滚。
 - r152 NAS 本地 Playwright 移动 `390×844` 全站回归 `/files/`、`/tasks`、`/history`、`/analysis`、`/settings/profile`、`/recent`、`/trash`、`/search`：每页 `scrollWidth=clientWidth=390`，页面/控制台错误均为 `0`；设置截图 `/tmp/nfb-r152-settings-mobile-audit-mobile-settings.png` 显示密码卡片已按内容高度收敛，底部空白消失。桌面 r151 截图仍用于对照，下一轮继续审计文件列表、侧栏图标和媒体/Markdown 页面。
 - 当前结论：账户设置的可复现高度/空白问题已在桌面与移动端分别修复并通过真实部署验收；这只完成一个独立视觉模块，不宣称全站 UI 已完成。
+
+### 2026-08-25 r153 分析页整页信息层级与结果列表重构
+
+- 用户复核再次明确：问题不是某一个顶部卡片，而是存储工具整页的文字、图标、排版和列表操作缺少统一的精致度；尤其“完成时间”和“查看结果”像孤立元素，视觉基线不稳定。
+- 修复：保留扫描、任务轮询、报告、路由和移动端触摸契约，重构 `AnalysisRecentScans` 的信息密度和对齐模型。桌面固定为图标 / 扫描记录 / 完成时间 / 操作四列；时间拆为日期与时刻并使用表头统一语义；结果入口统一为带轻量边界的固定宽度动作。扫描面板同步调整为左侧范围、右侧执行的连续工作区，统一标题、图标、边框、阴影、间距和移动端操作行，报告摘要改为连续的有边界指标组。
+- TDD/静态验证：先在旧契约上得到预期失败，更新契约后分析 UI/无障碍测试 `13/13`、前端 lint、typecheck、production build、`git diff --check` 通过；源码提交 `89473085` 已推送，GitHub Continuous Integration `32830731208` 与 Docs `32830731227` 成功。
+- 发布：Compose 提交 `42a422e2` 已推送，GitHub Continuous Integration `32831332509` 与 Docs `32831332483` 成功；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r153`，镜像 ID `sha256:e846b0b2be178b21532d47673823f68574dde2afdf62894dcdc4643cef55b1ca`。仅重建 `filebrowser`，r152 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本地 Playwright 真实验收：桌面 `1440×900` 与移动 `390×844` 的 `/analysis` 均无页面/控制台错误，`scrollWidth=clientWidth`；桌面扫描面板和最近扫描列表四列基线稳定，移动端扫描面板与每行“时间 + 查看结果”操作行清晰分层，结果按钮保持可达触摸尺寸。截图：`/tmp/nfb-r153-analysis-audit-analysis.png`、`/tmp/nfb-r153-analysis-audit-mobile-analysis.png`。
+- 当前结论：r153 完成了用户明确指出的存储工具整页视觉重构和时间/结果操作列修复；它仍是一个独立模块，不宣称全站 UI 已完成，下一步继续按真实截图审计媒体、Markdown、文件列表和其它页面的可证明问题。

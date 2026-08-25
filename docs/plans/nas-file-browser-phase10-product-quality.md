@@ -695,3 +695,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - TDD/静态验证：新增视觉契约先在旧样式上得到 `2 failed / 6 passed`，修复并更新既有尺寸契约后分析 UI/无障碍测试 `15/15`；前端完整 lint、typecheck、Vitest `96 files / 378 tests`、production build 和 `git diff --check` 均通过。源码提交 `bc5713c8` 已推送。
 - 发布：Compose 提交 `07f70974` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r165`，镜像 ID `sha256:1c9d625d4b55c0b805931424911fbf89a945a5b78c1c207b2691a2f76de9dd87`；仅重建 `filebrowser`，r164 镜像与 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，无法宣称 r165 的实际像素坐标和截图已验收；待浏览器环境可用后必须补做桌面、窄容器、390px 移动端、键盘焦点和结果入口回归。
+
+### 2026-08-25 r166 任务列表结果动作视觉重量收敛
+
+- 用户进一步指出任务中心不是顶部单卡的问题，而是整页文字、图标、排版和列表项都缺少精致度，尤其时间与“查看结果”区域显得突兀。r162 的列轨道已经稳定，但结果动作仍使用实心蓝色按钮，列表容器和表头也保留了不必要的阴影与灰色块。
+- 修复：任务列表容器移除外层阴影，表头恢复透明背景；桌面结果动作改为蓝色文字、浅蓝表面和细边框的轻量主操作，悬停只增加浅色反馈；移动端继续保留独立操作行和触摸可达尺寸。任务筛选、状态分类、结果弹窗、重试、取消、归档和返回定位均未改变。
+- TDD/静态验证：新增活动页视觉契约先在旧样式上得到失败，修复后活动页契约 `14/14`；前端完整 lint、typecheck、Vitest `96 files / 379 tests`、production build 和 `git diff --check` 均通过。源码提交 `c14fa15c` 已推送。
+- 发布：Compose 提交 `462397ea` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tasks-r166`，镜像 ID `sha256:f6ad285c9683f284950a36cf4d903a06869fe683c44318eb583af8dd481c042a`；仅重建 `filebrowser`，r165/r164 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，不能宣称 r166 的像素坐标、结果弹窗和移动端截图已通过真实浏览器验收；待浏览器环境可用后需补做桌面、窄容器、390px 移动端、键盘焦点和任务结果返回定位回归。

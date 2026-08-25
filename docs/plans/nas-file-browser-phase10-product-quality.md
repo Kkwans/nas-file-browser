@@ -519,3 +519,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r142` 已构建；仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r141 镜像和 Compose 保留作回滚。
 - NAS 本机 Playwright 真实验收：桌面初始扫描面板约 `1104×276px`，动作栏约 `270×135px`、左分隔 `1px`，开始按钮 `245×48px`，页面横向溢出 `0`；移动面板约 `346×544px`，动作栏顶部横向分隔 `1px`、左分隔 `0`，开始按钮 `312×44px`，页面横向溢出 `0`。截图：`/tmp/nfb-analysis-r142-1440-initial.png`、`/tmp/nfb-analysis-r142-390-initial.png`。
 - 当前结论：初始分析流程现在是一个连续工作区，不再把动作区伪装成独立小卡；报告页和最近扫描列在 r141 的真实验收结果保持不变，继续按全站审计推进。
+
+### 2026-08-25 r143 标签管理弹窗 Header 定位修复
+
+- 真实复现：标签管理弹窗内部原生 `<header class="tag-manager-header">` 同样继承全局固定 Header 规则；NAS 本机截图中“管理标签”标题被渲染到页面最上方，弹窗主体从标题下方脱节。
+- 修复：仅对标签弹窗标题重置 `position/z-index/top/left/width/height/padding/border/background/box-shadow`，并覆盖 hover 阴影；标签颜色、创建、编辑、删除和关闭逻辑不变。
+- 验证：新增标签无障碍契约先在旧实现上得到 `1 failed / 2 passed`，修复后标签契约 `4/4`、目标 ESLint、typecheck、Prettier 通过。源码提交 `a7ce3f0c`、Compose 提交 `2c438054` 已推送。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tags-r143` 已构建；仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r142 镜像和 Compose 保留作回滚。
+- NAS 本机 Playwright 真实验收：标题实际位于弹窗内部，`position: static`，标题区域约 `622×42px`，弹窗约 `672×434px`，顶部命中元素恢复为页面全局 Header，页面横向溢出 `0`、控制台错误 `0`。截图：`/tmp/nfb-tag-manager-r143.png`。
+- 当前结论：这次修复消除了一个跨组件的全局 Header 样式污染模式；后续继续检查其他仍使用原生 `<header>` 的弹窗/面板，避免同类结构回归。

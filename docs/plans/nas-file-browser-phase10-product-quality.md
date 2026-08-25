@@ -703,3 +703,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - TDD/静态验证：新增活动页视觉契约先在旧样式上得到失败，修复后活动页契约 `14/14`；前端完整 lint、typecheck、Vitest `96 files / 379 tests`、production build 和 `git diff --check` 均通过。源码提交 `c14fa15c` 已推送。
 - 发布：Compose 提交 `462397ea` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tasks-r166`，镜像 ID `sha256:f6ad285c9683f284950a36cf4d903a06869fe683c44318eb583af8dd481c042a`；仅重建 `filebrowser`，r165/r164 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，不能宣称 r166 的像素坐标、结果弹窗和移动端截图已通过真实浏览器验收；待浏览器环境可用后需补做桌面、窄容器、390px 移动端、键盘焦点和任务结果返回定位回归。
+
+### 2026-08-25 r167 任务中心整页节奏与时间操作轨道重排
+
+- 用户继续指出任务中心整体文字、图标、排版和列表项缺少精致度，时间与“查看结果”区域尤其突兀。r166 后复核发现桌面右栏仍把更新时间和操作横向并列，主次关系不够清晰。
+- 修复：桌面任务右栏改为“更新时间 → 操作”的垂直轨道，时间和操作共享右边界；结果与次级动作的最小宽度收紧，避免按钮在窄右栏中无意义换行。同步收紧页头、状态筛选、筛选表单和列表的垂直间距，减小标题与列表容器圆角，保持内容密度但不牺牲 `44px` 移动触摸目标。移动端继续使用独立底部操作行，任务数据、筛选、轮询、结果弹窗和操作语义不变。
+- TDD/静态验证：活动页契约 `14/14`；前端完整 Vitest `96 files / 379 tests`，lint、typecheck、production build 和 `git diff --check` 通过。源码提交 `5e4632a9` 已推送。
+- 发布：Compose 提交 `16105637` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tasks-r167`，镜像 ID `sha256:ebbd004d7de8c5684f0d0f967bedb4aea7c9f1553c1e9879b5564c11487588c1`；仅重建 `filebrowser`，r166/r165 镜像和 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，不能宣称 r167 的像素坐标、结果弹窗和移动端截图已通过真实浏览器验收；待浏览器环境可用后需补做桌面、窄容器、390px 移动端、键盘焦点和任务结果返回定位回归。

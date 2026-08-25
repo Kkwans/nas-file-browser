@@ -149,10 +149,10 @@ function updateRootConfirmed(event: Event) {
   margin-top: 0;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px
-    color-mix(in srgb, var(--textSecondary) 5%, transparent);
+  box-shadow: 0 6px 18px
+    color-mix(in srgb, var(--textSecondary) 4%, transparent);
 }
 
 .analysis-run-panel__header {
@@ -160,13 +160,9 @@ function updateRootConfirmed(event: Event) {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 18px;
-  padding: 18px 22px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: color-mix(
-    in srgb,
-    var(--surfaceSecondary) 44%,
-    var(--surfacePrimary)
-  );
+  background: var(--surfacePrimary);
 }
 
 .analysis-run-panel__intro {
@@ -174,13 +170,13 @@ function updateRootConfirmed(event: Event) {
   grid-template-columns: 40px minmax(0, 1fr);
   min-width: 0;
   align-items: center;
-  gap: 13px;
+  gap: 12px;
 }
 
 .analysis-run-panel__mark {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
   border-radius: 11px;
@@ -198,7 +194,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__header h1 {
   color: var(--textSecondary);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -236,7 +232,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(236px, 270px);
+  grid-template-columns: minmax(0, 1fr) minmax(224px, 248px);
   align-items: stretch;
   gap: 0;
   padding: 0;
@@ -247,7 +243,7 @@ function updateRootConfirmed(event: Event) {
 }
 
 .analysis-run-panel__body > .analysis-run-panel__section {
-  padding: 22px;
+  padding: 20px;
 }
 
 .analysis-run-panel__step {
@@ -431,8 +427,8 @@ function updateRootConfirmed(event: Event) {
   flex-direction: column;
   align-items: stretch;
   justify-content: space-between;
-  gap: 16px;
-  padding: 22px;
+  gap: 14px;
+  padding: 20px;
   border: 0;
   border-left: 1px solid var(--borderPrimary);
   border-radius: 0;

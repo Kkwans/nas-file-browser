@@ -873,9 +873,9 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1280px, calc(100% - 72px));
+  width: min(1180px, calc(100% - 56px));
   margin: 0 auto;
-  padding: 30px 0 84px;
+  padding: 24px 0 72px;
 }
 
 .analysis-workspace__topline {
@@ -883,7 +883,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .analysis-workspace__context {
@@ -893,7 +893,7 @@ onBeforeUnmount(() => {
 .analysis-workspace__context > span {
   display: block;
   color: var(--textSecondary);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.025em;
 }

@@ -33,8 +33,7 @@
     >
       <span></span>
       <span>扫描记录</span>
-      <span>完成时间</span>
-      <span>操作</span>
+      <span>完成与操作</span>
     </div>
 
     <ul v-if="!loading && !error && items.length" class="analysis-recent__list">
@@ -188,13 +187,13 @@ function formatClock(value: number) {
 
 <style scoped>
 .analysis-recent {
-  margin-top: 32px;
+  margin-top: 28px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px
-    color-mix(in srgb, var(--textSecondary) 5%, transparent);
+  box-shadow: 0 6px 18px
+    color-mix(in srgb, var(--textSecondary) 4%, transparent);
 }
 
 .analysis-recent__header {
@@ -202,13 +201,9 @@ function formatClock(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 18px 22px 16px;
+  padding: 16px 20px 14px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: color-mix(
-    in srgb,
-    var(--surfaceSecondary) 44%,
-    var(--surfacePrimary)
-  );
+  background: var(--surfacePrimary);
 }
 
 .analysis-recent__header-icon {
@@ -230,7 +225,7 @@ function formatClock(value: number) {
 
 .analysis-recent__header h2 {
   color: var(--textSecondary);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.25;
   letter-spacing: -0.01em;
 }
@@ -277,30 +272,29 @@ function formatClock(value: number) {
 .analysis-recent__columns,
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 150px 132px;
+  grid-template-columns: 40px minmax(0, 1fr) 148px;
   align-items: center;
   gap: 18px;
 }
 
 .analysis-recent__columns {
   min-height: 38px;
-  padding: 0 22px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textPrimary);
-  background: color-mix(in srgb, var(--surfaceSecondary) 42%, transparent);
+  background: var(--surfaceSecondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
-.analysis-recent__columns span:nth-child(3),
-.analysis-recent__columns span:nth-child(4) {
+.analysis-recent__columns span:last-child {
   text-align: right;
 }
 
 .analysis-recent__list li {
-  min-height: 84px;
-  padding: 14px 22px;
+  min-height: 92px;
+  padding: 14px 20px;
   transition:
     background-color 160ms ease,
     box-shadow 160ms ease;
@@ -443,24 +437,29 @@ function formatClock(value: number) {
 }
 
 .analysis-recent__side {
-  display: contents;
+  display: grid;
+  grid-template-rows: auto auto;
+  min-width: 0;
+  align-items: end;
+  justify-items: end;
+  gap: 8px;
 }
 
 .analysis-recent__action {
   display: inline-flex;
   justify-self: end;
-  width: 132px;
+  width: 118px;
   box-sizing: border-box;
-  min-height: 38px;
+  min-height: 36px;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
   border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
-  border-radius: 8px;
+  border-radius: 7px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;

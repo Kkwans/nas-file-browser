@@ -271,7 +271,7 @@ function formatClock(value: number) {
 .analysis-recent__columns,
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 148px;
+  grid-template-columns: 40px minmax(0, 1fr) 220px;
   align-items: center;
   gap: 18px;
 }
@@ -292,8 +292,8 @@ function formatClock(value: number) {
 }
 
 .analysis-recent__list li {
-  min-height: 92px;
-  padding: 14px 20px;
+  min-height: 78px;
+  padding: 11px 20px;
   transition: background-color 160ms ease;
 }
 
@@ -379,30 +379,30 @@ function formatClock(value: number) {
 .analysis-recent__time-block {
   display: grid;
   min-width: 0;
-  justify-items: end;
+  justify-items: start;
   gap: 2px;
-  text-align: right;
+  text-align: left;
 }
 
 .analysis-recent__time {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
   color: var(--textSecondary);
   font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
 }
 
 .analysis-recent__time span {
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.25;
 }
 
 .analysis-recent__time b {
   color: var(--textSecondary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -435,11 +435,11 @@ function formatClock(value: number) {
 
 .analysis-recent__side {
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-width: 0;
-  align-items: end;
+  align-items: center;
   justify-items: end;
-  gap: 8px;
+  gap: 12px;
 }
 
 .analysis-recent__action {
@@ -447,15 +447,15 @@ function formatClock(value: number) {
   justify-self: end;
   width: auto;
   box-sizing: border-box;
-  min-height: 32px;
+  min-height: 36px;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  padding: 0 4px;
-  border: 0;
-  border-radius: 6px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
+  border-radius: 7px;
   color: var(--blue);
-  background: transparent;
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -472,8 +472,8 @@ function formatClock(value: number) {
 .analysis-recent__header button:hover,
 .analysis-recent__header button:focus-visible {
   outline: none;
-  background: color-mix(in srgb, var(--blue) 11%, var(--surfacePrimary));
-  border-color: transparent;
+  background: color-mix(in srgb, var(--blue) 10%, var(--surfacePrimary));
+  border-color: color-mix(in srgb, var(--blue) 40%, var(--borderPrimary));
 }
 
 .analysis-recent__action:active {

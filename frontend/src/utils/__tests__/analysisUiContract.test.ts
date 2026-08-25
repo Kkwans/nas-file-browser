@@ -16,14 +16,15 @@ describe("analysis page UI contract", () => {
     expect(source).toContain("getResourceIconName");
   });
 
-  it("首屏只保留面向用户的分析入口标题，不重复堆叠工作区文案", () => {
+  it("首屏只保留工具切换与一次扫描入口，不重复堆叠巨大标题卡", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/views/Analysis.vue"),
       "utf8"
     );
 
-    expect(source).toContain("开始一次分析");
-    expect(source).not.toMatch(/<span>分析工作区<\/span>/);
+    expect(source).toContain("analysis-workspace__topline");
+    expect(source).not.toContain("开始一次分析");
+    expect(source).not.toMatch(/analysis-workspace__context/);
   });
 
   it("工具切换器在桌面保持紧凑，在移动端占满工作区", () => {
@@ -62,10 +63,10 @@ describe("analysis page UI contract", () => {
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain("<span>完成与操作</span>");
     expect(recentSource).toMatch(
-      /grid-template-columns:\s*40px\s+minmax\(0, 1fr\)\s+148px/
+      /grid-template-columns:\s*40px\s+minmax\(0, 1fr\)\s+220px/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__side\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-rows:/
+      /\.analysis-recent__side\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:/
     );
   });
 
@@ -76,10 +77,10 @@ describe("analysis page UI contract", () => {
     );
 
     expect(recentSource).toMatch(
-      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*92px;/
+      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*78px;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*32px;/
+      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*36px;/
     );
     expect(recentSource).toMatch(
       /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*12px;/
@@ -128,7 +129,7 @@ describe("analysis page UI contract", () => {
       /\.analysis-recent__list li:hover\s*\{[\s\S]*?box-shadow:\s*none;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?width:\s*auto;[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent;/
+      /\.analysis-recent__action\s*\{[\s\S]*?width:\s*auto;[\s\S]*?border:\s*1px solid color-mix/
     );
   });
 
@@ -149,7 +150,7 @@ describe("analysis page UI contract", () => {
       /\.analysis-run-panel__footer\s*\{[\s\S]*?background:\s*var\(--surfacePrimary\);/
     );
     expect(pageSource).toMatch(
-      /\.analysis-workspace__context > span\s*\{[\s\S]*?font-size:\s*18px;/
+      /\.analysis-workspace__hint\s*\{[\s\S]*?font-size:\s*12px;/
     );
   });
 });

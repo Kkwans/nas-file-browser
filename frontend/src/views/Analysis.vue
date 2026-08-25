@@ -18,10 +18,9 @@
 
     <main class="analysis-workspace">
       <div class="analysis-workspace__topline">
-        <div class="analysis-workspace__context">
-          <span>开始一次分析</span>
-          <p>选择只读工具，指定范围后开始一次扫描</p>
-        </div>
+        <p class="analysis-workspace__hint">
+          选择工具与范围后主动运行；所有分析均为只读并受低并发保护。
+        </p>
         <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
       </div>
 
@@ -873,36 +872,25 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1180px, calc(100% - 56px));
+  width: min(1120px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 20px 0 64px;
+  padding: 18px 0 56px;
 }
 
 .analysis-workspace__topline {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 10px;
+  gap: 20px;
+  min-height: 50px;
+  margin-bottom: 12px;
 }
 
-.analysis-workspace__context {
+.analysis-workspace__hint {
   min-width: 0;
-}
-
-.analysis-workspace__context > span {
-  display: block;
-  color: var(--textSecondary);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-}
-
-.analysis-workspace__context p {
-  max-width: 42rem;
-  margin: 5px 0 0;
+  margin: 0 0 8px;
   color: var(--textPrimary);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -1194,8 +1182,8 @@ onBeforeUnmount(() => {
 }
 
 .analysis-results-heading {
-  margin-top: 34px;
-  padding-bottom: 14px;
+  margin-top: 28px;
+  padding: 0 2px 12px;
   border-bottom: 1px solid var(--borderPrimary);
 }
 
@@ -1213,7 +1201,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  margin-top: 18px;
+  margin-top: 14px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
   border-radius: 12px;
@@ -1224,7 +1212,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 6px;
   min-width: 0;
-  padding: 18px 20px 20px;
+  padding: 15px 17px 16px;
   border-right: 1px solid var(--borderPrimary);
 }
 
@@ -1319,15 +1307,15 @@ onBeforeUnmount(() => {
 .storage-rankings {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+  gap: 14px;
+  margin-top: 14px;
 }
 
 .storage-rankings > article {
   min-width: 0;
   overflow: hidden;
-  border-top: 1px solid var(--borderPrimary);
-  border-bottom: 1px solid var(--borderPrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
   background: var(--surfacePrimary);
 }
 
@@ -1457,8 +1445,8 @@ onBeforeUnmount(() => {
 
 .duplicate-groups {
   display: grid;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .duplicate-group {
@@ -1677,6 +1665,11 @@ onBeforeUnmount(() => {
     align-items: stretch;
     flex-direction: column;
     gap: 8px;
+    min-height: 0;
+  }
+
+  .analysis-workspace__hint {
+    margin: 0;
   }
 
   .analysis-tool-switcher {

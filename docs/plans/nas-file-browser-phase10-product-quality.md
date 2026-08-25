@@ -636,3 +636,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：Compose 提交 `5a646ac7` 已推送，当前 Compose CI `32842515438` 已排队、Docs `32842515427` 正在运行；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tasks-r158`，镜像 ID `sha256:072a5f7d243aabed3fdfe17cc8e27406ec616c6fe36bb6e1c2cfe60169aa5e41`。仅重建 `filebrowser`，r157 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - NAS 本地 Playwright 真实验收：桌面 `1440×900` 的任务列表首行约 `1118×110px`，列表列标题与正文使用相同 `44px / 16px / 148px` 网格，右栏分隔线从时间区域顶部到底部连续；移动 `390×844` 首行约 `344×181px`，桌面列标题不占空间，底部操作行仍为独立分隔区。桌面和移动 `scrollWidth=clientWidth`，页面/控制台错误均为 `0`。截图：`/tmp/nfb-r158-tasks-desktop.png`、`/tmp/nfb-r158-tasks-mobile.png`。
 - 当前结论：r158 是任务中心整页列表层级的一个可验证模块修复，重点解决用户指出的时间/查看结果对齐和操作主次，不宣称任务中心或全站视觉已完成；下一步继续审计操作历史、文件列表和媒体/Markdown 页面的精致度。
+
+### 2026-08-25 r159 操作历史列基线与时间栏重排
+
+- 延续任务中心的真实截图审计，操作历史仍存在同类问题：记录内容与右侧时间没有列语义，时间像贴在页面边缘，时间线、图标、状态和路径文字缺少稳定的横向对齐。
+- 修复：在历史列表加入“操作记录 / 时间”列标题；桌面保持时间线轨道、动作图标、记录内容和时间四列，时间列使用中性分隔线与固定 `132px` 轨道；移动端隐藏桌面列标题并移除垂直分隔线，保留原有连续时间线和可读的底部时间值。操作历史数据、私有性、筛选、游标加载和状态语义不变。
+- TDD/静态验证：新增契约先在旧实现上得到 `1 failed / 10 passed`，修复后活动页契约 `11/11`、前端完整 Vitest `95 files / 372 tests`、ESLint、typecheck 和 `git diff --check` 均通过。源码提交 `365d48a6` 已推送，源码 CI `32842879582`、Docs `32842879697` 均成功。
+- 发布：Compose 提交 `4e62c03b` 已推送，当前 Compose CI `32843295166` 已排队、Docs `32843295170` 正在运行；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-history-r159`，镜像 ID `sha256:3d9da89dbbc0ffef763ae9679c9fdb9d5055cddd15789b6a1e446c953d525732`。仅重建 `filebrowser`，r158 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本地 Playwright 真实验收：桌面 `1440×900` 历史列表首行约 `1118×84px`，列标题与正文使用相同 `14px / 40px / 内容 / 132px` 网格，时间分隔线连续；移动 `390×844` 首行约 `344×110px`，列标题不占空间且时间回到记录底部右对齐。桌面和移动 `scrollWidth=clientWidth`，页面/控制台错误均为 `0`。截图：`/tmp/nfb-r159-history-desktop.png`、`/tmp/nfb-r159-history-mobile.png`。
+- 当前结论：r159 收敛操作历史时间列和时间线的排版基线，与 r158 形成统一活动页列表语言；下一步仍需处理文件列表/图标、媒体和 Markdown 等用户已指出的其它视觉与交互问题。

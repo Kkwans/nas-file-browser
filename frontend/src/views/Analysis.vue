@@ -19,7 +19,7 @@
     <main class="analysis-workspace">
       <div class="analysis-workspace__topline">
         <div class="analysis-workspace__context">
-          <span>分析工作区</span>
+          <span>开始一次分析</span>
           <p>选择只读工具，指定范围后开始一次扫描</p>
         </div>
         <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
@@ -875,15 +875,15 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
-  padding: 30px 0 72px;
+  padding: 22px 0 72px;
 }
 
 .analysis-workspace__topline {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .analysis-workspace__context {
@@ -893,14 +893,14 @@ onBeforeUnmount(() => {
 .analysis-workspace__context > span {
   display: block;
   color: var(--textSecondary);
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
 
 .analysis-workspace__context p {
   max-width: 42rem;
-  margin: 5px 0 0;
+  margin: 3px 0 0;
   color: var(--textPrimary);
   font-size: 12px;
   line-height: 1.4;
@@ -1670,13 +1670,13 @@ onBeforeUnmount(() => {
 @media (max-width: 760px) {
   .analysis-workspace {
     width: min(100% - 20px, 1120px);
-    padding-top: 18px;
+    padding-top: 14px;
   }
 
   .analysis-workspace__topline {
     align-items: stretch;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
   .analysis-tool-switcher {

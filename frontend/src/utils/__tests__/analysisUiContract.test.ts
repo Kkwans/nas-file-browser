@@ -16,6 +16,16 @@ describe("analysis page UI contract", () => {
     expect(source).toContain("getResourceIconName");
   });
 
+  it("首屏只保留面向用户的分析入口标题，不重复堆叠工作区文案", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/views/Analysis.vue"),
+      "utf8"
+    );
+
+    expect(source).toContain("开始一次分析");
+    expect(source).not.toMatch(/<span>分析工作区<\/span>/);
+  });
+
   it("工具切换器在桌面保持紧凑，在移动端占满工作区", () => {
     const switcherSource = readFileSync(
       resolve(

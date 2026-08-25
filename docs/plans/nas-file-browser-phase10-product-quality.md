@@ -564,3 +564,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：Compose 提交 `0ea7108b` 已推送，GitHub Continuous Integration `32817750750` 与 Docs `32817750780` 全部成功；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-activity-r149`，摘要 `sha256:1db8b02de8502b386ce92e41097da1de94c22f9390a21b632ef1c0c3ab75b8c7`。仅重建 `filebrowser`，r148 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - NAS 本机 Playwright 真实验收：桌面 `1440px`、移动 `390px` 的 `/tasks`、`/history` 以及 `/files/`、`/analysis`、`/settings/profile` 回归均无页面/控制台错误，页面 `scrollWidth=clientWidth`。任务列表移动截图 `/tmp/nfb-r149-audit-mobile-tasks.png` 中操作按钮与内容下方分隔线对齐；历史桌面/移动截图 `/tmp/nfb-r149-audit-history.png`、`/tmp/nfb-r149-audit-mobile-history.png` 中轨道和节点保持连续，原有时间、筛选和分页行为未变。
 - 当前结论：r149 解决的是任务/历史列表的局部对齐和操作密度问题，不把“无横向溢出”误报成全站精致度完成；下一轮继续以真实截图审计文件列表、侧栏图标语义和 Markdown/媒体页面的文字基线与图标光学中心。
+
+### 2026-08-25 r150 分析记录时间列与结果动作轻量化
+
+- 用户继续指出存储工具整页的文字、图标、排版以及列表时间/查看结果区域缺少精致度。真实 r149 截图复核确认：最近扫描每一行重复渲染“完成时间”图标标签，右侧结果入口使用厚重描边按钮，时间列与操作列在视觉上像孤立卡片。
+- 修复：保留最近扫描数据、状态、路由和移动端触摸目标；桌面时间列只使用表头一次的“完成时间”语义，行内改为单行时间值并用细分隔线建立列边界；“查看结果/查看详情”改为透明背景的轻量文本动作，仅在 hover/focus 时显示边界，移动端继续使用内容下方的操作分隔行。
+- TDD/静态验证：新增契约先在旧实现上得到 \`1 failed / 5 passed\`，修复后分析 UI 契约 \`6/6\`、分析无障碍契约 \`7/7\`、目标 ESLint、typecheck、production build 和 \`git diff --check\` 通过。源码提交 \`82a5798f\` 已推送，GitHub Continuous Integration \`32821380164\` 与 Docs \`32821379798\` 成功。
+- 发布：Compose 提交 \`1074bef3\` 已推送，GitHub Continuous Integration \`32821764647\` 与 Docs 同步成功；NAS 本机 ARM64 镜像 \`nas-file-browser:2026.8.25-phase10-analysis-r150\`，本地镜像 ID \`sha256:de00092dad48bcce7dd3d330dabafda0665560de7f063dedc107e5d467224893\`。仅重建 \`filebrowser\`，r149 镜像和 Compose 保留作回滚；容器 \`running/healthy\`，\`/health\` 返回 \`{"status":"OK"}\`。
+- NAS 本地 Playwright 真实验收：桌面 \`1440×900\`、移动 \`390×844\` 的 \`/analysis\` 与全站回归路由均无控制台错误和横向溢出；分析报告、空间分布报告和四种文件列表布局均能正常渲染。r150 分析截图：\`/tmp/nfb-r150-analysis-audit-analysis.png\`、\`/tmp/nfb-r150-analysis-audit-mobile-analysis.png\`、\`/tmp/nfb-r150-analysis-report.png\`、\`/tmp/nfb-r150-storage-report.png\`；四种文件布局截图：\`/tmp/nfb-r150-layout-详细网格.png\`、\`/tmp/nfb-r150-layout-紧凑网格.png\`、\`/tmp/nfb-r150-layout-详细列表.png\`、\`/tmp/nfb-r150-layout-紧凑列表.png\`。
+- 当前结论：r150 收敛了用户明确指出的时间/结果操作列视觉问题，但仍不宣称全站 UI 完成；当前继续基于真实截图审计文件列表风险图标、侧栏语义和媒体/Markdown 页面，不为了改动量重复重做已验证模块。

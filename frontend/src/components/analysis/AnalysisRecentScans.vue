@@ -77,7 +77,6 @@
         </div>
         <div class="analysis-recent__side">
           <div class="analysis-recent__time-block">
-            <span class="analysis-recent__time-label">扫描时间</span>
             <time
               class="analysis-recent__time"
               :datetime="new Date(item.createdAt).toISOString()"
@@ -381,15 +380,8 @@ function formatTime(value: number) {
 .analysis-recent__time-block {
   display: grid;
   min-width: 0;
-  gap: 3px;
   justify-items: end;
   text-align: right;
-}
-
-.analysis-recent__time-label {
-  color: var(--textPrimary);
-  font-size: 10px;
-  letter-spacing: 0.04em;
 }
 
 .analysis-recent__scope {
@@ -424,6 +416,7 @@ function formatTime(value: number) {
 
 .analysis-recent__action {
   display: inline-flex;
+  justify-self: end;
   width: 104px;
   box-sizing: border-box;
   min-height: 44px;
@@ -434,7 +427,7 @@ function formatTime(value: number) {
   border: 1px solid var(--borderPrimary);
   border-radius: 8px;
   color: var(--blue);
-  background: var(--surfacePrimary);
+  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -492,6 +485,8 @@ function formatTime(value: number) {
 
   .analysis-recent__time-block {
     min-width: 0;
+    justify-items: start;
+    text-align: left;
   }
 
   .analysis-recent__action {

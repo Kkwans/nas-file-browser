@@ -47,5 +47,6 @@ describe("analysis page UI contract", () => {
     expect(scopeSource).toContain('class="analysis-run-panel__section"');
     expect(recentSource).toContain('class="analysis-recent__side"');
     expect(recentSource).toContain('class="analysis-recent__time"');
+    expect(recentSource).not.toContain('class="analysis-recent__time-label"');
   });
 });

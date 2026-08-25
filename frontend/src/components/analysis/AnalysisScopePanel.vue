@@ -149,9 +149,9 @@ function updateRootConfirmed(event: Event) {
   margin-top: 18px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 11px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
+  box-shadow: 0 5px 16px rgb(15 23 42 / 3%);
 }
 
 .analysis-run-panel__header {
@@ -159,9 +159,13 @@ function updateRootConfirmed(event: Event) {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px;
-  padding: 18px 22px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: var(--surfacePrimary);
+  background: color-mix(
+    in srgb,
+    var(--surfacePrimary) 96%,
+    var(--surfaceSecondary)
+  );
 }
 
 .analysis-run-panel__intro {
@@ -233,8 +237,8 @@ function updateRootConfirmed(event: Event) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(236px, 270px);
   align-items: stretch;
-  gap: 24px;
-  padding: 20px 22px 22px;
+  gap: 20px;
+  padding: 18px 20px 20px;
 }
 
 .analysis-run-panel__section {
@@ -422,11 +426,15 @@ function updateRootConfirmed(event: Event) {
   flex-direction: column;
   align-items: stretch;
   justify-content: space-between;
-  gap: 18px;
-  padding: 16px;
+  gap: 14px;
+  padding: 14px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
-  background: var(--surfaceSecondary);
+  border-radius: 10px;
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 72%,
+    var(--surfacePrimary)
+  );
 }
 
 .analysis-run-panel__section--confirm {
@@ -442,14 +450,14 @@ function updateRootConfirmed(event: Event) {
 .analysis-run-panel__start {
   display: inline-flex;
   width: 100%;
-  min-height: 46px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 7px;
   padding: 0 18px;
   color: #fff;
   background: var(--blue);
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--blue) 20%, transparent);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--blue) 16%, transparent);
 }
 
 .analysis-run-panel__start:not(:disabled):active {

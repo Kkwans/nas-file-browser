@@ -39,27 +39,30 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 <style scoped>
 .analysis-tool-switcher {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-  width: 100%;
+  display: inline-flex;
   max-width: 100%;
-  padding: 4px;
+  align-items: stretch;
+  gap: 3px;
+  padding: 3px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
-  background: var(--surfaceSecondary);
+  border-radius: 9px;
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 86%,
+    var(--surfacePrimary)
+  );
   box-sizing: border-box;
-  overflow: visible;
 }
 
 .analysis-tool-switcher button {
   display: grid;
   position: relative;
-  grid-template-columns: 34px minmax(0, 1fr);
-  min-height: 54px;
+  grid-template-columns: 30px minmax(0, auto);
+  min-width: 220px;
+  min-height: 48px;
   align-items: center;
-  gap: 11px;
-  padding: 7px 14px;
+  gap: 9px;
+  padding: 5px 12px;
   border: 1px solid transparent;
   border-radius: 7px;
   color: var(--textPrimary);
@@ -91,8 +94,8 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher__icon {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border: 0;
   border-radius: 8px;
@@ -103,12 +106,12 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher button > span:last-child {
   display: grid;
   min-width: 0;
-  gap: 1px;
+  gap: 0;
 }
 
 .analysis-tool-switcher strong {
   color: var(--textSecondary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -116,7 +119,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher small {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -124,19 +127,22 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 @media (max-width: 520px) {
   .analysis-tool-switcher {
+    display: grid;
     width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .analysis-tool-switcher button {
-    grid-template-columns: 34px minmax(0, 1fr);
-    min-height: 52px;
+    grid-template-columns: 30px minmax(0, 1fr);
+    min-width: 0;
+    min-height: 50px;
     gap: 10px;
     padding-inline: 12px;
   }
 
   .analysis-tool-switcher__icon {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
   }
 
   .analysis-tool-switcher strong {

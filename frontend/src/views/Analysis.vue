@@ -804,16 +804,16 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1180px, calc(100% - 40px));
+  width: min(1220px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 18px 0 48px;
+  padding: 16px 0 48px;
 }
 
 .analysis-readonly-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 999px;
+  border-radius: 6px;
   color: #16845d;
   background: color-mix(in srgb, #1ea672 11%, transparent);
   font-size: 11px;

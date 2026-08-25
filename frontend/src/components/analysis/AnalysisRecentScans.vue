@@ -33,8 +33,7 @@
     >
       <span></span>
       <span>范围与结果</span>
-      <span>扫描时间</span>
-      <span>操作</span>
+      <span>时间与操作</span>
     </div>
 
     <ul v-if="!loading && !error && items.length" class="analysis-recent__list">
@@ -182,9 +181,9 @@ function formatTime(value: number) {
   margin-top: 24px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 11px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 4%);
+  box-shadow: 0 5px 16px rgb(15 23 42 / 3%);
 }
 
 .analysis-recent__header {
@@ -192,7 +191,7 @@ function formatTime(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 17px 22px;
+  padding: 15px 20px;
   border-bottom: 1px solid var(--borderPrimary);
   background: var(--surfacePrimary);
 }
@@ -259,11 +258,11 @@ function formatTime(value: number) {
 
 .analysis-recent__columns {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 176px 104px;
+  grid-template-columns: 40px minmax(0, 1fr) 220px;
   align-items: center;
   gap: 16px;
   min-height: 32px;
-  padding: 0 22px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textPrimary);
   background: var(--surfaceSecondary);
@@ -273,18 +272,17 @@ function formatTime(value: number) {
   text-transform: uppercase;
 }
 
-.analysis-recent__columns span:nth-child(3),
-.analysis-recent__columns span:nth-child(4) {
+.analysis-recent__columns span:nth-child(3) {
   text-align: right;
 }
 
 .analysis-recent__list li {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 176px 104px;
+  grid-template-columns: 40px minmax(0, 1fr) 220px;
   align-items: center;
   gap: 16px;
   min-height: 82px;
-  padding: 13px 22px;
+  padding: 12px 20px;
   transition: background-color 120ms ease;
 }
 
@@ -411,19 +409,23 @@ function formatTime(value: number) {
 }
 
 .analysis-recent__side {
-  display: contents;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
 }
 
 .analysis-recent__action {
   display: inline-flex;
   justify-self: end;
-  width: 104px;
+  width: 96px;
   box-sizing: border-box;
-  min-height: 44px;
+  min-height: 38px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 10px;
+  padding: 0 9px;
   border: 1px solid var(--borderPrimary);
   border-radius: 8px;
   color: var(--blue);
@@ -500,7 +502,7 @@ function formatTime(value: number) {
   }
 
   .analysis-recent__action {
-    min-width: 104px;
+    min-width: 96px;
     min-height: 44px;
   }
 }

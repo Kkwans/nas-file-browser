@@ -1066,6 +1066,11 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+.analysis-results-heading p time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .analysis-cancel-action {
   border: 0;
   border-radius: 8px;
@@ -1718,6 +1723,10 @@ onBeforeUnmount(() => {
 
   .analysis-results-heading__copy {
     max-width: calc(100% - 54px);
+  }
+
+  .analysis-readonly-chip {
+    align-self: flex-end;
   }
 
   .duplicate-group > header {

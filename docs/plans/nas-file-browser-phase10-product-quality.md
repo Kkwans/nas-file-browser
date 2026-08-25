@@ -501,3 +501,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-files-clipboard-r140` 已构建；Compose 因首次本地标签拼写不一致触发了一次可恢复的按配置构建，最终仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。r139 镜像仍保留作回滚，未修改数据库、用户文件或未跟踪文件。
 - NAS 本机 Playwright 轻量回归：四种文件布局均 `scrollWidth=clientWidth=1440`，无页面/控制台错误；详情列表首项文字和操作布局正常。真实拖拽移动此前已在 r91–r93 验收，本次类型修复不改变该链路。
 - 当前结论：该模块修复了目录剪贴板操作的实际数据契约问题；不把它夸大为重新实现拖拽，也不宣称所有文件操作已完成，继续按真实复现推进下一项。
+
+### 2026-08-25 r141 分析报告嵌套 Header 定位回归与扫描记录列重排
+
+- 真实复现：空间分布报告中的“大文件/目录大小”使用原生 `<header>`，被全局 `header { position: fixed; top: 0; z-index: 1000 }` 误匹配；页面顶部实际被内部排行标题覆盖，用户看不到正常的存储工具 Header。该问题通过 NAS 本地 Playwright 的 `elementsFromPoint(20,20)` 和计算样式确认，内部排行 Header 的位置为 `fixed`。
+- 修复：报告卡片改用独立的 `storage-ranking-header` 与 `duplicate-group__header` 语义容器，保留 heading 语义但不再继承全局定位规则；最近扫描桌面端改为四格网格（图标、扫描记录、执行时间、操作），时间和“查看结果”成为稳定独立列；移动端继续使用内容下方的分隔操作行和 `44px` 操作按钮。新增无障碍/UI 契约，覆盖原生 Header 禁用和列宽契约。
+- TDD/静态验证：契约先在旧实现上得到 `1 failed / 5 passed` 与 `1 failed / 2 passed`，修复后分析无障碍/UI 契约 `9/9` 通过；目标 ESLint、typecheck、Prettier、`git diff --check` 通过。源码提交 `9f47b8f1`、Compose 提交 `95dd14cf` 已推送。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r141` 构建成功；仅重建 `filebrowser`，容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r140 镜像和 Compose 保留作回滚。
+- NAS 本机 Playwright 真实验收：桌面空间报告顶部命中正常全局 Header（`存储工具/主动、只读、低并发`），排行标题为 `position: static`，页面横向溢出 `0`、控制台错误 `0`；桌面最近扫描列计算为 `40px 689px 165px 112px`，首行 `1102×96px`，时间列与 `112×44px` 操作按钮对齐；移动首行 `344×163px`，时间与操作位于内容下方分隔行，`scrollWidth=clientWidth=390`，控制台错误 `0`。截图：`/tmp/nfb-analysis-r141-1440-storage.png`、`/tmp/nfb-analysis-r141-1440-recent.png`、`/tmp/nfb-analysis-r141-390-storage.png`、`/tmp/nfb-analysis-r141-390-recent.png`。
+- 当前结论：本模块解决了一个可证明的全局 Header 覆盖回归，并把用户明确指出的时间/查看结果区域改成稳定列；不宣称分析页或全站视觉已全部完成，后续继续按真实截图审计文字基线、图标光学中心和操作密度。

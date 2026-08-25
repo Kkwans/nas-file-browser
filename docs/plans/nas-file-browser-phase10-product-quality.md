@@ -537,3 +537,12 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r146`，仅重建 `filebrowser`；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`，r145 镜像和 Compose 保留作回滚。
 - NAS 本地 Playwright 真实验收：桌面 `1440×900` 工作区无横向溢出，运行面板约 `1096×250px`，最近扫描约 `1096×544px`，首行约 `1094×86px`，时间值 `12px`、查看结果入口 `110×38px`；移动 `390×844` 无横向溢出，运行面板约 `346×522px`，最近扫描约 `346×841px`，首行约 `344×153px`，查看结果入口 `110×44px`；桌面/移动页面错误和控制台错误均为 `0`。截图：`/tmp/nfb-r106-analysis-desktop.png`、`/tmp/nfb-r106-analysis-mobile.png`。
 - 当前结论：本轮将用户指出的存储工具整页视觉问题落到统一排版和真实部署验证；不宣称全站 UI 已完成，后续继续审计媒体播放、文件列表图标/风险标识、Markdown 编辑器和其它页面的精致度与体验。
+
+### 2026-08-25 r147 按视频编码探测原生容器播放
+
+- 用户反馈 MKV/MOV 每次都进入兼容播放、播放进度无法拖动。代码审计确认不能按扩展名承诺原生播放：浏览器是否支持由容器和实际视频/音频编码共同决定。r147 在已知容器直播放被拒绝时先调用 `/api/media/info` 读取编码，再仅对浏览器明确支持的 WebM 兼容轨道自动挂载原视频；探测期间禁止用户误触发兼容任务，失败仍保留明确的用户主动兼容入口。
+- 源码提交 `bdd375b4`、Compose 发布提交 `ed23ccc3` 已推送 `master`。源码 CI `32812741479`、Docs `32812741433` 及 Compose CI `32813049779`、Docs `32813049743` 均成功；CI 包含前端 lint/test、Go race、后端 lint/build 和 ARM64 Docker 构建。
+- NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-video-native-r147`，摘要 `sha256:12ea2f5081cb4661ea53d1316820e4613a559dbebf64f206d90afcc04402ef05`；仅重建 `filebrowser`，r146 镜像与 Compose 保留回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本地 Playwright 脚本 `/tmp/nfb-r147-native-mkv.mjs`：真实 VP9/Opus MKV `/tmp/nfb-acceptance-vp9-opus-r50.mkv` 产生 `media/info` 探测 `1` 次、无 HLS 请求，原始源 `readyState=4`、`duration=8.008s`、`seekable=[0,8.008]`，兼容播放按钮不存在，页面/控制台错误 `0`；截图 `/tmp/nfb-r147-native-mkv.png`。
+- 同脚本验证真实 H.264/AAC MKV 与 H.264/AAC MOV：均显示兼容播放入口、无自动 HLS 请求、页面/控制台错误 `0`。这不是回退，而是当前 Chromium 没有 H.264 解码/MSE 能力的事实限制；用户主动启动兼容播放后，r147 仍可生成完整 WebM 并拖动进度。实测 H.264/AAC MKV 兼容产物 `duration=20.042s`、`seekable=[0,20.042]`，从约 `9.06s` 拖到 `2.18s` 成功，错误 `0`。
+- 当前结论：项目不再“所有 MKV/MOV 一律先转码”。浏览器支持的编码组合直接播放并可 seek；H.264/HEVC/DTS 等当前浏览器不支持的组合只能走用户主动兼容播放、下载或外部播放器。后续可在具备 H.264 解码的浏览器上补做 MOV/H.264 原生实机验收，但不能在当前 Chromium 上伪称已验证。

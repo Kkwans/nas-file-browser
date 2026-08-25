@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-group-header sidebar-level-two">
+  <div class="sidebar-group-header sidebar-level-two" :data-expanded="expanded">
     <button
       class="sidebar-group-toggle"
       type="button"

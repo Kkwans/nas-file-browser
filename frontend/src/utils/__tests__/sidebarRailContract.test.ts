@@ -14,7 +14,7 @@ describe("桌面侧边栏图标轨契约", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const preferenceSource = readSource("utils/sidebarPreferences.ts");
     const storeSource = readSource("stores/sidebarPreferences.ts");
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(preferenceSource).toContain("desktopCollapsed: boolean");
     expect(storeSource).toContain("setDesktopCollapsed");
@@ -35,13 +35,16 @@ describe("桌面侧边栏图标轨契约", () => {
   });
 
   it("完整侧栏内容栈占满可用高度且不会挤压页脚", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toMatch(
       /nav\.sidebar \.sidebar-personalized-stack\s*\{[^}]*flex:\s*1 0 auto;[^}]*min-height:\s*0;/s
     );
     expect(cssSource).toMatch(
-      /nav\.sidebar \.sidebar-personalized-stack > #logout\s*\{[^}]*margin-top:\s*auto\s*!important;/s
+      /nav\.sidebar \.sidebar-collapse-row\s*\{[^}]*margin:\s*0;/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-personalized-stack > #logout\s*\{[^}]*margin-top:\s*0\.25rem\s*!important;/s
     );
   });
 
@@ -63,7 +66,7 @@ describe("桌面侧边栏图标轨契约", () => {
     const groupHeaderSource = readSource(
       "components/sidebar/SidebarGroupHeader.vue"
     );
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
     const iconRegistrySource = readSource("components/ui/iconRegistry.ts");
 
     expect(cssSource).toContain("--sidebar-primary-icon-size: 1.375rem");
@@ -77,13 +80,13 @@ describe("桌面侧边栏图标轨契约", () => {
     expect(sectionHeaderSource).not.toContain("expand_more");
     expect(groupHeaderSource).not.toContain("expand_more");
     expect(sidebarSource).toContain('aria-label="新建收藏分组"');
-    expect(sidebarSource).toContain('aria-label="清空收藏夹"');
+    expect(sidebarSource).not.toContain('aria-label="清空收藏夹"');
     expect(iconRegistrySource).toContain("file: File");
     expect(iconRegistrySource).not.toContain("file: Files");
   });
 
   it("展开侧栏共享外边界且不继承 action 图标的额外 padding", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toContain("--sidebar-inline-gutter: 0.5rem");
     expect(cssSource).toMatch(
@@ -92,7 +95,7 @@ describe("桌面侧边栏图标轨契约", () => {
   });
 
   it("导航图标使用语义图形并共享同一视觉尺寸", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
     const iconRegistrySource = readSource("components/ui/iconRegistry.ts");
 
     expect(iconRegistrySource).toContain("FolderTree");
@@ -115,7 +118,7 @@ describe("桌面侧边栏图标轨契约", () => {
   });
 
   it("侧栏辅助文字不低于可读的字号层级", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toMatch(
       /nav\.sidebar \.favorite-path\s*\{[^}]*font-size:\s*0\.6875rem;[^}]*line-height:\s*1\.25;/s
@@ -130,7 +133,7 @@ describe("桌面侧边栏图标轨契约", () => {
 
   it("移动端保持完整抽屉并关闭桌面图标轨", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(sidebarSource).toContain('window.matchMedia("(min-width: 737px)")');
     expect(cssSource).toMatch(

@@ -20,7 +20,6 @@
 @import "./markdown-code.css";
 @import "./vditor-overrides.css";
 @import "./context-menu.css";
-@import "./sidebar.css";
 @import "./settings.css";
 @import "./pdfViewer.css";
 @import "./imageViewer.css";
@@ -29,7 +28,7 @@
 @import "./activity.css";
 /* 文件工作台的统一视觉契约必须最后加载，避免历史样式互相覆盖。 */
 @import "./workspace-ui.css";
-@import "./sidebar-refinement.css";
+@import "./sidebar.css";
 
 /* For testing only
  :focus {
@@ -95,7 +94,9 @@ main .spinner .bounce2 {
  * * * * * * * * * * * * * * * */
 
 .action {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
   cursor: pointer;
   transition: 0.2s ease all;
   border: 0;
@@ -118,13 +119,10 @@ main .spinner .bounce2 {
 
 .action i,
 .action > .app-icon {
-  padding: 0.4em;
+  box-sizing: border-box;
+  padding: 0;
   transition: 0.1s ease-in-out all;
   border-radius: 50%;
-}
-
-.action > .app-icon {
-  box-sizing: content-box;
 }
 
 .action:hover {

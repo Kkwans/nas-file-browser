@@ -2100,7 +2100,8 @@
 
   #file-selection .action i,
   #file-selection .action > .app-icon {
-    padding: 8px;
+    box-sizing: border-box;
+    padding: 0;
   }
 
   #listing #multiple-selection {

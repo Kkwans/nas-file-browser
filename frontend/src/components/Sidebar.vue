@@ -313,15 +313,6 @@
               /></span>
               <span>{{ user?.username }}</span>
             </button>
-            <button
-              type="button"
-              class="sidebar-collapse-control"
-              aria-label="折叠为图标侧栏"
-              title="折叠为图标侧栏"
-              @click="toggleDesktopRail(true)"
-            >
-              <AppIcon name="panel-close" :size="20" />
-            </button>
           </div>
         </div>
 
@@ -404,37 +395,8 @@
               >
                 <AppIcon name="folder-new" :size="18" />
               </button>
-              <button
-                v-if="favoritesStore.sortedFavorites.length > 0"
-                class="section-action-btn"
-                type="button"
-                title="清空收藏夹"
-                aria-label="清空收藏夹"
-                @click.stop.prevent="showClearFavoritesConfirm = true"
-              >
-                <AppIcon name="trash" :size="18" />
-              </button>
             </template>
           </SidebarSectionHeader>
-          <div
-            v-if="showClearFavoritesConfirm"
-            class="sidebar-inline-confirm"
-            role="alertdialog"
-            aria-label="确认清空收藏夹"
-          >
-            <span
-              >确认清空全部
-              {{ favoritesStore.sortedFavorites.length }} 项收藏？</span
-            >
-            <div class="sidebar-inline-confirm-actions">
-              <button type="button" @click="showClearFavoritesConfirm = false">
-                取消
-              </button>
-              <button type="button" class="danger" @click="clearAllFavorites">
-                清空
-              </button>
-            </div>
-          </div>
           <template v-if="!collapsedSections.favorites">
             <!-- Create group input -->
             <div v-if="showCreateGroup" class="create-group-input">
@@ -882,12 +844,10 @@
           </template>
         </div>
 
-        <button
+        <div
           v-if="canLogout"
-          @click="logout"
-          class="action sidebar-command sidebar-sortable-module"
+          class="sidebar-footer-actions sidebar-sortable-module"
           :class="sidebarDropClass('module', 'moduleOrder', 'logout')"
-          id="logout"
           :style="moduleStyle('logout')"
           draggable="true"
           @dragstart="onModuleDragStart($event, 'logout')"
@@ -896,12 +856,27 @@
           "
           @drop="onModuleDrop('logout')"
           @dragend="clearSidebarDrag"
-          aria-label="退出"
-          title="登出"
         >
-          <AppIcon name="logout" :size="20" />
-          <span>登出</span>
-        </button>
+          <div v-if="isDesktopViewport" class="sidebar-collapse-row">
+            <IconButton
+              class="sidebar-collapse-control"
+              icon="panel-close"
+              label="折叠为图标侧栏"
+              :icon-size="20"
+              @click="toggleDesktopRail(true)"
+            />
+          </div>
+          <button
+            @click="logout"
+            class="action sidebar-command"
+            id="logout"
+            aria-label="退出"
+            title="登出"
+          >
+            <AppIcon name="logout" :size="20" />
+            <span>登出</span>
+          </button>
+        </div>
       </div>
     </template>
     <template v-else>
@@ -972,6 +947,7 @@ import { useSidebarPreferencesStore } from "@/stores/sidebarPreferences";
 import SidebarSectionHeader from "@/components/sidebar/SidebarSectionHeader.vue";
 import SidebarGroupHeader from "@/components/sidebar/SidebarGroupHeader.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import IconButton from "@/components/ui/IconButton.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 
 import * as auth from "@/utils/auth";
@@ -1038,7 +1014,6 @@ try {
 } catch {}
 
 const showCreateGroup = ref(false);
-const showClearFavoritesConfirm = ref(false);
 const newGroupName = ref("");
 const collapsedGroups = reactive<Record<string, boolean>>({});
 try {
@@ -1117,16 +1092,6 @@ const systemOptions = computed<
   { id: "tasks", icon: "tasks", label: "任务中心" },
   { id: "history", icon: "history", label: "操作历史" },
   { id: "analysis", icon: "chart-storage", label: "存储工具" },
-  ...(user.value?.perm?.create
-    ? ([
-        { id: "new-directory", icon: "folder-new", label: "新建文件夹" },
-        { id: "new-file", icon: "file-new", label: "新建文件" },
-      ] satisfies Array<{
-        id: SystemOptionId;
-        icon: AppIconName;
-        label: string;
-      }>)
-    : []),
 ]);
 
 const orderedSystemOptions = computed(() =>
@@ -1597,15 +1562,6 @@ const favoriteIcon = (name: string) => {
   return isFileByExtension(name)
     ? getResourceIconName(name, "", false)
     : ("folder" as const);
-};
-
-const clearAllFavorites = async () => {
-  if (favoritesStore.sortedFavorites.length === 0) return;
-  const favs = [...favoritesStore.favorites];
-  for (const fav of favs) {
-    await favoritesStore.removeFavorite(fav.id);
-  }
-  showClearFavoritesConfirm.value = false;
 };
 
 const createGroup = async () => {

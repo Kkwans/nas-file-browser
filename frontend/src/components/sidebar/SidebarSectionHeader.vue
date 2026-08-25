@@ -1,5 +1,9 @@
 <template>
-  <div class="sidebar-section-header sidebar-level-one" :class="toneClass">
+  <div
+    class="sidebar-section-header sidebar-level-one"
+    :class="toneClass"
+    :data-expanded="expanded"
+  >
     <button
       class="section-toggle"
       type="button"

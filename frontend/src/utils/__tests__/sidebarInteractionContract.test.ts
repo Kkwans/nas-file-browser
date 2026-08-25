@@ -9,6 +9,14 @@ const readSource = (relativePath: string) =>
     "utf8"
   );
 
+const readSidebarFinalCss = () => {
+  const source = readSource("css/sidebar.css");
+  const marker = "/* PC 侧边栏最终契约";
+  const start = source.lastIndexOf(marker);
+  if (start < 0) throw new Error("缺少收敛后的侧边栏 CSS 区块");
+  return source.slice(start);
+};
+
 describe("侧边栏分组交互契约", () => {
   it("收藏夹分组和目录分类都由整行切换展开状态", () => {
     const headerSource = readSource(
@@ -38,7 +46,7 @@ describe("侧边栏分组交互契约", () => {
     const headerSource = readSource(
       "components/sidebar/SidebarGroupHeader.vue"
     );
-    const refinementCssSource = readSource("css/sidebar-refinement.css");
+    const refinementCssSource = readSidebarFinalCss();
 
     expect(headerSource).toContain('class="sidebar-group-actions"');
     expect(refinementCssSource).toMatch(
@@ -49,7 +57,7 @@ describe("侧边栏分组交互契约", () => {
   });
 
   it("拖拽命中区不绘制独立边界线", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSidebarFinalCss();
 
     expect(cssSource).toMatch(
       /\.sidebar-resize-handle::after\s*\{[^}]*content:\s*none\s*!important;/s
@@ -66,7 +74,7 @@ describe("侧边栏分组交互契约", () => {
 
   it("侧边栏排序提供统一的前后落点提示", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSidebarFinalCss();
 
     expect(sidebarSource).toContain("sidebarDropClass");
     expect(cssSource).toContain(".sidebar-drop-before::before");
@@ -75,7 +83,7 @@ describe("侧边栏分组交互契约", () => {
 
   it("收藏项通过普通落点提示拖回未分组区域", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(sidebarSource).toContain("onUngroupedDrop");
     expect(sidebarSource).toContain(
@@ -132,14 +140,14 @@ describe("侧边栏分组交互契约", () => {
 
   it("收藏拖动不改变原列表项视觉状态", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSidebarFinalCss();
 
     expect(sidebarSource).not.toContain("dragging: draggedFavId === fav.id");
     expect(cssSource).not.toContain(".favorite-item.dragging");
   });
 
   it("落点提示使用克制的纯色细线", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSidebarFinalCss();
 
     expect(cssSource).toMatch(
       /\.sidebar-drop-after::after\s*\{[\s\S]*height:\s*2px;[\s\S]*background:\s*var\(--blue, #1677ff\);/
@@ -150,7 +158,7 @@ describe("侧边栏分组交互契约", () => {
   });
 
   it("同层收藏项与分组图标共用一致的水平起点，悬停不改变宽度", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toMatch(
       /\.sidebar-module \.favorites-ungrouped-drop-zone > \.favorite-item,[\s\S]*\.sidebar-module \.favorite-group-header,[\s\S]*\.sidebar-module \.category-group-header\s*\{[^}]*width:\s*calc\(100% - 1rem\)\s*!important;[^}]*margin-inline:\s*0\.5rem\s*!important;/s
@@ -161,7 +169,7 @@ describe("侧边栏分组交互契约", () => {
   });
 
   it("未分组收藏项与收藏分组使用相同的图标列和图标尺寸", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
     const compactCss = cssSource.replace(/\s+/g, " ");
 
     expect(cssSource).toContain("--sidebar-level-two-icon-column: 1.75rem");
@@ -176,7 +184,7 @@ describe("侧边栏分组交互契约", () => {
 
   it("收藏项移除操作使用克制的可访问命中区，而不是突兀的交叉图标", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(sidebarSource).toContain('class="favorite-remove"');
     expect(sidebarSource).toContain('name="minus"');
@@ -196,7 +204,7 @@ describe("侧边栏分组交互契约", () => {
   });
 
   it("收藏与标签的落点线绘制在条目内部，避免被圆角容器裁掉", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toMatch(
       /\.sidebar-drop-before::before\s*\{[^}]*top:\s*0;/s
@@ -207,7 +215,7 @@ describe("侧边栏分组交互契约", () => {
   });
 
   it("登出图标默认与导航同色，仅在悬停或聚焦时表达危险性", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toMatch(
       /nav\.sidebar \.sidebar-personalized-stack > #logout,\s*nav\.sidebar \.sidebar-rail-logout\s*\{[^}]*color:\s*var\(--textSecondary, #64748b\)\s*!important;/s
@@ -221,16 +229,16 @@ describe("侧边栏分组交互契约", () => {
   });
 
   it("账户卡片与侧栏内容共用一条边界，折叠按钮不再另起一个孤立方框", () => {
-    const cssSource = readSource("css/sidebar-refinement.css");
+    const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toMatch(
       /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-row\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s
     );
     expect(cssSource).toMatch(
-      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-collapse-control\s*\{[^}]*position:\s*absolute;[^}]*right:/s
+      /nav\.sidebar \.sidebar-collapse-row\s*\{[^}]*display:\s*flex;[^}]*margin:\s*0;/s
     );
     expect(cssSource).toMatch(
-      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-card\s*\{[^}]*padding:\s*0\.5rem 3\.25rem 0\.5rem 0\.625rem/s
+      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-card\s*\{[^}]*padding:\s*0\.5rem 0\.625rem !important/s
     );
   });
 });

@@ -149,39 +149,38 @@ function updateRootConfirmed(event: Event) {
   margin-top: 0;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
-  box-shadow: 0 6px 18px
-    color-mix(in srgb, var(--textSecondary) 4%, transparent);
+  box-shadow: none;
 }
 
 .analysis-run-panel__header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 18px;
-  padding: 16px 20px;
+  gap: 14px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--borderPrimary);
   background: var(--surfacePrimary);
 }
 
 .analysis-run-panel__intro {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   min-width: 0;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .analysis-run-panel__mark {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
-  border-radius: 11px;
+  border: 0;
+  border-radius: 8px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 10%, transparent);
+  background: color-mix(in srgb, var(--blue) 8%, transparent);
 }
 
 .analysis-run-panel__intro > div,
@@ -232,7 +231,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(224px, 248px);
+  grid-template-columns: minmax(0, 1fr) minmax(208px, 224px);
   align-items: stretch;
   gap: 0;
   padding: 0;
@@ -243,7 +242,7 @@ function updateRootConfirmed(event: Event) {
 }
 
 .analysis-run-panel__body > .analysis-run-panel__section {
-  padding: 20px;
+  padding: 18px;
 }
 
 .analysis-run-panel__step {
@@ -428,16 +427,16 @@ function updateRootConfirmed(event: Event) {
   align-items: stretch;
   justify-content: space-between;
   gap: 14px;
-  padding: 20px;
+  padding: 18px;
   border: 0;
   border-left: 1px solid var(--borderPrimary);
   border-radius: 0;
-  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
+  background: var(--surfacePrimary);
 }
 
 .analysis-run-panel__section--confirm {
   flex: 0 0 auto;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--borderPrimary);
 }
 
@@ -448,7 +447,7 @@ function updateRootConfirmed(event: Event) {
 .analysis-run-panel__start {
   display: inline-flex;
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 7px;

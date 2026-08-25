@@ -131,4 +131,25 @@ describe("analysis page UI contract", () => {
       /\.analysis-recent__action\s*\{[\s\S]*?width:\s*auto;[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent;/
     );
   });
+
+  it("扫描入口保留步骤信息但移除装饰性阴影和彩色侧栏", () => {
+    const scopeSource = readFileSync(
+      resolve(process.cwd(), "src/components/analysis/AnalysisScopePanel.vue"),
+      "utf8"
+    );
+    const pageSource = readFileSync(
+      resolve(process.cwd(), "src/views/Analysis.vue"),
+      "utf8"
+    );
+
+    expect(scopeSource).toMatch(
+      /\.analysis-run-panel\s*\{[\s\S]*?box-shadow:\s*none;[\s\S]*?border-radius:\s*10px;/
+    );
+    expect(scopeSource).toMatch(
+      /\.analysis-run-panel__footer\s*\{[\s\S]*?background:\s*var\(--surfacePrimary\);/
+    );
+    expect(pageSource).toMatch(
+      /\.analysis-workspace__context > span\s*\{[\s\S]*?font-size:\s*18px;/
+    );
+  });
 });

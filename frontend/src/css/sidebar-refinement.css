@@ -1302,3 +1302,55 @@ nav.sidebar > .credits:last-child {
     min-height: 44px;
   }
 }
+
+/* 2026-08-25: the expanded sidebar uses one quiet surface hierarchy. A
+ * bordered card for every module makes the navigation look like a stack of
+ * unrelated widgets; section headers now read as rows, while the account
+ * block remains the single prominent anchor. */
+@media (min-width: 737px) {
+  nav.sidebar:not(.sidebar--rail) .sidebar-module {
+    padding: 0.5rem 0 0.25rem !important;
+  }
+
+  nav.sidebar:not(.sidebar--rail) .sidebar-section-header {
+    min-height: 2.75rem;
+    padding: 0.125rem 0.25rem 0.125rem 0.5rem;
+    border-color: transparent;
+    border-radius: 0.5rem;
+    background: transparent;
+  }
+
+  nav.sidebar:not(.sidebar--rail) .sidebar-section-header:hover,
+  nav.sidebar:not(.sidebar--rail) .sidebar-section-header:focus-within {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent);
+  }
+
+  nav.sidebar:not(.sidebar--rail) .sidebar-section-header .section-toggle {
+    min-height: 2.5rem;
+    font-size: 0.9375rem;
+  }
+
+  nav.sidebar:not(.sidebar--rail) .sidebar-command {
+    min-height: 2.625rem;
+    border-radius: 0.5rem;
+  }
+
+  nav.sidebar:not(.sidebar--rail) .sidebar-group-header,
+  nav.sidebar:not(.sidebar--rail) .favorite-group-header,
+  nav.sidebar:not(.sidebar--rail) .category-group-header {
+    border-color: transparent;
+    border-radius: 0.5rem;
+    background: transparent;
+  }
+
+  nav.sidebar:not(.sidebar--rail) .sidebar-group-header:hover,
+  nav.sidebar:not(.sidebar--rail) .sidebar-group-header:focus-within,
+  nav.sidebar:not(.sidebar--rail) .favorite-group-header:hover,
+  nav.sidebar:not(.sidebar--rail) .favorite-group-header:focus-visible,
+  nav.sidebar:not(.sidebar--rail) .category-group-header:hover,
+  nav.sidebar:not(.sidebar--rail) .category-group-header:focus-visible {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent);
+  }
+}

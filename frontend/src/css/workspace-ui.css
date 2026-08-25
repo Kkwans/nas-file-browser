@@ -1722,3 +1722,58 @@ nav.sidebar .favorite-item.drag-over-bottom {
     transition: none;
   }
 }
+
+/* 详细网格的操作区是内容的一部分，不是悬浮在文件夹图标上的胶囊。
+ * 固定到底部可以让图标、文件名和修改时间共享同一条视觉基线，也不会
+ * 遮住风险标识或缩略图。桌面端按需显现，触屏端始终保持可达。 */
+@media (min-width: 737px) {
+  #listing.mosaic .item > .item-controls {
+    top: auto;
+    right: 12px;
+    bottom: 10px;
+    left: 12px;
+    width: auto;
+    min-height: 36px;
+    justify-content: flex-end;
+    padding: 3px 0 0;
+    border: 0;
+    border-top: 1px solid var(--borderPrimary, #e2e7ed);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 140ms ease,
+      border-color 140ms ease;
+  }
+
+  #listing.mosaic .item:hover > .item-controls,
+  #listing.mosaic .item:focus-within > .item-controls {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #listing.mosaic .item > .item-controls .item-icon-button,
+  #listing.mosaic .item > .item-controls .file-action-menu-host {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  #listing.mosaic .item > .item-controls {
+    top: auto;
+    right: 12px;
+    bottom: 10px;
+    left: 12px;
+    width: auto;
+    justify-content: flex-end;
+    border: 0;
+    border-top: 1px solid var(--borderPrimary, #e2e7ed);
+    border-radius: 0;
+    background: transparent;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

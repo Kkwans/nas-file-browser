@@ -15,12 +15,6 @@ const readMain = () =>
     "utf8"
   );
 
-const readListing = () =>
-  readFileSync(
-    fileURLToPath(new URL("../../css/listing.css", import.meta.url)),
-    "utf8"
-  );
-
 const readWorkspace = () =>
   readFileSync(
     fileURLToPath(new URL("../../css/workspace-ui.css", import.meta.url)),
@@ -45,18 +39,17 @@ describe("文件列表视觉契约", () => {
     expect(main).not.toContain("document.fonts.ready");
   });
 
-  it("详细网格把条目操作固定在卡片右上角，避免底部悬浮错位", () => {
-    const styles = readListing();
+  it("详细网格把条目操作固定在卡片底部，和标题及时间共享基线", () => {
     const workspaceStyles = readWorkspace();
 
-    expect(styles).toMatch(
-      /#listing\.mosaic \.item-controls\s*\{[^}]*top:\s*8px;[^}]*right:\s*8px;[^}]*bottom:\s*auto;[^}]*left:\s*auto;/s
-    );
-    expect(styles).not.toMatch(
-      /#listing\.mosaic \.item-controls\s*\{[^}]*transform:\s*translateX\(-50%\)/s
-    );
     expect(workspaceStyles).toMatch(
-      /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*top:\s*8px;[^}]*right:\s*8px;[^}]*bottom:\s*auto;[^}]*left:\s*auto;[^}]*width:\s*auto;/s
+      /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*top:\s*auto;[^}]*right:\s*12px;[^}]*bottom:\s*10px;[^}]*left:\s*12px;[^}]*width:\s*auto;[^}]*border-top:\s*1px/s
+    );
+    expect(workspaceStyles).toContain(
+      "#listing.mosaic .item:hover > .item-controls"
+    );
+    expect(workspaceStyles).not.toMatch(
+      /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*transform:\s*translateX\(-50%\)/s
     );
   });
 });

@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.25-phase10-listing-r169
+    image: nas-file-browser:2026.8.25-phase10-analysis-r170
     build:
       context: .
       dockerfile: Dockerfile.custom

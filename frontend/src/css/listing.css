@@ -750,7 +750,7 @@
 #listing.compact-grid .item-name {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.35;
   text-align: center;
   white-space: normal;
@@ -1130,14 +1130,14 @@
 }
 
 #listing.compact-list .item {
-  --resource-icon-size: 32px;
+  --resource-icon-size: 34px;
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) auto;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
-  min-height: 56px;
-  padding: 6px 10px;
+  min-height: 60px;
+  padding: 7px 12px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--listing-surface);
 }
 
@@ -1161,9 +1161,9 @@
 
 #listing.compact-list .item > div:first-child > img,
 #listing.compact-list .item > div:first-child > .file-type-icon {
-  width: 32px;
-  height: 32px;
-  font-size: 32px;
+  width: 34px;
+  height: 34px;
+  font-size: 34px;
 }
 
 #listing.compact-list .item > div:last-child {
@@ -1181,13 +1181,13 @@
 }
 
 #listing.compact-list .item-title-row .item-name {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 #listing.compact-list .detail-meta {
   grid-column: 2;
   grid-row: 2;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 #listing.compact-list .item-tag-list {
@@ -1203,7 +1203,7 @@
 #listing.compact-list .size {
   grid-column: 3;
   align-self: start;
-  margin-top: 8px;
+  margin-top: 7px;
   margin-right: 8px;
 }
 
@@ -1212,7 +1212,9 @@
   grid-row: 2;
   align-self: end;
   margin-right: 8px;
-  font-size: 11px;
+  color: var(--listing-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 #listing.compact-list .item-quick-actions,

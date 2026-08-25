@@ -606,3 +606,6 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 修复：任务项改为图标 / 内容 / 右侧信息栏三段式结构。最近更新时间独立为稳定的右侧时间栏，使用“最近更新”辅助标签、相对时间和完整时间 tooltip；操作按钮与时间同属一个对齐栏，结果入口不再漂浮。移动端保持内容下方分隔操作行和触摸目标，业务筛选、重试、取消、归档、结果弹窗和返回定位不变。历史条目标题与时间值同步提升一级字阶，保留连续时间线。
 - TDD/静态验证：新增活动页契约先在旧模板上失败，修复后活动页契约 `9/9`、前端完整 Vitest `95 files / 370 tests`、ESLint、typecheck、production build 和 `git diff --check` 均通过。
 - 当前结论：本模块只修复任务/历史列表的可证明排版与对齐问题，不把一次列表重排宣称为全站视觉完成；下一步继续以 NAS 本地截图审计文件列表、侧栏图标、媒体和 Markdown 编辑器。
+
+- 发布：Compose 提交 `ae3698e2` 已推送，Compose CI `32836958992` 的前端、后端、race、Docker 构建全部成功；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-activity-r155`，镜像 ID `sha256:7f12455e9bbe9d1e89ae4ab321adb59f9309a56d437db059c76c11ed6d3aa652`。仅重建 `filebrowser`，r154 镜像和 Compose 保留作回滚；容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- NAS 本地 Playwright 真实验收：桌面 `1440×900` 任务首行约 `1178×110px`，右侧时间栏 `132px`，操作按钮 `110×36px`；移动 `390×844` 首行约 `344×180px`，时间和操作位于内容下方同一分隔行。`/tasks`、`/history`、`/files/`、`/analysis`、`/settings/profile`、`/recent`、`/trash`、`/search` 均无页面/控制台错误，桌面和移动 `scrollWidth=clientWidth`。截图：`/tmp/nfb-r155-audit-tasks.png`、`/tmp/nfb-r155-audit-history.png`、`/tmp/nfb-r155-audit-mobile-tasks.png`、`/tmp/nfb-r155-audit-mobile-history.png`。

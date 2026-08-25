@@ -149,36 +149,40 @@ function updateRootConfirmed(event: Event) {
   margin-top: 0;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
-  box-shadow: none;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--textSecondary) 4%, transparent);
 }
 
 .analysis-run-panel__header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 17px 22px;
+  gap: 18px;
+  padding: 15px 20px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: var(--surfacePrimary);
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 32%,
+    var(--surfacePrimary)
+  );
 }
 
 .analysis-run-panel__intro {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   min-width: 0;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
 }
 
 .analysis-run-panel__mark {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
-  border-radius: 8px;
+  border-radius: 9px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 10%, transparent);
 }
@@ -193,7 +197,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__header h1 {
   color: var(--textSecondary);
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -201,7 +205,7 @@ function updateRootConfirmed(event: Event) {
 .analysis-run-panel__eyebrow {
   margin-bottom: 3px !important;
   color: var(--blue);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -233,8 +237,8 @@ function updateRootConfirmed(event: Event) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(236px, 270px);
   align-items: stretch;
-  gap: 24px;
-  padding: 18px 22px 20px;
+  gap: 28px;
+  padding: 18px 20px 19px;
 }
 
 .analysis-run-panel__section {
@@ -256,7 +260,7 @@ function updateRootConfirmed(event: Event) {
   justify-content: center;
   color: var(--blue);
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
-  border-radius: 8px;
+  border-radius: 7px;
   background: color-mix(in srgb, var(--blue) 8%, transparent);
   font-size: 11px;
   font-weight: 800;
@@ -266,14 +270,14 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__step h2 {
   color: var(--textSecondary);
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .analysis-run-panel__step p,
 .analysis-run-panel__step small {
   margin-top: 2px;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .analysis-run-panel__input {
@@ -423,7 +427,7 @@ function updateRootConfirmed(event: Event) {
   align-items: stretch;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 0 0 26px;
+  padding: 0 0 0 28px;
   border: 0;
   border-left: 1px solid var(--borderPrimary);
   border-radius: 0;
@@ -443,7 +447,7 @@ function updateRootConfirmed(event: Event) {
 .analysis-run-panel__start {
   display: inline-flex;
   width: 100%;
-  min-height: 44px;
+  min-height: 46px;
   align-items: center;
   justify-content: center;
   gap: 7px;

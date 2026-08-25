@@ -64,13 +64,13 @@ describe("analysis page UI contract", () => {
     );
 
     expect(recentSource).toMatch(
-      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*76px;/
+      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*82px;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*36px;/
+      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*38px;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent\s*\{[\s\S]*?box-shadow:\s*none;/
+      /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*10px;/
     );
   });
 });

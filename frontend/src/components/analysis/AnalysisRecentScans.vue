@@ -33,8 +33,8 @@
     >
       <span></span>
       <span>扫描记录</span>
-      <span>执行时间</span>
-      <span>结果</span>
+      <span>完成时间</span>
+      <span>操作</span>
     </div>
 
     <ul v-if="!loading && !error && items.length" class="analysis-recent__list">
@@ -79,7 +79,7 @@
           <div class="analysis-recent__time-block">
             <span class="analysis-recent__time-label" aria-hidden="true">
               <AppIcon name="clock" :size="13" />
-              执行时间
+              完成时间
             </span>
             <time
               class="analysis-recent__time"
@@ -182,12 +182,12 @@ function formatTime(value: number) {
 
 <style scoped>
 .analysis-recent {
-  margin-top: 30px;
+  margin-top: 28px;
   overflow: hidden;
-  border-top: 1px solid var(--borderPrimary);
-  border-bottom: 1px solid var(--borderPrimary);
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
+  background: var(--surfacePrimary);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--textSecondary) 3%, transparent);
 }
 
 .analysis-recent__header {
@@ -195,18 +195,22 @@ function formatTime(value: number) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 17px 14px 13px;
+  padding: 16px 18px 14px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: transparent;
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 28%,
+    var(--surfacePrimary)
+  );
 }
 
 .analysis-recent__header-icon {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border: 0;
-  border-radius: 7px;
+  border-radius: 8px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 8%, transparent);
 }
@@ -219,7 +223,7 @@ function formatTime(value: number) {
 
 .analysis-recent__header h2 {
   color: var(--textSecondary);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.25;
   letter-spacing: -0.01em;
 }
@@ -268,8 +272,8 @@ function formatTime(value: number) {
   grid-template-columns: 34px minmax(0, 1fr) 174px 110px;
   align-items: center;
   gap: 16px;
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 36px;
+  padding: 0 18px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textPrimary);
   background: color-mix(in srgb, var(--surfaceSecondary) 42%, transparent);
@@ -288,8 +292,8 @@ function formatTime(value: number) {
   grid-template-columns: 34px minmax(0, 1fr) 174px 110px;
   align-items: center;
   gap: 16px;
-  min-height: 76px;
-  padding: 12px 14px;
+  min-height: 82px;
+  padding: 13px 18px;
   transition: background-color 120ms ease;
 }
 
@@ -303,8 +307,8 @@ function formatTime(value: number) {
 
 .analysis-recent__tool {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border: 0;
   border-radius: 8px;
@@ -335,7 +339,7 @@ function formatTime(value: number) {
 
 .analysis-recent__headline strong {
   color: var(--textSecondary);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.3;
 }
 
@@ -345,7 +349,7 @@ function formatTime(value: number) {
   border-radius: 0;
   color: var(--textPrimary);
   background: transparent;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -394,7 +398,7 @@ function formatTime(value: number) {
   align-items: center;
   gap: 4px;
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.2;
   letter-spacing: 0.03em;
 }
@@ -409,7 +413,7 @@ function formatTime(value: number) {
   align-items: center;
   gap: 5px;
   color: var(--textSecondary);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.35;
 }
 
@@ -423,7 +427,7 @@ function formatTime(value: number) {
 .analysis-recent__metrics {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -438,16 +442,16 @@ function formatTime(value: number) {
   justify-self: end;
   width: 110px;
   box-sizing: border-box;
-  min-height: 36px;
+  min-height: 38px;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--borderPrimary));
-  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--borderPrimary));
+  border-radius: 7px;
   color: var(--blue);
-  background: var(--surfacePrimary);
-  font-size: 12px;
+  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
+  font-size: 13px;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;

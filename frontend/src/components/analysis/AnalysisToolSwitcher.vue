@@ -44,13 +44,13 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   width: min(100%, 480px);
   max-width: 100%;
   align-items: stretch;
-  gap: 4px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
+  border-radius: 8px;
   background: color-mix(
     in srgb,
-    var(--surfaceSecondary) 86%,
+    var(--surfaceSecondary) 48%,
     var(--surfacePrimary)
   );
   box-sizing: border-box;
@@ -62,12 +62,12 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   flex: 1 1 0;
   grid-template-columns: 34px minmax(0, 1fr);
   min-width: 0;
-  min-height: 50px;
+  min-height: 46px;
   align-items: center;
-  gap: 9px;
-  padding: 6px 14px;
+  gap: 10px;
+  padding: 5px 13px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--textPrimary);
   background: transparent;
   cursor: pointer;
@@ -91,8 +91,8 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher button.is-active {
   color: var(--blue);
   border-color: color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
-  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
-  box-shadow: none;
+  background: color-mix(in srgb, var(--blue) 6%, var(--surfacePrimary));
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--blue) 72%, transparent);
 }
 
 .analysis-tool-switcher__icon {
@@ -101,7 +101,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
   height: 34px;
   place-items: center;
   border: 0;
-  border-radius: 8px;
+  border-radius: 7px;
   color: currentColor;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
@@ -114,7 +114,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 
 .analysis-tool-switcher strong {
   color: var(--textSecondary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -122,7 +122,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher small {
   overflow: hidden;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;

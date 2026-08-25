@@ -873,17 +873,17 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: min(1200px, calc(100% - 56px));
+  width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
-  padding: 24px 0 64px;
+  padding: 30px 0 72px;
 }
 
 .analysis-workspace__topline {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 12px;
+  gap: 24px;
+  margin-bottom: 16px;
 }
 
 .analysis-workspace__context {
@@ -893,15 +893,16 @@ onBeforeUnmount(() => {
 .analysis-workspace__context > span {
   display: block;
   color: var(--textSecondary);
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
 }
 
 .analysis-workspace__context p {
-  margin: 3px 0 0;
+  max-width: 42rem;
+  margin: 5px 0 0;
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -915,11 +916,11 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
-  min-height: 52px;
+  min-height: 50px;
   margin-top: 12px;
-  padding: 7px 12px;
+  padding: 7px 14px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 9px;
+  border-radius: 8px;
   color: var(--textSecondary);
   background: color-mix(
     in srgb,
@@ -1193,7 +1194,9 @@ onBeforeUnmount(() => {
 }
 
 .analysis-results-heading {
-  margin-top: 32px;
+  margin-top: 34px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--borderPrimary);
 }
 
 .analysis-readonly-chip {
@@ -1212,16 +1215,16 @@ onBeforeUnmount(() => {
   gap: 0;
   margin-top: 18px;
   overflow: hidden;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 14px;
-  background: var(--surfacePrimary);
+  border-top: 1px solid var(--borderPrimary);
+  border-bottom: 1px solid var(--borderPrimary);
+  background: color-mix(in srgb, var(--surfacePrimary) 72%, transparent);
 }
 
 .analysis-summary-grid article {
   display: grid;
   gap: 6px;
   min-width: 0;
-  padding: 18px 20px;
+  padding: 18px 20px 20px;
   border-right: 1px solid var(--borderPrimary);
 }
 
@@ -1237,7 +1240,7 @@ onBeforeUnmount(() => {
 
 .analysis-summary-grid strong {
   color: var(--textSecondary);
-  font-size: 29px;
+  font-size: 27px;
   letter-spacing: -0.03em;
 }
 
@@ -1281,8 +1284,8 @@ onBeforeUnmount(() => {
   gap: 11px;
   padding: 13px 15px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 11px;
-  background: var(--surfacePrimary);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surfacePrimary) 82%, transparent);
 }
 
 .storage-scope-grid > article > .app-icon {
@@ -1323,8 +1326,8 @@ onBeforeUnmount(() => {
 .storage-rankings > article {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-top: 1px solid var(--borderPrimary);
+  border-bottom: 1px solid var(--borderPrimary);
   background: var(--surfacePrimary);
 }
 
@@ -1333,10 +1336,14 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 50px;
+  min-height: 54px;
   padding: 0 16px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: var(--surfaceSecondary);
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 34%,
+    var(--surfacePrimary)
+  );
 }
 
 .storage-rankings > article > .storage-ranking-header > span {
@@ -1361,7 +1368,7 @@ onBeforeUnmount(() => {
   grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  min-height: 72px;
+  min-height: 76px;
   padding: 8px 16px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textSecondary);
@@ -1457,7 +1464,7 @@ onBeforeUnmount(() => {
 .duplicate-group {
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 11px;
+  border-radius: 9px;
   background: var(--surfacePrimary);
 }
 
@@ -1466,9 +1473,13 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 15px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: var(--surfaceSecondary);
+  background: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 34%,
+    var(--surfacePrimary)
+  );
 }
 
 .duplicate-group > .duplicate-group__header > div {
@@ -1513,8 +1524,8 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 10px;
-  min-height: 58px;
-  padding: 7px 14px;
+  min-height: 64px;
+  padding: 9px 16px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textSecondary);
   text-decoration: none;
@@ -1560,13 +1571,13 @@ onBeforeUnmount(() => {
 }
 
 .duplicate-file-list strong {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .duplicate-file-list small,
 .duplicate-file-list time {
   color: var(--textPrimary);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .analysis-clean-state {

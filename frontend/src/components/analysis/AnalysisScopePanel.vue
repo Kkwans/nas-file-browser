@@ -159,7 +159,7 @@ function updateRootConfirmed(event: Event) {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--borderPrimary);
   background: color-mix(
     in srgb,
@@ -170,16 +170,16 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__intro {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   min-width: 0;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .analysis-run-panel__mark {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
   border-radius: 12px;
@@ -197,7 +197,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__header h1 {
   color: var(--textSecondary);
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -238,7 +238,7 @@ function updateRootConfirmed(event: Event) {
   grid-template-columns: minmax(0, 1fr) minmax(236px, 270px);
   align-items: stretch;
   gap: 24px;
-  padding: 22px 24px 24px;
+  padding: 20px 24px 22px;
 }
 
 .analysis-run-panel__section {
@@ -381,7 +381,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__empty {
   display: flex;
-  min-height: 32px;
+  min-height: 28px;
   align-items: center;
   gap: 8px;
   margin-top: 6px;
@@ -427,14 +427,11 @@ function updateRootConfirmed(event: Event) {
   align-items: stretch;
   justify-content: space-between;
   gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
-  background: color-mix(
-    in srgb,
-    var(--surfaceSecondary) 72%,
-    var(--surfacePrimary)
-  );
+  padding: 0 0 0 24px;
+  border: 0;
+  border-left: 1px solid var(--borderPrimary);
+  border-radius: 0;
+  background: transparent;
 }
 
 .analysis-run-panel__section--confirm {
@@ -468,7 +465,7 @@ function updateRootConfirmed(event: Event) {
   .analysis-run-panel__header {
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
-    padding: 18px 16px;
+    padding: 16px;
   }
 
   .analysis-run-panel__safety {
@@ -490,7 +487,9 @@ function updateRootConfirmed(event: Event) {
     align-items: stretch;
     flex-direction: column;
     gap: 14px;
-    padding: 14px;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--borderPrimary);
+    border-left: 0;
   }
 
   .analysis-run-panel__start {

@@ -61,6 +61,15 @@ describe("存储工具无障碍契约", () => {
     );
   });
 
+  it("扫描动作栏与范围表单保持同一层级", () => {
+    expect(scopePanelSource).toMatch(
+      /\.analysis-run-panel__footer\s*\{[\s\S]*?border-left:\s*1px solid var\(--borderPrimary\)/
+    );
+    expect(scopePanelSource).not.toMatch(
+      /\.analysis-run-panel__footer\s*\{[\s\S]*?border:\s*1px solid var\(--borderPrimary\)/
+    );
+  });
+
   it("最近扫描同时呈现范围、指标、状态、时间和可达结果入口", () => {
     expect(analysisSource).toContain("<AnalysisRecentScans");
     expect(recentScansSource).toContain("item.scopes.join");

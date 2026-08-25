@@ -671,3 +671,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 源码提交 `90d83bfa`、Compose 发布提交 `242ad2d5` 已推送 `master`。NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-tasks-r162`，镜像 ID `sha256:e82ca11cedda0b7756fb689e75c356861c769dbc6b8e990053ee46026a845e43`；仅重建 `filebrowser`，r161 镜像与 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
 - 真实浏览器 Gate：NAS 当前仍缺少可执行的本地 Playwright 依赖，已有脚本引用失效的 Windows 路径并得到 `MODULE_NOT_FOUND`；因此不能伪称 r162 的视觉截图验收通过。GitHub CI/Docs 运行状态需以对应提交的最终结果为准。
 - 当前结论：r162 是任务列表时间/操作轨道的独立结构修复，不宣称任务中心或全站 UI 已完成。下一步继续按优先级审计文件夹/风险图标、侧栏图标语义、媒体首帧和 Markdown 编辑器；每个真实发现仍小步测试、提交、推送、部署。
+
+### 2026-08-25 r163 修正紧凑列表最终覆盖层
+
+- 代码复核发现：`workspace-ui.css` 是最后加载的文件工作台视觉契约，覆盖了 `listing.css` 中紧凑列表的部分尺寸；若只修改基础列表样式，实际部署后的图标、行高和字号仍会保留旧值。这是实现覆盖问题，不是新的产品语义变更。
+- 修复：同步最终覆盖层的紧凑列表图标列 `42px`、资源图标 `34px`、最小行高 `60px`、文件名 `14px`、元信息/时间 `12px` 和数字列 `tabular-nums`；测试同时读取基础与最终覆盖 CSS，防止视觉契约只在源码局部生效。
+- 验证：先在旧覆盖层上得到 `1 failed / 0 passed`，修复后聚焦列表契约 `1/1`；前端完整 lint、typecheck、Vitest `96 files / 375 tests` 和 `git diff --check` 通过。源码提交 `cf6db46f`、Compose 发布提交 `a8b2967b` 已推送。
+- 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-listing-r163`，镜像 ID `sha256:6fd3522a2f191f2f7ca2a8a498acbceb206393d0e8830ed8c3c94902cd015122`；仅重建 `filebrowser`，r162 镜像与 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。GitHub Docs 已成功，r163 Continuous Integration 正在运行。
+- 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，无法宣称紧凑列表视觉坐标和截图已验收；待浏览器环境可用后必须补做桌面、窄容器、移动端和四种布局回归。

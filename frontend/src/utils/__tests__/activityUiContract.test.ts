@@ -98,6 +98,17 @@ describe("activity page UI contract", () => {
     expect(css).toContain(".task-row .task-card-actions > :only-child");
   });
 
+  it("手机任务操作按钮覆盖桌面紧凑规则并保持 44px 触控高度", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(
+      /@media \(max-width: 520px\)[\s\S]*?\.task-row__aside \.task-card-actions button,\s*\.task-row__aside \.task-card-actions a\s*\{[\s\S]*?min-height:\s*44px;/
+    );
+  });
+
   it("任务项将时间与操作放进稳定的右侧栏，避免查看结果漂浮在列表边缘", () => {
     expect(tasksSource).toContain('class="task-row__aside"');
     expect(tasksSource).toContain('class="task-row__time"');

@@ -1802,6 +1802,14 @@
     min-height: 44px;
   }
 
+  /* The task-row action rule is intentionally more specific than the shared
+     action rule above; repeat the mobile hit target here so it cannot fall
+     back to the desktop 36px density. */
+  .task-row__aside .task-card-actions button,
+  .task-row__aside .task-card-actions a {
+    min-height: 44px;
+  }
+
   .task-row__details summary {
     display: inline-flex;
     min-width: 44px;

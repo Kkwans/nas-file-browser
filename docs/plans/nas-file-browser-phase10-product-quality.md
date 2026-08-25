@@ -679,3 +679,11 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - 验证：先在旧覆盖层上得到 `1 failed / 0 passed`，修复后聚焦列表契约 `1/1`；前端完整 lint、typecheck、Vitest `96 files / 375 tests` 和 `git diff --check` 通过。源码提交 `cf6db46f`、Compose 发布提交 `a8b2967b` 已推送。
 - 发布：NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-listing-r163`，镜像 ID `sha256:6fd3522a2f191f2f7ca2a8a498acbceb206393d0e8830ed8c3c94902cd015122`；仅重建 `filebrowser`，r162 镜像与 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。GitHub Docs 已成功，r163 Continuous Integration 正在运行。
 - 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，无法宣称紧凑列表视觉坐标和截图已验收；待浏览器环境可用后必须补做桌面、窄容器、移动端和四种布局回归。
+
+### 2026-08-25 r164 详细网格底部操作栏精修
+
+- 用户继续指出文件列表的图标、文字、排版和操作区缺少精致度。真实截图复核确认详细网格的收藏、标签和更多操作全部贴在操作带右侧，左侧形成大面积空洞，按钮与文件名、修改时间缺少共同基线。
+- 修复：保留详细网格的悬停显现、触屏始终可达、风险图标、缩略图和文件操作契约；将桌面、触屏和移动断点的底部操作带统一居中，增加低对比度表面层、上边界和底部圆角，避免操作图标漂浮在卡片边缘或挤成右侧一团。
+- TDD/静态验证：新增详细网格视觉契约先在旧样式上得到 `1 failed / 4 passed`，修复后聚焦契约 `5/5`；前端完整 lint、typecheck、Vitest `96 files / 376 tests` 和 `git diff --check` 均通过。源码提交 `2fa541da` 已推送。
+- 发布：Compose 提交 `ae6354ce` 已推送；NAS 本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-grid-r164`，镜像 ID `sha256:6410c096c9cf155789f08210834bea63fe6db9ae9dfe8e95cc1d9842b5efde4f`；仅重建 `filebrowser`，r163 镜像与 Compose 保留作回滚。容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`。
+- 真实浏览器 Gate：当前 NAS 仍没有可解析的本地 Playwright 依赖，无法宣称详细网格坐标和截图已验收；待浏览器环境可用后必须补做桌面、窄容器、移动端和触屏操作可达性回归。

@@ -54,6 +54,15 @@ describe("视频兼容播放依赖契约", () => {
     );
   });
 
+  it("已知不兼容容器先读取编码，再自动放行浏览器明确支持的原生轨道", () => {
+    expect(videoPlayerSource).toContain("getNativeContainerPlayback");
+    expect(videoPlayerSource).toContain("mediaApi.getMediaInformation");
+    expect(videoPlayerSource).toContain("probeNativeContainer");
+    expect(videoPlayerSource).toContain("nativeProbeController");
+    expect(videoPlayerSource).toContain("nativeProbeBusy");
+    expect(videoPlayerSource).toContain("controller.signal");
+  });
+
   it("对无 DRM 的 HLS 通过受管补丁解除 EME 初始化等待", () => {
     expect(videoJsPatchSource).toContain("if (!this.source_.keySystems)");
     expect(videoJsPatchSource).toContain(

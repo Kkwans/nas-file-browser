@@ -246,6 +246,7 @@ import {
 } from "@/utils/videoGestures";
 import {
   getVideoSourceType,
+  getNativeContainerPlayback,
   isPlaybackPositionSeekable,
   isKnownIncompatibleVideo,
   supportsH264CompatibilityPlayback,
@@ -292,6 +293,7 @@ const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
 const directPlaybackFailed = ref(false);
 const hlsActive = ref(false);
+const nativeProbeBusy = ref(false);
 // Do not attach containers that the active browser has already declared
 // unsupported.  Attaching them makes Chromium issue a full metadata/range
 // request before it can show the compatibility action, which is especially
@@ -320,6 +322,8 @@ let tapTimer: number | null = null;
 let lastTap = 0;
 let compatibilityPollTimer: number | null = null;
 let compatibilityRequest = 0;
+let nativeProbeRequest = 0;
+let nativeProbeController: AbortController | null = null;
 let loadStateTimer: number | null = null;
 let activeHLSURL = "";
 let hlsResumeCleanup: (() => void) | null = null;
@@ -359,6 +363,8 @@ watch(
     player.value.pause();
     player.value.reset();
     void prepareDirectPlayback(nextPath, nextSource);
+    if (!shouldAttachDirectSource(nextPath))
+      void probeNativeContainer(nextPath);
     void restorePlayback(nextPath);
   }
 );
@@ -381,6 +387,9 @@ onBeforeUnmount(() => {
   stopCompatibilityPolling();
   clearHLSResumeWait();
   compatibilityRequest++;
+  nativeProbeRequest++;
+  nativeProbeController?.abort();
+  nativeProbeController = null;
   player.value?.dispose();
   player.value = null;
 });
@@ -441,7 +450,10 @@ async function initVideoPlayer() {
         // locale chunk cannot be loaded from the local bundle.
       });
     if (sourceAttached.value) beginVideoLoading();
-    else compatibilityPanelOpen.value = true;
+    else {
+      compatibilityPanelOpen.value = true;
+      void probeNativeContainer(initialPath);
+    }
     const playbackPromise = restorePlayback(props.path);
     await playbackPromise;
   } catch (error) {
@@ -608,11 +620,14 @@ const compatibilityCopy = computed(() => {
     default:
       return {
         icon: "movie_filter",
-        title: directPlaybackFailed.value
-          ? "当前浏览器无法直接播放"
-          : "此格式可能需要兼容播放",
-        description:
-          "原视频已先尝试浏览器原生 Range 播放；只有浏览器明确不支持时才会处理。兼容文件生成后支持拖动进度，原文件不会修改。",
+        title: nativeProbeBusy.value
+          ? "正在检查原生播放"
+          : directPlaybackFailed.value
+            ? "当前浏览器无法直接播放"
+            : "此格式可能需要兼容播放",
+        description: nativeProbeBusy.value
+          ? "正在读取视频编码并检查当前浏览器能力，不会自动转码。"
+          : "原视频已先尝试浏览器原生 Range 播放；只有浏览器明确不支持时才会处理。兼容文件生成后支持拖动进度，原文件不会修改。",
       };
   }
 });
@@ -656,9 +671,10 @@ const compatibilityProgressText = computed(() => {
 
 const canStartCompatibility = computed(
   () =>
-    !compatibilityStatus.value ||
-    compatibilityStatus.value.state === "failed" ||
-    compatibilityStatus.value.state === "canceled"
+    !nativeProbeBusy.value &&
+    (!compatibilityStatus.value ||
+      compatibilityStatus.value.state === "failed" ||
+      compatibilityStatus.value.state === "canceled")
 );
 
 const canCancelCompatibility = computed(() =>
@@ -752,6 +768,49 @@ function prepareDirectPlayback(path: string, source: string) {
     return;
   }
   attachDirectSource(path, source);
+}
+
+async function probeNativeContainer(path: string) {
+  if (disposed || path !== props.path || shouldAttachDirectSource(path)) return;
+
+  nativeProbeController?.abort();
+  const controller = new AbortController();
+  const request = ++nativeProbeRequest;
+  nativeProbeController = controller;
+  nativeProbeBusy.value = true;
+
+  try {
+    const information = await mediaApi.getMediaInformation(
+      path,
+      false,
+      controller.signal
+    );
+    if (
+      disposed ||
+      controller.signal.aborted ||
+      request !== nativeProbeRequest ||
+      path !== props.path
+    ) {
+      return;
+    }
+    if (
+      getNativeContainerPlayback(
+        path,
+        information.videoCodec,
+        information.audioCodec
+      ) === "supported"
+    ) {
+      attachDirectSource(path, props.source);
+    }
+  } catch {
+    // A failed metadata probe must not turn into a fake media error. Keep the
+    // explicit compatibility action available and let the user decide.
+  } finally {
+    if (request === nativeProbeRequest) {
+      nativeProbeBusy.value = false;
+      nativeProbeController = null;
+    }
+  }
 }
 
 function shouldAttachDirectSource(path: string) {
@@ -1086,6 +1145,10 @@ function useCompatibilityPlayback() {
 function resetCompatibility() {
   clearHLSResumeWait();
   compatibilityRequest++;
+  nativeProbeRequest++;
+  nativeProbeController?.abort();
+  nativeProbeController = null;
+  nativeProbeBusy.value = false;
   stopCompatibilityPolling();
   compatibilityBusy.value = false;
   compatibilityNetworkError.value = "";

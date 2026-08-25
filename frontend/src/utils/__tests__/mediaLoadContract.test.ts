@@ -114,11 +114,13 @@ describe("media loading contract", () => {
     );
   });
 
-  it("缩略图就绪后大图仍迟迟未完成时才回退原文件", () => {
+  it("超大 JPEG 大图仍迟迟未完成时保持缩略图，不回退原文件", () => {
     expect(imageSource).toContain("fullFallbackTimer");
     expect(imageSource).toContain("armRawImageFallback");
     expect(imageSource).toContain("clearFullFallbackTimer");
-    expect(imageSource).toContain("startRawImageFallback(token)");
+    expect(imageSource).toContain(
+      "大图预览仍在生成，保持缩略图，不回退到原始大图"
+    );
     expect(imageSource).toContain("fullLoadStarted.value");
   });
 

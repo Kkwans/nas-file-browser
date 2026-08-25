@@ -373,11 +373,16 @@ const clearFullFallbackTimer = () => {
 };
 
 const armRawImageFallback = (token: number) => {
-  if (
-    !props.deferFullUntilPlaceholder ||
-    props.placeholderIsFull ||
-    !props.directSrc
-  ) {
+  if (props.deferFullUntilPlaceholder) {
+    // A deferred large-JPEG preview is deliberately bounded to the server
+    // preview. Falling back to the original 8K/10K source while that preview
+    // is still decoding can make Chromium allocate hundreds of MB and look
+    // like a frozen page. The explicit “直接打开” action remains available
+    // if the user really wants the original file.
+    clearFullFallbackTimer();
+    return;
+  }
+  if (props.placeholderIsFull || !props.directSrc) {
     return;
   }
   clearFullFallbackTimer();
@@ -456,7 +461,8 @@ const startRawImageFallback = (token: number) => {
     imageStatus.value !== "loading" ||
     imgex.value === null ||
     !props.directSrc ||
-    (!props.placeholderIsFull && !props.deferFullUntilPlaceholder)
+    !props.placeholderIsFull ||
+    props.deferFullUntilPlaceholder
   ) {
     return;
   }
@@ -497,6 +503,12 @@ const onPlaceholderError = () => {
     return;
   }
   if (props.placeholderIsFull || props.deferFullUntilPlaceholder) {
+    if (props.deferFullUntilPlaceholder) {
+      // Keep the real thumbnail visible while the bounded server preview is
+      // retried. Do not replace it with an unbounded original-image decode.
+      startFullImageLoad(loadToken);
+      return;
+    }
     startRawImageFallback(loadToken);
     return;
   }
@@ -513,8 +525,11 @@ const loadImage = () => {
     placeholderTimer = window.setTimeout(
       () => {
         placeholderTimer = null;
-        if (props.deferFullUntilPlaceholder && props.directSrc) {
-          if (!fullLoadStarted.value) startRawImageFallback(token);
+        if (props.deferFullUntilPlaceholder) {
+          if (!fullLoadStarted.value) {
+            // 大图预览仍在生成，保持缩略图，不回退到原始大图
+            startFullImageLoad(token);
+          }
         } else if (props.placeholderIsFull && props.directSrc) {
           if (!fullLoadStarted.value) startRawImageFallback(token);
         } else {

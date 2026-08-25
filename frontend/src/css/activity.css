@@ -920,7 +920,7 @@
   border: 1px solid var(--borderPrimary);
   border-radius: 12px;
   background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 4%);
+  box-shadow: none;
 }
 
 .task-list__header {
@@ -932,7 +932,7 @@
   padding: 0 18px;
   border-bottom: 1px solid var(--borderPrimary);
   color: var(--textPrimary);
-  background: color-mix(in srgb, var(--surfaceSecondary) 42%, var(--surfacePrimary));
+  background: transparent;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -1167,9 +1167,9 @@
 
 .task-row__aside .task-card-actions .task-result-action {
   min-width: 124px;
-  color: #fff;
-  border-color: var(--blue);
-  background: var(--blue);
+  color: var(--blue);
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
 }
 
 .task-row__aside .task-card-actions button.primary:hover,
@@ -1178,7 +1178,7 @@
 }
 
 .task-row__aside .task-card-actions .task-result-action:hover {
-  background: color-mix(in srgb, var(--blue) 88%, #0f172a);
+  background: color-mix(in srgb, var(--blue) 16%, var(--surfacePrimary));
 }
 
 .task-card-actions button:disabled {

@@ -207,4 +207,19 @@ describe("activity page UI contract", () => {
       /\.task-row__aside \.task-card-actions\s*\{[\s\S]*?grid-column:\s*2;/
     );
   });
+
+  it("任务列表保留主操作层级但避免纯色大按钮和装饰性阴影", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/css/activity.css"),
+      "utf8"
+    );
+
+    expect(css).toMatch(/\.task-list\s*\{[\s\S]*?box-shadow:\s*none;/);
+    expect(css).toMatch(
+      /\.task-list__header\s*\{[\s\S]*?background:\s*transparent;/
+    );
+    expect(css).toMatch(
+      /\.task-row__aside \.task-card-actions \.task-result-action\s*\{[\s\S]*?color:\s*var\(--blue\);[\s\S]*?background:\s*color-mix\(/
+    );
+  });
 });

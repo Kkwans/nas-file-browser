@@ -481,3 +481,14 @@ Phase 10 继续在现有 P0–P2 与 Phase 9 发布成果上迭代，优先解�
 - NAS 本机 Playwright 真实验收：报告页桌面 `1440×900` 与移动 `390×900` 初始状态均显示收纳入口、范围面板未挂载、`aria-expanded=false`；点击后面板可见、`aria-expanded=true`；两种尺寸 `scrollWidth=clientWidth`，控制台错误 `0`。截图：`/tmp/nfb-analysis-result-r137-1440-collapsed.png`、`/tmp/nfb-analysis-result-r137-1440-expanded.png`、`/tmp/nfb-analysis-result-r137-390-collapsed.png`、`/tmp/nfb-analysis-result-r137-390-expanded.png`。
 - 同轮回归：当前 r137 的 Markdown 即时渲染复核显示空闲代码块只显示渲染面、聚焦代码块只显示编辑面，带语言标识的 `bash` 代码块有 Highlight.js 语法着色；当前未复现用户旧截图中的双代码块和纯黑代码问题，不做重复改动。
 - 当前结论：报告页已从“扫描表单优先”调整为“结果优先”；任务、历史、搜索、最近访问、回收站、设置和四种文件列表布局的当前本机截图未发现新的可证明溢出或错误，继续以真实复现为准推进下一项，不以一次截图宣称全站完成。
+
+### 2026-08-25 r138–r139 存储工具整页视觉重构与移动时间排版修复
+
+- 用户反馈不只针对报告页顶部，整个存储工具页面的文字层级、图标、卡片和“时间/查看结果”列表区域都缺少精致度。审计确认旧布局存在多层独立卡片、无语义步骤编号、指标卡彼此割裂，以及时间和结果按钮虽在同一网格但视觉上没有清晰列标题的问题。
+- r138 保留扫描、任务、报告和路由契约，只重排 Analysis 工作区：增加明确的工作区上下文；工具切换器改为稳定双栏控件；报告头使用工具语义图标、报告类型、单行时间/范围元数据和只读状态；摘要改为连续指标带；扫描面板、最近扫描、排行与重复文件列表统一圆角、边框、间距和字号。最近扫描改为“扫描记录 / 执行时间与操作”结构，单行时间标签与“查看结果”按钮在桌面稳定对齐，移动端形成内容下方的操作行。
+- r139 针对真实 390px 截图继续修复报告时间被拆成多行的问题：时间强制单行，移动端只读状态右对齐；不改变数据格式和路由行为。
+- 验证：r138 分析 UI/无障碍契约 `8/8`、目标 ESLint、typecheck 和 `git diff --check` 通过；源码提交 `59f22a35`、Compose 提交 `7f705688` 已推送，GitHub CI `32801802255` 成功。r139 时间排版修复聚焦契约、ESLint、typecheck 通过，源码提交 `fb683e80`、Compose 提交 `20e5d2dd` 已推送；本机 ARM64 镜像 `nas-file-browser:2026.8.25-phase10-analysis-r139` 已构建。
+- 发布：仅重建 `filebrowser`，r139 容器 `running/healthy`，`/health` 返回 `{"status":"OK"}`；r138 Compose 和镜像保留作回滚。未修改数据库、用户文件或未跟踪文件。
+- NAS 本机 Playwright 真实验收：报告页桌面 `1440×900`、移动 `390×900` 无页面/控制台错误、无横向溢出；报告入口的 `aria-expanded` 和范围面板展开行为保持正确。移动报告时间在 r139 为单行，状态芯片右对齐。最近扫描桌面首行约 `1102×96px`，执行时间块与操作按钮同一稳定列，按钮约 `112×44px`；移动首行约 `344×163px`，时间与按钮位于内容下方分隔行，页面 `scrollWidth=clientWidth=390`。空间分布初始页桌面/移动同样无溢出和控制台错误，统一视觉样式未破坏扫描面板。
+- 截图：`/tmp/nfb-analysis-result-r139-1440-collapsed.png`、`/tmp/nfb-analysis-result-r139-1440-expanded.png`、`/tmp/nfb-analysis-result-r139-390-collapsed.png`、`/tmp/nfb-r126-analysis-rail-1440.png`、`/tmp/nfb-r126-analysis-rail-390.png`、`/tmp/nfb-analysis-storage-r139-1440.png`、`/tmp/nfb-analysis-storage-r139-390.png`。
+- 当前结论：存储工具页面已完成一轮以信息层级、对齐和可读性为核心的真实 UI 修订，但这不等于全站视觉已经完成；继续审计其他页面时仍以可复现的用户体验问题和最小独立模块为准，不为追求改动量重复改已通过页面。

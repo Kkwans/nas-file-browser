@@ -17,7 +17,7 @@
     </div>
 
     <div class="header-trailing">
-      <div class="header-primary-actions">
+      <div v-if="slots['primary-actions']" class="header-primary-actions">
         <slot name="primary-actions" />
       </div>
       <div class="header-mobile-actions">

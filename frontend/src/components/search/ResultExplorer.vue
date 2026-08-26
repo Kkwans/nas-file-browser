@@ -279,7 +279,7 @@ function openContextMenu(event: MouseEvent, result: ExplorerResult) {
   contextResult.value = result;
   contextMenuPosition.value = {
     x: event.clientX + 8,
-    y: event.clientY + window.scrollY,
+    y: event.clientY + 8,
   };
   contextMenuVisible.value = true;
 }

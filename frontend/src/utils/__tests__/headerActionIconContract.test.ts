@@ -26,7 +26,9 @@ describe("文件工具栏图标契约", () => {
     const listingSource = readSource("views/files/FileListing.vue");
 
     expect(headerSource).toContain('app-icon="menu"');
+    expect(headerSource).toContain("showMenu && isMobileViewport");
     expect(headerSource).toContain('app-icon="more"');
+    expect(headerSource).toContain('name="primary-actions"');
     expect(listingSource).toContain('app-icon="share"');
     expect(listingSource).toContain('app-icon="rename"');
     expect(listingSource).toContain('app-icon="copy"');
@@ -35,6 +37,8 @@ describe("文件工具栏图标契约", () => {
     expect(listingSource).toContain('app-icon="trash"');
     expect(listingSource).toContain('app-icon="download"');
     expect(listingSource).toContain('app-icon="upload"');
+    expect(listingSource).toContain('app-icon="file-new"');
+    expect(listingSource).toContain('app-icon="folder-new"');
     expect(listingSource).toContain(':app-icon="viewAppIcon"');
   });
 
@@ -50,6 +54,8 @@ describe("文件工具栏图标契约", () => {
       /header \.action > \.app-icon\s*\{[^}]*width:\s*1\.25rem;[^}]*height:\s*1\.25rem;/s
     );
     expect(contextCss).toContain(".context-menu .action > .app-icon");
+    expect(contextCss).toContain("position: fixed;");
+    expect(contextCss).not.toContain("backdrop-filter");
     expect(contextCss).toMatch(
       /\.context-menu \.action > \.app-icon\s*\{[^}]*width:\s*18px;[^}]*height:\s*18px;/s
     );

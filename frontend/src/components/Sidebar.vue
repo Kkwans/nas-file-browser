@@ -34,17 +34,6 @@
             <AppIcon name="user" :size="22" />
             <span class="sidebar-rail-avatar-dot" aria-hidden="true"></span>
           </button>
-          <button
-            type="button"
-            class="sidebar-rail-action sidebar-rail-expand"
-            data-tooltip="展开侧边栏"
-            title="展开侧边栏"
-            aria-label="展开侧边栏"
-            @click="toggleDesktopRail(false)"
-          >
-            <AppIcon name="panel-open" :size="21" />
-          </button>
-
           <div class="sidebar-rail-divider" aria-hidden="true"></div>
 
           <button
@@ -127,17 +116,31 @@
           </button>
 
           <div class="sidebar-rail-spacer"></div>
-          <button
-            v-if="canLogout"
-            type="button"
-            class="sidebar-rail-action sidebar-rail-logout"
-            data-tooltip="登出"
-            title="登出"
-            aria-label="登出"
-            @click="logout"
-          >
-            <AppIcon name="logout" :size="21" />
-          </button>
+          <div class="sidebar-rail-footer">
+            <button
+              type="button"
+              class="sidebar-rail-action sidebar-rail-expand"
+              data-tooltip="展开侧边栏"
+              title="展开侧边栏"
+              aria-label="展开侧边栏"
+              @click="toggleDesktopRail(false)"
+            >
+              <AppIcon name="panel-open" :size="21" />
+              <span class="sidebar-rail-action-label">展开侧栏</span>
+            </button>
+            <button
+              v-if="canLogout"
+              type="button"
+              class="sidebar-rail-action sidebar-rail-logout"
+              data-tooltip="登出"
+              title="登出"
+              aria-label="登出"
+              @click="logout"
+            >
+              <AppIcon name="logout" :size="21" />
+              <span class="sidebar-rail-action-label">登出</span>
+            </button>
+          </div>
         </div>
 
         <Teleport to="body">
@@ -864,7 +867,9 @@
               label="折叠为图标侧栏"
               :icon-size="20"
               @click="toggleDesktopRail(true)"
-            />
+            >
+              <span class="sidebar-collapse-label">折叠侧栏</span>
+            </IconButton>
           </div>
           <button
             @click="logout"

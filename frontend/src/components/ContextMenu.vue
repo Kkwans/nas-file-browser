@@ -2,6 +2,7 @@
   <div
     class="context-menu"
     ref="contextMenu"
+    role="menu"
     v-show="show"
     :style="{
       top: `${top}px`,
@@ -27,7 +28,9 @@ const left = computed(() => {
 
 const top = computed(() => {
   const menuHeight = contextMenu.value?.clientHeight ?? 0;
-  const maxY = window.innerHeight + window.scrollY - menuHeight - 8;
+  // The menu is viewport anchored. Adding scrollY here makes it drift down
+  // on a scrolled listing and can push it below the visible viewport.
+  const maxY = window.innerHeight - menuHeight - 8;
   return Math.max(8, Math.min(props.pos.y, maxY));
 });
 

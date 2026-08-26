@@ -31,7 +31,34 @@
           </button>
         </div>
       </div>
+      <template #primary-actions>
+        <template v-if="!isMobile && authStore.user?.perm.create">
+          <action
+            class="header-primary-action"
+            app-icon="file-new"
+            label="新建文件"
+            show="newFile"
+          />
+          <action
+            class="header-primary-action"
+            app-icon="folder-new"
+            label="新建文件夹"
+            show="newDir"
+          />
+          <action
+            v-if="headerButtons.upload"
+            class="header-primary-action"
+            app-icon="upload"
+            label="上传"
+            @action="uploadFunc"
+          />
+        </template>
+      </template>
       <template #actions>
+        <template v-if="isMobile && authStore.user?.perm.create">
+          <action app-icon="file-new" label="新建文件" show="newFile" />
+          <action app-icon="folder-new" label="新建文件夹" show="newDir" />
+        </template>
         <template v-if="!isMobile">
           <action
             v-if="headerButtons.share"
@@ -184,7 +211,7 @@
           :counter="fileStore.selectedCount"
         />
         <action
-          v-if="headerButtons.upload"
+          v-if="headerButtons.upload && isMobile"
           app-icon="upload"
           id="upload-button"
           label="上传"
@@ -1927,7 +1954,7 @@ const showContextMenu = (event: MouseEvent) => {
   isContextMenuVisible.value = true;
   contextMenuPos.value = {
     x: event.clientX + 8,
-    y: event.clientY + Math.floor(window.scrollY),
+    y: event.clientY + 8,
   };
 };
 

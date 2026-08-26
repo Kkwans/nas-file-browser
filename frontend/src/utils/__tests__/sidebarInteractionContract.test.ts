@@ -72,6 +72,17 @@ describe("侧边栏分组交互契约", () => {
     );
   });
 
+  it("折叠和展开入口都位于登出之前的独立底部区域", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const cssSource = readSource("css/sidebar.css");
+
+    expect(sidebarSource).toContain('class="sidebar-rail-footer"');
+    expect(sidebarSource).toContain('class="sidebar-collapse-row"');
+    expect(sidebarSource).toContain("sidebar-collapse-label");
+    expect(cssSource).toContain(".sidebar-rail-footer");
+    expect(cssSource).toContain(".sidebar-footer-actions");
+  });
+
   it("侧边栏排序提供统一的前后落点提示", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSidebarFinalCss();

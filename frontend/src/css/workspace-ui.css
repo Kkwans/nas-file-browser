@@ -1829,3 +1829,192 @@ nav.sidebar .favorite-item.drag-over-bottom {
     pointer-events: auto;
   }
 }
+
+/* Header contract ------------------------------------------------------
+ * Keep the desktop header predictable even when legacy page rules are
+ * loaded after header.css. The hamburger is a mobile-only transient control;
+ * desktop navigation must never reserve or paint that overlay trigger. */
+header > .header-leading > .menu-button,
+header .header-leading .menu-button {
+  display: none !important;
+}
+
+header .action,
+header .icon-button {
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+header .action > .app-icon,
+header .icon-button > .app-icon {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  flex: 0 0 1.25rem;
+  box-sizing: border-box;
+  padding: 0 !important;
+  overflow: visible;
+  border-radius: 0;
+}
+
+header .action:active,
+header .icon-button:active {
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+}
+
+header > .header-trailing {
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+header > .header-trailing > #dropdown {
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+header > .header-trailing > .header-primary-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.125rem;
+  min-width: 0;
+  padding-right: 0.25rem;
+  border-right: 1px solid var(--divider, #e5e7eb);
+}
+
+@media (min-width: 900px) {
+  header > .header-center {
+    position: static !important;
+    left: auto !important;
+    width: auto !important;
+    min-width: 0;
+    flex: 1 1 auto;
+    transform: none !important;
+  }
+
+  header > .header-center > .listing-search {
+    width: min(36rem, 100%);
+  }
+
+  /* FileListing supplies a primary group (create/upload) and keeps the
+   * remaining commands in a real More menu. This avoids rendering a desktop
+   * action wall while preserving every operation and its existing handler. */
+  header > .header-trailing > #dropdown.has-primary-actions {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    display: flex;
+    width: 272px;
+    max-height: min(34rem, calc(100dvh - 5rem));
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    overflow-y: auto;
+    border: 1px solid var(--borderPrimary, #dbe3ec);
+    border-radius: 10px;
+    background: var(--surfacePrimary, #fff);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.16);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition:
+      opacity 140ms ease,
+      transform 140ms ease,
+      visibility 140ms ease;
+  }
+
+  header > .header-trailing > #dropdown.has-primary-actions.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  header > .header-trailing > #dropdown.has-primary-actions > .action,
+  header > .header-trailing > #dropdown.has-primary-actions > div,
+  header
+    > .header-trailing
+    > #dropdown.has-primary-actions
+    .view-mode-dropdown,
+  header > .header-trailing > #dropdown.has-primary-actions .sort-dropdown {
+    width: 100%;
+  }
+
+  header > .header-trailing > #dropdown.has-primary-actions > .action,
+  header
+    > .header-trailing
+    > #dropdown.has-primary-actions
+    .view-mode-dropdown
+    > .action,
+  header
+    > .header-trailing
+    > #dropdown.has-primary-actions
+    .sort-dropdown
+    > .action {
+    display: flex;
+    height: auto;
+    min-height: 40px;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 10px;
+    border-radius: 7px;
+  }
+
+  header
+    > .header-trailing
+    > #dropdown.has-primary-actions
+    .action
+    span:not(.counter):not(.icon-button__counter) {
+    display: inline;
+    padding-left: 8px;
+    color: inherit;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  header > .header-trailing > #dropdown.has-primary-actions .dropdown-menu {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  header > .header-trailing > #more {
+    display: inline-flex !important;
+    flex: 0 0 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 736px) {
+  header > .header-leading > .menu-button,
+  header .header-leading .menu-button {
+    display: inline-flex !important;
+  }
+
+  header > .header-center > .listing-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 899px) {
+  header > .header-trailing > .header-primary-actions {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  header > .header-trailing > #dropdown.has-primary-actions {
+    transition: none;
+  }
+}

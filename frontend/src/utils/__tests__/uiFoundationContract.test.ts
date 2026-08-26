@@ -4,6 +4,14 @@ import { describe, expect, it } from "vitest";
 const readSource = (relativePath: string) =>
   readFileSync(new URL(`../../${relativePath}`, import.meta.url), "utf8");
 
+const readSidebarFinalCss = () => {
+  const source = readSource("css/sidebar.css");
+  const marker = "/* PC 侧边栏最终契约";
+  const start = source.lastIndexOf(marker);
+  if (start < 0) throw new Error("缺少收敛后的侧边栏 CSS 区块");
+  return source.slice(start);
+};
+
 describe("UI foundation and sidebar contract", () => {
   it("uses a dedicated icon button primitive without glyph padding", () => {
     const iconButtonSource = readSource("components/ui/IconButton.vue");
@@ -57,5 +65,19 @@ describe("UI foundation and sidebar contract", () => {
     expect(touchSource).toContain('if (longPress) return "select"');
     expect(touchSource).toContain('return "toggle-selection"');
     expect(touchSource).toMatch(/return "none";/);
+  });
+
+  it("keeps the account card compact instead of stretching the avatar into a blue tile", () => {
+    const finalCss = readSidebarFinalCss();
+
+    expect(finalCss).toMatch(
+      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-card\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*2\.25rem minmax\(0, 1fr\);/s
+    );
+    expect(finalCss).toMatch(
+      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-card > \.sidebar-user-icon\s*\{[^}]*width:\s*2\.25rem;[^}]*height:\s*2\.25rem;[^}]*flex:\s*0 0 2\.25rem;/s
+    );
+    expect(finalCss).toMatch(
+      /nav\.sidebar:not\(\.sidebar--rail\) \.sidebar-user-card:hover\s*\{[^}]*color:\s*var\(--textSecondary, #282832\) !important;[^}]*transform:\s*none !important;/s
+    );
   });
 });

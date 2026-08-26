@@ -3679,15 +3679,60 @@ html.dark nav.sidebar .sidebar-group-header:focus-within {
 /* Keep the account block as the only anchored surface and make section
  * separators readable enough to preserve the three-level hierarchy. */
 nav.sidebar:not(.sidebar--rail) .sidebar-user-card {
-  background: var(--surfaceSecondary, #f8fafc) !important;
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.75rem;
+  min-height: 3.5rem !important;
+  padding: 0.5rem 0.75rem !important;
+  color: var(--textSecondary, #282832) !important;
+  background: var(--surfacePrimary, #fff) !important;
   border-color: var(--borderPrimary, #e2e8f0) !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
+nav.sidebar:not(.sidebar--rail) .sidebar-user-card > .sidebar-user-icon {
+  display: inline-grid;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  flex: 0 0 2.25rem;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: var(--blue, #2196f3) !important;
+  background: color-mix(
+    in srgb,
+    var(--blue, #2196f3) 12%,
+    var(--surfacePrimary, #fff)
+  ) !important;
+  border: 1px solid color-mix(in srgb, var(--blue, #2196f3) 22%, transparent);
+  border-radius: 0.6875rem;
+}
+
+nav.sidebar:not(.sidebar--rail) .sidebar-user-card > .sidebar-user-icon > .app-icon {
+  color: inherit;
+}
+
+nav.sidebar:not(.sidebar--rail) .sidebar-user-card > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 nav.sidebar:not(.sidebar--rail) .sidebar-user-card:hover {
   border-color: color-mix(in srgb, var(--blue, #1677ff) 30%, var(--borderPrimary, #e2e8f0)) !important;
-  background: color-mix(in srgb, var(--blue, #1677ff) 5%, var(--surfaceSecondary, #f8fafc)) !important;
+  color: var(--textSecondary, #282832) !important;
+  background: var(--surfaceSecondary, #f5f5f8) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 nav.sidebar:not(.sidebar--rail) .sidebar-module + .sidebar-module {

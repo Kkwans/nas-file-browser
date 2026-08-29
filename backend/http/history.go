@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Kkwans/nas-file-browser/backend/events"
 	"github.com/Kkwans/nas-file-browser/backend/history"
 )
 
@@ -131,7 +132,10 @@ func recordHistory(d *data, action, target, detail string, status history.Status
 	if d.store.History == nil || d.user == nil {
 		return
 	}
-	if _, err := d.store.History.Record(d.user.ID, action, target, detail, status); err != nil {
+	entry, err := d.store.History.Record(d.user.ID, action, target, detail, status)
+	if err != nil {
 		log.Printf("WARNING: failed to record %s history for user %d: %v", action, d.user.ID, err)
+		return
 	}
+	events.Default.PublishForUser(entry.UserID, "history.created", entry)
 }

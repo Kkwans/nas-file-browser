@@ -124,7 +124,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
-var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (status int, err error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
@@ -139,6 +139,14 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	})
 	if err != nil {
 		return errToStatus(err), err
+	}
+
+	tracker := newTransferTracker(w, r, d, file)
+	if tracker != nil {
+		defer func() {
+			tracker.finish(status, err)
+		}()
+		w = tracker
 	}
 
 	if files.IsNamedPipe(file.Mode) {

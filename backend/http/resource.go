@@ -29,17 +29,24 @@ import (
 )
 
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	metadataOnly := r.URL.Query().Get("metadata") == "1" || r.URL.Query().Get("metadata") == "true"
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs:         d.user.Fs,
 		Path:       r.URL.Path,
 		Modify:     d.user.Perm.Modify,
-		Expand:     true,
+		Expand:     !metadataOnly,
 		ReadHeader: d.server.TypeDetectionByHeader,
 		Checker:    d,
-		Content:    d.user.Perm.Download,
+		Content:    d.user.Perm.Download && !metadataOnly,
 	})
 	if err != nil {
 		return errToStatus(err), err
+	}
+	// Metadata requests intentionally skip directory expansion. Return the
+	// target's base metadata before the listing-only sort path below; a
+	// directory created with Expand=false has no embedded Listing value.
+	if metadataOnly {
+		return renderJSON(w, r, file)
 	}
 
 	encoding := r.Header.Get("X-Encoding")
@@ -172,7 +179,7 @@ func moveResourceToTrash(w http.ResponseWriter, r *http.Request, d *data, fileCa
 }
 
 func resourcePostHandler(fileCache FileCache) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (status int, err error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
 			return http.StatusForbidden, fmt.Errorf("没有创建权限")
 		}
@@ -184,6 +191,11 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 				recordHistory(d, "file.mkdir", r.URL.Path, "", history.StatusSuccess)
 			}
 			return errToStatus(err), err
+		}
+
+		tracker := newUploadTracker(r, d)
+		if tracker != nil {
+			defer func() { tracker.finish(status, err) }()
 		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{
@@ -217,10 +229,11 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			writeInvoked = true
 			var info os.FileInfo
 			var writeErr error
+			body := tracker.Reader(r.Body)
 			if override {
-				info, writeErr = writeFile(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
+				info, writeErr = writeFile(d.user.Fs, r.URL.Path, body, d.settings.FileMode, d.settings.DirMode)
 			} else {
-				info, writeErr = writeFileExclusive(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
+				info, writeErr = writeFileExclusive(d.user.Fs, r.URL.Path, body, d.settings.FileMode, d.settings.DirMode)
 				createdExclusive = writeErr == nil
 			}
 			if writeErr != nil {

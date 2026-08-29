@@ -42,8 +42,17 @@ type userInfo struct {
 }
 
 type authToken struct {
-	User userInfo `json:"user"`
+	User     userInfo     `json:"user"`
+	Instance instanceInfo `json:"instance"`
 	jwt.RegisteredClaims
+}
+
+// instanceInfo contains non-secret runtime identity that is useful after a
+// user has authenticated. It intentionally lives in the authenticated token;
+// the public bootstrap page must not disclose the host name to logged-out
+// visitors.
+type instanceInfo struct {
+	Hostname string `json:"hostname,omitempty"`
 }
 
 type extractor []string
@@ -260,6 +269,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 			AceEditorTheme:        user.AceEditorTheme,
 			ListingPreferences:    user.ListingPreferences,
 		},
+		Instance: instanceInfo{Hostname: currentHostname()},
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExpirationTime)),
@@ -278,4 +288,12 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 		return http.StatusInternalServerError, err
 	}
 	return 0, nil
+}
+
+func currentHostname() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return ""
+	}
+	return hostname
 }

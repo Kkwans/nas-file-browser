@@ -10,6 +10,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/share"
 	"github.com/Kkwans/nas-file-browser/backend/tags"
 	"github.com/Kkwans/nas-file-browser/backend/tasks"
+	"github.com/Kkwans/nas-file-browser/backend/transfers"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
 )
@@ -27,5 +28,6 @@ type Storage struct {
 	Recent    *recent.Storage
 	Tags      *tags.Storage
 	Tasks     *tasks.Storage
+	Transfers *transfers.Storage
 	Trash     *trash.Storage
 }

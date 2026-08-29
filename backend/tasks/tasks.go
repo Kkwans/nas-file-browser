@@ -7,6 +7,8 @@ import (
 	"errors"
 	"sort"
 	"time"
+
+	"github.com/Kkwans/nas-file-browser/backend/events"
 )
 
 var (
@@ -112,15 +114,24 @@ func (storage *Storage) New(userID uint, ownerName string, taskType Type, title 
 	if err := storage.back.Save(task); err != nil {
 		return nil, err
 	}
+	events.Default.PublishForUser(task.UserID, "task.changed", task)
 	return task.Clone(), nil
 }
 
 func (storage *Storage) Save(task *Task) error {
-	return storage.back.Save(task.Clone())
+	if err := storage.back.Save(task.Clone()); err != nil {
+		return err
+	}
+	events.Default.PublishForUser(task.UserID, "task.changed", task)
+	return nil
 }
 
 func (storage *Storage) Update(task *Task) error {
-	return storage.back.Update(task.Clone())
+	if err := storage.back.Update(task.Clone()); err != nil {
+		return err
+	}
+	events.Default.PublishForUser(task.UserID, "task.changed", task)
+	return nil
 }
 
 func (storage *Storage) Get(userID uint, id string, admin bool) (*Task, error) {
@@ -174,6 +185,7 @@ func (storage *Storage) InterruptActive() error {
 		if err := storage.back.Update(task); err != nil {
 			return err
 		}
+		events.Default.PublishForUser(task.UserID, "task.changed", task)
 	}
 	return nil
 }

@@ -39,12 +39,16 @@ var (
 // FileInfo describes a file.
 type FileInfo struct {
 	*Listing
-	Fs         afero.Fs          `json:"-"`
-	Path       string            `json:"path"`
-	Name       string            `json:"name"`
-	Size       int64             `json:"size"`
-	Extension  string            `json:"extension"`
-	ModTime    time.Time         `json:"modified"`
+	Fs        afero.Fs  `json:"-"`
+	Path      string    `json:"path"`
+	Name      string    `json:"name"`
+	Size      int64     `json:"size"`
+	Extension string    `json:"extension"`
+	ModTime   time.Time `json:"modified"`
+	// Created is the filesystem birth time when the underlying OS exposes a
+	// reliable value. It remains nil for filesystems/platforms without btime;
+	// callers must hide the field instead of presenting ctime as creation time.
+	Created    *time.Time        `json:"created,omitempty"`
 	Mode       os.FileMode       `json:"mode"`
 	IsDir      bool              `json:"isDir"`
 	IsSymlink  bool              `json:"isSymlink"`
@@ -196,6 +200,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 			RiskLevel: risk.Classify(opts.Path),
 			Token:     opts.Token,
 		}
+		setCreatedTime(file)
 	}
 
 	// regular file
@@ -232,6 +237,7 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 		RiskLevel: risk.Classify(opts.Path),
 		Token:     opts.Token,
 	}
+	setCreatedTime(file)
 
 	return file, nil
 }

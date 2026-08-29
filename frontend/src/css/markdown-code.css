@@ -223,6 +223,157 @@
   background: #161b22 !important;
 }
 
+/* Vditor IR/WYSIWYG preview nodes use a different wrapper than the standalone
+ * reading preview. Keep the same code contract there so the line-number
+ * toggle is visible in the editor as well, rather than relying on Vditor's
+ * optional highlighter implementation. */
+#vditor-mount .vditor-ir__preview,
+#vditor-mount .vditor-ir__preview pre,
+#vditor-mount .vditor-wysiwyg__preview,
+#vditor-mount .vditor-wysiwyg__preview pre {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 1em 0 1.3em;
+  padding: 0.65rem 0;
+  overflow: auto;
+  border: 1px solid var(--markdown-border, #d8dee6);
+  border-radius: 7px;
+  color: var(--markdown-code-text, #24292f);
+  background: var(--markdown-code-surface, #f6f8fa);
+  font-family:
+    "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
+  font-size: 0.875em;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+#vditor-mount .vditor-ir__preview > code,
+#vditor-mount .vditor-ir__preview pre > code,
+#vditor-mount .vditor-wysiwyg__preview > code,
+#vditor-mount .vditor-wysiwyg__preview pre > code {
+  display: block;
+  min-width: max-content;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+}
+
+#vditor-mount .vditor-ir__preview > code.has-line-numbers,
+#vditor-mount .vditor-ir__preview pre > code.has-line-numbers,
+#vditor-mount .vditor-wysiwyg__preview > code.has-line-numbers,
+#vditor-mount .vditor-wysiwyg__preview pre > code.has-line-numbers {
+  counter-reset: markdown-line;
+}
+
+#vditor-mount .vditor-ir__preview > code.has-line-numbers .code-line,
+#vditor-mount .vditor-ir__preview pre > code.has-line-numbers .code-line,
+#vditor-mount .vditor-wysiwyg__preview > code.has-line-numbers .code-line,
+#vditor-mount .vditor-wysiwyg__preview pre > code.has-line-numbers .code-line {
+  display: flex;
+  min-width: 100%;
+  min-height: 1.6em;
+  counter-increment: markdown-line;
+  white-space: pre;
+}
+
+#vditor-mount .vditor-ir__preview > code.has-line-numbers .code-line::before,
+#vditor-mount
+  .vditor-ir__preview
+  pre
+  > code.has-line-numbers
+  .code-line::before,
+#vditor-mount
+  .vditor-wysiwyg__preview
+  > code.has-line-numbers
+  .code-line::before,
+#vditor-mount
+  .vditor-wysiwyg__preview
+  pre
+  > code.has-line-numbers
+  .code-line::before {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  flex: 0 0 1.85rem;
+  padding-right: 0.35rem;
+  border-right: 1px solid var(--markdown-border-muted, #e1e6ec);
+  color: var(--markdown-muted, #8c959f);
+  background: var(--markdown-code-surface, #f6f8fa);
+  content: counter(markdown-line);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+}
+
+#vditor-mount .vditor-ir__preview > code.has-line-numbers .code-line-content,
+#vditor-mount
+  .vditor-ir__preview
+  pre
+  > code.has-line-numbers
+  .code-line-content,
+#vditor-mount
+  .vditor-wysiwyg__preview
+  > code.has-line-numbers
+  .code-line-content,
+#vditor-mount
+  .vditor-wysiwyg__preview
+  pre
+  > code.has-line-numbers
+  .code-line-content {
+  flex: 0 0 auto;
+  padding: 0 0.65rem;
+}
+
+#vditor-mount .vditor-ir__preview > code.has-line-numbers .code-line:hover,
+#vditor-mount .vditor-ir__preview pre > code.has-line-numbers .code-line:hover,
+#vditor-mount .vditor-wysiwyg__preview > code.has-line-numbers .code-line:hover,
+#vditor-mount
+  .vditor-wysiwyg__preview
+  pre
+  > code.has-line-numbers
+  .code-line:hover {
+  background: color-mix(in srgb, var(--blue, #0969da) 5%, transparent);
+}
+
+:root.dark #vditor-mount .vditor-ir__preview,
+:root.dark #vditor-mount .vditor-ir__preview pre,
+:root.dark #vditor-mount .vditor-wysiwyg__preview,
+:root.dark #vditor-mount .vditor-wysiwyg__preview pre {
+  border-color: #30363d;
+  color: #e6edf3;
+  background: #161b22;
+}
+
+:root.dark
+  #vditor-mount
+  .vditor-ir__preview
+  > code.has-line-numbers
+  .code-line::before,
+:root.dark
+  #vditor-mount
+  .vditor-ir__preview
+  pre
+  > code.has-line-numbers
+  .code-line::before,
+:root.dark
+  #vditor-mount
+  .vditor-wysiwyg__preview
+  > code.has-line-numbers
+  .code-line::before,
+:root.dark
+  #vditor-mount
+  .vditor-wysiwyg__preview
+  pre
+  > code.has-line-numbers
+  .code-line::before {
+  border-right-color: #30363d;
+  color: #6e7681;
+  background: #161b22;
+}
+
 @media (max-width: 899px) {
   :where(.md_preview, .vditor-reset.vditor-preview--content) pre {
     width: 100%;

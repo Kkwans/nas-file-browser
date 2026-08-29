@@ -7,10 +7,12 @@ export const useAuthStore = defineStore("auth", {
   state: (): {
     user: IUser | null;
     jwt: string;
+    instanceHostname: string;
     logoutTimer: number | null;
   } => ({
     user: null,
     jwt: "",
+    instanceHostname: "",
     logoutTimer: null,
   }),
   getters: {

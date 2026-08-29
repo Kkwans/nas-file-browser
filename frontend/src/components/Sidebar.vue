@@ -945,8 +945,6 @@ import type { CategoryGroup } from "@/api/categories";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useTagsStore } from "@/stores/tags";
 import { useTrashStore } from "@/stores/trash";
-import { useTasksStore } from "@/stores/tasks";
-import { useHistoryStore } from "@/stores/history";
 import { useRecentStore } from "@/stores/recent";
 import { useSidebarPreferencesStore } from "@/stores/sidebarPreferences";
 import SidebarSectionHeader from "@/components/sidebar/SidebarSectionHeader.vue";
@@ -990,8 +988,6 @@ const categoriesStore = useCategoriesStore();
 const favoritesStore = useFavoritesStore();
 const tagsStore = useTagsStore();
 const trashStore = useTrashStore();
-const tasksStore = useTasksStore();
-const historyStore = useHistoryStore();
 const recentStore = useRecentStore();
 const sidebarPreferencesStore = useSidebarPreferencesStore();
 
@@ -1066,13 +1062,13 @@ type SidebarOrderKey = Exclude<
   "categoryPathOrder" | "desktopCollapsed"
 >;
 
-const isDesktopViewport = ref(window.matchMedia("(min-width: 737px)").matches);
+const isDesktopViewport = ref(window.matchMedia("(min-width: 900px)").matches);
 const railPanel = ref<RailPanel | "">("");
 const railPanelTop = ref(64);
 const railRootRef = ref<HTMLElement | null>(null);
 const railPopoverRef = ref<HTMLElement | null>(null);
 const railTriggerElement = ref<HTMLButtonElement | null>(null);
-const desktopMediaQuery = window.matchMedia("(min-width: 737px)");
+const desktopMediaQuery = window.matchMedia("(min-width: 900px)");
 
 // Computed
 const active = computed(() => currentPromptName.value === "sidebar");
@@ -1094,8 +1090,6 @@ const systemOptions = computed<
   { id: "search", icon: "search", label: "搜索" },
   { id: "recent", icon: "clock", label: "最近访问" },
   { id: "trash", icon: "trash", label: "回收站" },
-  { id: "tasks", icon: "tasks", label: "任务中心" },
-  { id: "history", icon: "history", label: "操作历史" },
   { id: "analysis", icon: "chart-storage", label: "存储工具" },
 ]);
 
@@ -1212,8 +1206,6 @@ const isSystemOptionActive = (id: SystemOptionId) => {
   if (id === "search") return path === "/search";
   if (id === "recent") return path === "/recent";
   if (id === "trash") return path === "/trash";
-  if (id === "tasks") return path === "/tasks";
-  if (id === "history") return path === "/history";
   if (id === "analysis") return path === "/analysis";
   if (id === "new-directory") return currentPromptName.value === "newDir";
   if (id === "new-file") return currentPromptName.value === "newFile";
@@ -1444,12 +1436,6 @@ const runSystemOption = (id: SystemOptionId) => {
     closeHovers();
   } else if (id === "trash") {
     router.push({ path: "/trash" });
-    closeHovers();
-  } else if (id === "tasks") {
-    router.push({ path: "/tasks" });
-    closeHovers();
-  } else if (id === "history") {
-    router.push({ path: "/history" });
     closeHovers();
   } else if (id === "analysis") {
     router.push({ path: "/analysis" });
@@ -1871,8 +1857,6 @@ watch(
       tagsStore.tags = [];
       tagsStore.activeFilter = null;
       trashStore.resetForUser();
-      tasksStore.resetForUser();
-      historyStore.resetForUser();
       recentStore.resetForUser();
       return;
     }
@@ -1880,8 +1864,6 @@ watch(
 
     loadedUserId = userId;
     trashStore.resetForUser();
-    tasksStore.resetForUser();
-    historyStore.resetForUser();
     recentStore.resetForUser();
     await Promise.all([
       favoritesStore.loadFavorites(),

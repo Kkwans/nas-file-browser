@@ -248,9 +248,24 @@
                 autocomplete="off"
                 placeholder="例如 /照片/已解压"
               />
+              <button
+                type="button"
+                class="archive-destination-picker"
+                @click="showDestinationPicker = true"
+              >
+                <AppIcon name="folder" :size="18" />
+                浏览
+              </button>
             </div>
             <small>目录必须已存在；同名文件会跳过并写入结果报告。</small>
           </label>
+          <PathPicker
+            v-if="showDestinationPicker"
+            title="选择解压目标目录"
+            :model-value="destination"
+            @select="destination = $event"
+            @close="showDestinationPicker = false"
+          />
           <div class="archive-extract-footer">
             <p>
               <AppIcon name="info" :size="16" />
@@ -343,6 +358,7 @@ import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import PathPicker from "@/components/prompts/PathPicker.vue";
 import * as archiveApi from "@/api/archive";
 import * as taskApi from "@/api/tasks";
 import type { ArchiveExtractReport, ArchiveListing } from "@/api/archive";
@@ -375,6 +391,7 @@ const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 
 const archivePath = ref(archivePathFromRoute());
 const destination = ref(parentPath(archivePath.value));
+const showDestinationPicker = ref(false);
 const listing = ref<ArchiveListing | null>(null);
 const loading = ref(false);
 const loadError = ref("");
@@ -1215,6 +1232,25 @@ onBeforeUnmount(() => {
   outline: 0;
   color: var(--textSecondary);
   background: transparent;
+}
+.archive-destination-picker {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 7px;
+  color: var(--blue);
+  background: var(--surfacePrimary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.archive-destination-picker:hover,
+.archive-destination-picker:focus-visible {
+  border-color: var(--blue);
 }
 .archive-destination small {
   color: var(--textPrimary);

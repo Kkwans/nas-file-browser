@@ -40,6 +40,29 @@
   --borderSecondary: rgba(0, 0, 0, 0.15);
   --dividerPrimary: rgba(255, 255, 255, 0.4);
   --dividerSecondary: rgba(255, 255, 255, 0.9);
+
+  /* Round 2 semantic aliases. Components should consume these names instead
+   * of copying page-specific hex values. */
+  --color-bg: var(--background);
+  --color-surface: var(--surfacePrimary);
+  --color-surface-muted: var(--surfaceSecondary);
+  --color-text: var(--textSecondary);
+  --color-text-muted: var(--textPrimary);
+  --color-border: var(--borderPrimary);
+  --color-border-strong: var(--borderSecondary);
+  --color-divider: var(--divider);
+  --color-focus: var(--focus-ring);
+  --color-accent: var(--blue);
+  --color-danger: var(--icon-red);
+  --z-header: 1000;
+  --z-popover: 1100;
+  --z-modal: 10000;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
 }
 
 :root.dark {
@@ -63,4 +86,16 @@
   --borderSecondary: rgba(255, 255, 255, 0.12);
   --dividerPrimary: rgba(30, 30, 30, 0.4);
   --dividerSecondary: rgba(30, 30, 30, 0.6);
+
+  --color-bg: var(--background);
+  --color-surface: var(--surfacePrimary);
+  --color-surface-muted: var(--surfaceSecondary);
+  --color-text: var(--textSecondary);
+  --color-text-muted: var(--textPrimary);
+  --color-border: var(--borderPrimary);
+  --color-border-strong: var(--borderSecondary);
+  --color-divider: var(--divider);
+  --color-focus: var(--focus-ring);
+  --color-accent: var(--blue);
+  --color-danger: var(--icon-red);
 }

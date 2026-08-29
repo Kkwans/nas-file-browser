@@ -4,7 +4,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { useTagsStore } from "@/stores/tags";
 import { useRecentStore } from "@/stores/recent";
 import { baseURL } from "@/utils/constants";
-import { upload as postTus, useTus } from "./tus";
+import { upload as postTus, uploadTransferId, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import type { ApiMethod, ApiOpts, ApiContent, ChecksumAlg } from "@/types/api";
 import type { TrashItem } from "./trash";
@@ -17,6 +17,7 @@ import type {
   DownloadFormat,
 } from "@/types/file";
 import urlUtils from "@/utils/url";
+import * as transfersApi from "./transfers";
 
 export interface BatchRenameItem {
   from: string;
@@ -78,6 +79,23 @@ export async function fetch(url: string, signal?: AbortSignal) {
     });
   }
 
+  return data;
+}
+
+/** Fetch only the target's metadata without listing a directory or reading
+ * file content. The created field is optional and is omitted by filesystems
+ * that do not expose a trustworthy birth time. */
+export async function fetchMetadata(
+  url: string,
+  signal?: AbortSignal
+): Promise<Resource> {
+  const normalized = removePrefix(url);
+  const res = await fetchURL(`/api/resources${normalized}?metadata=1`, {
+    signal,
+  });
+  const data = (await res.json()) as Resource;
+  data.url = `/files${data.wirePath ?? normalized}`;
+  if (data.isDir && !data.url.endsWith("/")) data.url += "/";
   return data;
 }
 
@@ -168,6 +186,7 @@ export async function postExclusive(path: string, content: Blob) {
 
 export function download(format: DownloadFormat, ...files: string[]) {
   let url = `${baseURL}/api/raw`;
+  const transferId = downloadTransferId();
 
   if (files.length === 1) {
     url += removePrefix(files[0]) + "?";
@@ -186,6 +205,27 @@ export function download(format: DownloadFormat, ...files: string[]) {
   if (format) {
     url += `algo=${format}&`;
   }
+  url += `transfer=${encodeURIComponent(transferId)}&`;
+
+  const target = files.length === 1 ? removePrefix(files[0]) : files.join(",");
+  const name =
+    files.length === 1 ? files[0].split("/").pop() || target : "下载文件";
+  // Public-share callers use a different API module, but keep this guard for
+  // legacy integrations that route through files.download without a session.
+  // A failed telemetry request must never trigger the auth store's 401 logout
+  // side effect or prevent the native download from starting.
+  if (useAuthStore().isLoggedIn) {
+    void transfersApi
+      .createDownload({
+        id: transferId,
+        name,
+        target,
+        url,
+      })
+      .catch(() => {
+        // The raw route remains backwards compatible; telemetry is best effort.
+      });
+  }
 
   // Use a temporary <a> element to trigger download without popup blocker issues
   const a = document.createElement("a");
@@ -194,6 +234,13 @@ export function download(format: DownloadFormat, ...files: string[]) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+function downloadTransferId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `download-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 export async function post(
@@ -241,6 +288,9 @@ async function postResources(
       true
     );
     request.setRequestHeader("X-Auth", authStore.jwt);
+    if (content instanceof Blob) {
+      request.setRequestHeader("X-Transfer-ID", uploadTransferId(url, content));
+    }
 
     if (typeof onupload === "function") {
       request.upload.onprogress = onupload;

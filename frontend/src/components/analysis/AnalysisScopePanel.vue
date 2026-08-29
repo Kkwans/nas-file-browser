@@ -43,6 +43,13 @@
             @input="updateScopeInput"
           />
           <button type="submit" :disabled="!scopeInput.trim()">添加范围</button>
+          <button
+            type="button"
+            class="analysis-run-panel__browse"
+            @click="$emit('browse')"
+          >
+            浏览
+          </button>
         </form>
 
         <div
@@ -131,6 +138,7 @@ const emit = defineEmits<{
   add: [];
   remove: [scope: string];
   start: [];
+  browse: [];
 }>();
 
 const content = computed(() => getAnalysisToolContent(props.tool));
@@ -282,7 +290,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__input {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 10px;
   margin-top: 12px;
@@ -317,6 +325,12 @@ function updateRootConfirmed(event: Event) {
   border-radius: 7px;
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
+}
+
+.analysis-run-panel__input .analysis-run-panel__browse {
+  color: var(--textSecondary);
+  border-color: var(--borderPrimary);
+  background: var(--surfacePrimary);
 }
 
 .analysis-run-panel__input button:disabled,

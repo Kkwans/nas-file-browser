@@ -45,13 +45,119 @@
             label="新建文件夹"
             show="newDir"
           />
-          <action
-            v-if="headerButtons.upload"
-            class="header-primary-action"
-            app-icon="upload"
-            label="上传"
-            @action="uploadFunc"
-          />
+        </template>
+        <template v-if="!isMobile">
+          <div
+            class="view-mode-dropdown files-primary-control"
+            :class="{ open: showViewDropdown }"
+            ref="viewDropdownRef"
+          >
+            <action
+              :app-icon="viewAppIcon"
+              label="切换视图"
+              @action="toggleViewDropdown"
+            />
+            <div v-if="showViewDropdown" class="dropdown-menu">
+              <button
+                class="dropdown-back"
+                type="button"
+                @click.stop="showViewDropdown = false"
+              >
+                <AppIcon name="arrow-left" :size="18" />
+                <span>选择视图</span>
+              </button>
+              <button
+                v-for="mode in viewModes"
+                :key="mode.value"
+                class="dropdown-item"
+                :class="{ active: currentViewMode === mode.value }"
+                type="button"
+                @click="selectViewMode(mode.value)"
+              >
+                <AppIcon :name="mode.icon" :size="19" />
+                <span>{{ mode.label }}</span>
+                <AppIcon
+                  v-if="currentViewMode === mode.value"
+                  name="circle-check"
+                  :size="18"
+                />
+              </button>
+              <template v-if="currentViewMode === 'compact-grid'">
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-section-title">图标大小</div>
+                <button
+                  v-for="size in compactGridSizes"
+                  :key="size.value"
+                  class="dropdown-item compact-grid-size-option"
+                  :class="{ active: compactGridSize === size.value }"
+                  type="button"
+                  @click="selectCompactGridSize(size.value)"
+                >
+                  <AppIcon :name="size.icon" :size="19" />
+                  <span>{{ size.label }}</span>
+                  <AppIcon
+                    v-if="compactGridSize === size.value"
+                    name="circle-check"
+                    :size="18"
+                  />
+                </button>
+              </template>
+            </div>
+          </div>
+          <div
+            class="sort-dropdown files-primary-control"
+            :class="{ open: showSortDropdown }"
+            ref="sortDropdownRef"
+          >
+            <action app-icon="sort" label="排序" @action="toggleSortDropdown" />
+            <div v-if="showSortDropdown" class="dropdown-menu">
+              <button
+                class="dropdown-back"
+                type="button"
+                @click.stop="showSortDropdown = false"
+              >
+                <AppIcon name="arrow-left" :size="18" />
+                <span>选择排序方式</span>
+              </button>
+              <button
+                v-for="opt in sortOptions"
+                :key="opt.by"
+                class="dropdown-item"
+                :class="{
+                  active: sortIsOverridden && currentSortBy === opt.by,
+                }"
+                type="button"
+                @click="selectSort(opt.by)"
+              >
+                <AppIcon :name="opt.icon" :size="19" />
+                <span>{{ opt.label }}</span>
+                <AppIcon
+                  v-if="sortIsOverridden && currentSortBy === opt.by"
+                  class="sort-arrow"
+                  :name="listingSortDirectionIcon(currentSortAsc)"
+                  :size="17"
+                />
+              </button>
+              <div class="dropdown-divider"></div>
+              <button
+                class="dropdown-item"
+                type="button"
+                @click="toggleSortDirection"
+              >
+                <AppIcon name="sort" :size="19" />
+                <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
+              </button>
+              <button
+                class="dropdown-item"
+                type="button"
+                :disabled="!sortIsOverridden"
+                @click="resetSortOverride"
+              >
+                <AppIcon name="undo" :size="19" />
+                <span>恢复账号默认排序</span>
+              </button>
+            </div>
+          </div>
         </template>
       </template>
       <template #actions>
@@ -107,8 +213,16 @@
           label="终端"
           @action="layoutStore.toggleShell"
         />
+        <action
+          v-if="headerButtons.upload && !isMobile"
+          app-icon="upload"
+          id="upload-button"
+          label="上传"
+          @action="uploadFunc"
+        />
         <!-- View Mode Dropdown -->
         <div
+          v-if="isMobile"
           class="view-mode-dropdown"
           :class="{ open: showViewDropdown }"
           ref="viewDropdownRef"
@@ -166,6 +280,7 @@
         </div>
         <!-- Sort Dropdown -->
         <div
+          v-if="isMobile"
           class="sort-dropdown"
           :class="{ open: showSortDropdown }"
           ref="sortDropdownRef"
@@ -184,22 +299,35 @@
               v-for="opt in sortOptions"
               :key="opt.by"
               class="dropdown-item"
-              :class="{ active: currentSortBy === opt.by }"
+              :class="{ active: sortIsOverridden && currentSortBy === opt.by }"
               @click="selectSort(opt.by)"
             >
               <AppIcon :name="opt.icon" :size="19" />
               <span>{{ opt.label }}</span>
               <AppIcon
-                v-if="currentSortBy === opt.by"
+                v-if="sortIsOverridden && currentSortBy === opt.by"
                 class="sort-arrow"
                 :name="listingSortDirectionIcon(currentSortAsc)"
                 :size="17"
               />
             </button>
             <div class="dropdown-divider"></div>
-            <button class="dropdown-item" @click="toggleSortDirection">
+            <button
+              class="dropdown-item"
+              type="button"
+              @click="toggleSortDirection"
+            >
               <AppIcon name="sort" :size="19" />
               <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
+            </button>
+            <button
+              class="dropdown-item"
+              type="button"
+              :disabled="!sortIsOverridden"
+              @click="resetSortOverride"
+            >
+              <AppIcon name="undo" :size="19" />
+              <span>恢复账号默认排序</span>
             </button>
           </div>
         </div>
@@ -293,6 +421,29 @@
         </span>
         <h2>这个文件夹是空的</h2>
         <p>可以新建文件或文件夹，也可以把文件上传到这里。</p>
+        <div class="file-empty-state-actions">
+          <button
+            v-if="authStore.user?.perm.create"
+            type="button"
+            class="primary"
+            @click="layoutStore.showHover('newDir')"
+          >
+            <AppIcon name="folder-new" :size="18" />
+            新建文件夹
+          </button>
+          <button
+            v-if="authStore.user?.perm.create"
+            type="button"
+            @click="layoutStore.showHover('newFile')"
+          >
+            <AppIcon name="file-new" :size="18" />
+            新建文件
+          </button>
+          <button v-if="headerButtons.upload" type="button" @click="uploadFunc">
+            <AppIcon name="upload" :size="18" />
+            上传文件
+          </button>
+        </div>
         <input
           style="display: none"
           type="file"
@@ -335,7 +486,7 @@
                 <button
                   type="button"
                   class="name"
-                  :aria-pressed="currentSortBy === 'name'"
+                  :aria-pressed="sortIsOverridden && currentSortBy === 'name'"
                   @click="sortByHeader('name')"
                 >
                   <span>名称</span>
@@ -343,7 +494,7 @@
                 <button
                   type="button"
                   class="type"
-                  :aria-pressed="currentSortBy === 'type'"
+                  :aria-pressed="sortIsOverridden && currentSortBy === 'type'"
                   @click="sortByHeader('type')"
                 >
                   <span>类型</span>
@@ -351,7 +502,7 @@
                 <button
                   type="button"
                   class="size"
-                  :aria-pressed="currentSortBy === 'size'"
+                  :aria-pressed="sortIsOverridden && currentSortBy === 'size'"
                   @click="sortByHeader('size')"
                 >
                   <span>大小</span>
@@ -359,7 +510,9 @@
                 <button
                   type="button"
                   class="modified"
-                  :aria-pressed="currentSortBy === 'modified'"
+                  :aria-pressed="
+                    sortIsOverridden && currentSortBy === 'modified'
+                  "
                   @click="sortByHeader('modified')"
                 >
                   <span>修改时间</span>
@@ -566,7 +719,7 @@
                     >
                       名称
                       <AppIcon
-                        v-if="currentSortBy === 'name'"
+                        v-if="sortIsOverridden && currentSortBy === 'name'"
                         :name="listingSortDirectionIcon(currentSortAsc)"
                         :size="16"
                       />
@@ -580,7 +733,7 @@
                     >
                       类型
                       <AppIcon
-                        v-if="currentSortBy === 'type'"
+                        v-if="sortIsOverridden && currentSortBy === 'type'"
                         :name="listingSortDirectionIcon(currentSortAsc)"
                         :size="16"
                       />
@@ -594,7 +747,7 @@
                     >
                       大小
                       <AppIcon
-                        v-if="currentSortBy === 'size'"
+                        v-if="sortIsOverridden && currentSortBy === 'size'"
                         :name="listingSortDirectionIcon(currentSortAsc)"
                         :size="16"
                       />
@@ -608,7 +761,7 @@
                     >
                       修改时间
                       <AppIcon
-                        v-if="currentSortBy === 'modified'"
+                        v-if="sortIsOverridden && currentSortBy === 'modified'"
                         :name="listingSortDirectionIcon(currentSortAsc)"
                         :size="16"
                       />
@@ -667,52 +820,57 @@
           :pos="contextMenuPos"
           @hide="hideContextMenu"
         >
-          <action
+          <MenuItemButton
             v-if="headerButtons.share"
-            app-icon="share"
+            icon="share"
             label="分享"
-            show="share"
+            @click="showContextPrompt('share')"
           />
-          <action
+          <MenuItemButton
             v-if="headerButtons.rename"
-            app-icon="rename"
+            icon="rename"
             label="重命名"
-            show="rename"
+            @click="showContextPrompt('rename')"
           />
-          <action
+          <MenuItemButton
             v-if="headerButtons.copy"
             id="copy-button"
-            app-icon="copy"
+            icon="copy"
             label="复制文件"
-            show="copy"
+            @click="showContextPrompt('copy')"
           />
-          <action
+          <MenuItemButton
             v-if="headerButtons.move"
             id="move-button"
-            app-icon="move"
+            icon="move"
             label="移动文件"
-            show="move"
+            @click="showContextPrompt('move')"
           />
-          <action
+          <MenuItemButton
             v-if="headerButtons.delete"
             id="delete-button"
-            app-icon="trash"
+            icon="trash"
             label="删除"
-            show="delete"
+            tone="danger"
+            @click="showContextPrompt('delete')"
           />
-          <action
+          <MenuItemButton
             v-if="headerButtons.download"
-            app-icon="download"
+            icon="download"
             label="下载"
-            @action="download"
+            @click="runContextDownload"
           />
-          <action
+          <MenuItemButton
             v-if="headerButtons.analyze"
-            app-icon="analysis"
+            icon="analysis"
             label="分析"
-            @action="analyzeSelection"
+            @click="runContextAnalysis"
           />
-          <action app-icon="info" label="详细信息" show="info" />
+          <MenuItemButton
+            icon="info"
+            label="详细信息"
+            @click="showContextPrompt('info')"
+          />
         </context-menu>
 
         <input
@@ -857,6 +1015,7 @@ import { Base64 } from "js-base64";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import MenuItemButton from "@/components/ui/MenuItemButton.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 import Item from "@/components/files/ListingItem.vue";
 import DetailedTableRow from "@/components/files/DetailedTableRow.vue";
@@ -970,8 +1129,11 @@ const compactGridSize = ref<CompactGridSize>(
 // Sort dropdown
 const showSortDropdown = ref<boolean>(false);
 const sortDropdownRef = ref<HTMLElement | null>(null);
-const currentSortBy = ref<string>(fileStore.req?.sorting?.by || "name");
-const currentSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
+const accountSortBy = ref<string>(fileStore.req?.sorting?.by || "name");
+const accountSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
+const currentSortBy = ref<string>(accountSortBy.value);
+const currentSortAsc = ref<boolean>(accountSortAsc.value);
+const sortIsOverridden = ref(false);
 const inlineSearch = ref("");
 const sortOptions = [
   { by: "name", icon: listingSortIcon("name"), label: "按名称排序" },
@@ -990,6 +1152,9 @@ const route = useRoute();
 const router = useRouter();
 onBeforeRouteUpdate(() => {
   hideContextMenu();
+  sortIsOverridden.value = false;
+  currentSortBy.value = accountSortBy.value;
+  currentSortAsc.value = accountSortAsc.value;
 });
 
 const listing = ref<HTMLElement | null>(null);
@@ -1120,6 +1285,10 @@ const viewAppIcon = computed<AppIconName>(() => {
 
 const headerButtons = computed(() => {
   return {
+    // The backend models upload permission as `create` (the frontend type
+    // keeps the historical optional `upload` field for fixture compatibility).
+    // Do not gate the upload affordance on a field that the auth token never
+    // sends, otherwise real users silently lose the upload action.
     upload: authStore.user?.perm.create,
     download: authStore.user?.perm.download,
     shell: authStore.user?.perm.execute && enableExec,
@@ -1153,8 +1322,12 @@ watch(req, () => {
 
   // Sync sort state from server
   if (fileStore.req?.sorting) {
-    currentSortBy.value = fileStore.req.sorting.by;
-    currentSortAsc.value = fileStore.req.sorting.asc;
+    accountSortBy.value = fileStore.req.sorting.by;
+    accountSortAsc.value = fileStore.req.sorting.asc;
+    if (!sortIsOverridden.value) {
+      currentSortBy.value = accountSortBy.value;
+      currentSortAsc.value = accountSortAsc.value;
+    }
   }
 
   nextTick(() => {
@@ -1713,6 +1886,21 @@ const analyzeSelection = () => {
   void router.push({ path: "/analysis", query: { paths } });
 };
 
+const showContextPrompt = (prompt: string) => {
+  hideContextMenu();
+  layoutStore.showHover(prompt);
+};
+
+const runContextDownload = () => {
+  hideContextMenu();
+  download();
+};
+
+const runContextAnalysis = () => {
+  hideContextMenu();
+  analyzeSelection();
+};
+
 const selectAll = () => {
   fileStore.setSelected(
     navigableItems.value.map((item) => normalizeFileKey(item.path))
@@ -1799,56 +1987,56 @@ const selectCompactGridSize = (size: CompactGridSize) => {
   localStorage.setItem("nas-file-browser-compact-grid-size", size);
 };
 
-const selectSort = async (by: string) => {
-  const previousSortBy = currentSortBy.value;
+const selectSort = (by: string) => {
   currentSortBy.value = by;
+  currentSortAsc.value = sortIsOverridden.value
+    ? currentSortAsc.value
+    : accountSortAsc.value;
+  sortIsOverridden.value = true;
   showSortDropdown.value = false;
-
-  try {
-    if (authStore.user?.id) {
-      await users.update(
-        { id: authStore.user.id, sorting: { by, asc: currentSortAsc.value } },
-        ["sorting"]
-      );
-    }
-  } catch (e: any) {
-    currentSortBy.value = previousSortBy;
-    $showError(e);
-  }
 };
 
-const sortByHeader = async (by: string) => {
-  if (currentSortBy.value === by) {
-    await toggleSortDirection();
+const sortByHeader = (by: string) => {
+  if (!sortIsOverridden.value || currentSortBy.value !== by) {
+    currentSortBy.value = by;
+    currentSortAsc.value = true;
+    sortIsOverridden.value = true;
     return;
   }
-  await selectSort(by);
+
+  if (currentSortAsc.value) {
+    currentSortAsc.value = false;
+    return;
+  }
+
+  // Third click restores the account default without changing the account
+  // preference itself. The header deliberately renders no active column in
+  // this state even though the rows use the default ordering.
+  sortIsOverridden.value = false;
+  currentSortBy.value = accountSortBy.value;
+  currentSortAsc.value = accountSortAsc.value;
 };
 
 const headerSortState = (by: string) => {
-  if (currentSortBy.value !== by) return "none";
+  if (!sortIsOverridden.value || currentSortBy.value !== by) return "none";
   return currentSortAsc.value ? "ascending" : "descending";
 };
 
-const toggleSortDirection = async () => {
-  const previousSortAsc = currentSortAsc.value;
-  currentSortAsc.value = !currentSortAsc.value;
-  showSortDropdown.value = false;
-
-  try {
-    if (authStore.user?.id) {
-      await users.update(
-        {
-          id: authStore.user.id,
-          sorting: { by: currentSortBy.value, asc: currentSortAsc.value },
-        },
-        ["sorting"]
-      );
-    }
-  } catch (e: any) {
-    currentSortAsc.value = previousSortAsc;
-    $showError(e);
+const toggleSortDirection = () => {
+  if (!sortIsOverridden.value) {
+    sortIsOverridden.value = true;
+    currentSortAsc.value = true;
+  } else {
+    currentSortAsc.value = !currentSortAsc.value;
   }
+  showSortDropdown.value = false;
+};
+
+const resetSortOverride = () => {
+  sortIsOverridden.value = false;
+  currentSortBy.value = accountSortBy.value;
+  currentSortAsc.value = accountSortAsc.value;
+  showSortDropdown.value = false;
 };
 
 // Close dropdowns on outside click

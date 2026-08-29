@@ -13,8 +13,6 @@ export const DEFAULT_SYSTEM_OPTION_ORDER = [
   "search",
   "recent",
   "trash",
-  "tasks",
-  "history",
   "analysis",
   "new-directory",
   "new-file",

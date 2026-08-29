@@ -44,6 +44,36 @@ header > .header-leading {
   gap: 0.375em;
 }
 
+.header-instance {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.0625rem;
+  max-width: 15rem;
+  line-height: 1.15;
+}
+
+.header-instance__name,
+.header-instance__host {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-instance__name {
+  color: var(--textPrimary);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.header-instance__host {
+  color: var(--textSecondary);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
 header > .header-center {
   flex: 1 1 auto;
   min-width: 0;
@@ -54,6 +84,53 @@ header > .header-trailing {
   flex: 0 0 auto;
   gap: 0.25em;
   margin-left: auto;
+}
+
+.header-task-center {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--action, var(--textPrimary));
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.header-task-center:hover,
+.header-task-center:focus-visible {
+  color: var(--blue, #1677ff);
+  background: color-mix(in srgb, var(--blue, #1677ff) 8%, transparent);
+}
+
+.header-task-center:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--blue, #1677ff));
+  outline-offset: 2px;
+}
+
+.header-task-center__badge {
+  position: absolute;
+  top: 0.125rem;
+  right: 0.0625rem;
+  display: inline-grid;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.1875rem;
+  place-items: center;
+  color: #fff;
+  background: var(--blue, #1677ff);
+  border: 2px solid var(--surfacePrimary, #fff);
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .header-mobile-actions {
@@ -118,8 +195,9 @@ header > div div {
   position: relative;
 }
 
-/* Action button labels hidden in header */
-header .action span {
+/* Header actions are icon-first; keep their accessible label in aria/title
+ * while leaving the counter visible. */
+header .action-label {
   display: none;
 }
 
@@ -262,7 +340,7 @@ header .action.active > .app-icon {
 }
 
 /* Desktop workspace toolbar: keep FileBrowser's primary actions visible. */
-@media (min-width: 737px) {
+@media (min-width: 900px) {
   header > .header-center {
     position: static;
     width: 18rem;
@@ -681,7 +759,7 @@ html.dark header .breadcrumbs a:hover {
 
 /* === MOBILE === */
 
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   header {
     height: 3em;
     padding: 0 0.5em 0 0.75em;
@@ -729,6 +807,20 @@ html.dark header .breadcrumbs a:hover {
 
   header img {
     display: none;
+  }
+
+  .header-instance {
+    max-width: min(10rem, 38vw);
+  }
+
+  .header-instance__host {
+    display: none;
+  }
+
+  .header-task-center {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
   }
 
   header .header-title {
@@ -799,7 +891,7 @@ html.dark header .breadcrumbs a:hover {
     padding: 0.5em 0.75em;
   }
 
-  #dropdown .action span:not(.counter) {
+  #dropdown .action .action-label {
     display: inline-block;
     padding: 0.25em 0.5em;
     font-size: 0.875em;

@@ -24,7 +24,7 @@ describe("移动端多选界面契约", () => {
     const cssSource = readSource("css/listing.css");
 
     expect(cssSource).toMatch(
-      /@media \(max-width: 736px\)\s*\{[\s\S]*?#listing #multiple-selection,[\s\S]*?#listing #multiple-selection\.active\s*\{[^}]*display:\s*none\s*!important;/s
+      /@media \(max-width: 899px\)\s*\{[\s\S]*?#listing #multiple-selection,[\s\S]*?#listing #multiple-selection\.active\s*\{[^}]*display:\s*none\s*!important;/s
     );
   });
 

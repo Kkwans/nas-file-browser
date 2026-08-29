@@ -12,6 +12,7 @@ import * as history from "./history";
 import * as analysis from "./analysis";
 import * as archive from "./archive";
 import * as media from "./media";
+import * as transfers from "./transfers";
 
 export {
   files,
@@ -28,4 +29,5 @@ export {
   analysis,
   archive,
   media,
+  transfers,
 };

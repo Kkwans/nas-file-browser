@@ -42,6 +42,9 @@ describe("Markdown 编辑器交互契约", () => {
     expect(editorSource).toContain('initVditorWithMode(content, "ir")');
     expect(editorSource).toContain("switchMode('ir')");
     expect(editorSource).toContain("codeBlockPreview: true");
+    expect(editorSource).toMatch(
+      /hljs:\s*\{[\s\S]*getMarkdownHighlightOptions\(showLineNumbers\.value\),[\s\S]*lineNumber:\s*false/
+    );
     expect(editorSource).toContain('class="editor-mode-action"');
     expect(editorSource).toMatch(
       /:global\(#editor-container \.editor-mode-action\)\s*\{[\s\S]*line-height:\s*0;/
@@ -63,13 +66,18 @@ describe("Markdown 编辑器交互契约", () => {
     );
     expect(resourceLoaderSource).toContain(".vditor-ir__preview pre > code");
     expect(editorSource).toContain(
-      "highlightMarkdownEditorPreviews(currentMount)"
+      "highlightMarkdownEditorPreviews(currentMount, {"
     );
+    expect(editorSource).toContain("showLineNumbers: showLineNumbers.value");
     expect(editorSource).toContain(
       "setupMarkdownPreviewHighlightObserver(generation)"
     );
     expect(resourceLoaderSource).toContain("nfbHighlighted");
     expect(resourceLoaderSource).toContain("nfbHighlightMarkup");
+    expect(resourceLoaderSource).toContain("nfbLineNumbers");
+    expect(resourceLoaderSource).toContain(
+      ".vditor-ir__marker--pre > code, .vditor-wysiwyg__block > pre > code"
+    );
     expect(editorSource).toContain(
       "scheduleMarkdownPreviewHighlight(generation)"
     );
@@ -110,6 +118,17 @@ describe("Markdown 编辑器交互契约", () => {
     expect(codeStyles).toMatch(/flex:\s*0 0 1\.85rem;/);
     expect(codeStyles).toMatch(
       /\.code-line-content\s*\{[\s\S]*padding:\s*0 0\.65rem;/
+    );
+  });
+  it("IR/预览只保留内部滚动容器，挂载壳层不重复滚动", () => {
+    expect(vditorStyles).toMatch(
+      /#vditor-mount \.vditor-content\s*\{[\s\S]*overflow:\s*hidden;/
+    );
+    expect(vditorStyles).toMatch(
+      /#vditor-mount \.vditor-ir,[\s\S]*#vditor-mount \.vditor-preview\s*\{[\s\S]*overflow-y:\s*auto;/
+    );
+    expect(editorSource).toMatch(
+      /\.vditor-mount\s*\{[\s\S]*overflow:\s*hidden;/
     );
   });
   it("uses a focused reading width and styles prose primitives", () => {
@@ -160,7 +179,7 @@ describe("Markdown 编辑器交互契约", () => {
       /@media \(max-width: 899px\)[\s\S]*?#editor-container > header > \.header-leading,[\s\S]*?#editor-container > header > \.header-trailing\s*\{[\s\S]*flex-basis:\s*44px;/
     );
     expect(workspaceStyles).toMatch(
-      /#editor-container > header > \.header-center > \.action,[\s\S]*?#editor-container > header > \.header-trailing \.header-mobile-actions > \.action\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/
+      /#editor-container\s*>\s*header\s*>\s*\.header-center\s*>\s*\.action,[\s\S]*?#editor-container\s*>\s*header\s*>\s*\.header-trailing\s+\.header-mobile-actions\s*>\s*\.action\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/
     );
   });
 

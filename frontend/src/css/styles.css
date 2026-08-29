@@ -26,6 +26,7 @@
 @import "./prompts.css";
 @import "./trash.css";
 @import "./activity.css";
+@import "./task-center.css";
 /* 文件工作台的统一视觉契约必须最后加载，避免历史样式互相覆盖。 */
 @import "./workspace-ui.css";
 @import "./sidebar.css";
@@ -517,13 +518,15 @@ main .spinner .bounce2 {
   overflow: hidden;
 }
 
-/* Vditor needs its own scroll, override container overflow */
+/* Vditor owns the editor-pane scroll; the fixed editor shell must not become
+ * a second page-level scroll container. */
 #editor-container:has(.markdown-editor-active) {
-  overflow: visible;
+  overflow: hidden;
 }
 
 #editor-container .vditor-mount {
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 #editor-container .bar {

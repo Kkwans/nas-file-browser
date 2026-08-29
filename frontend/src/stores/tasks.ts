@@ -62,6 +62,21 @@ export const useTasksStore = defineStore("tasks", {
         this.loading = false;
       }
     },
+    // Header only needs the aggregate badge. Keep the full list untouched so
+    // navigating away from Task Center does not discard a caller's current
+    // filter/page while still making the global badge useful after login.
+    async loadSummary() {
+      if (this.loading && this.loaded) return;
+      try {
+        const response = await api.list({ limit: 1 });
+        this.total = response.total;
+        this.counts = response.counts;
+        this.owners = response.owners;
+      } catch {
+        // The header is non-blocking; the Task Center itself exposes errors
+        // and offers an explicit retry action.
+      }
+    },
     async loadMore() {
       if (!this.nextCursor || this.loading) return;
       this.loading = true;

@@ -12,8 +12,7 @@ const Share = () => import("@/views/Share.vue");
 const SearchPage = () => import("@/views/SearchPage.vue");
 const Recent = () => import("@/views/Recent.vue");
 const Trash = () => import("@/views/Trash.vue");
-const Tasks = () => import("@/views/Tasks.vue");
-const History = () => import("@/views/History.vue");
+const TaskCenter = () => import("@/views/TaskCenter.vue");
 const Analysis = () => import("@/views/Analysis.vue");
 const Archive = () => import("@/views/Archive.vue");
 const Settings = () => import("@/views/Settings.vue");
@@ -129,23 +128,13 @@ const routes = [
       {
         path: "",
         name: "Tasks",
-        component: Tasks,
+        component: TaskCenter,
       },
     ],
   },
   {
     path: "/history",
-    component: Layout,
-    meta: {
-      requiresAuth: true,
-    },
-    children: [
-      {
-        path: "",
-        name: "History",
-        component: History,
-      },
-    ],
+    redirect: { path: "/tasks", query: { tab: "history" } },
   },
   {
     path: "/analysis",

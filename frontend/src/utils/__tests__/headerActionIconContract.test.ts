@@ -75,7 +75,7 @@ describe("文件工具栏图标契约", () => {
       /header > \.header-trailing #dropdown \.action\s*\{[^}]*display:\s*flex;[^}]*width:\s*100%;[^}]*min-height:\s*42px;/s
     );
     expect(workspaceCss).toMatch(
-      /@media \(max-width: 736px\)[\s\S]*header > \.header-trailing > #more\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/
+      /@media \(max-width: 899px\)[\s\S]*header > \.header-trailing > #more\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/
     );
   });
 });

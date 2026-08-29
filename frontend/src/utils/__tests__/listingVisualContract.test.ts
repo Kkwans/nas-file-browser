@@ -45,8 +45,8 @@ describe("文件列表视觉契约", () => {
     expect(workspaceStyles).toMatch(
       /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*top:\s*auto;[^}]*right:\s*12px;[^}]*bottom:\s*10px;[^}]*left:\s*12px;[^}]*width:\s*auto;[^}]*border-top:\s*1px/s
     );
-    expect(workspaceStyles).toContain(
-      "#listing.mosaic .item:hover > .item-controls"
+    expect(workspaceStyles).toMatch(
+      /#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/s
     );
     expect(workspaceStyles).not.toMatch(
       /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*transform:\s*translateX\(-50%\)/s
@@ -57,10 +57,10 @@ describe("文件列表视觉契约", () => {
     const workspaceStyles = readWorkspace();
 
     expect(workspaceStyles).toMatch(
-      /@media \(max-width: 736px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?top:\s*auto;[\s\S]*?bottom:\s*10px;[\s\S]*?opacity:\s*1;/s
+      /@media \(max-width: 899px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?top:\s*auto;[\s\S]*?bottom:\s*10px;[\s\S]*?opacity:\s*1;/s
     );
     expect(workspaceStyles).toMatch(
-      /@media \(max-width: 736px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls \.item-icon-button,[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/s
+      /@media \(max-width: 899px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls \.item-icon-button,[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/s
     );
   });
 
@@ -68,10 +68,10 @@ describe("文件列表视觉契约", () => {
     const workspaceStyles = readWorkspace();
 
     expect(workspaceStyles).toMatch(
-      /@media \(min-width: 737px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?background:\s*color-mix\(/s
+      /@media \(min-width: 900px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?background:\s*color-mix\(/s
     );
     expect(workspaceStyles).toMatch(
-      /@media \(max-width: 736px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;/s
+      /@media \(max-width: 899px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;/s
     );
   });
 });

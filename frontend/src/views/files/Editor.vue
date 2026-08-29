@@ -329,7 +329,11 @@ const scheduleMarkdownPreviewHighlight = (generation: number) => {
     markdownPreviewHighlightTimer = null;
     if (generation !== editorGeneration) return;
     const currentMount = document.getElementById("vditor-mount");
-    if (currentMount) highlightMarkdownEditorPreviews(currentMount);
+    if (currentMount) {
+      highlightMarkdownEditorPreviews(currentMount, {
+        showLineNumbers: showLineNumbers.value,
+      });
+    }
   }, 120);
 };
 
@@ -344,11 +348,22 @@ const setupMarkdownPreviewHighlightObserver = (generation: number) => {
     const needsHighlight = Array.from(
       mountEl.querySelectorAll<HTMLElement>(".vditor-ir__preview code")
     ).some((code) => {
-      const rawSource = (code.textContent ?? "").replace(/\u200b/g, "");
+      const hasOurMarkup = Boolean(
+        code.querySelector(".code-line, .code-line-content")
+      );
+      const sourceNode = code
+        .closest<HTMLElement>(".vditor-ir__node")
+        ?.querySelector<HTMLElement>(".vditor-ir__marker--pre > code");
+      const rawSource = (
+        hasOurMarkup && code.dataset.rawSource !== undefined
+          ? code.dataset.rawSource
+          : (sourceNode?.textContent ?? code.textContent ?? "")
+      ).replace(/\u200b/g, "");
       const hasHighlightMarkup = Boolean(code.querySelector("span"));
       return (
         code.dataset.nfbHighlighted !== "true" ||
         code.dataset.rawSource !== rawSource ||
+        code.dataset.nfbLineNumbers !== String(showLineNumbers.value) ||
         (code.dataset.nfbHighlightMarkup === "true" && !hasHighlightMarkup)
       );
     });
@@ -712,7 +727,14 @@ const initVditorWithMode = async (
     undoDelay: 200,
     tab: "\t",
     preview: {
-      hljs: getMarkdownHighlightOptions(showLineNumbers.value),
+      // Vditor 的内置行号插件会在 IR DOM 稳定后再次重写 code 内容，
+      // 与应用逐行高亮/行号装饰冲突并把源码拼成一行。行号由应用层
+      // `highlightMarkdownEditorPreviews` 统一负责，保留 Vditor 的高亮
+      // 配置但关闭它自己的 gutter。
+      hljs: {
+        ...getMarkdownHighlightOptions(showLineNumbers.value),
+        lineNumber: false,
+      },
       theme: {
         current: isDark ? "dark" : "light",
       },
@@ -1376,7 +1398,8 @@ const finishClose = () => {
 <style scoped>
 .vditor-mount {
   flex: 1;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .editor-lightweight-shell {

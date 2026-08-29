@@ -69,7 +69,7 @@
         <span class="info-value">{{ humanTime }}</span>
       </div>
 
-      <div class="info-row" v-if="selectedCount < 2">
+      <div class="info-row" v-if="selectedCount < 2 && creationTime">
         <span class="info-label">创建时间</span>
         <span class="info-value">{{ creationTime }}</span>
       </div>
@@ -202,6 +202,7 @@ const { req, selectedItems, selectedCount, isListing, reload, preselect } =
 const editableName = ref("");
 const renaming = ref(false);
 const pathCopied = ref(false);
+const metadataResource = ref<any>(null);
 
 const rawSize = computed(() => {
   if (isDirectoryInfo.value && directoryStats.value) {
@@ -218,18 +219,29 @@ const humanSize = computed(() => {
 });
 
 onMounted(async () => {
-  if (!isDirectoryInfo.value) return;
+  if (isDirectoryInfo.value) {
+    try {
+      directoryStats.value = summarizeDirectory(
+        await api.fetchAll(directoryPath.value)
+      );
+    } catch {
+      statsError.value = "目录统计失败，请稍后重试";
+    }
+  }
+
+  if (selectedCount.value > 1 || !selectedResource.value) return;
   try {
-    directoryStats.value = summarizeDirectory(
-      await api.fetchAll(directoryPath.value)
+    metadataResource.value = await api.fetchMetadata(
+      selectedResource.value.url || fullPath.value
     );
   } catch {
-    statsError.value = "目录统计失败，请稍后重试";
+    // Metadata is additive. If a filesystem cannot provide birth time the
+    // optional row simply remains hidden and the rest of the dialog works.
   }
 });
 
 const humanTime = computed(() => {
-  const resource = selectedResource.value;
+  const resource = metadataResource.value ?? selectedResource.value;
   return resource?.modified
     ? dayjs(resource.modified).format("YYYY年M月D日 HH:mm:ss")
     : "后端未提供";
@@ -249,8 +261,8 @@ const selectedResource = computed<any>(() => {
 
 const creationTime = computed(() => {
   const value =
-    selectedResource.value?.created ?? selectedResource.value?.createdAt;
-  return value ? dayjs(value).format("YYYY年M月D日 HH:mm:ss") : "后端未提供";
+    metadataResource.value?.created ?? selectedResource.value?.created;
+  return value ? dayjs(value).format("YYYY年M月D日 HH:mm:ss") : "";
 });
 
 const fullPath = computed(() => {
@@ -446,7 +458,8 @@ const checksum = async (
 }
 
 .info-title-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
   width: 100%;
   align-items: center;
   gap: 0.75em;
@@ -459,9 +472,11 @@ const checksum = async (
   border-radius: 0.5em;
   background: var(--surfaceSecondary, #f0f0f5);
   flex-shrink: 0;
+  justify-self: start;
 }
 
 .info-title-text {
+  grid-column: 2;
   min-width: 0;
 }
 
@@ -487,7 +502,8 @@ const checksum = async (
 
 /* Row layout: label | value */
 .info-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
   align-items: flex-start;
   padding: 0.45em 0;
   gap: 0.75em;
@@ -499,8 +515,7 @@ const checksum = async (
 }
 
 .info-label {
-  flex-shrink: 0;
-  width: 5.5em;
+  min-width: 0;
   font-size: 0.85em;
   font-weight: 600;
   color: var(--textPrimary, #666);
@@ -508,6 +523,7 @@ const checksum = async (
 }
 
 .info-value {
+  min-width: 0;
   font-size: 0.9em;
   color: var(--textPrimary, #333);
   word-break: break-all;
@@ -739,7 +755,7 @@ html.dark .info-type-icon {
 
 .info-path-value {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
   flex: 1;
   min-width: 0;
@@ -807,11 +823,16 @@ html.dark .info-type-icon {
   }
 
   .info-row {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
     gap: 0.5rem;
   }
 
   .info-label {
-    width: 4.5rem;
+    width: auto;
+  }
+
+  .info-title-row {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
   }
 }
 

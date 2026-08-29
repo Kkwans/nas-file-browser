@@ -61,8 +61,17 @@
           @add="addScope"
           @remove="removeScope"
           @start="startScan"
+          @browse="showScopePicker = true"
         />
       </div>
+
+      <PathPicker
+        v-if="showScopePicker"
+        title="选择分析范围"
+        :model-value="scopeInput || scopes[0] || '/'"
+        @select="addScopeValue"
+        @close="showScopePicker = false"
+      />
 
       <section
         v-if="currentTask && !report && !storageReport"
@@ -419,6 +428,7 @@ import { useRoute, useRouter } from "vue-router";
 import AnalysisRecentScans from "@/components/analysis/AnalysisRecentScans.vue";
 import AnalysisScopePanel from "@/components/analysis/AnalysisScopePanel.vue";
 import AnalysisToolSwitcher from "@/components/analysis/AnalysisToolSwitcher.vue";
+import PathPicker from "@/components/prompts/PathPicker.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
@@ -458,6 +468,7 @@ const currentTask = ref<TaskItem | null>(null);
 const report = ref<DuplicateReport | null>(null);
 const storageReport = ref<StorageReport | null>(null);
 const showRunPanel = ref(false);
+const showScopePicker = ref(false);
 const loadError = ref("");
 const recentScans = ref<AnalysisRecentItem[]>([]);
 const recentLoading = ref(false);
@@ -567,8 +578,8 @@ function selectTool(tool: AnalysisTool) {
   });
 }
 
-function addScope() {
-  const next = addAnalysisScope(scopes.value, scopeInput.value);
+function addScope(value = scopeInput.value) {
+  const next = addAnalysisScope(scopes.value, value);
   if (
     next.length === scopes.value.length &&
     next.every((item, index) => item === scopes.value[index])
@@ -578,6 +589,11 @@ function addScope() {
   }
   scopes.value = next;
   scopeInput.value = "";
+}
+
+function addScopeValue(value: string) {
+  addScope(value);
+  showScopePicker.value = false;
 }
 
 function removeScope(scope: string) {

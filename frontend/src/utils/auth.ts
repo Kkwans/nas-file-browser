@@ -9,7 +9,9 @@ import type { IUser } from "@/types/user";
 
 export function parseToken(token: string) {
   // falsy or malformed jwt will throw InvalidTokenError
-  const data = jwtDecode<JwtPayload & { user: IUser }>(token);
+  const data = jwtDecode<
+    JwtPayload & { user: IUser; instance?: { hostname?: string } }
+  >(token);
 
   document.cookie = `auth=${token}; Path=/; SameSite=Strict;`;
 
@@ -18,6 +20,7 @@ export function parseToken(token: string) {
   const authStore = useAuthStore();
   authStore.jwt = token;
   authStore.setUser(data.user);
+  authStore.instanceHostname = data.instance?.hostname?.trim() ?? "";
 
   // proxy auth with custom logout subject to unknown external timeout
   if (logoutPage !== "/login" && authMethod === "proxy") {

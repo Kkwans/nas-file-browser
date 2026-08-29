@@ -35,6 +35,7 @@
 
 .context-menu .action {
   display: flex;
+  justify-content: flex-start;
   width: 100%;
   min-height: 38px;
   box-sizing: border-box;
@@ -51,6 +52,17 @@
   transition:
     color 120ms ease,
     background-color 120ms ease;
+}
+
+.context-menu .action .action-label {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .context-menu .action:hover,
@@ -86,17 +98,6 @@
 .context-menu .action:hover > .app-icon,
 .context-menu .action:focus-visible > .app-icon {
   color: currentColor;
-}
-
-.context-menu .action span:not(.icon-button__counter) {
-  min-width: 0;
-  overflow: hidden;
-  color: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .context-menu .action .icon-button__counter {

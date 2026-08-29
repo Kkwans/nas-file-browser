@@ -14,6 +14,14 @@ let vditorJSPromise: Promise<void> | null = null;
 let hljsJSPromise: Promise<void> | null = null;
 let highlightThemeGeneration = 0;
 
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const staticAssetURL = (path: string): string => {
   const root = staticURL.replace(/\/$/, "");
   return `${root}/${path.replace(/^\//, "")}`;
@@ -81,15 +89,39 @@ export type HighlightCodeOptions = {
   showLineNumbers?: boolean;
 };
 
+const getEditorCodeSource = (
+  codeEl: HTMLElement,
+  hasOurMarkup: boolean
+): string => {
+  if (hasOurMarkup && codeEl.dataset.rawSource !== undefined) {
+    return codeEl.dataset.rawSource;
+  }
+
+  // IR/WYSIWYG 的预览 code 节点可能被 Lute 规范化为没有换行的文本，
+  // 但相邻的可编辑 marker 仍保留真实源码。优先读取 marker，避免
+  // 首次装饰就把多行代码错误折叠成一行。
+  const block = codeEl.closest<HTMLElement>(
+    ".vditor-ir__node, .vditor-wysiwyg__block"
+  );
+  const sourceNode = block?.querySelector<HTMLElement>(
+    ".vditor-ir__marker--pre > code, .vditor-wysiwyg__block > pre > code"
+  );
+  return sourceNode?.textContent ?? codeEl.textContent ?? "";
+};
+
 /**
  * Highlight the rendered code surface used by Vditor's instant-rendering
  * editor.  Vditor owns the editable source node, so this deliberately only
  * touches the sibling preview node and never rewrites the source that the
  * user is typing into.
  */
-export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
+export function highlightMarkdownEditorPreviews(
+  container: HTMLElement,
+  options: HighlightCodeOptions = {}
+): void {
   const hljs = window.hljs;
   if (!hljs) return;
+  const showLineNumbers = options.showLineNumbers ?? false;
 
   container
     .querySelectorAll<HTMLElement>(
@@ -97,10 +129,18 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
         ".vditor-wysiwyg__preview pre > code, .vditor-wysiwyg__preview > code"
     )
     .forEach((codeEl) => {
-      // `textContent` remains the original source even after highlight.js
-      // inserts token spans, and therefore also picks up edits Vditor makes
-      // before the next render pass.  Do not prefer a stale dataset cache.
-      const rawSource = (codeEl.textContent ?? "").replace(/\u200b/g, "");
+      // Once our line wrappers are present, textContent no longer contains
+      // the source newlines. Keep the source in data-raw-source so toggling
+      // the gutter never glues the block into one line. For a fresh Vditor
+      // node, textContent remains authoritative and picks up edits made by
+      // the editor before the next render pass.
+      const hasOurMarkup = Boolean(
+        codeEl.querySelector(".code-line, .code-line-content")
+      );
+      const rawSource = getEditorCodeSource(codeEl, hasOurMarkup).replace(
+        /\u200b/g,
+        ""
+      );
       // Vditor can emit the same preview node more than once while an IR
       // block settles. Skip a node that already contains our current source;
       // this also prevents the observer from re-highlighting its own spans.
@@ -108,6 +148,7 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
       if (
         codeEl.dataset.nfbHighlighted === "true" &&
         codeEl.dataset.rawSource === rawSource &&
+        codeEl.dataset.nfbLineNumbers === String(showLineNumbers) &&
         (hasHighlightMarkup || codeEl.dataset.nfbHighlightMarkup === "false")
       ) {
         return;
@@ -115,23 +156,33 @@ export function highlightMarkdownEditorPreviews(container: HTMLElement): void {
       codeEl.dataset.rawSource = rawSource;
 
       const lang = resolveMarkdownCodeLanguage(codeEl.className, rawSource);
-      if (lang && hljs.getLanguage(lang)) {
-        codeEl.dataset.lang = lang;
-        codeEl.classList.add("hljs");
+      const highlightLine = (line: string) => {
+        if (!lang || !hljs.getLanguage(lang)) return escapeHtml(line);
         try {
-          codeEl.innerHTML = hljs.highlight(rawSource, {
+          return hljs.highlight(line, {
             language: lang,
             ignoreIllegals: true,
           }).value;
         } catch {
-          codeEl.textContent = rawSource;
+          return escapeHtml(line);
         }
+      };
+      const rendered = renderMarkdownCodeLines(
+        rawSource,
+        showLineNumbers,
+        highlightLine
+      );
+      if (lang && hljs.getLanguage(lang)) {
+        codeEl.dataset.lang = lang;
+        codeEl.classList.add("hljs");
       } else {
         codeEl.removeAttribute("data-lang");
         codeEl.classList.remove("hljs");
-        codeEl.textContent = rawSource;
       }
+      codeEl.innerHTML = rendered.html;
+      codeEl.classList.toggle("has-line-numbers", rendered.hasLineNumbers);
       codeEl.dataset.nfbHighlighted = "true";
+      codeEl.dataset.nfbLineNumbers = String(showLineNumbers);
       // Vditor may later replace the preview's innerHTML while retaining the
       // data attributes. Remember whether this pass produced token markup so
       // the observer can repair a preview whose spans were discarded.
@@ -181,14 +232,14 @@ export function highlightAndAnnotateCodeBlocks(
 
     codeEl.classList.remove("hljs");
     const highlightLine = (line: string) => {
-      if (!hljs || !lang || !hljs.getLanguage(lang)) return line;
+      if (!hljs || !lang || !hljs.getLanguage(lang)) return escapeHtml(line);
       try {
         return hljs.highlight(line, {
           language: lang,
           ignoreIllegals: true,
         }).value;
       } catch {
-        return line;
+        return escapeHtml(line);
       }
     };
     const rendered = renderMarkdownCodeLines(

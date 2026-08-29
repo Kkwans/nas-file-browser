@@ -28,16 +28,20 @@ export async function upload(
   if (content === "") {
     return false;
   }
+  const transferId = uploadTransferId(filePath, content);
   return new Promise<void | string>((resolve, reject) => {
     const upload = new tus.Upload(content, {
       endpoint: `${origin}${baseURL}${resourcePath}`,
       chunkSize: tusSettings.chunkSize,
       retryDelays: computeRetryDelays(tusSettings),
       parallelUploads: 1,
-      storeFingerprintForResuming: false,
       headers: {
         "X-Auth": authStore.jwt,
+        "X-Transfer-ID": transferId,
       },
+      // Keep tus' fingerprint in localStorage so a reload can resume the
+      // server-side offset instead of silently starting a second upload.
+      storeFingerprintForResuming: true,
       onShouldRetry: function (err) {
         const status = err.originalResponse
           ? err.originalResponse.getStatus()
@@ -81,6 +85,27 @@ export async function upload(
     CURRENT_UPLOAD_LIST[filePath] = upload;
     upload.start();
   });
+}
+
+export function uploadTransferId(
+  filePath: string,
+  content: Exclude<ApiContent, "">
+) {
+  const file =
+    typeof File !== "undefined" && content instanceof File
+      ? content
+      : undefined;
+  const size =
+    "size" in content && typeof content.size === "number" ? content.size : 0;
+  const type =
+    "type" in content && typeof content.type === "string" ? content.type : "";
+  const signature = [filePath, size, type, file?.lastModified ?? 0].join(":");
+  // Headers are used instead of the URL so the tus fingerprint remains
+  // stable across retries and browser reloads. Keep the id URL/header safe.
+  return `upload-${encodeURIComponent(signature).replace(/%/g, "_")}`.slice(
+    0,
+    220
+  );
 }
 
 function computeRetryDelays(tusSettings: TusSettings): number[] | undefined {

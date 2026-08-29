@@ -210,7 +210,7 @@ describe("侧边栏分组交互契约", () => {
       /nav\.sidebar \.favorite-remove > \.app-icon\s*\{[^}]*width:\s*1rem;[^}]*height:\s*1rem;/s
     );
     expect(cssSource).toMatch(
-      /@media \(max-width: 736px\)[\s\S]*?nav\.sidebar \.favorite-item\s*\{[^}]*min-height:\s*44px;[\s\S]*?nav\.sidebar \.favorite-item > \.favorite-remove\s*\{[^}]*height:\s*44px;/
+      /@media \(max-width: 899px\)[\s\S]*?nav\.sidebar \.favorite-item\s*\{[^}]*min-height:\s*44px;[\s\S]*?nav\.sidebar \.favorite-item > \.favorite-remove\s*\{[^}]*height:\s*44px;/
     );
   });
 

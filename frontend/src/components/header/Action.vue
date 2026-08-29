@@ -1,6 +1,7 @@
 <template>
   <IconButton
     class="action"
+    :class="{ 'action--with-label': Boolean(label) }"
     :icon="resolvedIconName"
     :icon-size="iconSize"
     :label="label"
@@ -8,7 +9,7 @@
     :disabled="disabled"
     @click="action"
   >
-    <span v-if="label">{{ label }}</span>
+    <span v-if="label" class="action-label">{{ label }}</span>
   </IconButton>
 </template>
 

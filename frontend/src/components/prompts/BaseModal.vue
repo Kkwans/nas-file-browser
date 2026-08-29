@@ -1,25 +1,84 @@
 <template>
   <div id="modal-background" @click="backgroundClick">
-    <div ref="modalContainer">
+    <div
+      ref="modalContainer"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="props.prompt"
+      tabindex="-1"
+    >
       <slot></slot>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+
+const props = withDefaults(
+  defineProps<{
+    prompt?: string;
+  }>(),
+  { prompt: "对话框" }
+);
 
 const emit = defineEmits(["closed"]);
 
-const modalContainer = ref(null);
+const modalContainer = ref<HTMLElement | null>(null);
+let previouslyFocused: HTMLElement | null = null;
+let previousBodyOverflow = "";
+
+const focusableSelector =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const focusInitialControl = () => {
+  const root = modalContainer.value;
+  if (!root) return;
+  const element =
+    root.querySelector<HTMLElement>("#focus-prompt") ??
+    root.querySelector<HTMLElement>(focusableSelector);
+  (element ?? root).focus();
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    emit("closed");
+    return;
+  }
+  if (event.key !== "Tab") return;
+
+  const root = modalContainer.value;
+  if (!root) return;
+  const controls = Array.from(
+    root.querySelectorAll<HTMLElement>(focusableSelector)
+  ).filter((element) => element.getClientRects().length > 0);
+  if (controls.length === 0) {
+    event.preventDefault();
+    root.focus();
+    return;
+  }
+
+  const first = controls[0];
+  const last = controls[controls.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+};
 
 onMounted(() => {
-  const element = document.querySelector("#focus-prompt") as HTMLElement | null;
-  if (element) {
-    element.focus();
-  } else if (modalContainer.value) {
-    (modalContainer.value as HTMLElement).focus();
-  }
+  previouslyFocused =
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+  previousBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  document.addEventListener("keydown", handleKeydown);
+  void nextTick(focusInitialControl);
 });
 
 const backgroundClick = (event: Event) => {
@@ -29,10 +88,11 @@ const backgroundClick = (event: Event) => {
   }
 };
 
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    event.stopImmediatePropagation();
-    emit("closed");
+onBeforeUnmount(() => {
+  document.removeEventListener("keydown", handleKeydown);
+  document.body.style.overflow = previousBodyOverflow;
+  if (previouslyFocused && document.contains(previouslyFocused)) {
+    previouslyFocused.focus({ preventScroll: true });
   }
 });
 </script>

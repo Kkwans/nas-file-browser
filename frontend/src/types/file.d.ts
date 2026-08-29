@@ -12,6 +12,8 @@ interface ResourceBase {
   size: number;
   extension: string;
   modified: string; // ISO 8601 datetime
+  /** Filesystem birth time when the backend can obtain it reliably. */
+  created?: string;
   mode: number;
   isDir: boolean;
   isSymlink: boolean;

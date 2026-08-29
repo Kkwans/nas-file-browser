@@ -292,10 +292,7 @@ nav.sidebar .sidebar-section-header .section-toggle .material-icons {
   font-size: 1.25rem;
 }
 
-nav.sidebar
-  .sidebar-section-header--favorite
-  .section-toggle
-  .material-icons {
+nav.sidebar .sidebar-section-header--favorite .section-toggle .material-icons {
   color: #d97706;
 }
 
@@ -475,7 +472,7 @@ nav.sidebar.is-scrolling::-webkit-scrollbar-thumb {
   background-clip: padding-box;
 }
 
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   nav.sidebar {
     scrollbar-gutter: auto;
   }
@@ -565,7 +562,7 @@ nav.sidebar::-webkit-scrollbar-thumb {
   background-clip: padding-box;
 }
 
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   nav.sidebar {
     width: min(86vw, 20rem) !important;
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
@@ -927,14 +924,14 @@ nav.sidebar::-webkit-scrollbar-thumb:hover {
   background: var(--textSecondary, #64748b);
 }
 
-@media (min-width: 737px) {
+@media (min-width: 900px) {
   main {
     margin-left: calc(var(--sidebar-width, 256px) + 0.5rem);
     width: calc(100% - var(--sidebar-width, 256px) - 1.5rem);
   }
 }
 
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   nav.sidebar {
     padding-top: 0.5rem;
   }
@@ -2115,7 +2112,7 @@ html[dir="rtl"] .sidebar-resize-handle:active {
   }
 }
 
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   nav.sidebar {
     top: 0;
     z-index: 99999;
@@ -2770,7 +2767,7 @@ nav.sidebar.is-scrolling::-webkit-scrollbar-thumb {
   background-clip: padding-box;
 }
 
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   nav.sidebar {
     scrollbar-gutter: auto;
   }
@@ -2839,7 +2836,8 @@ nav.sidebar .sidebar-collapse-row {
   width: 100%;
   margin: 0;
   padding-top: 0.375rem;
-  border-top: 1px solid color-mix(in srgb, var(--textSecondary, #64748b) 16%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--textSecondary, #64748b) 16%, transparent);
 }
 
 nav.sidebar .sidebar-command > .app-icon,
@@ -3259,7 +3257,7 @@ nav.sidebar .sidebar-rail-logout {
   background: rgba(22, 119, 255, 0.12);
 }
 
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   nav.sidebar.sidebar--rail {
     width: min(86vw, 20rem) !important;
     overflow-y: auto;
@@ -3366,7 +3364,9 @@ html.dark nav.sidebar .category-group-header .group-name {
  * 移除动作不是装饰性大号 X，而是低干扰的 32px 键盘/触摸命中区。 */
 nav.sidebar .favorite-item {
   display: grid;
-  grid-template-columns: var(--sidebar-level-two-icon-column) minmax(0, 1fr) 2rem;
+  grid-template-columns:
+    var(--sidebar-level-two-icon-column) minmax(0, 1fr)
+    2rem;
   align-items: center;
   column-gap: 0.5rem;
 }
@@ -3437,7 +3437,7 @@ nav.sidebar .favorite-group-header .section-action-btn:focus-visible {
  * 40px tile so its label starts on the same x coordinate as every section
  * label; remove actions use a quiet minus glyph instead of a competing mark.
  */
-@media (min-width: 737px) {
+@media (min-width: 900px) {
   nav.sidebar:not(.sidebar--rail) .sidebar-user-row {
     position: relative;
     grid-template-columns: minmax(0, 1fr);
@@ -3470,7 +3470,10 @@ nav.sidebar .favorite-group-header .section-action-btn:focus-visible {
     align-items: center;
   }
 
-  nav.sidebar:not(.sidebar--rail) .sidebar-section-header .section-toggle > .app-icon,
+  nav.sidebar:not(.sidebar--rail)
+    .sidebar-section-header
+    .section-toggle
+    > .app-icon,
   nav.sidebar:not(.sidebar--rail) .sidebar-command > .app-icon,
   nav.sidebar:not(.sidebar--rail) > #logout > .app-icon {
     width: 1.375rem;
@@ -3590,7 +3593,8 @@ nav.sidebar:not(.sidebar--rail) .sidebar-footer-actions {
   margin-inline: var(--sidebar-inline-gutter);
   margin-top: auto;
   padding-top: 0.5rem;
-  border-top: 1px solid color-mix(in srgb, var(--textSecondary, #64748b) 18%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--textSecondary, #64748b) 18%, transparent);
   background: var(--surfacePrimary, #fff);
 }
 
@@ -3672,7 +3676,11 @@ nav.sidebar.sidebar--rail .sidebar-rail-footer .sidebar-rail-expand {
 
 html.dark nav.sidebar:not(.sidebar--rail) .sidebar-footer-actions {
   background: var(--surfacePrimary, #111827);
-  border-top-color: color-mix(in srgb, var(--textSecondary, #94a3b8) 24%, transparent);
+  border-top-color: color-mix(
+    in srgb,
+    var(--textSecondary, #94a3b8) 24%,
+    transparent
+  );
 }
 
 nav.sidebar .favorite-item > .favorite-icon:not(.favorite-drag-handle),
@@ -3735,10 +3743,11 @@ nav.sidebar > .credits:last-child {
 /* Mobile touch contract: the remove action is visually a quiet minus, but
  * its keyboard/touch hit area must remain at least 44px. Widen only the
  * trailing grid column so the favorite label and icon keep their alignment. */
-@media (max-width: 736px) {
+@media (max-width: 899px) {
   nav.sidebar .favorite-item {
     grid-template-columns:
-      var(--sidebar-level-two-icon-column) minmax(0, 1fr) 2.75rem;
+      var(--sidebar-level-two-icon-column) minmax(0, 1fr)
+      2.75rem;
     min-height: 44px;
   }
 
@@ -3749,13 +3758,28 @@ nav.sidebar > .credits:last-child {
     height: 44px;
     min-height: 44px;
   }
+
+  nav.sidebar > .credits {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+  }
+
+  nav.sidebar > .credits a {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* 2026-08-25: the expanded sidebar uses one quiet surface hierarchy. A
  * bordered card for every module makes the navigation look like a stack of
  * unrelated widgets; section headers now read as rows, while the account
  * block remains the single prominent anchor. */
-@media (min-width: 737px) {
+@media (min-width: 900px) {
   nav.sidebar:not(.sidebar--rail) .sidebar-module {
     padding: 0.5rem 0 0.25rem !important;
   }
@@ -3770,7 +3794,11 @@ nav.sidebar > .credits:last-child {
 
   nav.sidebar:not(.sidebar--rail) .sidebar-section-header:hover {
     border-color: transparent !important;
-    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--blue, #1677ff) 6%,
+      transparent
+    ) !important;
   }
 
   nav.sidebar:not(.sidebar--rail) .sidebar-section-header .section-toggle {
@@ -3795,7 +3823,11 @@ nav.sidebar > .credits:last-child {
   nav.sidebar:not(.sidebar--rail) .favorite-group-header:hover,
   nav.sidebar:not(.sidebar--rail) .category-group-header:hover {
     border-color: transparent !important;
-    background: color-mix(in srgb, var(--blue, #1677ff) 6%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--blue, #1677ff) 6%,
+      transparent
+    ) !important;
   }
 }
 
@@ -3848,7 +3880,10 @@ nav.sidebar:not(.sidebar--rail) .sidebar-user-card > .sidebar-user-icon {
   border-radius: 0.6875rem;
 }
 
-nav.sidebar:not(.sidebar--rail) .sidebar-user-card > .sidebar-user-icon > .app-icon {
+nav.sidebar:not(.sidebar--rail)
+  .sidebar-user-card
+  > .sidebar-user-icon
+  > .app-icon {
   color: inherit;
 }
 
@@ -3864,15 +3899,36 @@ nav.sidebar:not(.sidebar--rail) .sidebar-user-card > span:last-child {
 }
 
 nav.sidebar:not(.sidebar--rail) .sidebar-user-card:hover {
-  border-color: color-mix(in srgb, var(--blue, #1677ff) 30%, var(--borderPrimary, #e2e8f0)) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--blue, #1677ff) 30%,
+    var(--borderPrimary, #e2e8f0)
+  ) !important;
   color: var(--textSecondary, #282832) !important;
   background: var(--surfaceSecondary, #f5f5f8) !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
+/* Desktop icon actions use the same 40px contract as Header and Files
+ * controls. The mobile rule above intentionally widens these controls to
+ * 44px for touch; keep the two density contracts separate. */
+@media (min-width: 900px) {
+  nav.sidebar:not(.sidebar--rail) .sidebar-section-header .section-action-btn,
+  nav.sidebar:not(.sidebar--rail) .sidebar-group-actions .section-action-btn {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+  }
+}
+
 nav.sidebar:not(.sidebar--rail) .sidebar-module + .sidebar-module {
-  border-top-color: color-mix(in srgb, var(--textSecondary, #64748b) 16%, transparent) !important;
+  border-top-color: color-mix(
+    in srgb,
+    var(--textSecondary, #64748b) 16%,
+    transparent
+  ) !important;
 }
 
 nav.sidebar:not(.sidebar--rail) .tag-filter-count,

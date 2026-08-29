@@ -10,6 +10,15 @@
         label="切换侧边栏"
         @action="layoutStore.toggleTransient('sidebar')"
       />
+      <div v-if="showLogo" class="header-instance" aria-label="当前实例">
+        <strong class="header-instance__name">{{ name }}</strong>
+        <span
+          v-if="authStore.isLoggedIn && authStore.instanceHostname"
+          class="header-instance__host"
+        >
+          {{ authStore.instanceHostname }}
+        </span>
+      </div>
     </div>
 
     <div class="header-center">
@@ -23,6 +32,21 @@
       <div class="header-mobile-actions">
         <slot name="mobile-actions" />
       </div>
+      <router-link
+        v-if="authStore.isLoggedIn"
+        class="header-task-center"
+        to="/tasks"
+        aria-label="任务中心"
+        title="任务中心"
+      >
+        <AppIcon name="tasks" :size="20" :stroke-width="1.9" />
+        <span
+          v-if="taskCenterBadgeCount > 0"
+          class="header-task-center__badge"
+          aria-label="有进行中或需处理的任务"
+          >{{ taskCenterBadgeCount }}</span
+        >
+      </router-link>
       <div
         id="dropdown"
         :class="{
@@ -53,10 +77,13 @@
 
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
+import { useAuthStore } from "@/stores/auth";
+import { useTasksStore } from "@/stores/tasks";
 
 import { logoURL, name } from "@/utils/constants";
 
 import Action from "@/components/header/Action.vue";
+import AppIcon from "@/components/ui/AppIcon.vue";
 import { computed, onMounted, onUnmounted, ref, useSlots } from "vue";
 defineProps<{
   showLogo?: boolean;
@@ -64,7 +91,12 @@ defineProps<{
 }>();
 
 const layoutStore = useLayoutStore();
+const authStore = useAuthStore();
+const tasksStore = useTasksStore();
 const slots = useSlots();
+const taskCenterBadgeCount = computed(
+  () => tasksStore.counts.active + tasksStore.counts.attention
+);
 
 // The desktop header must not render the transient sidebar toggle at all.
 // Keeping this contract in the component (instead of relying on a cascade of
@@ -72,7 +104,7 @@ const slots = useSlots();
 // older page stylesheet wins the cascade.
 const isMobileViewport = ref(
   typeof window !== "undefined" &&
-    window.matchMedia("(max-width: 736px)").matches
+    window.matchMedia("(max-width: 899px)").matches
 );
 let mobileMediaQuery: MediaQueryList | undefined;
 const updateMobileViewport = (event?: MediaQueryListEvent) => {
@@ -81,13 +113,14 @@ const updateMobileViewport = (event?: MediaQueryListEvent) => {
 };
 
 onMounted(() => {
-  mobileMediaQuery = window.matchMedia("(max-width: 736px)");
+  mobileMediaQuery = window.matchMedia("(max-width: 899px)");
   updateMobileViewport();
   if (mobileMediaQuery.addEventListener) {
     mobileMediaQuery.addEventListener("change", updateMobileViewport);
   } else {
     mobileMediaQuery.addListener(updateMobileViewport);
   }
+  if (authStore.isLoggedIn) void tasksStore.loadSummary();
 });
 
 onUnmounted(() => {

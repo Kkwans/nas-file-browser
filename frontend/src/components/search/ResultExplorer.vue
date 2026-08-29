@@ -118,38 +118,34 @@
       :pos="contextMenuPosition"
       @hide="closeContextMenu"
     >
-      <button type="button" @click="emitAction('open-location')">
-        <AppIcon name="folder" :size="18" />
-        打开文件所在位置
-      </button>
-      <button
+      <MenuItemButton
+        icon="folder"
+        label="打开文件所在位置"
+        @click="emitAction('open-location')"
+      />
+      <MenuItemButton
         v-if="authStore.user?.perm.create"
-        type="button"
+        icon="copy"
+        label="复制"
         @click="emitAction('copy')"
-      >
-        <AppIcon name="copy" :size="18" />
-        复制
-      </button>
-      <button
+      />
+      <MenuItemButton
         v-if="authStore.user?.perm.rename"
-        type="button"
+        icon="move"
+        label="移动"
         @click="emitAction('move')"
-      >
-        <AppIcon name="move" :size="18" />
-        移动
-      </button>
-      <button
+      />
+      <MenuItemButton
         v-if="authStore.user?.perm.download"
-        type="button"
+        icon="download"
+        label="下载"
         @click="emitAction('download')"
-      >
-        <AppIcon name="download" :size="18" />
-        下载
-      </button>
-      <button type="button" @click="emitAction('info')">
-        <AppIcon name="info" :size="18" />
-        详细信息
-      </button>
+      />
+      <MenuItemButton
+        icon="info"
+        label="详细信息"
+        @click="emitAction('info')"
+      />
     </context-menu>
   </section>
 </template>
@@ -159,6 +155,7 @@ import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
 import ContextMenu from "@/components/ContextMenu.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import MenuItemButton from "@/components/ui/MenuItemButton.vue";
 import { filesize } from "@/utils";
 import dayjs from "@/utils/date";
 import { getResourceIconName } from "@/utils/fileIcons";

@@ -135,9 +135,9 @@ describe("桌面侧边栏图标轨契约", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const cssSource = readSource("css/sidebar.css");
 
-    expect(sidebarSource).toContain('window.matchMedia("(min-width: 737px)")');
+    expect(sidebarSource).toContain('window.matchMedia("(min-width: 900px)")');
     expect(cssSource).toMatch(
-      /@media \(max-width: 736px\)[\s\S]*\.sidebar-icon-rail\s*\{[\s\S]*display:\s*none;/
+      /@media \(max-width: 899px\)[\s\S]*\.sidebar-icon-rail\s*\{[\s\S]*display:\s*none;/
     );
   });
 });

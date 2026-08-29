@@ -63,7 +63,7 @@ describe("sidebar preferences", () => {
     expect(normalizeSidebarPreferences({}).desktopCollapsed).toBe(false);
   });
 
-  it("appends newly introduced entries to existing system option preferences", () => {
+  it("removes retired task/history sidebar entries while preserving new options", () => {
     expect(
       normalizeSidebarPreferences({
         systemOptionOrder: ["search", "files"],
@@ -73,8 +73,6 @@ describe("sidebar preferences", () => {
       "files",
       "recent",
       "trash",
-      "tasks",
-      "history",
       "analysis",
       "new-directory",
       "new-file",

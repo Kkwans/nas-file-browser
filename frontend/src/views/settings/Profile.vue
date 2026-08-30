@@ -423,6 +423,7 @@ const addPrefix = () => {
 @media (max-width: 1200px) {
   .profile-settings-grid > .column {
     flex: 0 0 auto;
+    max-width: 100%;
   }
 }
 

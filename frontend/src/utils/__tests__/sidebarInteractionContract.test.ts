@@ -56,12 +56,19 @@ describe("侧边栏分组交互契约", () => {
     expect(refinementCssSource).not.toContain(".sidebar-group-tools");
   });
 
-  it("拖拽命中区不绘制独立边界线", () => {
-    const cssSource = readSidebarFinalCss();
-
-    expect(cssSource).toMatch(
-      /\.sidebar-resize-handle::after\s*\{[^}]*content:\s*none\s*!important;/s
+  it("拖拽区位于滚动容器外并支持指针捕获和键盘", () => {
+    const source = readSource("components/Sidebar.vue");
+    const css = readSource("css/sidebar.css");
+    expect(source.indexOf('class="sidebar-resize-handle"')).toBeGreaterThan(
+      source.indexOf("</nav>")
     );
+    expect(source).toContain('role="separator"');
+    expect(source).toContain("setPointerCapture(event.pointerId)");
+    expect(source).toContain('@keydown="resizeByKeyboard"');
+    expect(css).toMatch(
+      /\.sidebar-frame > \.sidebar-resize-handle\s*\{[^}]*inset-inline-end: -10px;[^}]*width: 20px;/s
+    );
+    expect(css).not.toContain("nav.sidebar .sidebar-resize-handle");
   });
 
   it("默认只展开收藏夹和存储卷", () => {

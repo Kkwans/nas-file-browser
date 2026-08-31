@@ -1,927 +1,971 @@
 <template>
   <div v-show="active" @click="closeHovers" class="overlay"></div>
-  <nav
-    class="sidebar"
-    :class="{
-      active,
-      'sidebar--rail': railMode,
-      'is-resizing': isResizing,
-      'is-scrolling': sidebarScrolling,
-    }"
-    @scroll.passive="onSidebarScroll"
-    @keydown.esc="closeRailPanel(true)"
+  <div
+    ref="sidebarFrame"
+    class="sidebar-frame"
+    :class="{ active, 'is-rail': railMode, 'is-resizing': isResizing }"
   >
-    <div
-      v-if="!railMode"
-      class="sidebar-resize-handle"
-      @mousedown="startResize"
-      @touchstart="startResize"
-      @dblclick="resetSidebarWidth"
-      title="拖拽调节侧边栏宽度"
-    ></div>
-    <template v-if="isLoggedIn">
-      <template v-if="railMode">
-        <div ref="railRootRef" class="sidebar-icon-rail">
-          <button
-            type="button"
-            class="sidebar-rail-action sidebar-rail-profile"
-            :class="{ active: route.path.startsWith('/settings') }"
-            data-tooltip="账户设置"
-            title="账户设置"
-            aria-label="账户设置"
-            @click="toAccountSettings"
-          >
-            <AppIcon name="user" :size="22" />
-            <span class="sidebar-rail-avatar-dot" aria-hidden="true"></span>
-          </button>
-          <div class="sidebar-rail-divider" aria-hidden="true"></div>
-
-          <button
-            v-for="option in orderedSystemOptions"
-            :key="option.id"
-            type="button"
-            class="sidebar-rail-action"
-            :class="{ active: isSystemOptionActive(option.id) }"
-            :data-tooltip="option.label"
-            :title="option.label"
-            :aria-label="option.label"
-            @click="runSystemOption(option.id)"
-          >
-            <AppIcon :name="option.icon" :size="21" />
-          </button>
-
-          <div class="sidebar-rail-divider" aria-hidden="true"></div>
-
-          <button
-            type="button"
-            class="sidebar-rail-action"
-            :class="{ active: railPanel === 'favorites' }"
-            data-tooltip="收藏夹"
-            title="收藏夹"
-            aria-label="打开收藏夹"
-            :aria-expanded="railPanel === 'favorites'"
-            @click.stop="toggleRailPanel('favorites', $event)"
-          >
-            <AppIcon name="star" :size="21" />
-            <span
-              v-if="favoritesStore.sortedFavorites.length"
-              class="sidebar-rail-count"
-              >{{ compactCount(favoritesStore.sortedFavorites.length) }}</span
-            >
-          </button>
-          <button
-            type="button"
-            class="sidebar-rail-action"
-            :class="{
-              active: railPanel === 'tags' || Boolean(tagsStore.activeFilter),
-            }"
-            data-tooltip="标签"
-            title="标签"
-            aria-label="打开标签"
-            :aria-expanded="railPanel === 'tags'"
-            @click.stop="toggleRailPanel('tags', $event)"
-          >
-            <AppIcon name="tags" :size="21" />
-            <span
-              v-if="tagsStore.sortedTags.length"
-              class="sidebar-rail-count"
-              >{{ compactCount(tagsStore.sortedTags.length) }}</span
-            >
-          </button>
-          <button
-            v-if="user?.perm?.admin && categoryGroups.length > 0"
-            type="button"
-            class="sidebar-rail-action"
-            :class="{ active: railPanel === 'categories' }"
-            data-tooltip="目录分类"
-            title="目录分类"
-            aria-label="打开目录分类"
-            :aria-expanded="railPanel === 'categories'"
-            @click.stop="toggleRailPanel('categories', $event)"
-          >
-            <AppIcon name="categories" :size="21" />
-          </button>
-          <button
-            v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
-            type="button"
-            class="sidebar-rail-action"
-            :class="{ active: railPanel === 'volumes' }"
-            data-tooltip="存储卷"
-            title="存储卷"
-            aria-label="打开存储卷"
-            :aria-expanded="railPanel === 'volumes'"
-            @click.stop="toggleRailPanel('volumes', $event)"
-          >
-            <AppIcon name="storage" :size="21" />
-          </button>
-
-          <div class="sidebar-rail-spacer"></div>
-          <div class="sidebar-rail-footer">
+    <nav
+      class="sidebar"
+      :class="{
+        active,
+        'sidebar--rail': railMode,
+        'is-resizing': isResizing,
+        'is-scrolling': sidebarScrolling,
+      }"
+      @scroll.passive="onSidebarScroll"
+      @keydown.esc="closeRailPanel(true)"
+    >
+      <template v-if="isLoggedIn">
+        <template v-if="railMode">
+          <div ref="railRootRef" class="sidebar-icon-rail">
             <button
               type="button"
-              class="sidebar-rail-action sidebar-rail-expand"
-              data-tooltip="展开侧边栏"
-              title="展开侧边栏"
-              aria-label="展开侧边栏"
-              @click="toggleDesktopRail(false)"
-            >
-              <AppIcon name="panel-open" :size="21" />
-              <span class="sidebar-rail-action-label">展开侧栏</span>
-            </button>
-            <button
-              v-if="canLogout"
-              type="button"
-              class="sidebar-rail-action sidebar-rail-logout"
-              data-tooltip="登出"
-              title="登出"
-              aria-label="登出"
-              @click="logout"
-            >
-              <AppIcon name="logout" :size="21" />
-              <span class="sidebar-rail-action-label">登出</span>
-            </button>
-          </div>
-        </div>
-
-        <Teleport to="body">
-          <section
-            v-if="railMode && railPanel"
-            ref="railPopoverRef"
-            class="sidebar-rail-popover"
-            :style="railPopoverStyle"
-            role="dialog"
-            tabindex="-1"
-            :aria-label="railPanelTitle"
-            @click.stop
-            @keydown.esc.stop="closeRailPanel(true)"
-          >
-            <header class="sidebar-rail-popover-header">
-              <div>
-                <span>{{ railPanelTitle }}</span>
-                <small>{{ railPanelDescription }}</small>
-              </div>
-              <button
-                type="button"
-                aria-label="关闭浮层"
-                @click="closeRailPanel(true)"
-              >
-                <AppIcon name="x" :size="18" />
-              </button>
-            </header>
-
-            <div class="sidebar-rail-popover-list">
-              <template v-if="railPanel === 'favorites'">
-                <button
-                  v-for="fav in favoritesStore.sortedFavorites"
-                  :key="fav.id"
-                  type="button"
-                  class="sidebar-rail-popover-item"
-                  :title="fav.path"
-                  @click="navigateVolume(fav.path, fav.groupId)"
-                >
-                  <AppIcon
-                    :name="isFileByExtension(fav.name) ? 'file' : 'folder'"
-                    :size="19"
-                  />
-                  <span
-                    ><strong>{{ fav.name }}</strong
-                    ><small>{{ fav.path }}</small></span
-                  >
-                  <AppIcon name="chevron-right" :size="17" />
-                </button>
-                <p
-                  v-if="favoritesStore.sortedFavorites.length === 0"
-                  class="sidebar-rail-empty"
-                >
-                  暂无收藏项目
-                </p>
-              </template>
-
-              <template v-else-if="railPanel === 'tags'">
-                <button
-                  v-for="tag in orderedTags"
-                  :key="tag.id"
-                  type="button"
-                  class="sidebar-rail-popover-item"
-                  :class="{ active: tagsStore.activeFilter === tag.id }"
-                  @click="filterByTag(tag.id)"
-                >
-                  <span
-                    class="sidebar-rail-tag-dot"
-                    :style="{ background: tag.color }"
-                  ></span>
-                  <span
-                    ><strong>{{ tag.name }}</strong
-                    ><small>{{ tag.paths.length }} 个项目</small></span
-                  >
-                  <span class="sidebar-rail-item-count">{{
-                    tag.paths.length
-                  }}</span>
-                </button>
-                <p v-if="orderedTags.length === 0" class="sidebar-rail-empty">
-                  暂无标签
-                </p>
-              </template>
-
-              <template v-else-if="railPanel === 'categories'">
-                <div
-                  v-for="group in orderedCategoryGroups"
-                  :key="group.id"
-                  class="sidebar-rail-popover-group"
-                >
-                  <div class="sidebar-rail-popover-group-title">
-                    <span>{{ group.name }}</span
-                    ><small>{{ group.paths.length }}</small>
-                  </div>
-                  <button
-                    v-for="path in orderedCategoryPaths(group)"
-                    :key="path.path"
-                    type="button"
-                    class="sidebar-rail-popover-item"
-                    :title="path.path"
-                    @click="navigateVolume(path.path)"
-                  >
-                    <AppIcon name="folder" :size="19" />
-                    <span
-                      ><strong>{{ path.name }}</strong
-                      ><small>{{ path.path }}</small></span
-                    >
-                    <AppIcon name="chevron-right" :size="17" />
-                  </button>
-                </div>
-              </template>
-
-              <template v-else-if="railPanel === 'volumes'">
-                <button
-                  v-for="volume in orderedVolumes"
-                  :key="volume.path"
-                  type="button"
-                  class="sidebar-rail-popover-item sidebar-rail-volume-item"
-                  @click="navigateVolume(volume.path)"
-                >
-                  <AppIcon :name="volume.icon" :size="19" :stroke-width="1.9" />
-                  <span>
-                    <strong>{{ volume.displayName }}</strong>
-                    <small
-                      >{{ volume.usedFormatted }} /
-                      {{ volume.totalFormatted }}</small
-                    >
-                    <i aria-hidden="true"
-                      ><b
-                        :style="{
-                          width: volume.usedPercentage + '%',
-                          background: volumeBarColor(volume.usedPercentage),
-                        }"
-                      ></b
-                    ></i>
-                  </span>
-                  <span class="sidebar-rail-item-count"
-                    >{{ Math.round(volume.usedPercentage) }}%</span
-                  >
-                </button>
-              </template>
-            </div>
-
-            <footer class="sidebar-rail-popover-footer">
-              <button type="button" @click="toggleDesktopRail(false)">
-                <AppIcon name="panel-open" :size="18" />
-                展开侧边栏以管理
-              </button>
-            </footer>
-          </section>
-        </Teleport>
-      </template>
-
-      <div v-else class="sidebar-personalized-stack">
-        <div
-          class="sidebar-primary-nav sidebar-sortable-module"
-          :class="sidebarDropClass('module', 'moduleOrder', 'user')"
-          :style="moduleStyle('user')"
-          @dragover.prevent="
-            onSidebarDragOver($event, 'module', 'moduleOrder', 'user')
-          "
-          @drop="onModuleDrop('user')"
-        >
-          <div class="sidebar-user-row">
-            <button
-              type="button"
+              class="sidebar-rail-action sidebar-rail-profile"
+              :class="{ active: route.path.startsWith('/settings') }"
+              data-tooltip="账户设置"
+              title="账户设置"
+              aria-label="账户设置"
               @click="toAccountSettings"
-              class="action sidebar-user-card"
-              draggable="true"
-              @dragstart="onModuleDragStart($event, 'user')"
-              @dragend="clearSidebarDrag"
             >
-              <span class="sidebar-user-icon"
-                ><AppIcon name="user" :size="20"
-              /></span>
-              <span>{{ user?.username }}</span>
+              <AppIcon name="user" :size="22" />
+              <span class="sidebar-rail-avatar-dot" aria-hidden="true"></span>
             </button>
-          </div>
-        </div>
+            <div class="sidebar-rail-divider" aria-hidden="true"></div>
 
-        <div
-          class="system-options-section sidebar-module sidebar-sortable-module"
-          :class="sidebarDropClass('module', 'moduleOrder', 'system-options')"
-          :style="moduleStyle('system-options')"
-          @dragover.prevent="
-            onSidebarDragOver($event, 'module', 'moduleOrder', 'system-options')
-          "
-          @drop="onModuleDrop('system-options')"
-        >
-          <SidebarSectionHeader
-            icon="system-options"
-            label="系统选项"
-            :expanded="!collapsedSections.systemOptions"
-            draggable="true"
-            @dragstart="onModuleDragStart($event, 'system-options')"
-            @dragend="clearSidebarDrag"
-            @toggle="toggleSection('systemOptions')"
-          />
-          <template v-if="!collapsedSections.systemOptions">
             <button
               v-for="option in orderedSystemOptions"
               :key="option.id"
               type="button"
-              class="action sidebar-command sidebar-sortable-item"
-              :class="
-                sidebarDropClass('preference', 'systemOptionOrder', option.id)
-              "
-              draggable="true"
+              class="sidebar-rail-action"
+              :class="{ active: isSystemOptionActive(option.id) }"
+              :data-tooltip="option.label"
+              :title="option.label"
+              :aria-label="option.label"
               @click="runSystemOption(option.id)"
-              @dragstart.stop="
-                onPreferenceDragStart($event, 'systemOptionOrder', option.id)
-              "
-              @dragover.prevent="
-                onSidebarDragOver(
-                  $event,
-                  'preference',
-                  'systemOptionOrder',
-                  option.id
-                )
-              "
-              @drop.stop="onPreferenceDrop('systemOptionOrder', option.id)"
-              @dragend="clearSidebarDrag"
             >
-              <AppIcon :name="option.icon" :size="20" />
-              <span>{{ option.label }}</span>
+              <AppIcon :name="option.icon" :size="21" />
             </button>
-          </template>
-        </div>
 
-        <!-- Favorites Section -->
-        <div
-          class="favorites-section sidebar-module sidebar-sortable-module"
-          :class="sidebarDropClass('module', 'moduleOrder', 'favorites')"
-          :style="moduleStyle('favorites')"
-          @dragover.prevent="
-            onSidebarDragOver($event, 'module', 'moduleOrder', 'favorites')
-          "
-          @drop="onModuleDrop('favorites')"
-        >
-          <SidebarSectionHeader
-            icon="star"
-            label="收藏夹"
-            tone="favorite"
-            :expanded="!collapsedSections.favorites"
-            draggable="true"
-            @dragstart="onModuleDragStart($event, 'favorites')"
-            @dragend="clearSidebarDrag"
-            @toggle="toggleSection('favorites')"
-          >
-            <template #tools>
-              <button
-                class="section-action-btn"
-                type="button"
-                title="新建分组"
-                aria-label="新建收藏分组"
-                @click.stop.prevent="showCreateGroup = !showCreateGroup"
-              >
-                <AppIcon name="folder-new" :size="18" />
-              </button>
-            </template>
-          </SidebarSectionHeader>
-          <template v-if="!collapsedSections.favorites">
-            <!-- Create group input -->
-            <div v-if="showCreateGroup" class="create-group-input">
-              <input
-                v-model="newGroupName"
-                placeholder="分组名称"
-                @keyup.enter="createGroup"
-                @keyup.escape="showCreateGroup = false"
-                ref="groupInputRef"
-              />
-              <button
-                type="button"
-                aria-label="确认新建分组"
-                @click="createGroup"
-                :disabled="!newGroupName.trim()"
-              >
-                <AppIcon name="circle-check" :size="18" />
-              </button>
-              <button
-                type="button"
-                aria-label="取消新建分组"
-                @click="showCreateGroup = false"
-              >
-                <AppIcon name="x" :size="18" />
-              </button>
-            </div>
-            <!-- Empty state -->
-            <div
-              v-if="
-                favoritesStore.sortedFavorites.length === 0 &&
-                favoritesStore.sortedGroups.length === 0
-              "
-              class="section-empty"
+            <div class="sidebar-rail-divider" aria-hidden="true"></div>
+
+            <button
+              type="button"
+              class="sidebar-rail-action"
+              :class="{ active: railPanel === 'favorites' }"
+              data-tooltip="收藏夹"
+              title="收藏夹"
+              aria-label="打开收藏夹"
+              :aria-expanded="railPanel === 'favorites'"
+              @click.stop="toggleRailPanel('favorites', $event)"
             >
-              <AppIcon name="star" :size="20" :stroke-width="1.9" />
-              <span>暂无收藏目录</span>
-            </div>
-            <!-- Ungrouped favorites -->
-            <div
-              class="favorites-ungrouped-drop-zone"
+              <AppIcon name="star" :size="21" />
+              <span
+                v-if="favoritesStore.sortedFavorites.length"
+                class="sidebar-rail-count"
+                >{{ compactCount(favoritesStore.sortedFavorites.length) }}</span
+              >
+            </button>
+            <button
+              type="button"
+              class="sidebar-rail-action"
               :class="{
-                'favorites-ungrouped-drop-zone--empty':
-                  isDraggingGroupedFavorite &&
-                  favoritesStore.favoritesByGroup[''].length === 0,
-                'sidebar-drop-before': ungroupedDropActive,
+                active: railPanel === 'tags' || Boolean(tagsStore.activeFilter),
               }"
-              @dragover.stop.prevent="onUngroupedDragOver"
-              @dragleave="ungroupedDropActive = false"
-              @drop.stop="onUngroupedDrop"
+              data-tooltip="标签"
+              title="标签"
+              aria-label="打开标签"
+              :aria-expanded="railPanel === 'tags'"
+              @click.stop="toggleRailPanel('tags', $event)"
             >
-              <template
-                v-if="
-                  favoritesStore.favoritesByGroup[''] &&
-                  favoritesStore.favoritesByGroup[''].length > 0
-                "
+              <AppIcon name="tags" :size="21" />
+              <span
+                v-if="tagsStore.sortedTags.length"
+                class="sidebar-rail-count"
+                >{{ compactCount(tagsStore.sortedTags.length) }}</span
               >
-                <button
-                  v-for="fav in favoritesStore.favoritesByGroup['']"
-                  :key="fav.id"
-                  class="action favorite-item"
-                  :class="favoriteDropClass(fav.id)"
-                  draggable="true"
-                  @click="navigateVolume(fav.path, fav.groupId)"
-                  :title="fav.path"
-                  @dragstart="onFavDragStart($event, fav.id)"
-                  @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
-                  @dragleave="onFavDragLeaveItem"
-                  @drop.stop="onFavDropOnItem($event, fav.id)"
-                  @dragend="onFavDragEnd"
-                >
-                  <AppIcon
-                    class="favorite-icon favorite-drag-handle"
-                    name="drag"
-                    :size="18"
-                    :stroke-width="2"
-                  />
-                  <AppIcon
-                    class="favorite-icon"
-                    :name="favoriteIcon(fav.name)"
-                    :size="20"
-                    :stroke-width="1.9"
-                  />
-                  <div class="favorite-info">
-                    <span class="favorite-name">{{ fav.name }}</span>
-                    <span class="favorite-path" v-if="fav.path !== fav.name">{{
-                      fav.path
-                    }}</span>
-                  </div>
-                  <span
-                    class="favorite-remove"
-                    role="button"
-                    tabindex="0"
-                    aria-label="取消收藏"
-                    title="取消收藏"
-                    @click.stop.prevent="removeFavorite(fav.id)"
-                    @keydown.enter.stop.prevent="removeFavorite(fav.id)"
-                    @keydown.space.stop.prevent="removeFavorite(fav.id)"
-                  >
-                    <AppIcon name="minus" :size="14" :stroke-width="2.2" />
-                  </span>
-                </button>
-              </template>
+            </button>
+            <button
+              v-if="user?.perm?.admin && categoryGroups.length > 0"
+              type="button"
+              class="sidebar-rail-action"
+              :class="{ active: railPanel === 'categories' }"
+              data-tooltip="目录分类"
+              title="目录分类"
+              aria-label="打开目录分类"
+              :aria-expanded="railPanel === 'categories'"
+              @click.stop="toggleRailPanel('categories', $event)"
+            >
+              <AppIcon name="categories" :size="21" />
+            </button>
+            <button
+              v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
+              type="button"
+              class="sidebar-rail-action"
+              :class="{ active: railPanel === 'volumes' }"
+              data-tooltip="存储卷"
+              title="存储卷"
+              aria-label="打开存储卷"
+              :aria-expanded="railPanel === 'volumes'"
+              @click.stop="toggleRailPanel('volumes', $event)"
+            >
+              <AppIcon name="storage" :size="21" />
+            </button>
+
+            <div class="sidebar-rail-spacer"></div>
+            <div class="sidebar-rail-footer">
+              <button
+                type="button"
+                class="sidebar-rail-action sidebar-rail-expand"
+                data-tooltip="展开侧边栏"
+                title="展开侧边栏"
+                aria-label="展开侧边栏"
+                @click="toggleDesktopRail(false)"
+              >
+                <AppIcon name="panel-open" :size="21" />
+                <span class="sidebar-rail-action-label">展开侧栏</span>
+              </button>
+              <button
+                v-if="canLogout"
+                type="button"
+                class="sidebar-rail-action sidebar-rail-logout"
+                data-tooltip="登出"
+                title="登出"
+                aria-label="登出"
+                @click="logout"
+              >
+                <AppIcon name="logout" :size="21" />
+                <span class="sidebar-rail-action-label">登出</span>
+              </button>
             </div>
-            <!-- Groups -->
-            <div
-              v-for="group in favoritesStore.sortedGroups"
-              :key="group.id"
-              class="favorite-group"
+          </div>
+
+          <Teleport to="body">
+            <section
+              v-if="railMode && railPanel"
+              ref="railPopoverRef"
+              class="sidebar-rail-popover"
+              :style="railPopoverStyle"
+              role="dialog"
+              tabindex="-1"
+              :aria-label="railPanelTitle"
+              @click.stop
+              @keydown.esc.stop="closeRailPanel(true)"
             >
-              <SidebarGroupHeader
-                class="favorite-group-header"
-                icon="inventory_2"
-                app-icon="collection"
-                :label="group.name"
-                :count="
-                  (favoritesStore.favoritesByGroup[group.id] || []).length
-                "
-                :expanded="!collapsedGroups[group.id]"
-                :color="group.color || 'var(--blue)'"
-                draggable="true"
-                @dragstart.stop="onFavoriteGroupDragStart($event, group.id)"
-                @dragend="clearSidebarDrag"
-                @toggle="toggleGroupCollapse(group.id)"
-                @dragover.stop.prevent="onFavDragOverGroup($event, group.id)"
-                @drop.stop="onFavDropOnGroup($event, group.id)"
-                @dragleave="onFavDragLeaveGroup"
-                :class="{
-                  'drag-over-group':
-                    dragOverGroupId === group.id && !draggedFavoriteGroupId,
-                  'sidebar-drop-before':
-                    draggedFavoriteGroupId &&
-                    favoriteGroupDropId === group.id &&
-                    favoriteGroupDropPosition === 'before',
-                  'sidebar-drop-after':
-                    draggedFavoriteGroupId &&
-                    favoriteGroupDropId === group.id &&
-                    favoriteGroupDropPosition === 'after',
-                }"
-              >
-                <template #actions>
+              <header class="sidebar-rail-popover-header">
+                <div>
+                  <span>{{ railPanelTitle }}</span>
+                  <small>{{ railPanelDescription }}</small>
+                </div>
+                <button
+                  type="button"
+                  aria-label="关闭浮层"
+                  @click="closeRailPanel(true)"
+                >
+                  <AppIcon name="x" :size="18" />
+                </button>
+              </header>
+
+              <div class="sidebar-rail-popover-list">
+                <template v-if="railPanel === 'favorites'">
                   <button
-                    class="section-action-btn"
+                    v-for="fav in favoritesStore.sortedFavorites"
+                    :key="fav.id"
                     type="button"
-                    title="删除分组"
-                    :aria-label="`删除分组 ${group.name}`"
-                    @click.stop.prevent="deleteGroup(group.id)"
+                    class="sidebar-rail-popover-item"
+                    :title="fav.path"
+                    @click="navigateVolume(fav.path, fav.groupId)"
                   >
-                    <AppIcon name="trash" :size="16" :stroke-width="1.9" />
+                    <AppIcon
+                      :name="isFileByExtension(fav.name) ? 'file' : 'folder'"
+                      :size="19"
+                    />
+                    <span
+                      ><strong>{{ fav.name }}</strong
+                      ><small>{{ fav.path }}</small></span
+                    >
+                    <AppIcon name="chevron-right" :size="17" />
+                  </button>
+                  <p
+                    v-if="favoritesStore.sortedFavorites.length === 0"
+                    class="sidebar-rail-empty"
+                  >
+                    暂无收藏项目
+                  </p>
+                </template>
+
+                <template v-else-if="railPanel === 'tags'">
+                  <button
+                    v-for="tag in orderedTags"
+                    :key="tag.id"
+                    type="button"
+                    class="sidebar-rail-popover-item"
+                    :class="{ active: tagsStore.activeFilter === tag.id }"
+                    @click="filterByTag(tag.id)"
+                  >
+                    <span
+                      class="sidebar-rail-tag-dot"
+                      :style="{ background: tag.color }"
+                    ></span>
+                    <span
+                      ><strong>{{ tag.name }}</strong
+                      ><small>{{ tag.paths.length }} 个项目</small></span
+                    >
+                    <span class="sidebar-rail-item-count">{{
+                      tag.paths.length
+                    }}</span>
+                  </button>
+                  <p v-if="orderedTags.length === 0" class="sidebar-rail-empty">
+                    暂无标签
+                  </p>
+                </template>
+
+                <template v-else-if="railPanel === 'categories'">
+                  <div
+                    v-for="group in orderedCategoryGroups"
+                    :key="group.id"
+                    class="sidebar-rail-popover-group"
+                  >
+                    <div class="sidebar-rail-popover-group-title">
+                      <span>{{ group.name }}</span
+                      ><small>{{ group.paths.length }}</small>
+                    </div>
+                    <button
+                      v-for="path in orderedCategoryPaths(group)"
+                      :key="path.path"
+                      type="button"
+                      class="sidebar-rail-popover-item"
+                      :title="path.path"
+                      @click="navigateVolume(path.path)"
+                    >
+                      <AppIcon name="folder" :size="19" />
+                      <span
+                        ><strong>{{ path.name }}</strong
+                        ><small>{{ path.path }}</small></span
+                      >
+                      <AppIcon name="chevron-right" :size="17" />
+                    </button>
+                  </div>
+                </template>
+
+                <template v-else-if="railPanel === 'volumes'">
+                  <button
+                    v-for="volume in orderedVolumes"
+                    :key="volume.path"
+                    type="button"
+                    class="sidebar-rail-popover-item sidebar-rail-volume-item"
+                    @click="navigateVolume(volume.path)"
+                  >
+                    <AppIcon
+                      :name="volume.icon"
+                      :size="19"
+                      :stroke-width="1.9"
+                    />
+                    <span>
+                      <strong>{{ volume.displayName }}</strong>
+                      <small
+                        >{{ volume.usedFormatted }} /
+                        {{ volume.totalFormatted }}</small
+                      >
+                      <i aria-hidden="true"
+                        ><b
+                          :style="{
+                            width: volume.usedPercentage + '%',
+                            background: volumeBarColor(volume.usedPercentage),
+                          }"
+                        ></b
+                      ></i>
+                    </span>
+                    <span class="sidebar-rail-item-count"
+                      >{{ Math.round(volume.usedPercentage) }}%</span
+                    >
                   </button>
                 </template>
-              </SidebarGroupHeader>
-              <template v-if="!collapsedGroups[group.id]">
-                <button
-                  v-for="fav in favoritesStore.favoritesByGroup[group.id] || []"
-                  :key="fav.id"
-                  class="action favorite-item category-path-item"
-                  :class="favoriteDropClass(fav.id)"
-                  draggable="true"
-                  @click="navigateVolume(fav.path, fav.groupId)"
-                  :title="fav.path"
-                  @dragstart="onFavDragStart($event, fav.id)"
-                  @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
-                  @dragleave="onFavDragLeaveItem"
-                  @drop.stop="onFavDropOnItem($event, fav.id)"
-                  @dragend="onFavDragEnd"
-                >
-                  <AppIcon
-                    class="favorite-icon favorite-drag-handle"
-                    name="drag"
-                    :size="18"
-                    :stroke-width="2"
-                  />
-                  <AppIcon
-                    class="favorite-icon"
-                    :name="favoriteIcon(fav.name)"
-                    :size="20"
-                    :stroke-width="1.9"
-                  />
-                  <div class="favorite-info">
-                    <span class="favorite-name">{{ fav.name }}</span>
-                    <span class="favorite-path" v-if="fav.path !== fav.name">{{
-                      fav.path
-                    }}</span>
-                  </div>
-                  <span
-                    class="favorite-remove"
-                    role="button"
-                    tabindex="0"
-                    aria-label="取消收藏"
-                    title="取消收藏"
-                    @click.stop.prevent="removeFavorite(fav.id)"
-                    @keydown.enter.stop.prevent="removeFavorite(fav.id)"
-                    @keydown.space.stop.prevent="removeFavorite(fav.id)"
-                  >
-                    <AppIcon name="minus" :size="14" :stroke-width="2.2" />
-                  </span>
-                </button>
-                <div
-                  v-if="
-                    (favoritesStore.favoritesByGroup[group.id] || []).length ===
-                    0
-                  "
-                  class="section-empty"
-                >
-                  <span>该分组暂无收藏</span>
-                </div>
-              </template>
-            </div>
-          </template>
-        </div>
-
-        <!-- Tags Filter Section -->
-        <div
-          class="tags-section sidebar-module sidebar-sortable-module"
-          :class="sidebarDropClass('module', 'moduleOrder', 'tags')"
-          :style="moduleStyle('tags')"
-          @dragover.prevent="
-            onSidebarDragOver($event, 'module', 'moduleOrder', 'tags')
-          "
-          @drop="onModuleDrop('tags')"
-        >
-          <SidebarSectionHeader
-            icon="tags"
-            label="标签"
-            :expanded="!collapsedSections.tags"
-            draggable="true"
-            @dragstart="onModuleDragStart($event, 'tags')"
-            @dragend="clearSidebarDrag"
-            @toggle="toggleSection('tags')"
-          >
-            <template #tools>
-              <button
-                class="section-action-btn"
-                type="button"
-                title="管理标签"
-                aria-label="管理标签"
-                @click.stop.prevent="openTagManager"
-              >
-                <AppIcon name="settings" :size="18" />
-              </button>
-            </template>
-          </SidebarSectionHeader>
-          <template v-if="!collapsedSections.tags">
-            <div v-if="tagsStore.sortedTags.length === 0" class="section-empty">
-              <AppIcon name="tag" :size="20" :stroke-width="1.9" />
-              <span>暂无标签，创建一个吧</span>
-            </div>
-            <button
-              v-for="tag in orderedTags"
-              :key="tag.id"
-              class="action tag-filter-item sidebar-sortable-item"
-              :class="[
-                { active: tagsStore.activeFilter === tag.id },
-                sidebarDropClass('preference', 'tagOrder', tag.id),
-              ]"
-              draggable="true"
-              @click="filterByTag(tag.id)"
-              @dragstart.stop="
-                onPreferenceDragStart($event, 'tagOrder', tag.id)
-              "
-              @dragover.prevent="
-                onSidebarDragOver($event, 'preference', 'tagOrder', tag.id)
-              "
-              @drop.stop="onPreferenceDrop('tagOrder', tag.id)"
-              @dragend="clearSidebarDrag"
-            >
-              <AppIcon
-                class="tag-filter-dot"
-                name="tag"
-                :size="18"
-                :stroke-width="1.9"
-                :style="{ color: tag.color }"
-              />
-              <span class="tag-filter-name">{{ tag.name }}</span>
-              <span class="tag-filter-count">{{ tag.paths.length }}</span>
-            </button>
-            <button
-              v-if="tagsStore.activeFilter"
-              class="action tag-filter-clear"
-              @click="clearTagFilter"
-            >
-              <AppIcon name="filter-clear" :size="18" :stroke-width="1.9" />
-              <span>清除筛选</span>
-            </button>
-          </template>
-        </div>
-
-        <!-- Storage Volumes Section (admin only) -->
-        <div
-          v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
-          class="volumes-section sidebar-module sidebar-sortable-module"
-          :class="sidebarDropClass('module', 'moduleOrder', 'volumes')"
-          :style="moduleStyle('volumes')"
-          @dragover.prevent="
-            onSidebarDragOver($event, 'module', 'moduleOrder', 'volumes')
-          "
-          @drop="onModuleDrop('volumes')"
-        >
-          <SidebarSectionHeader
-            icon="storage"
-            label="存储卷"
-            :expanded="!collapsedSections.volumes"
-            draggable="true"
-            @dragstart="onModuleDragStart($event, 'volumes')"
-            @dragend="clearSidebarDrag"
-            @toggle="toggleSection('volumes')"
-          />
-          <template v-if="!collapsedSections.volumes">
-            <button
-              v-for="vol in orderedVolumes"
-              :key="vol.path"
-              class="action volume-item sidebar-sortable-item"
-              :class="sidebarDropClass('preference', 'volumeOrder', vol.path)"
-              draggable="true"
-              @click="navigateVolume(vol.path)"
-              @dragstart.stop="
-                onPreferenceDragStart($event, 'volumeOrder', vol.path)
-              "
-              @dragover.prevent="
-                onSidebarDragOver($event, 'preference', 'volumeOrder', vol.path)
-              "
-              @drop.stop="onPreferenceDrop('volumeOrder', vol.path)"
-              @dragend="clearSidebarDrag"
-            >
-              <AppIcon
-                :name="vol.icon"
-                :size="20"
-                :stroke-width="1.9"
-                :style="{ color: vol.color }"
-              />
-              <div class="volume-info">
-                <span class="volume-name">{{ vol.displayName }}</span>
-                <div class="volume-bar-wrap">
-                  <div class="volume-bar">
-                    <div
-                      class="volume-bar-fill"
-                      :style="{
-                        width: vol.usedPercentage + '%',
-                        background: volumeBarColor(vol.usedPercentage),
-                      }"
-                    ></div>
-                  </div>
-                  <span class="volume-usage"
-                    >{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span
-                  >
-                </div>
               </div>
-            </button>
-          </template>
-        </div>
 
-        <!-- Category Quick Navigation (admin only) -->
-        <div
-          v-if="user?.perm?.admin && categoryGroups.length > 0"
-          class="categories-section sidebar-module sidebar-sortable-module"
-          :class="sidebarDropClass('module', 'moduleOrder', 'categories')"
-          :style="moduleStyle('categories')"
-          @dragover.prevent="
-            onSidebarDragOver($event, 'module', 'moduleOrder', 'categories')
-          "
-          @drop="onModuleDrop('categories')"
-        >
-          <SidebarSectionHeader
-            icon="categories"
-            label="目录分类"
-            :expanded="!collapsedSections.categories"
-            draggable="true"
-            @dragstart="onModuleDragStart($event, 'categories')"
-            @dragend="clearSidebarDrag"
-            @toggle="toggleSection('categories')"
-          />
-          <template v-if="!collapsedSections.categories">
-            <div
-              v-for="group in orderedCategoryGroups"
-              :key="group.id"
-              class="category-group"
-            >
-              <SidebarGroupHeader
-                class="category-group-header"
-                :icon="group.icon"
-                :label="group.name"
-                :count="group.paths.length"
-                :expanded="Boolean(expandedCategories[group.id])"
-                :color="group.color"
+              <footer class="sidebar-rail-popover-footer">
+                <button type="button" @click="toggleDesktopRail(false)">
+                  <AppIcon name="panel-open" :size="18" />
+                  展开侧边栏以管理
+                </button>
+              </footer>
+            </section>
+          </Teleport>
+        </template>
+
+        <div v-else class="sidebar-personalized-stack">
+          <div
+            class="sidebar-primary-nav sidebar-sortable-module"
+            :class="sidebarDropClass('module', 'moduleOrder', 'user')"
+            :style="moduleStyle('user')"
+            @dragover.prevent="
+              onSidebarDragOver($event, 'module', 'moduleOrder', 'user')
+            "
+            @drop="onModuleDrop('user')"
+          >
+            <div class="sidebar-user-row">
+              <button
+                type="button"
+                @click="toAccountSettings"
+                class="action sidebar-user-card"
                 draggable="true"
+                @dragstart="onModuleDragStart($event, 'user')"
+                @dragend="clearSidebarDrag"
+              >
+                <span class="sidebar-user-icon"
+                  ><AppIcon name="user" :size="20"
+                /></span>
+                <span>{{ user?.username }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="system-options-section sidebar-module sidebar-sortable-module"
+            :class="sidebarDropClass('module', 'moduleOrder', 'system-options')"
+            :style="moduleStyle('system-options')"
+            @dragover.prevent="
+              onSidebarDragOver(
+                $event,
+                'module',
+                'moduleOrder',
+                'system-options'
+              )
+            "
+            @drop="onModuleDrop('system-options')"
+          >
+            <SidebarSectionHeader
+              icon="system-options"
+              label="系统选项"
+              :expanded="!collapsedSections.systemOptions"
+              draggable="true"
+              @dragstart="onModuleDragStart($event, 'system-options')"
+              @dragend="clearSidebarDrag"
+              @toggle="toggleSection('systemOptions')"
+            />
+            <template v-if="!collapsedSections.systemOptions">
+              <button
+                v-for="option in orderedSystemOptions"
+                :key="option.id"
+                type="button"
+                class="action sidebar-command sidebar-sortable-item"
                 :class="
-                  sidebarDropClass('preference', 'categoryOrder', group.id)
+                  sidebarDropClass('preference', 'systemOptionOrder', option.id)
                 "
+                draggable="true"
+                @click="runSystemOption(option.id)"
                 @dragstart.stop="
-                  onPreferenceDragStart($event, 'categoryOrder', group.id)
+                  onPreferenceDragStart($event, 'systemOptionOrder', option.id)
                 "
                 @dragover.prevent="
                   onSidebarDragOver(
                     $event,
                     'preference',
-                    'categoryOrder',
-                    group.id
+                    'systemOptionOrder',
+                    option.id
                   )
                 "
-                @drop.stop="onPreferenceDrop('categoryOrder', group.id)"
+                @drop.stop="onPreferenceDrop('systemOptionOrder', option.id)"
                 @dragend="clearSidebarDrag"
-                @toggle="toggleCategory(group.id)"
-              />
-              <div v-if="expandedCategories[group.id]" class="category-paths">
+              >
+                <AppIcon :name="option.icon" :size="20" />
+                <span>{{ option.label }}</span>
+              </button>
+            </template>
+          </div>
+
+          <!-- Favorites Section -->
+          <div
+            class="favorites-section sidebar-module sidebar-sortable-module"
+            :class="sidebarDropClass('module', 'moduleOrder', 'favorites')"
+            :style="moduleStyle('favorites')"
+            @dragover.prevent="
+              onSidebarDragOver($event, 'module', 'moduleOrder', 'favorites')
+            "
+            @drop="onModuleDrop('favorites')"
+          >
+            <SidebarSectionHeader
+              icon="star"
+              label="收藏夹"
+              tone="favorite"
+              :expanded="!collapsedSections.favorites"
+              draggable="true"
+              @dragstart="onModuleDragStart($event, 'favorites')"
+              @dragend="clearSidebarDrag"
+              @toggle="toggleSection('favorites')"
+            >
+              <template #tools>
                 <button
-                  v-for="p in orderedCategoryPaths(group)"
-                  :key="p.path"
-                  class="action category-path-item sidebar-sortable-item"
-                  :class="sidebarDropClass('category-path', group.id, p.path)"
-                  draggable="true"
-                  @click="navigateVolume(p.path)"
-                  :title="p.path"
-                  @dragstart.stop="
-                    onCategoryPathDragStart($event, group.id, p.path)
-                  "
-                  @dragover.prevent="
-                    onSidebarDragOver($event, 'category-path', group.id, p.path)
-                  "
-                  @drop.stop="onCategoryPathDrop(group, p.path)"
-                  @dragend="clearSidebarDrag"
+                  class="section-action-btn"
+                  type="button"
+                  title="新建分组"
+                  aria-label="新建收藏分组"
+                  @click.stop.prevent="showCreateGroup = !showCreateGroup"
                 >
-                  <AppIcon
-                    class="category-path-risk-icon"
-                    :class="'risk-' + p.risk"
-                    :name="riskIcon(p.risk)"
-                    :size="18"
-                    :stroke-width="1.9"
-                  />
-                  <div class="category-path-info">
-                    <span class="category-path-name">{{ p.name }}</span>
-                    <span
-                      v-if="isDuplicateName(p.name, group.id)"
-                      class="category-path-volume"
-                      >{{ getVolumeLabel(p.path) }}</span
-                    >
-                    <span
-                      v-else-if="p.volumeType && p.volumeType !== 'system'"
-                      class="category-path-type"
-                      >{{ p.volumeType }}</span
-                    >
-                  </div>
+                  <AppIcon name="folder-new" :size="18" />
+                </button>
+              </template>
+            </SidebarSectionHeader>
+            <template v-if="!collapsedSections.favorites">
+              <!-- Create group input -->
+              <div v-if="showCreateGroup" class="create-group-input">
+                <input
+                  v-model="newGroupName"
+                  placeholder="分组名称"
+                  @keyup.enter="createGroup"
+                  @keyup.escape="showCreateGroup = false"
+                  ref="groupInputRef"
+                />
+                <button
+                  type="button"
+                  aria-label="确认新建分组"
+                  @click="createGroup"
+                  :disabled="!newGroupName.trim()"
+                >
+                  <AppIcon name="circle-check" :size="18" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="取消新建分组"
+                  @click="showCreateGroup = false"
+                >
+                  <AppIcon name="x" :size="18" />
                 </button>
               </div>
-            </div>
-          </template>
-        </div>
-
-        <div
-          v-if="canLogout"
-          class="sidebar-footer-actions sidebar-sortable-module"
-          :class="sidebarDropClass('module', 'moduleOrder', 'logout')"
-          :style="moduleStyle('logout')"
-          draggable="true"
-          @dragstart="onModuleDragStart($event, 'logout')"
-          @dragover.prevent="
-            onSidebarDragOver($event, 'module', 'moduleOrder', 'logout')
-          "
-          @drop="onModuleDrop('logout')"
-          @dragend="clearSidebarDrag"
-        >
-          <div v-if="isDesktopViewport" class="sidebar-collapse-row">
-            <IconButton
-              class="sidebar-collapse-control"
-              icon="panel-close"
-              label="折叠为图标侧栏"
-              :icon-size="20"
-              @click="toggleDesktopRail(true)"
-            >
-              <span class="sidebar-collapse-label">折叠侧栏</span>
-            </IconButton>
+              <!-- Empty state -->
+              <div
+                v-if="
+                  favoritesStore.sortedFavorites.length === 0 &&
+                  favoritesStore.sortedGroups.length === 0
+                "
+                class="section-empty"
+              >
+                <AppIcon name="star" :size="20" :stroke-width="1.9" />
+                <span>暂无收藏目录</span>
+              </div>
+              <!-- Ungrouped favorites -->
+              <div
+                class="favorites-ungrouped-drop-zone"
+                :class="{
+                  'favorites-ungrouped-drop-zone--empty':
+                    isDraggingGroupedFavorite &&
+                    favoritesStore.favoritesByGroup[''].length === 0,
+                  'sidebar-drop-before': ungroupedDropActive,
+                }"
+                @dragover.stop.prevent="onUngroupedDragOver"
+                @dragleave="ungroupedDropActive = false"
+                @drop.stop="onUngroupedDrop"
+              >
+                <template
+                  v-if="
+                    favoritesStore.favoritesByGroup[''] &&
+                    favoritesStore.favoritesByGroup[''].length > 0
+                  "
+                >
+                  <button
+                    v-for="fav in favoritesStore.favoritesByGroup['']"
+                    :key="fav.id"
+                    class="action favorite-item"
+                    :class="favoriteDropClass(fav.id)"
+                    draggable="true"
+                    @click="navigateVolume(fav.path, fav.groupId)"
+                    :title="fav.path"
+                    @dragstart="onFavDragStart($event, fav.id)"
+                    @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
+                    @dragleave="onFavDragLeaveItem"
+                    @drop.stop="onFavDropOnItem($event, fav.id)"
+                    @dragend="onFavDragEnd"
+                  >
+                    <AppIcon
+                      class="favorite-icon favorite-drag-handle"
+                      name="drag"
+                      :size="18"
+                      :stroke-width="2"
+                    />
+                    <AppIcon
+                      class="favorite-icon"
+                      :name="favoriteIcon(fav.name)"
+                      :size="20"
+                      :stroke-width="1.9"
+                    />
+                    <div class="favorite-info">
+                      <span class="favorite-name">{{ fav.name }}</span>
+                      <span
+                        class="favorite-path"
+                        v-if="fav.path !== fav.name"
+                        >{{ fav.path }}</span
+                      >
+                    </div>
+                    <span
+                      class="favorite-remove"
+                      role="button"
+                      tabindex="0"
+                      aria-label="取消收藏"
+                      title="取消收藏"
+                      @click.stop.prevent="removeFavorite(fav.id)"
+                      @keydown.enter.stop.prevent="removeFavorite(fav.id)"
+                      @keydown.space.stop.prevent="removeFavorite(fav.id)"
+                    >
+                      <AppIcon name="minus" :size="14" :stroke-width="2.2" />
+                    </span>
+                  </button>
+                </template>
+              </div>
+              <!-- Groups -->
+              <div
+                v-for="group in favoritesStore.sortedGroups"
+                :key="group.id"
+                class="favorite-group"
+              >
+                <SidebarGroupHeader
+                  class="favorite-group-header"
+                  icon="inventory_2"
+                  app-icon="collection"
+                  :label="group.name"
+                  :count="
+                    (favoritesStore.favoritesByGroup[group.id] || []).length
+                  "
+                  :expanded="!collapsedGroups[group.id]"
+                  :color="group.color || 'var(--blue)'"
+                  draggable="true"
+                  @dragstart.stop="onFavoriteGroupDragStart($event, group.id)"
+                  @dragend="clearSidebarDrag"
+                  @toggle="toggleGroupCollapse(group.id)"
+                  @dragover.stop.prevent="onFavDragOverGroup($event, group.id)"
+                  @drop.stop="onFavDropOnGroup($event, group.id)"
+                  @dragleave="onFavDragLeaveGroup"
+                  :class="{
+                    'drag-over-group':
+                      dragOverGroupId === group.id && !draggedFavoriteGroupId,
+                    'sidebar-drop-before':
+                      draggedFavoriteGroupId &&
+                      favoriteGroupDropId === group.id &&
+                      favoriteGroupDropPosition === 'before',
+                    'sidebar-drop-after':
+                      draggedFavoriteGroupId &&
+                      favoriteGroupDropId === group.id &&
+                      favoriteGroupDropPosition === 'after',
+                  }"
+                >
+                  <template #actions>
+                    <button
+                      class="section-action-btn"
+                      type="button"
+                      title="删除分组"
+                      :aria-label="`删除分组 ${group.name}`"
+                      @click.stop.prevent="deleteGroup(group.id)"
+                    >
+                      <AppIcon name="trash" :size="16" :stroke-width="1.9" />
+                    </button>
+                  </template>
+                </SidebarGroupHeader>
+                <template v-if="!collapsedGroups[group.id]">
+                  <button
+                    v-for="fav in favoritesStore.favoritesByGroup[group.id] ||
+                    []"
+                    :key="fav.id"
+                    class="action favorite-item category-path-item"
+                    :class="favoriteDropClass(fav.id)"
+                    draggable="true"
+                    @click="navigateVolume(fav.path, fav.groupId)"
+                    :title="fav.path"
+                    @dragstart="onFavDragStart($event, fav.id)"
+                    @dragover.stop.prevent="onFavDragOverItem($event, fav.id)"
+                    @dragleave="onFavDragLeaveItem"
+                    @drop.stop="onFavDropOnItem($event, fav.id)"
+                    @dragend="onFavDragEnd"
+                  >
+                    <AppIcon
+                      class="favorite-icon favorite-drag-handle"
+                      name="drag"
+                      :size="18"
+                      :stroke-width="2"
+                    />
+                    <AppIcon
+                      class="favorite-icon"
+                      :name="favoriteIcon(fav.name)"
+                      :size="20"
+                      :stroke-width="1.9"
+                    />
+                    <div class="favorite-info">
+                      <span class="favorite-name">{{ fav.name }}</span>
+                      <span
+                        class="favorite-path"
+                        v-if="fav.path !== fav.name"
+                        >{{ fav.path }}</span
+                      >
+                    </div>
+                    <span
+                      class="favorite-remove"
+                      role="button"
+                      tabindex="0"
+                      aria-label="取消收藏"
+                      title="取消收藏"
+                      @click.stop.prevent="removeFavorite(fav.id)"
+                      @keydown.enter.stop.prevent="removeFavorite(fav.id)"
+                      @keydown.space.stop.prevent="removeFavorite(fav.id)"
+                    >
+                      <AppIcon name="minus" :size="14" :stroke-width="2.2" />
+                    </span>
+                  </button>
+                  <div
+                    v-if="
+                      (favoritesStore.favoritesByGroup[group.id] || [])
+                        .length === 0
+                    "
+                    class="section-empty"
+                  >
+                    <span>该分组暂无收藏</span>
+                  </div>
+                </template>
+              </div>
+            </template>
           </div>
-          <button
-            @click="logout"
-            class="action sidebar-command"
-            id="logout"
-            aria-label="退出"
-            title="登出"
+
+          <!-- Tags Filter Section -->
+          <div
+            class="tags-section sidebar-module sidebar-sortable-module"
+            :class="sidebarDropClass('module', 'moduleOrder', 'tags')"
+            :style="moduleStyle('tags')"
+            @dragover.prevent="
+              onSidebarDragOver($event, 'module', 'moduleOrder', 'tags')
+            "
+            @drop="onModuleDrop('tags')"
           >
-            <AppIcon name="logout" :size="20" />
-            <span>登出</span>
-          </button>
+            <SidebarSectionHeader
+              icon="tags"
+              label="标签"
+              :expanded="!collapsedSections.tags"
+              draggable="true"
+              @dragstart="onModuleDragStart($event, 'tags')"
+              @dragend="clearSidebarDrag"
+              @toggle="toggleSection('tags')"
+            >
+              <template #tools>
+                <button
+                  class="section-action-btn"
+                  type="button"
+                  title="管理标签"
+                  aria-label="管理标签"
+                  @click.stop.prevent="openTagManager"
+                >
+                  <AppIcon name="settings" :size="18" />
+                </button>
+              </template>
+            </SidebarSectionHeader>
+            <template v-if="!collapsedSections.tags">
+              <div
+                v-if="tagsStore.sortedTags.length === 0"
+                class="section-empty"
+              >
+                <AppIcon name="tag" :size="20" :stroke-width="1.9" />
+                <span>暂无标签，创建一个吧</span>
+              </div>
+              <button
+                v-for="tag in orderedTags"
+                :key="tag.id"
+                class="action tag-filter-item sidebar-sortable-item"
+                :class="[
+                  { active: tagsStore.activeFilter === tag.id },
+                  sidebarDropClass('preference', 'tagOrder', tag.id),
+                ]"
+                draggable="true"
+                @click="filterByTag(tag.id)"
+                @dragstart.stop="
+                  onPreferenceDragStart($event, 'tagOrder', tag.id)
+                "
+                @dragover.prevent="
+                  onSidebarDragOver($event, 'preference', 'tagOrder', tag.id)
+                "
+                @drop.stop="onPreferenceDrop('tagOrder', tag.id)"
+                @dragend="clearSidebarDrag"
+              >
+                <AppIcon
+                  class="tag-filter-dot"
+                  name="tag"
+                  :size="18"
+                  :stroke-width="1.9"
+                  :style="{ color: tag.color }"
+                />
+                <span class="tag-filter-name">{{ tag.name }}</span>
+                <span class="tag-filter-count">{{ tag.paths.length }}</span>
+              </button>
+              <button
+                v-if="tagsStore.activeFilter"
+                class="action tag-filter-clear"
+                @click="clearTagFilter"
+              >
+                <AppIcon name="filter-clear" :size="18" :stroke-width="1.9" />
+                <span>清除筛选</span>
+              </button>
+            </template>
+          </div>
+
+          <!-- Storage Volumes Section (admin only) -->
+          <div
+            v-if="user?.perm?.admin && volumesStore.displayVolumes.length > 0"
+            class="volumes-section sidebar-module sidebar-sortable-module"
+            :class="sidebarDropClass('module', 'moduleOrder', 'volumes')"
+            :style="moduleStyle('volumes')"
+            @dragover.prevent="
+              onSidebarDragOver($event, 'module', 'moduleOrder', 'volumes')
+            "
+            @drop="onModuleDrop('volumes')"
+          >
+            <SidebarSectionHeader
+              icon="storage"
+              label="存储卷"
+              :expanded="!collapsedSections.volumes"
+              draggable="true"
+              @dragstart="onModuleDragStart($event, 'volumes')"
+              @dragend="clearSidebarDrag"
+              @toggle="toggleSection('volumes')"
+            />
+            <template v-if="!collapsedSections.volumes">
+              <button
+                v-for="vol in orderedVolumes"
+                :key="vol.path"
+                class="action volume-item sidebar-sortable-item"
+                :class="sidebarDropClass('preference', 'volumeOrder', vol.path)"
+                draggable="true"
+                @click="navigateVolume(vol.path)"
+                @dragstart.stop="
+                  onPreferenceDragStart($event, 'volumeOrder', vol.path)
+                "
+                @dragover.prevent="
+                  onSidebarDragOver(
+                    $event,
+                    'preference',
+                    'volumeOrder',
+                    vol.path
+                  )
+                "
+                @drop.stop="onPreferenceDrop('volumeOrder', vol.path)"
+                @dragend="clearSidebarDrag"
+              >
+                <AppIcon
+                  :name="vol.icon"
+                  :size="20"
+                  :stroke-width="1.9"
+                  :style="{ color: vol.color }"
+                />
+                <div class="volume-info">
+                  <span class="volume-name">{{ vol.displayName }}</span>
+                  <div class="volume-bar-wrap">
+                    <div class="volume-bar">
+                      <div
+                        class="volume-bar-fill"
+                        :style="{
+                          width: vol.usedPercentage + '%',
+                          background: volumeBarColor(vol.usedPercentage),
+                        }"
+                      ></div>
+                    </div>
+                    <span class="volume-usage"
+                      >{{ vol.usedFormatted }} / {{ vol.totalFormatted }}</span
+                    >
+                  </div>
+                </div>
+              </button>
+            </template>
+          </div>
+
+          <!-- Category Quick Navigation (admin only) -->
+          <div
+            v-if="user?.perm?.admin && categoryGroups.length > 0"
+            class="categories-section sidebar-module sidebar-sortable-module"
+            :class="sidebarDropClass('module', 'moduleOrder', 'categories')"
+            :style="moduleStyle('categories')"
+            @dragover.prevent="
+              onSidebarDragOver($event, 'module', 'moduleOrder', 'categories')
+            "
+            @drop="onModuleDrop('categories')"
+          >
+            <SidebarSectionHeader
+              icon="categories"
+              label="目录分类"
+              :expanded="!collapsedSections.categories"
+              draggable="true"
+              @dragstart="onModuleDragStart($event, 'categories')"
+              @dragend="clearSidebarDrag"
+              @toggle="toggleSection('categories')"
+            />
+            <template v-if="!collapsedSections.categories">
+              <div
+                v-for="group in orderedCategoryGroups"
+                :key="group.id"
+                class="category-group"
+              >
+                <SidebarGroupHeader
+                  class="category-group-header"
+                  :icon="group.icon"
+                  :label="group.name"
+                  :count="group.paths.length"
+                  :expanded="Boolean(expandedCategories[group.id])"
+                  :color="group.color"
+                  draggable="true"
+                  :class="
+                    sidebarDropClass('preference', 'categoryOrder', group.id)
+                  "
+                  @dragstart.stop="
+                    onPreferenceDragStart($event, 'categoryOrder', group.id)
+                  "
+                  @dragover.prevent="
+                    onSidebarDragOver(
+                      $event,
+                      'preference',
+                      'categoryOrder',
+                      group.id
+                    )
+                  "
+                  @drop.stop="onPreferenceDrop('categoryOrder', group.id)"
+                  @dragend="clearSidebarDrag"
+                  @toggle="toggleCategory(group.id)"
+                />
+                <div v-if="expandedCategories[group.id]" class="category-paths">
+                  <button
+                    v-for="p in orderedCategoryPaths(group)"
+                    :key="p.path"
+                    class="action category-path-item sidebar-sortable-item"
+                    :class="sidebarDropClass('category-path', group.id, p.path)"
+                    draggable="true"
+                    @click="navigateVolume(p.path)"
+                    :title="p.path"
+                    @dragstart.stop="
+                      onCategoryPathDragStart($event, group.id, p.path)
+                    "
+                    @dragover.prevent="
+                      onSidebarDragOver(
+                        $event,
+                        'category-path',
+                        group.id,
+                        p.path
+                      )
+                    "
+                    @drop.stop="onCategoryPathDrop(group, p.path)"
+                    @dragend="clearSidebarDrag"
+                  >
+                    <AppIcon
+                      class="category-path-risk-icon"
+                      :class="'risk-' + p.risk"
+                      :name="riskIcon(p.risk)"
+                      :size="18"
+                      :stroke-width="1.9"
+                    />
+                    <div class="category-path-info">
+                      <span class="category-path-name">{{ p.name }}</span>
+                      <span
+                        v-if="isDuplicateName(p.name, group.id)"
+                        class="category-path-volume"
+                        >{{ getVolumeLabel(p.path) }}</span
+                      >
+                      <span
+                        v-else-if="p.volumeType && p.volumeType !== 'system'"
+                        class="category-path-type"
+                        >{{ p.volumeType }}</span
+                      >
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div
+            v-if="canLogout"
+            class="sidebar-footer-actions sidebar-sortable-module"
+            :class="sidebarDropClass('module', 'moduleOrder', 'logout')"
+            :style="moduleStyle('logout')"
+            draggable="true"
+            @dragstart="onModuleDragStart($event, 'logout')"
+            @dragover.prevent="
+              onSidebarDragOver($event, 'module', 'moduleOrder', 'logout')
+            "
+            @drop="onModuleDrop('logout')"
+            @dragend="clearSidebarDrag"
+          >
+            <div v-if="isDesktopViewport" class="sidebar-collapse-row">
+              <IconButton
+                class="sidebar-collapse-control"
+                icon="panel-close"
+                label="折叠为图标侧栏"
+                :icon-size="20"
+                @click="toggleDesktopRail(true)"
+              >
+                <span class="sidebar-collapse-label">折叠侧栏</span>
+              </IconButton>
+            </div>
+            <button
+              @click="logout"
+              class="action sidebar-command"
+              id="logout"
+              aria-label="退出"
+              title="登出"
+            >
+              <AppIcon name="logout" :size="20" />
+              <span>登出</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </template>
-    <template v-else>
-      <router-link
-        v-if="!hideLoginButton"
-        class="action"
-        to="/login"
-        aria-label="登录"
-        title="登录"
-      >
-        <AppIcon name="login" :size="20" />
-        <span>登录</span>
-      </router-link>
-
-      <router-link
-        v-if="signup"
-        class="action"
-        to="/login"
-        aria-label="注册"
-        title="注册"
-      >
-        <AppIcon name="user-add" :size="20" />
-        <span>注册</span>
-      </router-link>
-    </template>
-
-    <p v-if="!railMode" class="credits">
-      <span>
-        <a
-          rel="noopener noreferrer"
-          target="_blank"
-          href="https://github.com/Kkwans/nas-file-browser"
-          >NAS File Browser</a
+      </template>
+      <template v-else>
+        <router-link
+          v-if="!hideLoginButton"
+          class="action"
+          to="/login"
+          aria-label="登录"
+          title="登录"
         >
-      </span>
-      <span>
-        <a @click="help">帮助</a>
-      </span>
-    </p>
-  </nav>
+          <AppIcon name="login" :size="20" />
+          <span>登录</span>
+        </router-link>
+
+        <router-link
+          v-if="signup"
+          class="action"
+          to="/login"
+          aria-label="注册"
+          title="注册"
+        >
+          <AppIcon name="user-add" :size="20" />
+          <span>注册</span>
+        </router-link>
+      </template>
+
+      <p v-if="!railMode" class="credits">
+        <span>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href="https://github.com/Kkwans/nas-file-browser"
+            >NAS File Browser</a
+          >
+        </span>
+        <span>
+          <a @click="help">帮助</a>
+        </span>
+      </p>
+    </nav>
+    <div
+      v-if="isDesktopViewport && !railMode"
+      class="sidebar-resize-handle"
+      role="separator"
+      tabindex="0"
+      aria-label="调整侧栏宽度"
+      aria-orientation="vertical"
+      :aria-valuemin="180"
+      :aria-valuemax="500"
+      :aria-valuenow="sidebarWidth"
+      title="拖拽调整宽度；方向键微调，双击复位"
+      @pointerdown="startResize"
+      @pointermove="onResize"
+      @pointerup="stopResize"
+      @pointercancel="cancelResize"
+      @lostpointercapture="stopResize"
+      @keydown="resizeByKeyboard"
+      @dblclick="resetSidebarWidth"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -1043,13 +1087,18 @@ const draggedPreference = ref<{
   id: string;
 } | null>(null);
 const draggedCategoryPath = ref<{ groupId: string; path: string } | null>(null);
-const sidebarWidth = ref(
-  parseInt(localStorage.getItem("nas-file-browser-sidebar-width") || "256")
-);
-document.documentElement.style.setProperty(
-  "--sidebar-width",
-  sidebarWidth.value + "px"
-);
+const clampSidebarWidth = (value: number) =>
+  Math.min(500, Math.max(180, Number.isFinite(value) ? value : 256));
+let savedSidebarWidth = 256;
+try {
+  savedSidebarWidth = Number(
+    localStorage.getItem("nas-file-browser-sidebar-width") || "256"
+  );
+} catch {
+  /* Use the default when storage is blocked. */
+}
+const sidebarWidth = ref(clampSidebarWidth(savedSidebarWidth));
+const sidebarFrame = ref<HTMLElement | null>(null);
 const isResizing = ref(false);
 const sidebarScrolling = ref(false);
 let sidebarScrollTimer: ReturnType<typeof setTimeout> | undefined;
@@ -1448,62 +1497,94 @@ const runSystemOption = (id: SystemOptionId) => {
   else showHover("newFile");
 };
 
-const startResize = (event: MouseEvent | TouchEvent) => {
-  const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
+let resizingElement: HTMLElement | null = null;
+let resizingPointer: number | null = null;
+let previousCursor = "";
+let previousUserSelect = "";
+const persistSidebarWidth = () => {
+  try {
+    localStorage.setItem(
+      "nas-file-browser-sidebar-width",
+      String(sidebarWidth.value)
+    );
+  } catch {
+    /* Keep the current width in memory. */
+  }
+};
+const setSidebarWidth = (width: number) => {
+  sidebarWidth.value = clampSidebarWidth(width);
+  applySidebarWidth();
+};
+const startResize = (event: PointerEvent) => {
+  if (!isDesktopViewport.value || railMode.value || event.button !== 0) return;
+  event.preventDefault();
+  resizingElement = event.currentTarget as HTMLElement;
+  resizingElement.focus();
+  resizingPointer = event.pointerId;
+  resizingElement.setPointerCapture(event.pointerId);
   isResizing.value = true;
-  startX.value = clientX;
-  startWidth.value = sidebarWidth.value;
-  document.addEventListener("mousemove", onResize);
-  document.addEventListener("mouseup", stopResize);
-  document.addEventListener("touchmove", onResize, { passive: false });
-  document.addEventListener("touchend", stopResize);
+  startX.value = event.clientX;
+  startWidth.value =
+    sidebarFrame.value?.getBoundingClientRect().width ?? sidebarWidth.value;
+  previousCursor = document.body.style.cursor;
+  previousUserSelect = document.body.style.userSelect;
   document.body.style.cursor = "col-resize";
   document.body.style.userSelect = "none";
 };
-
-const onResize = (event: Event) => {
-  if (!isResizing.value) return;
-  if (event.cancelable) event.preventDefault();
-  const e = event as MouseEvent | TouchEvent;
-  const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-  const diff = clientX - startX.value;
-  const newWidth = Math.min(500, Math.max(180, startWidth.value + diff));
-  sidebarWidth.value = newWidth;
-  document.documentElement.style.setProperty(
-    "--sidebar-width",
-    newWidth + "px"
+const onResize = (event: PointerEvent) => {
+  if (!isResizing.value || event.pointerId !== resizingPointer) return;
+  const direction = document.documentElement.dir === "rtl" ? -1 : 1;
+  setSidebarWidth(
+    startWidth.value + (event.clientX - startX.value) * direction
   );
 };
-
 const stopResize = () => {
+  if (!isResizing.value) return;
   isResizing.value = false;
-  document.removeEventListener("mousemove", onResize);
-  document.removeEventListener("mouseup", stopResize);
-  document.removeEventListener("touchmove", onResize);
-  document.removeEventListener("touchend", stopResize);
-  document.body.style.cursor = "";
-  document.body.style.userSelect = "";
-  try {
-    localStorage.setItem(
-      "nas-file-browser-sidebar-width",
-      sidebarWidth.value.toString()
-    );
-  } catch {}
+  if (
+    resizingPointer !== null &&
+    resizingElement?.hasPointerCapture(resizingPointer)
+  )
+    resizingElement.releasePointerCapture(resizingPointer);
+  resizingElement = null;
+  resizingPointer = null;
+  document.body.style.cursor = previousCursor;
+  document.body.style.userSelect = previousUserSelect;
+  persistSidebarWidth();
 };
-
+const cancelResize = () => {
+  if (!isResizing.value) return;
+  setSidebarWidth(startWidth.value);
+  stopResize();
+};
 const resetSidebarWidth = () => {
-  const defaultWidth = 256;
-  sidebarWidth.value = defaultWidth;
-  document.documentElement.style.setProperty(
-    "--sidebar-width",
-    defaultWidth + "px"
+  setSidebarWidth(256);
+  persistSidebarWidth();
+};
+const resizeByKeyboard = (event: KeyboardEvent) => {
+  if (event.key === "Escape") {
+    if (isResizing.value) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    cancelResize();
+    return;
+  }
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const direction = document.documentElement.dir === "rtl" ? -1 : 1;
+  const delta =
+    (event.key === "ArrowRight" ? 1 : -1) *
+    direction *
+    (event.shiftKey ? 1 : 10);
+  setSidebarWidth(
+    event.key === "Home"
+      ? 180
+      : event.key === "End"
+        ? 500
+        : sidebarWidth.value + delta
   );
-  try {
-    localStorage.setItem(
-      "nas-file-browser-sidebar-width",
-      defaultWidth.toString()
-    );
-  } catch {}
+  persistSidebarWidth();
 };
 
 const onSidebarScroll = () => {
@@ -1844,6 +1925,10 @@ let loadedUserId: number | null = null;
 
 watch(() => [railMode.value, sidebarWidth.value] as const, applySidebarWidth, {
   immediate: true,
+});
+
+watch([railMode, isDesktopViewport], ([rail, desktop]) => {
+  if (rail || !desktop) stopResize();
 });
 
 watch(

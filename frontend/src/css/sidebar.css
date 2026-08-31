@@ -1,3 +1,62 @@
+/* Fixed boundary owns geometry; the nav inside owns scrolling. */
+.sidebar-frame {
+  position: fixed;
+  inset-inline-start: 0;
+  top: var(--app-header-height, 56px);
+  bottom: 0;
+  width: var(--sidebar-width, 256px);
+  z-index: 999;
+}
+.sidebar-frame > .sidebar-resize-handle {
+  position: absolute;
+  inset-inline-end: -10px;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  z-index: 1;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.sidebar-frame > .sidebar-resize-handle::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(50% - 1px);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+}
+.sidebar-frame > .sidebar-resize-handle:hover::after,
+.sidebar-frame > .sidebar-resize-handle:focus-visible::after,
+.sidebar-frame.is-resizing > .sidebar-resize-handle::after {
+  background: var(--color-accent);
+}
+@media (max-width: 899px) {
+  .sidebar-frame {
+    top: 0;
+    width: min(86vw, 20rem);
+    z-index: 99999;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 160ms ease,
+      visibility 160ms ease;
+  }
+  html[dir="rtl"] .sidebar-frame:not(.active) {
+    transform: translateX(100%);
+  }
+  .sidebar-frame.active {
+    transform: translateX(0);
+    visibility: visible;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-frame {
+    transition: none;
+  }
+}
+
 /* ============================================
  *  Sidebar (nav) — Modern Redesign
  *  NAS File Browser Customization
@@ -5,23 +64,18 @@
 
 /* --- Sidebar Container --- */
 nav.sidebar {
-  width: var(--sidebar-width, 256px);
-  position: fixed;
-  top: var(--app-header-height, 56px);
-  left: 0;
-  bottom: 0;
   background: var(--surfacePrimary);
   border-right: 1px solid var(--divider);
-  overflow-y: auto;
-  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  transition:
-    0.25s ease background,
-    0.25s ease border-color,
-    0.15s ease box-shadow;
-  z-index: 999;
   box-shadow: 1px 0 8px rgba(0, 0, 0, 0.03);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* 侧栏工作台重构：分区与操作工具分离，所有状态不改变布局。 */
@@ -191,22 +245,11 @@ nav.sidebar .action:hover i {
   text-align: center;
 }
 
-.sidebar-resize-handle {
-  width: 0.5rem;
-  background: transparent;
-}
-
-.sidebar-resize-handle:hover,
-.sidebar-resize-handle:active {
-  background: rgba(22, 119, 255, 0.22);
-}
-
 /* 2026-07 PC 收口：单一水平基线、统一层级组件与稳定滚动区域。 */
 nav.sidebar {
   --sidebar-inline-gutter: 0.75rem;
   box-sizing: border-box;
   padding: 0.5rem 0 0;
-  overflow-y: auto;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -408,50 +451,6 @@ nav.sidebar .sidebar-module .category-path-item {
   margin-inline: 0;
 }
 
-nav.sidebar .sidebar-resize-handle {
-  position: absolute;
-  top: 0;
-  right: -0.375rem;
-  z-index: 100;
-  width: 0.75rem;
-  height: 100%;
-  background: transparent;
-  opacity: 1;
-  cursor: col-resize;
-  touch-action: none;
-}
-
-nav.sidebar .sidebar-resize-handle::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: var(--divider, #e2e8f0);
-  transform: translateX(-50%);
-  transition:
-    width 140ms ease,
-    background-color 140ms ease,
-    box-shadow 140ms ease;
-}
-
-nav.sidebar .sidebar-resize-handle:hover,
-nav.sidebar .sidebar-resize-handle:active,
-nav.sidebar.is-resizing .sidebar-resize-handle {
-  right: -0.375rem;
-  width: 0.75rem;
-  background: transparent;
-}
-
-nav.sidebar .sidebar-resize-handle:hover::after,
-nav.sidebar .sidebar-resize-handle:active::after,
-nav.sidebar.is-resizing .sidebar-resize-handle::after {
-  width: 2px;
-  background: #94a3b8;
-  box-shadow: 0 0 0.5rem rgba(15, 23, 42, 0.18);
-}
-
 nav.sidebar::-webkit-scrollbar {
   width: 0.375rem;
 }
@@ -480,7 +479,6 @@ nav.sidebar.is-scrolling::-webkit-scrollbar-thumb {
 
 /* Canonical navigation surface: compact, opaque and stable across sections. */
 nav.sidebar {
-  overflow-x: hidden;
   background: var(--surfacePrimary, #fff);
   border-right: 1px solid var(--divider, #e5e7eb);
   box-shadow: 1px 0 0 rgba(15, 23, 42, 0.02);
@@ -564,7 +562,6 @@ nav.sidebar::-webkit-scrollbar-thumb {
 
 @media (max-width: 899px) {
   nav.sidebar {
-    width: min(86vw, 20rem) !important;
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
     border-right: 0;
     box-shadow: 10px 0 36px rgba(15, 23, 42, 0.18);
@@ -688,19 +685,6 @@ nav.sidebar .favorite-remove {
   min-width: 2.25rem;
   height: 2.25rem;
   border-radius: 0.625rem;
-}
-
-nav.sidebar .sidebar-resize-handle {
-  right: -0.25rem;
-  z-index: 100;
-  width: 0.75rem;
-  cursor: col-resize;
-  background: transparent;
-}
-
-nav.sidebar .sidebar-resize-handle:hover,
-nav.sidebar .sidebar-resize-handle:active {
-  background: color-mix(in srgb, var(--blue, #1677ff) 18%, transparent);
 }
 
 nav.sidebar::-webkit-scrollbar {
@@ -890,22 +874,6 @@ nav.sidebar .category-count {
   background: var(--surfaceSecondary, #f1f5f9);
 }
 
-nav.sidebar .sidebar-resize-handle {
-  right: -2px;
-  z-index: 100;
-  width: 16px;
-  cursor: col-resize;
-  touch-action: none;
-}
-
-nav.sidebar .sidebar-resize-handle:hover,
-nav.sidebar .sidebar-resize-handle:active {
-  right: -2px;
-  width: 16px;
-  background: rgba(22, 119, 255, 0.16);
-  opacity: 1;
-}
-
 nav.sidebar::-webkit-scrollbar {
   width: 6px;
 }
@@ -934,10 +902,6 @@ nav.sidebar::-webkit-scrollbar-thumb:hover {
 @media (max-width: 899px) {
   nav.sidebar {
     padding-top: 0.5rem;
-  }
-
-  nav.sidebar .sidebar-resize-handle {
-    display: none;
   }
 }
 
@@ -1084,18 +1048,8 @@ nav.sidebar .action:active,
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
-.sidebar-resize-handle {
-  width: 0.5rem;
-  background: transparent;
-}
-.sidebar-resize-handle:hover,
-.sidebar-resize-handle:active {
-  background: rgba(22, 119, 255, 0.22);
-}
 
 html[dir="rtl"] nav.sidebar {
-  left: initial;
-  right: 0;
   border-right: none;
   border-left: 1px solid var(--divider);
 }
@@ -1940,38 +1894,6 @@ html[dir="rtl"] .categories-header {
 }
 
 /* --- Sidebar Resize Handle --- */
-.sidebar-resize-handle {
-  position: absolute;
-  top: 0;
-  right: -4px;
-  width: 8px;
-  height: 100%;
-  cursor: col-resize;
-  z-index: 10;
-  transition:
-    background 0.15s,
-    right 0.15s,
-    width 0.15s;
-}
-
-.sidebar-resize-handle:hover,
-.sidebar-resize-handle:active {
-  background: var(--blue, #2196f3);
-  opacity: 0.4;
-  right: -1px;
-  width: 3px;
-  border-radius: 2px;
-}
-
-html[dir="rtl"] .sidebar-resize-handle {
-  right: auto;
-  left: -4px;
-}
-
-html[dir="rtl"] .sidebar-resize-handle:hover,
-html[dir="rtl"] .sidebar-resize-handle:active {
-  left: -1px;
-}
 
 /* --- Favorite Groups --- */
 .create-group-input {
@@ -2106,50 +2028,23 @@ html[dir="rtl"] .sidebar-resize-handle:active {
 }
 
 /* --- Mobile Responsive --- */
-@media (max-width: 1024px) {
-  nav.sidebar {
-    width: var(--sidebar-width, 224px);
-  }
-}
 
 @media (max-width: 899px) {
   nav.sidebar {
-    top: 0;
-    z-index: 99999;
-    width: min(86vw, 20rem);
-    left: min(-86vw, -20rem);
     /* On phone, sidebar is overlay — ignore --sidebar-width */
     box-shadow: none;
-    transition:
-      0.25s cubic-bezier(0.4, 0, 0.2, 1) left,
-      0.25s ease box-shadow;
-  }
-
-  html[dir="rtl"] nav.sidebar {
-    left: unset;
-    right: min(-86vw, -20rem);
-    transition:
-      0.25s cubic-bezier(0.4, 0, 0.2, 1) right,
-      0.25s ease box-shadow;
   }
 
   nav.sidebar.active {
-    left: 0;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
   html[dir="rtl"] nav.sidebar.active {
-    left: unset;
-    right: 0;
     box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
   nav.sidebar .action {
     padding: 0.75em 1.2em;
-  }
-
-  nav.sidebar .sidebar-resize-handle {
-    display: none;
   }
 }
 
@@ -2289,14 +2184,6 @@ nav.sidebar .action:active,
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
-.sidebar-resize-handle {
-  width: 0.5rem;
-  background: transparent;
-}
-.sidebar-resize-handle:hover,
-.sidebar-resize-handle:active {
-  background: rgba(22, 119, 255, 0.22);
-}
 /* PC 侧边栏最终契约：统一基线、统一层级、稳定滚动槽和低干扰调整边界。 */
 nav.sidebar {
   --sidebar-inline-gutter: 0.5rem;
@@ -2304,7 +2191,6 @@ nav.sidebar {
   --sidebar-primary-icon-size: 1.375rem;
   box-sizing: border-box;
   padding: 0.5rem 0 0;
-  overflow-y: auto;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -2702,40 +2588,6 @@ nav.sidebar .favorite-item > .favorite-remove {
   padding: 0;
 }
 
-nav.sidebar .sidebar-resize-handle {
-  position: absolute;
-  top: 0;
-  right: -0.5rem;
-  z-index: 100;
-  width: 0.5625rem;
-  height: 100%;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  opacity: 1;
-  cursor: col-resize;
-  touch-action: none;
-}
-
-nav.sidebar .sidebar-resize-handle::after {
-  content: none !important;
-  display: none !important;
-}
-
-nav.sidebar .sidebar-resize-handle:hover,
-nav.sidebar .sidebar-resize-handle:active,
-nav.sidebar.is-resizing .sidebar-resize-handle {
-  right: -0.5rem;
-  width: 0.5625rem;
-  background: transparent;
-}
-
-nav.sidebar:has(> .sidebar-resize-handle:hover),
-nav.sidebar.is-resizing {
-  border-right-color: #94a3b8;
-  box-shadow: 1px 0 0 rgba(148, 163, 184, 0.45);
-}
-
 nav.sidebar > .credits {
   gap: 0.375rem;
   padding: 0.875rem 0.5rem 1rem;
@@ -2898,13 +2750,9 @@ nav.sidebar .sidebar-personalized-stack > #logout {
 
 nav.sidebar.sidebar--rail {
   --sidebar-rail-width: 4.5rem;
-  width: var(--sidebar-rail-width) !important;
   padding: 0.5rem 0;
-  overflow: visible;
   scrollbar-gutter: auto;
-  transition:
-    width 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 160ms ease;
+  overflow: visible;
 }
 
 nav.sidebar .sidebar-icon-rail {
@@ -3261,11 +3109,6 @@ nav.sidebar .sidebar-rail-logout {
 }
 
 @media (max-width: 899px) {
-  nav.sidebar.sidebar--rail {
-    width: min(86vw, 20rem) !important;
-    overflow-y: auto;
-  }
-
   nav.sidebar .sidebar-collapse-control,
   nav.sidebar .sidebar-collapse-row,
   nav.sidebar .sidebar-icon-rail {

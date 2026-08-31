@@ -156,21 +156,21 @@ export function highlightMarkdownEditorPreviews(
       codeEl.dataset.rawSource = rawSource;
 
       const lang = resolveMarkdownCodeLanguage(codeEl.className, rawSource);
-      const highlightLine = (line: string) => {
-        if (!lang || !hljs.getLanguage(lang)) return escapeHtml(line);
+      const highlightBlock = (source: string) => {
+        if (!lang || !hljs.getLanguage(lang)) return escapeHtml(source);
         try {
-          return hljs.highlight(line, {
+          return hljs.highlight(source, {
             language: lang,
             ignoreIllegals: true,
           }).value;
         } catch {
-          return escapeHtml(line);
+          return escapeHtml(source);
         }
       };
       const rendered = renderMarkdownCodeLines(
         rawSource,
         showLineNumbers,
-        highlightLine
+        highlightBlock
       );
       if (lang && hljs.getLanguage(lang)) {
         codeEl.dataset.lang = lang;
@@ -231,21 +231,21 @@ export function highlightAndAnnotateCodeBlocks(
     }
 
     codeEl.classList.remove("hljs");
-    const highlightLine = (line: string) => {
-      if (!hljs || !lang || !hljs.getLanguage(lang)) return escapeHtml(line);
+    const highlightBlock = (source: string) => {
+      if (!hljs || !lang || !hljs.getLanguage(lang)) return escapeHtml(source);
       try {
-        return hljs.highlight(line, {
+        return hljs.highlight(source, {
           language: lang,
           ignoreIllegals: true,
         }).value;
       } catch {
-        return escapeHtml(line);
+        return escapeHtml(source);
       }
     };
     const rendered = renderMarkdownCodeLines(
       rawText,
       showLineNumbers,
-      highlightLine
+      highlightBlock
     );
     if (hljs && lang && hljs.getLanguage(lang)) codeEl.classList.add("hljs");
     codeEl.innerHTML = rendered.html;

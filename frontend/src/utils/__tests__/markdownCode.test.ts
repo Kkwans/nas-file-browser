@@ -59,7 +59,7 @@ describe("Markdown 代码块契约", () => {
     expect(withLineNumbers.html).not.toContain("</span>\n<span");
   });
 
-  it("逐行高亮后保持每行标签闭合，避免多行代码互相覆盖", () => {
+  it("完整块高亮后保持每行标签闭合，避免多行代码互相覆盖", () => {
     const rendered = renderMarkdownCodeLines(
       "first\nsecond",
       true,
@@ -72,6 +72,22 @@ describe("Markdown 代码块契约", () => {
     expect(rendered.html).toContain(
       '<span class="code-line-content"><span class="token">second</span></span>'
     );
+  });
+
+  it("完整高亮跨行 token 后再拆行，保留字符串或注释的语义类", () => {
+    const rendered = renderMarkdownCodeLines(
+      "first\nsecond",
+      true,
+      (source) => `<span class="token-string">${source}</span>`
+    );
+
+    expect(rendered.html).toContain(
+      '<span class="code-line-content"><span class="token-string">first</span></span>'
+    );
+    expect(rendered.html).toContain(
+      '<span class="code-line-content"><span class="token-string">second</span></span>'
+    );
+    expect(rendered.html.match(/class="token-string"/g)).toHaveLength(2);
   });
 
   it("按用户 ID 隔离行号偏好，访客使用固定命名空间", () => {

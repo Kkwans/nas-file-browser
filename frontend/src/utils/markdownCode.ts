@@ -249,35 +249,119 @@ export function wrapMarkdownCodeLines(
     return { html: normalized, hasLineNumbers: false };
   }
 
-  const lines = normalized.split("\n");
+  // Highlight.js keeps a token span open when a string/comment crosses a
+  // newline. Split only the visual row while closing and reopening the active
+  // tags, so every row stays valid HTML and the token's cross-line context is
+  // still represented by the same class on the next row.
+  const lines: string[] = [];
+  const openTags: Array<{ name: string; markup: string }> = [];
+  let current = "";
+
+  const closeOpenTags = () =>
+    openTags
+      .slice()
+      .reverse()
+      .map(({ name }) => `</${name}>`)
+      .join("");
+
+  const reopenTags = () => openTags.map(({ markup }) => markup).join("");
+
+  const pushLine = () => {
+    lines.push(
+      `<span class="code-line"><span class="code-line-content">${current}${closeOpenTags()}</span></span>`
+    );
+    current = reopenTags();
+  };
+
+  const voidTags = new Set([
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+  ]);
+
+  for (let index = 0; index < normalized.length; ) {
+    if (normalized[index] === "\n") {
+      pushLine();
+      index++;
+      continue;
+    }
+
+    if (normalized[index] !== "<") {
+      const nextTag = normalized.indexOf("<", index);
+      const nextNewline = normalized.indexOf("\n", index);
+      const end =
+        nextTag < 0
+          ? nextNewline < 0
+            ? normalized.length
+            : nextNewline
+          : nextNewline < 0
+            ? nextTag
+            : Math.min(nextTag, nextNewline);
+      current += normalized.slice(index, end);
+      index = end;
+      continue;
+    }
+
+    const tagEnd = normalized.indexOf(">", index + 1);
+    if (tagEnd < 0) {
+      current += normalized.slice(index);
+      break;
+    }
+
+    const tag = normalized.slice(index, tagEnd + 1);
+    const closing = tag.match(/^<\/\s*([\w:-]+)/);
+    const opening = tag.match(/^<\s*([\w:-]+)/);
+    current += tag;
+    if (closing) {
+      const position = openTags.map(({ name }) => name).lastIndexOf(closing[1]);
+      if (position >= 0) openTags.splice(position, 1);
+    } else if (
+      opening &&
+      !tag.startsWith("<!") &&
+      !tag.startsWith("<?") &&
+      !tag.endsWith("/>") &&
+      !voidTags.has(opening[1].toLowerCase())
+    ) {
+      openTags.push({ name: opening[1], markup: tag });
+    }
+    index = tagEnd + 1;
+  }
+
+  current += closeOpenTags();
+  lines.push(
+    `<span class="code-line"><span class="code-line-content">${current}</span></span>`
+  );
   return {
-    html: lines
-      .map(
-        (line) =>
-          `<span class="code-line"><span class="code-line-content">${line}</span></span>`
-      )
-      // 每个代码行由 CSS 独立占据一行；不要再插入文本换行，否则
-      // white-space: pre 会把它渲染成额外的空白行。
-      .join(""),
+    // 每个代码行由 CSS 独立占据一行；不要再插入文本换行，否则
+    // white-space: pre 会把它渲染成额外的空白行。
+    html: lines.join(""),
     hasLineNumbers: true,
   };
 }
 
 /**
- * Highlight each source line independently before adding the gutter. This keeps
- * every token span balanced inside its own visual row and prevents a multiline
- * highlight span from collapsing the line-number grid.
+ * Highlight a complete source block before adding the gutter. Highlighting the
+ * full block preserves string/comment state across newlines; wrapMarkdownCodeLines
+ * then keeps the resulting visual rows as valid, independently laid-out HTML.
  */
 export function renderMarkdownCodeLines(
   source: string,
   showLineNumbers: boolean,
-  renderLine: (line: string) => string
+  renderBlock: (source: string) => string
 ): { html: string; hasLineNumbers: boolean } {
   const normalized = source.replace(/\r\n?/g, "\n").replace(/\n$/, "");
-  const highlighted = normalized
-    .split("\n")
-    .map((line) => renderLine(line))
-    .join("\n");
+  const highlighted = renderBlock(normalized);
   return wrapMarkdownCodeLines(highlighted, showLineNumbers);
 }
 

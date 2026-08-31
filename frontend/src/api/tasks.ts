@@ -4,6 +4,7 @@ export type TaskType =
   | "file.copy"
   | "file.move"
   | "trash.clear"
+  | "trash.size"
   | "analysis.duplicates"
   | "analysis.storage"
   | "archive.extract"

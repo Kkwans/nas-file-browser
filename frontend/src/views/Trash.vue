@@ -136,7 +136,22 @@
 
           <div class="trash-item-size">
             <AppIcon :name="item.isDir ? 'folder' : 'hard-drive'" :size="15" />
-            <span>{{ item.isDir ? "未统计" : filesize(item.size) }}</span>
+            <span>{{ sizeLabel(item) }}</span>
+            <button
+              v-if="
+                item.isDir &&
+                item.sizeState !== 'accurate' &&
+                item.sizeState !== 'calculating' &&
+                item.status === 'available' &&
+                authStore.user?.perm.delete
+              "
+              type="button"
+              class="trash-size-retry"
+              :disabled="measuringIds.has(item.id)"
+              @click="calculateSize(item)"
+            >
+              补算
+            </button>
           </div>
 
           <div class="trash-item-actions">
@@ -245,11 +260,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, reactive, ref } from "vue";
+import {
+  computed,
+  inject,
+  onMounted,
+  onBeforeUnmount,
+  reactive,
+  ref,
+} from "vue";
 import { useRouter } from "vue-router";
 import dayjs from "dayjs";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import type { TrashConflict, TrashItem, TrashStatus } from "@/api/trash";
+import { measureSize } from "@/api/trash";
+import { subscribeSharedTaskCenterEvents } from "@/utils/taskCenterEvents";
+import type { TaskItem } from "@/api/tasks";
 import { StatusError } from "@/api/utils";
 import { useAuthStore } from "@/stores/auth";
 import { useTrashStore } from "@/stores/trash";
@@ -274,6 +299,45 @@ const clearing = ref(false);
 const confirmDeleteId = ref("");
 const conflictItem = ref<TrashItem | null>(null);
 const busyIds = reactive(new Set<string>());
+const measuringIds = reactive(new Set<string>());
+let stopSizeEvents: (() => void) | undefined;
+let sizeRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+function scheduleSizeRefresh() {
+  if (sizeRefreshTimer !== undefined) return;
+  sizeRefreshTimer = setTimeout(() => {
+    sizeRefreshTimer = undefined;
+    void load();
+  }, 120);
+}
+function sizeLabel(item: TrashItem) {
+  const state = item.sizeState ?? (item.isDir ? "unknown" : "accurate");
+  if (state === "accurate") return filesize(item.size);
+  if (state === "calculating") return "统计中";
+  if (state === "incomplete")
+    return item.size > 0
+      ? `至少 ${filesize(item.size)} · 不完整`
+      : "未完成统计";
+  return state === "failed" ? "统计失败" : "未统计";
+}
+async function calculateSize(item: TrashItem) {
+  if (measuringIds.has(item.id)) return;
+  measuringIds.add(item.id);
+  const userId = authStore.user?.id;
+  try {
+    const task = await measureSize(item.id);
+    if (authStore.user?.id !== userId) return;
+    tasksStore.record(task);
+    await load();
+  } catch (error) {
+    $showError(error as Error, false);
+  } finally {
+    measuringIds.delete(item.id);
+  }
+}
+onBeforeUnmount(() => {
+  stopSizeEvents?.();
+  if (sizeRefreshTimer !== undefined) clearTimeout(sizeRefreshTimer);
+});
 
 const permanentDeleteItem = computed(
   () =>
@@ -394,6 +458,17 @@ function statusLabel(status: TrashStatus) {
 }
 
 onMounted(() => {
+  stopSizeEvents = subscribeSharedTaskCenterEvents((event) => {
+    const task = event.data as TaskItem | undefined;
+    if (
+      event.type === "task.changed" &&
+      task?.type === "trash.size" &&
+      task.status !== "running" &&
+      task.status !== "queued" &&
+      trashStore.items.some((item) => item.sizeTaskId === task.id)
+    )
+      scheduleSizeRefresh();
+  }, scheduleSizeRefresh);
   void load();
   void tasksStore.load().catch(() => undefined);
 });

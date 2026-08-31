@@ -69,7 +69,15 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 		return nil, http.StatusConflict, fmt.Errorf("任务所有者已不可用: %w", err)
 	}
 	var retry *tasks.Task
-	if original.Type == tasks.TypeMediaHLS {
+	if original.Type == tasks.TypeTrashSize {
+		var args trashSizeArgs
+		if err := json.Unmarshal(original.Args, &args); err != nil {
+			return nil, http.StatusBadRequest, err
+		}
+		ownerData := *d
+		ownerData.user = owner
+		retry, err = enqueueTrashSizeTask(runtime, &ownerData, args.ID, original.ID)
+	} else if original.Type == tasks.TypeMediaHLS {
 		if len(hlsServices) == 0 || hlsServices[0] == nil {
 			return nil, http.StatusConflict, fmt.Errorf("兼容播放服务不可用")
 		}
@@ -250,7 +258,7 @@ func canRunTaskType(user *users.User, taskType tasks.Type) bool {
 		return false
 	}
 	switch taskType {
-	case tasks.TypeTrashClear:
+	case tasks.TypeTrashClear, tasks.TypeTrashSize:
 		return user.Perm.Delete
 	case tasks.TypeDuplicateAnalysis:
 		return user.Perm.Download

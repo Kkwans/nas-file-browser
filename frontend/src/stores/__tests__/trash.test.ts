@@ -59,6 +59,23 @@ describe("trash store", () => {
     expect(store.items[0].name).toBe("new-name.txt");
   });
 
+  it("does not restore the previous account's items after a late response", async () => {
+    let finishOld!: (items: TrashItem[]) => void;
+    mocks.list.mockReturnValueOnce(
+      new Promise<TrashItem[]>((resolve) => {
+        finishOld = resolve;
+      })
+    );
+    const store = useTrashStore();
+    const oldLoad = store.load();
+    store.resetForUser();
+    mocks.list.mockResolvedValueOnce([item("new-account")]);
+    await store.load();
+    finishOld([item("old-account")]);
+    await oldLoad;
+    expect(store.items.map((entry) => entry.id)).toEqual(["new-account"]);
+  });
+
   it("removes only successfully restored items and refreshes metadata", async () => {
     const store = useTrashStore();
     store.items = [item("first"), item("second")];

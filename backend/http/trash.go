@@ -114,6 +114,17 @@ func newTrashService(d *data, owner *users.User) *trash.Service {
 		Fs: owner.Fs, Records: d.store.Trash,
 		Favorites: d.store.Favorites, Tags: d.store.Tags, Recent: d.store.Recent,
 		DirMode: d.settings.DirMode,
+		OnMoved: func(item *trash.Item) {
+			if d.taskRuntime == nil {
+				return
+			}
+			ownerData := *d
+			ownerData.user = owner
+			_, _ = enqueueTrashSizeTask(d.taskRuntime, &ownerData, item.ID, "")
+			if latest, err := d.store.Trash.Get(owner.ID, item.ID, true); err == nil {
+				*item = *latest
+			}
+		},
 	}
 }
 

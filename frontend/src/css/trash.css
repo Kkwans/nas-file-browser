@@ -188,10 +188,9 @@
 .trash-item {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(100px, 0.3fr) minmax(
-      80px,
-      0.25fr
-    ) 136px;
+  grid-template-columns:
+    minmax(0, 1fr) minmax(100px, 0.3fr) minmax(80px, 0.25fr)
+    136px;
   align-items: center;
   gap: 18px;
 }
@@ -301,6 +300,20 @@
   font-size: 12px;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.trash-size-retry {
+  border: 0;
+  background: transparent;
+  color: var(--blue);
+  min-height: 44px;
+  min-width: 44px;
+  cursor: pointer;
+}
+.trash-size-retry:focus-visible {
+  outline: 2px solid var(--focus-ring);
+}
+.trash-item-size {
+  flex-wrap: wrap;
 }
 .trash-item-size > .app-icon {
   flex: 0 0 auto;

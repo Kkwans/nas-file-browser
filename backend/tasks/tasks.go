@@ -23,6 +23,7 @@ const (
 	TypeFileCopy          Type = "file.copy"
 	TypeFileMove          Type = "file.move"
 	TypeTrashClear        Type = "trash.clear"
+	TypeTrashSize         Type = "trash.size"
 	TypeDuplicateAnalysis Type = "analysis.duplicates"
 	TypeStorageAnalysis   Type = "analysis.storage"
 	TypeArchiveExtract    Type = "archive.extract"

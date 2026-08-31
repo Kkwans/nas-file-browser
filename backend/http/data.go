@@ -10,6 +10,7 @@ import (
 	"github.com/Kkwans/nas-file-browser/backend/runner"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/storage"
+	"github.com/Kkwans/nas-file-browser/backend/tasks"
 	"github.com/Kkwans/nas-file-browser/backend/trash"
 	"github.com/Kkwans/nas-file-browser/backend/users"
 )
@@ -17,6 +18,7 @@ import (
 type handleFunc func(w http.ResponseWriter, r *http.Request, d *data) (int, error)
 
 type data struct {
+	taskRuntime *tasks.Runtime
 	*runner.Runner
 	settings *settings.Settings
 	server   *settings.Server

@@ -1,10 +1,12 @@
 package trash
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/Kkwans/nas-file-browser/backend/favorites"
@@ -14,6 +16,16 @@ import (
 var (
 	ErrNotExist  = errors.New("trash item not found")
 	ErrForbidden = errors.New("trash item access denied")
+)
+
+type SizeState string
+
+const (
+	SizeUnknown     SizeState = "unknown"
+	SizeCalculating SizeState = "calculating"
+	SizeAccurate    SizeState = "accurate"
+	SizeIncomplete  SizeState = "incomplete"
+	SizeFailed      SizeState = "failed"
 )
 
 type Status string
@@ -29,6 +41,8 @@ const (
 // application-managed recycle bin. HTTP handlers must expose PublicItem so
 // hidden storage paths and staged metadata never leave the backend.
 type Item struct {
+	SizeState         SizeState            `json:"sizeState"`
+	SizeTaskID        string               `json:"sizeTaskId,omitempty"`
 	ID                string               `json:"id" storm:"id"`
 	UserID            uint                 `json:"userId" storm:"index"`
 	OwnerName         string               `json:"ownerName"`
@@ -45,20 +59,31 @@ type Item struct {
 }
 
 type PublicItem struct {
-	ID           string `json:"id"`
-	UserID       uint   `json:"userId"`
-	OwnerName    string `json:"ownerName"`
-	OriginalPath string `json:"originalPath"`
-	Name         string `json:"name"`
-	IsDir        bool   `json:"isDir"`
-	Size         int64  `json:"size"`
-	DeletedAt    int64  `json:"deletedAt"`
-	Status       Status `json:"status"`
-	LastError    string `json:"error,omitempty"`
+	SizeState    SizeState `json:"sizeState"`
+	SizeTaskID   string    `json:"sizeTaskId,omitempty"`
+	ID           string    `json:"id"`
+	UserID       uint      `json:"userId"`
+	OwnerName    string    `json:"ownerName"`
+	OriginalPath string    `json:"originalPath"`
+	Name         string    `json:"name"`
+	IsDir        bool      `json:"isDir"`
+	Size         int64     `json:"size"`
+	DeletedAt    int64     `json:"deletedAt"`
+	Status       Status    `json:"status"`
+	LastError    string    `json:"error,omitempty"`
 }
 
 func (item *Item) Public() PublicItem {
+	state := item.SizeState
+	if state == "" {
+		if item.IsDir {
+			state = SizeUnknown
+		} else {
+			state = SizeAccurate
+		}
+	}
 	return PublicItem{
+		SizeState: state, SizeTaskID: item.SizeTaskID,
 		ID:           item.ID,
 		UserID:       item.UserID,
 		OwnerName:    item.OwnerName,
@@ -95,11 +120,15 @@ type StorageBackend interface {
 }
 
 type Storage struct {
-	back StorageBackend
+	sizeSlots chan struct{}
+	back      StorageBackend
+	mu        sync.Mutex
+	locks     map[string]*itemLock
+	sizing    map[string]context.CancelFunc
 }
 
 func NewStorage(back StorageBackend) *Storage {
-	return &Storage{back: back}
+	return &Storage{sizeSlots: make(chan struct{}, 1), back: back, locks: make(map[string]*itemLock), sizing: make(map[string]context.CancelFunc)}
 }
 
 func NewItem(userID uint, ownerName, originalPath, name string, isDir bool, size int64) (*Item, error) {
@@ -107,7 +136,13 @@ func NewItem(userID uint, ownerName, originalPath, name string, isDir bool, size
 	if err != nil {
 		return nil, err
 	}
+	state := SizeAccurate
+	if isDir {
+		size = 0
+		state = SizeUnknown
+	}
 	return &Item{
+		SizeState:    state,
 		ID:           id,
 		UserID:       userID,
 		OwnerName:    ownerName,

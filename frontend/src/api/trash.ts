@@ -12,6 +12,8 @@ export interface TrashItem {
   name: string;
   isDir: boolean;
   size: number;
+  sizeState?: "unknown" | "calculating" | "accurate" | "incomplete" | "failed";
+  sizeTaskId?: string;
   deletedAt: number;
   status: TrashStatus;
   error?: string;
@@ -49,5 +51,12 @@ export async function removePermanent(id: string): Promise<void> {
 
 export async function clear(): Promise<TaskItem> {
   const response = await fetchURL("/api/trash", { method: "DELETE" });
+  return (await response.json()) as TaskItem;
+}
+
+export async function measureSize(id: string): Promise<TaskItem> {
+  const response = await fetchURL(`/api/trash/${encodeURIComponent(id)}/size`, {
+    method: "POST",
+  });
   return (await response.json()) as TaskItem;
 }

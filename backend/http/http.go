@@ -40,6 +40,10 @@ func NewHandler(
 		return nil, err
 	}
 
+	if err := store.Trash.RecoverSizes(); err != nil {
+		return nil, err
+	}
+
 	r := mux.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +54,10 @@ func NewHandler(
 	index, static := getStaticHandlers(store, server, assetsFs)
 
 	monkey := func(fn handleFunc, prefix string) http.Handler {
-		return handle(fn, prefix, store, server)
+		return handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+			d.taskRuntime = taskRuntime
+			return fn(w, r, d)
+		}, prefix, store, server)
 	}
 
 	r.HandleFunc("/health", healthHandler)
@@ -82,6 +89,7 @@ func NewHandler(
 
 	api.Handle("/trash", monkey(trashListHandler, "")).Methods("GET")
 	api.Handle("/trash", monkey(trashClearHandler(taskRuntime), "")).Methods("DELETE")
+	api.Handle("/trash/{id}/size", monkey(trashSizeHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/trash/{id}/restore", monkey(trashRestoreHandler, "")).Methods("POST")
 	api.Handle("/trash/{id}", monkey(trashDeleteHandler, "")).Methods("DELETE")
 

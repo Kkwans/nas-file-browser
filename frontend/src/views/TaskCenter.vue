@@ -607,6 +607,7 @@ function taskTypeLabel(type: TaskType) {
       "file.copy": "复制文件",
       "file.move": "移动文件",
       "trash.clear": "回收站清理",
+      "trash.size": "回收站大小统计",
       "analysis.duplicates": "重复文件分析",
       "analysis.storage": "空间分析",
       "archive.extract": "压缩包解压",

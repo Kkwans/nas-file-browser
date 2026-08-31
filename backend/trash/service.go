@@ -48,6 +48,7 @@ type Service struct {
 	Tags      *tags.Storage
 	Recent    *recent.Storage
 	DirMode   fs.FileMode
+	OnMoved   func(*Item)
 }
 
 func (service *Service) Move(userID uint, ownerName, source string) (*Item, error) {
@@ -89,10 +90,19 @@ func (service *Service) Move(userID uint, ownerName, source string) (*Item, erro
 	if err := service.Records.Update(item); err != nil {
 		return nil, service.rollbackMove(item, favoriteMutation, tagMutation, recentMutation, err)
 	}
+	if item.IsDir && service.OnMoved != nil {
+		service.OnMoved(item)
+	}
 	return item.Clone(), nil
 }
 
 func (service *Service) Restore(actorUserID uint, id string, admin bool, strategy ConflictStrategy) (*RestoreResult, error) {
+	if _, err := service.Records.Get(actorUserID, id, admin); err != nil {
+		return nil, err
+	}
+	service.Records.cancelSize(id)
+	unlock := service.Records.lockItem(id)
+	defer unlock()
 	item, err := service.Records.Get(actorUserID, id, admin)
 	if err != nil {
 		return nil, err
@@ -100,6 +110,13 @@ func (service *Service) Restore(actorUserID uint, id string, admin bool, strateg
 	if item.Status != StatusAvailable && item.Status != StatusFailed {
 		return nil, ErrUnavailable
 	}
+	if item.SizeState == SizeCalculating {
+		item.SizeState = SizeIncomplete
+		if err := service.Records.Update(item); err != nil {
+			return nil, err
+		}
+	}
+
 	if _, err := service.Fs.Stat(item.StoredPath); err != nil {
 		return nil, err
 	}
@@ -161,6 +178,12 @@ func (service *Service) Restore(actorUserID uint, id string, admin bool, strateg
 }
 
 func (service *Service) DeletePermanent(actorUserID uint, id string, admin bool) error {
+	if _, err := service.Records.Get(actorUserID, id, admin); err != nil {
+		return err
+	}
+	service.Records.cancelSize(id)
+	unlock := service.Records.lockItem(id)
+	defer unlock()
 	item, err := service.Records.Get(actorUserID, id, admin)
 	if err != nil {
 		return err

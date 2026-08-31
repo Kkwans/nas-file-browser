@@ -15,6 +15,8 @@ import (
 // domain type. In particular, staged metadata and the hidden storage path can
 // never leak because HTTP code only receives trash.Item values.
 type trashRecord struct {
+	SizeState    trash.SizeState
+	SizeTaskID   string
 	ID           string `storm:"id"`
 	UserID       uint   `storm:"index"`
 	OwnerName    string
@@ -104,12 +106,22 @@ func (backend trashBackend) Update(item *trash.Item) error {
 	if err != nil {
 		return err
 	}
-	if err := backend.db.Update(record); err != nil {
+	tx, err := backend.db.Begin(true)
+	if err != nil {
 		return err
 	}
-	// Storm's struct update skips zero values. A successful retry must still
-	// be able to clear the previous diagnostic message.
-	return backend.db.UpdateField(&trashRecord{ID: item.ID}, "LastError", item.LastError)
+	defer func() { _ = tx.Rollback() }()
+	if err := tx.Update(record); err != nil {
+		return err
+	}
+	// Force zero bytes and cleared diagnostics in the same transaction as the state.
+	if err := tx.UpdateField(&trashRecord{ID: item.ID}, "LastError", item.LastError); err != nil {
+		return err
+	}
+	if err := tx.UpdateField(&trashRecord{ID: item.ID}, "Size", item.Size); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (backend trashBackend) Delete(id string) error {
@@ -131,6 +143,7 @@ func newTrashRecord(item *trash.Item) (*trashRecord, error) {
 		return nil, err
 	}
 	return &trashRecord{
+		SizeState: item.SizeState, SizeTaskID: item.SizeTaskID,
 		ID:           item.ID,
 		UserID:       item.UserID,
 		OwnerName:    item.OwnerName,
@@ -154,6 +167,7 @@ func (record *trashRecord) item() (*trash.Item, error) {
 		}
 	}
 	return &trash.Item{
+		SizeState: record.SizeState, SizeTaskID: record.SizeTaskID,
 		ID:                record.ID,
 		UserID:            record.UserID,
 		OwnerName:         record.OwnerName,

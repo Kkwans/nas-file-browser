@@ -10,11 +10,13 @@ export const useTrashStore = defineStore("trash", {
     loading: boolean;
     error: string;
     loaded: boolean;
+    generation: number;
   } => ({
     items: [],
     loading: false,
     error: "",
     loaded: false,
+    generation: 0,
   }),
   getters: {
     availableItems: (state) =>
@@ -22,16 +24,20 @@ export const useTrashStore = defineStore("trash", {
   },
   actions: {
     async load() {
+      const generation = ++this.generation;
       this.loading = true;
       this.error = "";
       try {
-        this.items = await api.list();
+        const items = await api.list();
+        if (generation !== this.generation) return;
+        this.items = items;
         this.loaded = true;
       } catch (error) {
+        if (generation !== this.generation) return;
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        this.loading = false;
+        if (generation === this.generation) this.loading = false;
       }
     },
     recordMoved(item: TrashItem) {
@@ -82,7 +88,9 @@ export const useTrashStore = defineStore("trash", {
       ]);
     },
     resetForUser() {
+      const generation = this.generation + 1;
       this.$reset();
+      this.generation = generation;
     },
   },
 });

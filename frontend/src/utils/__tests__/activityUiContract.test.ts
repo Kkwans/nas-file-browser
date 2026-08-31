@@ -51,6 +51,13 @@ describe("activity page UI contract", () => {
     );
   });
 
+  it("does not retain the removed TaskCenter hero or summary panel", () => {
+    expect(taskCenterCss).not.toContain(".task-center-intro");
+    expect(taskCenterCss).not.toContain(".task-center-summary");
+    expect(source).not.toContain("task-center-intro");
+    expect(source).not.toContain("task-center-summary");
+  });
+
   it("keeps recent page shared layout styles without legacy task selectors", () => {
     expect(activityCss).toContain(".activity-page {");
     expect(activityCss).toContain(".recent-entry {");

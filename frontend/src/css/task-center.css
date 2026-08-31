@@ -37,64 +37,17 @@
   padding: 28px 0 72px;
 }
 
-.task-center-intro {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 24px 26px;
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  background: var(--color-surface);
-  box-shadow: 0 12px 30px rgb(15 23 42 / 5%);
-}
-
-.task-center-eyebrow {
-  margin: 0 0 5px;
-  color: var(--color-accent);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.task-center-intro h1,
 .task-center-panel-heading h2,
 .task-center-empty h3 {
   margin: 0;
   color: var(--color-text);
 }
 
-.task-center-intro h1 {
-  font-size: clamp(22px, 3vw, 30px);
-}
-
-.task-center-description,
 .task-center-panel-heading p,
 .task-center-empty p {
   margin: 8px 0 0;
   color: var(--color-text-muted);
   font-size: 13px;
-}
-
-.task-center-summary {
-  display: grid;
-  min-width: 110px;
-  padding: 12px 15px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--color-accent) 9%, transparent);
-  color: var(--color-accent);
-  text-align: right;
-}
-
-.task-center-summary strong {
-  font-size: 26px;
-  line-height: 1;
-}
-
-.task-center-summary span {
-  margin-top: 5px;
-  font-size: 11px;
 }
 
 .task-center-tabs {
@@ -489,16 +442,6 @@
   .task-center-workspace {
     width: min(100% - 24px, 540px);
     padding-top: 16px;
-  }
-  .task-center-intro {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 18px;
-  }
-  .task-center-summary {
-    width: 100%;
-    box-sizing: border-box;
-    text-align: left;
   }
   .task-center-tabs {
     display: grid;

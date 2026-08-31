@@ -108,8 +108,7 @@
   height: 24px;
 }
 
-.trash-intro h1,
-.trash-conflict-dialog h2 {
+.trash-intro h1 {
   margin: 0;
   color: var(--textSecondary);
   font-size: 17px;
@@ -117,9 +116,7 @@
   letter-spacing: -0.01em;
 }
 
-.trash-intro p,
-.trash-confirm-panel p,
-.trash-conflict-dialog p {
+.trash-intro p {
   margin: 4px 0 0;
   color: var(--textPrimary);
   font-size: 13px;
@@ -141,23 +138,6 @@
   border-radius: 50%;
   background: var(--icon-green);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--icon-green) 14%, transparent);
-}
-
-.trash-confirm-panel {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-  margin-top: 14px;
-  padding: 14px 16px;
-  border: 1px solid
-    color-mix(in srgb, var(--icon-red) 30%, var(--borderPrimary));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--icon-red) 6%, var(--surfacePrimary));
-}
-
-.trash-confirm-panel > .app-icon {
-  color: var(--icon-red);
 }
 
 .trash-confirm-actions,
@@ -459,12 +439,6 @@
   color: var(--icon-red) !important;
 }
 
-.trash-inline-question {
-  color: var(--icon-red);
-  font-size: 12px;
-  font-weight: 650;
-}
-
 .trash-skeleton {
   height: 82px;
   border: 1px solid var(--borderPrimary);
@@ -479,47 +453,11 @@
   animation: trash-skeleton 1.4s ease infinite;
 }
 
-.trash-dialog-backdrop {
-  position: fixed;
-  z-index: 1300;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(12, 20, 28, 0.46);
-  backdrop-filter: blur(4px);
-}
-
-.trash-conflict-dialog {
-  width: min(520px, 100%);
-  padding: 22px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 16px;
-  background: var(--surfacePrimary);
-  box-shadow: 0 24px 64px rgba(10, 18, 28, 0.24);
-}
-
-.trash-conflict-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.trash-conflict-heading > .app-icon {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border-radius: 10px;
-  color: var(--icon-orange);
-  background: color-mix(in srgb, var(--icon-orange) 11%, transparent);
-}
-
-.trash-conflict-heading p {
-  overflow: hidden;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.trash-dialog-copy {
+  margin: 0;
+  color: var(--textPrimary);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .trash-conflict-options {
@@ -561,6 +499,10 @@
 
 .trash-conflict-options button.danger > .app-icon {
   color: var(--icon-red);
+}
+
+.trash-conflict-options button.danger {
+  border-color: color-mix(in srgb, var(--icon-red) 28%, var(--borderPrimary));
 }
 
 .trash-conflict-options span {
@@ -617,12 +559,7 @@
     grid-row: 1 / span 2;
   }
 
-  .trash-confirm-panel {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
   .trash-confirm-actions {
-    grid-column: 2;
     justify-content: flex-start;
   }
 }
@@ -674,10 +611,6 @@
   .trash-action-icon {
     width: 44px;
     min-height: 44px !important;
-  }
-
-  .trash-conflict-dialog {
-    padding: 18px;
   }
 
   .trash-conflict-options button {

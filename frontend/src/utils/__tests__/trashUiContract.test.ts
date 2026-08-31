@@ -18,7 +18,14 @@ describe("trash page UI contract", () => {
       'import AppIcon from "@/components/ui/AppIcon.vue"'
     );
     expect(source).toContain("getResourceIconName");
+    expect(source).toContain(
+      'import AppDialog from "@/components/ui/AppDialog.vue"'
+    );
+    expect(source).toContain('title="永久删除项目？"');
+    expect(source).toContain('title="原位置已有同名项目"');
+    expect(source).not.toContain("trash-inline-question");
     expect(styles).not.toContain("material-icons");
     expect(styles).toContain(".app-icon");
+    expect(styles).not.toContain(".trash-dialog-backdrop");
   });
 });

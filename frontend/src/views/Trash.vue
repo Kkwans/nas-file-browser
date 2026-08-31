@@ -46,35 +46,42 @@
         </div>
       </section>
 
-      <section
+      <AppDialog
         v-if="showClearConfirm"
-        class="trash-confirm-panel"
-        role="alertdialog"
-        aria-labelledby="clear-trash-title"
+        title="永久删除全部项目？"
+        size="small"
+        :close-disabled="clearing"
+        @closed="showClearConfirm = false"
       >
-        <AppIcon name="circle-alert" :size="23" />
-        <div>
-          <strong id="clear-trash-title">永久删除全部项目？</strong>
-          <p>此操作不可撤销。原文件、收藏暂存信息和标签暂存信息都会被清除。</p>
-        </div>
-        <div class="trash-confirm-actions">
-          <button type="button" @click="showClearConfirm = false">取消</button>
-          <button
-            type="button"
-            class="danger"
-            :disabled="clearing"
-            @click="clearTrash"
-          >
-            {{
-              clearing
-                ? "正在提交…"
-                : clearTaskActive
-                  ? "清空任务进行中"
-                  : "永久删除全部"
-            }}
-          </button>
-        </div>
-      </section>
+        <template #icon>
+          <AppIcon name="circle-alert" :size="23" />
+        </template>
+        <p class="trash-dialog-copy">
+          此操作不可撤销。原文件、收藏暂存信息和标签暂存信息都会被清除。
+        </p>
+        <template #footer>
+          <div class="trash-confirm-actions">
+            <button type="button" @click="showClearConfirm = false">
+              取消
+            </button>
+            <button
+              id="focus-prompt"
+              type="button"
+              class="danger"
+              :disabled="clearing"
+              @click="clearTrash"
+            >
+              {{
+                clearing
+                  ? "正在提交…"
+                  : clearTaskActive
+                    ? "清空任务进行中"
+                    : "永久删除全部"
+              }}
+            </button>
+          </div>
+        </template>
+      </AppDialog>
 
       <section v-if="trashStore.error" class="trash-state trash-state--error">
         <AppIcon name="cloud-off" :size="27" />
@@ -155,87 +162,98 @@
           </div>
 
           <div class="trash-item-actions">
-            <template v-if="confirmDeleteId !== item.id">
-              <button
-                type="button"
-                class="trash-action-primary"
-                :disabled="busyIds.has(item.id) || item.status === 'restoring'"
-                @click="restoreItem(item)"
-              >
-                <AppIcon name="archive-restore" :size="18" />
-                {{ busyIds.has(item.id) ? "恢复中…" : "恢复" }}
-              </button>
-              <button
-                type="button"
-                class="trash-action-icon"
-                title="永久删除"
-                aria-label="永久删除"
-                :disabled="busyIds.has(item.id)"
-                @click="confirmDeleteId = item.id"
-              >
-                <AppIcon name="trash" :size="18" />
-              </button>
-            </template>
-            <template v-else>
-              <span class="trash-inline-question">永久删除？</span>
-              <button type="button" @click="confirmDeleteId = ''">取消</button>
-              <button
-                type="button"
-                class="danger"
-                @click="deletePermanent(item)"
-              >
-                删除
-              </button>
-            </template>
+            <button
+              type="button"
+              class="trash-action-primary"
+              :disabled="busyIds.has(item.id) || item.status === 'restoring'"
+              @click="restoreItem(item)"
+            >
+              <AppIcon name="archive-restore" :size="18" />
+              {{ busyIds.has(item.id) ? "恢复中…" : "恢复" }}
+            </button>
+            <button
+              type="button"
+              class="trash-action-icon"
+              title="永久删除"
+              aria-label="永久删除"
+              :disabled="busyIds.has(item.id)"
+              @click="confirmDeleteId = item.id"
+            >
+              <AppIcon name="trash" :size="18" />
+            </button>
           </div>
         </article>
       </section>
     </main>
 
-    <div
-      v-if="conflictItem"
-      class="trash-dialog-backdrop"
-      @click.self="conflictItem = null"
+    <AppDialog
+      v-if="permanentDeleteItem"
+      title="永久删除项目？"
+      description="删除后无法从回收站恢复。"
+      size="small"
+      :close-disabled="busyIds.has(permanentDeleteItem.id)"
+      @closed="confirmDeleteId = ''"
     >
-      <section
-        class="trash-conflict-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="trash-conflict-title"
-      >
-        <div class="trash-conflict-heading">
-          <AppIcon name="copy" :size="22" />
-          <div>
-            <h2 id="trash-conflict-title">原位置已有同名项目</h2>
-            <p>{{ displayPath(conflictItem.originalPath) }}</p>
-          </div>
-        </div>
-        <div class="trash-conflict-options">
-          <button type="button" @click="resolveConflict('keep-both')">
-            <AppIcon name="copy" :size="20" />
-            <span
-              ><strong>保留两者</strong
-              ><small>恢复文件并自动添加序号</small></span
-            >
-          </button>
-          <button type="button" @click="resolveConflict('skip')">
-            <AppIcon name="skip-forward" :size="20" />
-            <span
-              ><strong>跳过</strong
-              ><small>保留回收站项目，稍后处理</small></span
-            >
-          </button>
+      <template #icon>
+        <AppIcon name="trash" :size="22" />
+      </template>
+      <p class="trash-dialog-copy">
+        将永久删除“{{
+          displayPath(permanentDeleteItem.name)
+        }}”，源文件不会被恢复。
+      </p>
+      <template #footer>
+        <div class="trash-confirm-actions">
+          <button type="button" @click="confirmDeleteId = ''">取消</button>
           <button
+            id="focus-prompt"
             type="button"
             class="danger"
-            @click="resolveConflict('replace')"
+            :disabled="busyIds.has(permanentDeleteItem.id)"
+            @click="deletePermanent(permanentDeleteItem)"
           >
-            <AppIcon name="arrow-left-right" :size="20" />
-            <span
-              ><strong>替换</strong><small>现有项目会先移入回收站</small></span
-            >
+            {{ busyIds.has(permanentDeleteItem.id) ? "删除中…" : "永久删除" }}
           </button>
         </div>
+      </template>
+    </AppDialog>
+
+    <AppDialog
+      v-if="conflictItem"
+      title="原位置已有同名项目"
+      :description="displayPath(conflictItem.originalPath)"
+      size="small"
+      @closed="conflictItem = null"
+    >
+      <template #icon>
+        <AppIcon name="copy" :size="22" />
+      </template>
+      <div class="trash-conflict-options">
+        <button type="button" @click="resolveConflict('keep-both')">
+          <AppIcon name="copy" :size="20" />
+          <span
+            ><strong>保留两者</strong
+            ><small>恢复文件并自动添加序号</small></span
+          >
+        </button>
+        <button type="button" @click="resolveConflict('skip')">
+          <AppIcon name="skip-forward" :size="20" />
+          <span
+            ><strong>跳过</strong><small>保留回收站项目，稍后处理</small></span
+          >
+        </button>
+        <button
+          type="button"
+          class="danger"
+          @click="resolveConflict('replace')"
+        >
+          <AppIcon name="arrow-left-right" :size="20" />
+          <span
+            ><strong>替换</strong><small>现有项目会先移入回收站</small></span
+          >
+        </button>
+      </div>
+      <template #footer>
         <button
           type="button"
           class="trash-dialog-cancel"
@@ -243,8 +261,8 @@
         >
           取消
         </button>
-      </section>
-    </div>
+      </template>
+    </AppDialog>
   </div>
 </template>
 
@@ -259,6 +277,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useTrashStore } from "@/stores/trash";
 import { useTasksStore } from "@/stores/tasks";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import AppDialog from "@/components/ui/AppDialog.vue";
 import { filesize } from "@/utils";
 import { getResourceIconName } from "@/utils/fileIcons";
 import type { AppIconName } from "@/components/ui/iconRegistry";
@@ -277,6 +296,11 @@ const clearing = ref(false);
 const confirmDeleteId = ref("");
 const conflictItem = ref<TrashItem | null>(null);
 const busyIds = reactive(new Set<string>());
+
+const permanentDeleteItem = computed(
+  () =>
+    trashStore.items.find((item) => item.id === confirmDeleteId.value) ?? null
+);
 
 const countLabel = computed(() =>
   trashStore.items.length === 0 ? "暂无项目" : `${trashStore.items.length} 项`

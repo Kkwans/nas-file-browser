@@ -46,119 +46,6 @@
             show="newDir"
           />
         </template>
-        <template v-if="!isMobile">
-          <div
-            class="view-mode-dropdown files-primary-control"
-            :class="{ open: showViewDropdown }"
-            ref="viewDropdownRef"
-          >
-            <action
-              :app-icon="viewAppIcon"
-              label="切换视图"
-              @action="toggleViewDropdown"
-            />
-            <div v-if="showViewDropdown" class="dropdown-menu">
-              <button
-                class="dropdown-back"
-                type="button"
-                @click.stop="showViewDropdown = false"
-              >
-                <AppIcon name="arrow-left" :size="18" />
-                <span>选择视图</span>
-              </button>
-              <button
-                v-for="mode in viewModes"
-                :key="mode.value"
-                class="dropdown-item"
-                :class="{ active: currentViewMode === mode.value }"
-                type="button"
-                @click="selectViewMode(mode.value)"
-              >
-                <AppIcon :name="mode.icon" :size="19" />
-                <span>{{ mode.label }}</span>
-                <AppIcon
-                  v-if="currentViewMode === mode.value"
-                  name="circle-check"
-                  :size="18"
-                />
-              </button>
-              <template v-if="currentViewMode === 'compact-grid'">
-                <div class="dropdown-divider"></div>
-                <div class="dropdown-section-title">图标大小</div>
-                <button
-                  v-for="size in compactGridSizes"
-                  :key="size.value"
-                  class="dropdown-item compact-grid-size-option"
-                  :class="{ active: compactGridSize === size.value }"
-                  type="button"
-                  @click="selectCompactGridSize(size.value)"
-                >
-                  <AppIcon :name="size.icon" :size="19" />
-                  <span>{{ size.label }}</span>
-                  <AppIcon
-                    v-if="compactGridSize === size.value"
-                    name="circle-check"
-                    :size="18"
-                  />
-                </button>
-              </template>
-            </div>
-          </div>
-          <div
-            class="sort-dropdown files-primary-control"
-            :class="{ open: showSortDropdown }"
-            ref="sortDropdownRef"
-          >
-            <action app-icon="sort" label="排序" @action="toggleSortDropdown" />
-            <div v-if="showSortDropdown" class="dropdown-menu">
-              <button
-                class="dropdown-back"
-                type="button"
-                @click.stop="showSortDropdown = false"
-              >
-                <AppIcon name="arrow-left" :size="18" />
-                <span>选择排序方式</span>
-              </button>
-              <button
-                v-for="opt in sortOptions"
-                :key="opt.by"
-                class="dropdown-item"
-                :class="{
-                  active: sortIsOverridden && currentSortBy === opt.by,
-                }"
-                type="button"
-                @click="selectSort(opt.by)"
-              >
-                <AppIcon :name="opt.icon" :size="19" />
-                <span>{{ opt.label }}</span>
-                <AppIcon
-                  v-if="sortIsOverridden && currentSortBy === opt.by"
-                  class="sort-arrow"
-                  :name="listingSortDirectionIcon(currentSortAsc)"
-                  :size="17"
-                />
-              </button>
-              <div class="dropdown-divider"></div>
-              <button
-                class="dropdown-item"
-                type="button"
-                @click="toggleSortDirection"
-              >
-                <AppIcon name="sort" :size="19" />
-                <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
-              </button>
-              <button
-                class="dropdown-item"
-                type="button"
-                :disabled="!sortIsOverridden"
-                @click="resetSortOverride"
-              >
-                <AppIcon name="undo" :size="19" />
-                <span>恢复账号默认排序</span>
-              </button>
-            </div>
-          </div>
-        </template>
       </template>
       <template #actions>
         <template v-if="isMobile && authStore.user?.perm.create">
@@ -222,7 +109,6 @@
         />
         <!-- View Mode Dropdown -->
         <div
-          v-if="isMobile"
           class="view-mode-dropdown"
           :class="{ open: showViewDropdown }"
           ref="viewDropdownRef"
@@ -280,7 +166,6 @@
         </div>
         <!-- Sort Dropdown -->
         <div
-          v-if="isMobile"
           class="sort-dropdown"
           :class="{ open: showSortDropdown }"
           ref="sortDropdownRef"

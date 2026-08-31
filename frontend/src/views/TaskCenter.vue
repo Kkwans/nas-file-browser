@@ -676,6 +676,5 @@ watch(
 
 onMounted(async () => {
   await loadCurrent();
-  await transfersStore.load();
 });
 </script>

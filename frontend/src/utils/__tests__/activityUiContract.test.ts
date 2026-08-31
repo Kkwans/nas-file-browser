@@ -58,6 +58,12 @@ describe("activity page UI contract", () => {
     expect(source).not.toContain("task-center-summary");
   });
 
+  it("does not issue a second all-transfer snapshot on TaskCenter mount", () => {
+    expect(source).not.toMatch(
+      /onMounted\(async \(\) => \{[\s\S]*?await transfersStore\.load\(\);/
+    );
+  });
+
   it("keeps recent page shared layout styles without legacy task selectors", () => {
     expect(activityCss).toContain(".activity-page {");
     expect(activityCss).toContain(".recent-entry {");

@@ -13,6 +13,7 @@ rice-box.go
 
 .DS_Store
 node_modules
+frontend/test-results/
 
 # local env files
 .env.local

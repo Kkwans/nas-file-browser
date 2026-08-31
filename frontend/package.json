@@ -16,6 +16,8 @@
     "lint:fix": "eslint --fix src/",
     "format": "prettier --write .",
     "test": "vitest run",
+    "test:e2e": "playwright test --config=playwright.config.ts",
+    "test:e2e:report": "playwright show-report test-results/e2e-report",
     "verify": "corepack pnpm run lint && corepack pnpm run typecheck && corepack pnpm run test && corepack pnpm run build"
   },
   "dependencies": {
@@ -53,6 +55,7 @@
     "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tsconfig/node24": "^24.0.2",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.10.1",

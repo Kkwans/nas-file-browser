@@ -30,6 +30,7 @@ type taskFilterSnapshot struct {
 	Text     string         `json:"text,omitempty"`
 	From     int64          `json:"from,omitempty"`
 	To       int64          `json:"to,omitempty"`
+	Category string         `json:"category,omitempty"`
 }
 
 type taskListCounts struct {
@@ -223,6 +224,7 @@ func taskFilterFromQuery(r *http.Request) (taskFilterSnapshot, int, *taskCursor,
 		User: strings.TrimSpace(query.Get("user")),
 		Type: tasks.Type(strings.TrimSpace(query.Get("type"))),
 		Text: strings.TrimSpace(query.Get("text")),
+		Category: strings.TrimSpace(query.Get("category")),
 	}
 	archived := false
 	filter.Archived = &archived
@@ -278,6 +280,9 @@ func validateTaskFilter(filter taskFilterSnapshot) error {
 	if filter.Type != "" && !validTaskType(filter.Type) {
 		return fmt.Errorf("未知任务类型 %q", filter.Type)
 	}
+	if filter.Category != "" && filter.Category != "file" && filter.Category != "background" {
+		return fmt.Errorf("未知任务分类 %q", filter.Category)
+	}
 	if filter.From < 0 || filter.To < 0 || (filter.From > 0 && filter.To > 0 && filter.From > filter.To) {
 		return fmt.Errorf("任务时间范围无效")
 	}
@@ -287,6 +292,8 @@ func validateTaskFilter(filter taskFilterSnapshot) error {
 func validTaskType(taskType tasks.Type) bool {
 	switch taskType {
 	case tasks.TypeTrashClear, tasks.TypeDuplicateAnalysis, tasks.TypeStorageAnalysis, tasks.TypeArchiveExtract, tasks.TypeMediaHLS:
+		return true
+	case tasks.TypeFileCopy, tasks.TypeFileMove:
 		return true
 	default:
 		return false
@@ -311,6 +318,12 @@ func filterTasks(all []*tasks.Task, filter taskFilterSnapshot) []*tasks.Task {
 			}
 		}
 		if filter.Type != "" && task.Type != filter.Type {
+			continue
+		}
+		if filter.Category == "file" && task.Type != tasks.TypeFileCopy && task.Type != tasks.TypeFileMove {
+			continue
+		}
+		if filter.Category == "background" && (task.Type == tasks.TypeFileCopy || task.Type == tasks.TypeFileMove) {
 			continue
 		}
 		if user != "" && strings.ToLower(task.OwnerName) != user && strconv.FormatUint(uint64(task.UserID), 10) != user {

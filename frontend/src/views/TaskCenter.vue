@@ -19,20 +19,6 @@
     </header-bar>
 
     <main class="task-center-workspace">
-      <section class="task-center-intro" aria-labelledby="task-center-title">
-        <div>
-          <p class="task-center-eyebrow">工作台活动</p>
-          <h1 id="task-center-title">任务中心</h1>
-          <p class="task-center-description">
-            后台任务、传输记录和操作轨迹集中在这里，刷新页面后仍可继续查看。
-          </p>
-        </div>
-        <div class="task-center-summary" aria-live="polite">
-          <strong>{{ activeCount }}</strong>
-          <span>项进行中</span>
-        </div>
-      </section>
-
       <nav class="task-center-tabs" role="tablist" aria-label="任务类型">
         <button
           v-for="tab in tabs"
@@ -57,16 +43,22 @@
       </nav>
 
       <section
-        v-if="activeTab === 'background'"
-        id="task-panel-background"
+        v-if="activeTab === 'file' || activeTab === 'background'"
+        :id="`task-panel-${activeTab}`"
         class="task-center-panel"
         role="tabpanel"
-        aria-labelledby="task-tab-background"
+        :aria-labelledby="`task-tab-${activeTab}`"
       >
         <div class="task-center-panel-heading">
           <div>
-            <h2>后台任务</h2>
-            <p>分析、清理、解压和兼容播放等长操作。</p>
+            <h2>{{ activeTab === "file" ? "文件任务" : "后台任务" }}</h2>
+            <p>
+              {{
+                activeTab === "file"
+                  ? "复制和移动等文件操作。"
+                  : "分析、清理、解压和兼容播放等长操作。"
+              }}
+            </p>
           </div>
           <label class="task-center-filter">
             <span>状态</span>
@@ -99,8 +91,14 @@
           class="task-center-empty"
         >
           <app-icon name="circle-check" :size="30" />
-          <h3>还没有后台任务</h3>
-          <p>需要较长时间的操作会自动出现在这里。</p>
+          <h3>还没有{{ activeTab === "file" ? "文件" : "后台" }}任务</h3>
+          <p>
+            {{
+              activeTab === "file"
+                ? "复制和移动任务会自动出现在这里。"
+                : "需要较长时间的操作会自动出现在这里。"
+            }}
+          </p>
         </div>
         <div v-else class="task-center-list">
           <article
@@ -328,7 +326,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
@@ -343,9 +341,8 @@ import type {
 import { useTasksStore } from "@/stores/tasks";
 import { useHistoryStore } from "@/stores/history";
 import { useTransfersStore } from "@/stores/transfers";
-import { connectTaskCenterEvents } from "@/utils/taskCenterEvents";
 
-type TaskCenterTab = "background" | "upload" | "download" | "history";
+type TaskCenterTab = "download" | "upload" | "file" | "background" | "history";
 type TaskFilter = "all" | "active" | "attention" | "completed";
 
 const route = useRoute();
@@ -356,15 +353,13 @@ const transfersStore = useTransfersStore();
 const activeTab = ref<TaskCenterTab>(parseTab(route.query.tab));
 const taskFilter = ref<TaskFilter>(parseTaskFilter(route.query.status));
 const busyIds = reactive(new Set<string>());
-let refreshTimer: number | undefined;
-let stopEvents: (() => void) | undefined;
 
 const tabs = computed(() => [
   {
-    id: "background" as const,
-    label: "后台任务",
-    icon: "tasks" as const,
-    count: tasksStore.counts.active,
+    id: "download" as const,
+    label: "下载",
+    icon: "download" as const,
+    count: transfersStore.downloads.filter(isTransferActive).length,
   },
   {
     id: "upload" as const,
@@ -373,10 +368,20 @@ const tabs = computed(() => [
     count: transfersStore.uploads.filter(isTransferActive).length,
   },
   {
-    id: "download" as const,
-    label: "下载",
-    icon: "download" as const,
-    count: transfersStore.downloads.filter(isTransferActive).length,
+    id: "file" as const,
+    label: "文件任务",
+    icon: "folder" as const,
+    count: tasksStore.items.filter(
+      (item) => isFileTask(item.type) && isTaskActive(item)
+    ).length,
+  },
+  {
+    id: "background" as const,
+    label: "后台任务",
+    icon: "tasks" as const,
+    count: tasksStore.items.filter(
+      (item) => !isFileTask(item.type) && isTaskActive(item)
+    ).length,
   },
   {
     id: "history" as const,
@@ -399,15 +404,21 @@ const activeTransfers = computed(() =>
     : transfersStore.downloads
 );
 const loadingCurrent = computed(() => {
-  if (activeTab.value === "background") return tasksStore.loading;
+  if (activeTab.value === "file" || activeTab.value === "background") {
+    return tasksStore.loading;
+  }
   if (activeTab.value === "history") return historyStore.loading;
   return transfersStore.loading;
 });
 
 function parseTab(value: unknown): TaskCenterTab {
-  return value === "upload" || value === "download" || value === "history"
+  return value === "upload" ||
+    value === "download" ||
+    value === "file" ||
+    value === "background" ||
+    value === "history"
     ? value
-    : "background";
+    : "download";
 }
 
 function parseTaskFilter(value: unknown): TaskFilter {
@@ -456,8 +467,12 @@ function taskFilterQuery(): { statuses?: TaskStatus[] } {
 
 async function loadCurrent() {
   try {
-    if (activeTab.value === "background") {
-      await tasksStore.load({ ...taskFilterQuery(), limit: 30 });
+    if (activeTab.value === "file" || activeTab.value === "background") {
+      await tasksStore.load({
+        ...taskFilterQuery(),
+        category: activeTab.value,
+        limit: 30,
+      });
     } else if (activeTab.value === "history") {
       await historyStore.load({ limit: 30 });
     } else {
@@ -573,6 +588,8 @@ function transferStatusLabel(status: TransferStatus) {
 function taskTypeLabel(type: TaskType) {
   return (
     {
+      "file.copy": "复制文件",
+      "file.move": "移动文件",
       "trash.clear": "回收站清理",
       "analysis.duplicates": "重复文件分析",
       "analysis.storage": "空间分析",
@@ -580,6 +597,10 @@ function taskTypeLabel(type: TaskType) {
       "media.hls": "兼容播放",
     } satisfies Record<TaskType, string>
   )[type];
+}
+
+function isFileTask(type: TaskType) {
+  return type === "file.copy" || type === "file.move";
 }
 
 function historyActionLabel(action: string) {
@@ -638,15 +659,5 @@ watch(
 onMounted(async () => {
   await loadCurrent();
   await transfersStore.load();
-  refreshTimer = window.setInterval(() => void loadCurrent(), 15000);
-  stopEvents = connectTaskCenterEvents(
-    () => void loadCurrent(),
-    () => void loadCurrent()
-  );
-});
-
-onUnmounted(() => {
-  if (refreshTimer !== undefined) window.clearInterval(refreshTimer);
-  stopEvents?.();
 });
 </script>

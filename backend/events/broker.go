@@ -18,8 +18,9 @@ type Event struct {
 }
 
 type subscriber struct {
-	channel  chan Event
-	audience uint
+	channel       chan Event
+	audience      uint
+	resyncPending bool
 }
 
 type Broker struct {
@@ -59,15 +60,36 @@ func (broker *Broker) publish(audience uint, eventType string, value interface{}
 	if len(broker.history) > broker.maxHistory {
 		broker.history = broker.history[len(broker.history)-broker.maxHistory:]
 	}
-	for _, subscriber := range broker.subscribers {
+	for channel, subscriber := range broker.subscribers {
 		if event.Audience != 0 && event.Audience != subscriber.audience {
 			continue
 		}
 		select {
 		case subscriber.channel <- event:
 		default:
-			// A slow client will detect the resulting id gap on reconnect and
-			// refetch a REST snapshot instead of growing unbounded memory.
+			// Do not silently discard a slow subscriber's updates. Replace one
+			// buffered event with an explicit resync marker; the HTTP handler
+			// closes that stream so the client reconnects from a fresh snapshot.
+			if subscriber.resyncPending {
+				continue
+			}
+			select {
+			case <-subscriber.channel:
+			default:
+			}
+			select {
+			case subscriber.channel <- Event{
+				ID:       event.ID,
+				Type:     "resync.required",
+				Data:     json.RawMessage(`{"reason":"subscriber-overflow"}`),
+				Audience: subscriber.audience,
+			}:
+				subscriber.resyncPending = true
+				broker.subscribers[channel] = subscriber
+			default:
+				// The channel can only be full if another writer won the slot;
+				// leave the pending marker unset and try again on the next event.
+			}
 		}
 	}
 	return event
@@ -86,7 +108,7 @@ func (broker *Broker) SubscribeForUser(lastID uint64, audience uint) ([]Event, <
 	broker.mu.Lock()
 	defer broker.mu.Unlock()
 	gap := false
-	if len(broker.history) > 0 && lastID > 0 && lastID < broker.history[0].ID-1 {
+	if len(broker.history) > 0 && lastID > 0 && (lastID < broker.history[0].ID-1 || lastID > broker.nextID) {
 		gap = true
 	}
 	var replay []Event

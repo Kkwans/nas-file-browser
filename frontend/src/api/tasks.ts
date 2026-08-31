@@ -1,6 +1,8 @@
 import { fetchJSON, fetchURL } from "./utils";
 
 export type TaskType =
+  | "file.copy"
+  | "file.move"
   | "trash.clear"
   | "analysis.duplicates"
   | "analysis.storage"
@@ -50,6 +52,7 @@ export interface TaskListFilter {
   text?: string;
   from?: number;
   to?: number;
+  category?: "file" | "background";
   cursor?: string;
   limit?: number;
 }
@@ -83,6 +86,7 @@ function queryString(filter: TaskListFilter) {
   if (filter.text) query.set("text", filter.text);
   if (filter.from) query.set("from", String(filter.from));
   if (filter.to) query.set("to", String(filter.to));
+  if (filter.category) query.set("category", filter.category);
   if (filter.cursor) query.set("cursor", filter.cursor);
   if (filter.limit) query.set("limit", String(filter.limit));
   const encoded = query.toString();
@@ -142,6 +146,7 @@ export async function batch(
         text: filters.text,
         from: filters.from,
         to: filters.to,
+        category: filters.category,
       },
       expectedCount,
     }),

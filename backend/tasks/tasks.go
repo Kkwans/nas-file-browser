@@ -20,6 +20,8 @@ var (
 type Type string
 
 const (
+	TypeFileCopy          Type = "file.copy"
+	TypeFileMove          Type = "file.move"
 	TypeTrashClear        Type = "trash.clear"
 	TypeDuplicateAnalysis Type = "analysis.duplicates"
 	TypeStorageAnalysis   Type = "analysis.storage"
@@ -76,7 +78,13 @@ func (task *Task) CanCancel() bool {
 }
 
 func (task *Task) CanRetry() bool {
-	return task != nil && task.ArchivedAt == 0 && (task.Status == StatusFailed || task.Status == StatusInterrupted)
+	if task == nil || task.ArchivedAt != 0 {
+		return false
+	}
+	if task.Status == StatusFailed || task.Status == StatusInterrupted {
+		return true
+	}
+	return task.Status == StatusCanceled && (task.Type == TypeFileCopy || task.Type == TypeFileMove)
 }
 
 func (task *Task) CanArchive() bool {

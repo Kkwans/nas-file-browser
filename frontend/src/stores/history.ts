@@ -21,6 +21,10 @@ export const useHistoryStore = defineStore("history", {
     currentFilter: {},
   }),
   actions: {
+    record(item: HistoryEntry) {
+      this.items = [item, ...this.items.filter((saved) => saved.id !== item.id)]
+        .sort((left, right) => right.createdAt - left.createdAt);
+    },
     async load(filter: HistoryListFilter = {}) {
       this.loading = true;
       this.error = "";

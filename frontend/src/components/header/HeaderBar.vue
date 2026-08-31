@@ -79,6 +79,15 @@
 import { useLayoutStore } from "@/stores/layout";
 import { useAuthStore } from "@/stores/auth";
 import { useTasksStore } from "@/stores/tasks";
+import { useTransfersStore } from "@/stores/transfers";
+import { useHistoryStore } from "@/stores/history";
+import {
+  connectTaskCenterEvents,
+  type TaskCenterEvent,
+} from "@/utils/taskCenterEvents";
+import type { TaskItem } from "@/api/tasks";
+import type { TransferItem } from "@/api/transfers";
+import type { HistoryEntry } from "@/api/history";
 
 import { logoURL, name } from "@/utils/constants";
 
@@ -93,9 +102,11 @@ defineProps<{
 const layoutStore = useLayoutStore();
 const authStore = useAuthStore();
 const tasksStore = useTasksStore();
+const transfersStore = useTransfersStore();
+const historyStore = useHistoryStore();
 const slots = useSlots();
 const taskCenterBadgeCount = computed(
-  () => tasksStore.counts.active + tasksStore.counts.attention
+  () => tasksStore.counts.active + transfersStore.active.length
 );
 
 // The desktop header must not render the transient sidebar toggle at all.
@@ -107,6 +118,76 @@ const isMobileViewport = ref(
     window.matchMedia("(max-width: 899px)").matches
 );
 let mobileMediaQuery: MediaQueryList | undefined;
+let sharedEventConsumers = 0;
+let sharedEventStop: (() => void) | undefined;
+
+function isTask(value: unknown): value is TaskItem {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    "id" in value &&
+    "status" in value &&
+    "type" in value
+  );
+}
+
+function isTransfer(value: unknown): value is TransferItem {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    "id" in value &&
+    "kind" in value &&
+    "status" in value
+  );
+}
+
+function isHistory(value: unknown): value is HistoryEntry {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    "id" in value &&
+    "action" in value &&
+    "createdAt" in value
+  );
+}
+
+function handleTaskCenterEvent(event: TaskCenterEvent) {
+  if (event.type === "task.changed" && isTask(event.data)) {
+    tasksStore.record(event.data);
+  } else if (event.type === "transfer.changed" && isTransfer(event.data)) {
+    transfersStore.record(event.data);
+  } else if (event.type === "history.created" && isHistory(event.data)) {
+    historyStore.record(event.data);
+  }
+}
+
+async function reloadTaskCenterSnapshot() {
+  await Promise.allSettled([
+    tasksStore.loadSummary(),
+    transfersStore.load(),
+    historyStore.loaded
+      ? historyStore.load(historyStore.currentFilter)
+      : Promise.resolve(),
+  ]);
+}
+
+function startSharedEvents() {
+  sharedEventConsumers++;
+  if (sharedEventConsumers !== 1 || !authStore.isLoggedIn) return;
+  void tasksStore.loadSummary();
+  void transfersStore.load();
+  sharedEventStop = connectTaskCenterEvents(handleTaskCenterEvent, () => {
+    void reloadTaskCenterSnapshot();
+  });
+}
+
+function stopSharedEvents() {
+  sharedEventConsumers = Math.max(0, sharedEventConsumers - 1);
+  if (sharedEventConsumers === 0) {
+    sharedEventStop?.();
+    sharedEventStop = undefined;
+  }
+}
 const updateMobileViewport = (event?: MediaQueryListEvent) => {
   isMobileViewport.value =
     event?.matches ?? mobileMediaQuery?.matches ?? isMobileViewport.value;
@@ -120,16 +201,18 @@ onMounted(() => {
   } else {
     mobileMediaQuery.addListener(updateMobileViewport);
   }
-  if (authStore.isLoggedIn) void tasksStore.loadSummary();
+  if (authStore.isLoggedIn) startSharedEvents();
 });
 
 onUnmounted(() => {
-  if (!mobileMediaQuery) return;
-  if (mobileMediaQuery.removeEventListener) {
-    mobileMediaQuery.removeEventListener("change", updateMobileViewport);
-  } else {
-    mobileMediaQuery.removeListener(updateMobileViewport);
+  if (mobileMediaQuery) {
+    if (mobileMediaQuery.removeEventListener) {
+      mobileMediaQuery.removeEventListener("change", updateMobileViewport);
+    } else {
+      mobileMediaQuery.removeListener(updateMobileViewport);
+    }
   }
+  stopSharedEvents();
 });
 
 const ifActionsSlot = computed(() =>

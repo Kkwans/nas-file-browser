@@ -12,13 +12,15 @@ export interface TaskCenterEvent {
   data?: unknown;
 }
 
+export type TaskCenterEventHandler = (event: TaskCenterEvent) => void;
+
 /**
  * Connect to the authenticated task-center event stream. REST remains the
- * snapshot source: every notification invokes onChange and a ring-buffer gap
- * invokes onResync so the caller can refetch all three stores.
+ * snapshot source: normal notifications are merged locally and an explicit
+ * resync marker causes the caller to refetch all three stores.
  */
 export function connectTaskCenterEvents(
-  onChange: (event: TaskCenterEvent) => void,
+  onChange: TaskCenterEventHandler,
   onResync: () => void
 ) {
   if (typeof window === "undefined" || typeof EventSource === "undefined") {
@@ -74,7 +76,9 @@ export function connectTaskCenterEvents(
       parse(event as MessageEvent<string>, "history.created")
     );
     source.addEventListener("resync.required", (event) => {
-      parse(event as MessageEvent<string>, "resync.required");
+      const message = event as MessageEvent<string>;
+      const id = Number(message.lastEventId || 0);
+      if (Number.isFinite(id) && id > lastEventId) lastEventId = id;
       onResync();
     });
   };

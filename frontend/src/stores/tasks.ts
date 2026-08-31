@@ -8,6 +8,17 @@ import type {
 } from "@/api/tasks";
 
 const activeStatuses = new Set<TaskItem["status"]>(["queued", "running"]);
+type TaskCountBucket = Exclude<keyof TaskListCounts, "all">;
+
+function taskCountBucket(value: TaskItem | undefined): TaskCountBucket {
+  if (!value || value.archivedAt) return "archived";
+  if (value.status === "queued" || value.status === "running") return "active";
+  if (value.status === "failed" || value.status === "interrupted") {
+    return "attention";
+  }
+  if (value.status === "canceled") return "canceled";
+  return "completed";
+}
 
 export const useTasksStore = defineStore("tasks", {
   state: (): {
@@ -102,10 +113,32 @@ export const useTasksStore = defineStore("tasks", {
       }
     },
     record(item: TaskItem) {
+      const previous = this.items.find((saved) => saved.id === item.id);
       this.items = [
         item,
         ...this.items.filter((saved) => saved.id !== item.id),
       ].sort((left, right) => right.createdAt - left.createdAt);
+      // Events are the live source between snapshots. Adjust the aggregate
+      // counters using the previous visible value instead of reloading the
+      // entire task page for every progress update.
+      const after = taskCountBucket(item);
+      const adjust = (bucket: TaskCountBucket, delta: number) => {
+        this.counts[bucket] = Math.max(0, this.counts[bucket] + delta);
+      };
+      if (!previous) {
+        adjust(after, 1);
+        if (after !== "archived") this.counts.all++;
+        return;
+      }
+
+      const before = taskCountBucket(previous);
+      if (before === after) return;
+      adjust(before, -1);
+      adjust(after, 1);
+      if (before === "archived" && after !== "archived") this.counts.all++;
+      if (before !== "archived" && after === "archived") {
+        this.counts.all = Math.max(0, this.counts.all - 1);
+      }
     },
     async cancel(id: string) {
       const item = await api.cancel(id);

@@ -55,3 +55,33 @@ func TestBrokerKeepsUserEventsPrivate(t *testing.T) {
 		t.Fatalf("private replay leaked: %#v", replay)
 	}
 }
+
+func TestBrokerSignalsSlowSubscriberOverflow(t *testing.T) {
+	broker := New(64)
+	_, channel, cancel, _ := broker.Subscribe(0)
+	defer cancel()
+
+	for index := 0; index < 40; index++ {
+		broker.Publish("task.changed", map[string]int{"index": index})
+	}
+
+	seenResync := false
+	for len(channel) > 0 {
+		if event := <-channel; event.Type == "resync.required" {
+			seenResync = true
+		}
+	}
+	if !seenResync {
+		t.Fatal("slow subscriber did not receive an explicit resync marker")
+	}
+}
+
+func TestBrokerReportsCursorFromPreviousProcess(t *testing.T) {
+	broker := New(4)
+	broker.Publish("task.changed", map[string]string{"id": "one"})
+	_, _, cancel, gap := broker.Subscribe(99)
+	defer cancel()
+	if !gap {
+		t.Fatal("cursor newer than the broker epoch must require resync")
+	}
+}

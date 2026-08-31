@@ -53,6 +53,12 @@ var taskCenterEventsHandler = withUser(func(w http.ResponseWriter, r *http.Reque
 			if err := write(event); err != nil {
 				return 0, nil
 			}
+			if event.Type == "resync.required" {
+				// A resync marker means the bounded broker buffer could no
+				// longer preserve ordering. Let EventSource reconnect with this
+				// cursor after the client has loaded a REST snapshot.
+				return 0, nil
+			}
 		case <-keepAlive.C:
 			if _, err := fmt.Fprint(w, ": keep-alive\n\n"); err != nil {
 				return 0, nil

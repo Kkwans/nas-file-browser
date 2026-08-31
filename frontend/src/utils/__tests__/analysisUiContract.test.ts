@@ -63,7 +63,7 @@ describe("analysis page UI contract", () => {
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain("<span>完成与操作</span>");
     expect(recentSource).toMatch(
-      /grid-template-columns:\s*40px\s+minmax\(0, 1fr\)\s+220px/
+      /grid-template-columns:\s*24px\s+minmax\(0, 1fr\)\s+auto/
     );
     expect(recentSource).toMatch(
       /\.analysis-recent__side\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:/
@@ -77,13 +77,13 @@ describe("analysis page UI contract", () => {
     );
 
     expect(recentSource).toMatch(
-      /\.analysis-recent__list li\s*\{[\s\S]*?min-height:\s*78px;/
+      /\.analysis-recent__list > li\s*\{[\s\S]*?min-height:\s*64px;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*36px;/
+      /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*44px;/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*12px;/
+      /\.analysis-recent\s*\{[\s\S]*?border-radius:\s*10px;/
     );
   });
 
@@ -97,9 +97,7 @@ describe("analysis page UI contract", () => {
     expect(recentSource).not.toMatch(
       /\.analysis-recent__time-block\s*\{[\s\S]*?border-left:/
     );
-    expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?border:\s*1px solid color-mix/
-    );
+    expect(recentSource).not.toContain("analysis-recent__header p");
   });
 
   it("存储工具使用安静的分段导航，不把工具切换做成厚重胶囊", () => {
@@ -119,18 +117,14 @@ describe("analysis page UI contract", () => {
     );
   });
 
-  it("最近扫描悬停不绘制彩色左轨，桌面结果动作保持轻量", () => {
+  it("最近扫描提供完整路径展开，窄面板根据实际容器宽度换行", () => {
     const recentSource = readFileSync(
       resolve(process.cwd(), "src/components/analysis/AnalysisRecentScans.vue"),
       "utf8"
     );
-
-    expect(recentSource).toMatch(
-      /\.analysis-recent__list li:hover\s*\{[\s\S]*?box-shadow:\s*none;/
-    );
-    expect(recentSource).toMatch(
-      /\.analysis-recent__action\s*\{[\s\S]*?width:\s*auto;[\s\S]*?border:\s*1px solid color-mix/
-    );
+    expect(recentSource).toContain('<details class="analysis-recent__paths">');
+    expect(recentSource).toContain("@container (max-width: 720px)");
+    expect(recentSource).not.toContain("translateY");
   });
 
   it("扫描入口保留风险告知，移除重复介绍和侧栏布局", () => {

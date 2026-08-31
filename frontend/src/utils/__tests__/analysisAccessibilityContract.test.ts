@@ -74,7 +74,9 @@ describe("存储工具无障碍契约", () => {
     expect(recentScansSource).toContain("item.scopes.join");
     expect(recentScansSource).toContain("metricsLabel(item)");
     expect(recentScansSource).toContain("statusLabel(item)");
-    expect(recentScansSource).toContain("formatTime(item.createdAt)");
+    expect(recentScansSource).toContain("formatTime(recordTime(item))");
+    expect(recentScansSource).toContain("item.finishedAt || item.createdAt");
+    expect(recentScansSource).toContain('aria-label="完整扫描范围"');
     expect(recentScansSource).toMatch(
       /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*44px;/
     );

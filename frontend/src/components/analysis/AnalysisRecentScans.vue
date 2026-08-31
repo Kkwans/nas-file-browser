@@ -6,7 +6,6 @@
       </span>
       <div>
         <h2 id="analysis-recent-title">最近扫描</h2>
-        <p>只显示你的扫描记录，范围、状态和结果一目了然。</p>
       </div>
       <button v-if="error" type="button" @click="$emit('retry')">
         重新加载
@@ -55,8 +54,19 @@
           />
         </span>
         <div class="analysis-recent__content">
+          <details class="analysis-recent__paths">
+            <summary
+              class="analysis-recent__scope"
+              :title="item.scopes.join('、')"
+            >
+              <b>{{ scopeLabel(item) }}</b
+              ><AppIcon name="chevron-down" :size="14" />
+            </summary>
+            <ul aria-label="完整扫描范围">
+              <li v-for="scope in item.scopes" :key="scope">{{ scope }}</li>
+            </ul>
+          </details>
           <div class="analysis-recent__headline">
-            <strong>{{ itemToolLabel(item) }}</strong>
             <span
               :class="[
                 `is-${item.status}`,
@@ -67,22 +77,18 @@
               ]"
               >{{ statusLabel(item) }}</span
             >
+            <p class="analysis-recent__metrics">{{ metricsLabel(item) }}</p>
           </div>
-          <p class="analysis-recent__scope" :title="item.scopes.join('、')">
-            <AppIcon name="folder" :size="15" />
-            <b>{{ scopeLabel(item) }}</b>
-          </p>
-          <p class="analysis-recent__metrics">{{ metricsLabel(item) }}</p>
         </div>
         <div class="analysis-recent__side">
           <div class="analysis-recent__time-block">
             <time
               class="analysis-recent__time"
-              :datetime="new Date(item.createdAt).toISOString()"
-              :aria-label="`完成时间 ${formatTime(item.createdAt)}`"
+              :datetime="new Date(recordTime(item)).toISOString()"
+              :aria-label="`${item.finishedAt ? '结束时间' : '提交时间'} ${formatTime(recordTime(item))}`"
             >
-              <span>{{ formatDate(item.createdAt) }}</span>
-              <b>{{ formatClock(item.createdAt) }}</b>
+              <span>{{ formatDate(recordTime(item)) }}</span>
+              <b>{{ formatClock(recordTime(item)) }}</b>
             </time>
           </div>
           <router-link
@@ -172,6 +178,10 @@ function actionLabel(item: AnalysisRecentItem) {
   return item.resultReady ? "查看结果" : "查看详情";
 }
 
+function recordTime(item: AnalysisRecentItem) {
+  return item.finishedAt || item.createdAt;
+}
+
 function formatTime(value: number) {
   return dayjs(value).format("YYYY-MM-DD HH:mm");
 }
@@ -187,356 +197,212 @@ function formatClock(value: number) {
 
 <style scoped>
 .analysis-recent {
-  margin-top: 28px;
-  overflow: hidden;
+  margin-top: 20px;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surfacePrimary);
-  box-shadow: none;
+  container-type: inline-size;
 }
-
 .analysis-recent__header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px 14px;
+  gap: 8px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--borderPrimary);
-  background: var(--surfacePrimary);
 }
-
 .analysis-recent__header-icon {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border: 0;
-  border-radius: 6px;
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 7%, transparent);
-}
-
-.analysis-recent__header h2,
-.analysis-recent__header p,
-.analysis-recent__content p {
-  margin: 0;
-}
-
-.analysis-recent__header h2 {
-  color: var(--textSecondary);
-  font-size: 16px;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-}
-
-.analysis-recent__header p {
-  margin-top: 2px;
+  display: flex;
   color: var(--textPrimary);
-  font-size: 12px;
-  line-height: 1.4;
 }
-
+.analysis-recent__header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
 .analysis-recent__header button {
-  min-height: 36px;
-  padding: 0 11px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 8px;
+  margin-inline-start: auto;
+  min-height: 40px;
+  border: 0;
   color: var(--blue);
-  background: var(--surfacePrimary);
+  background: transparent;
   cursor: pointer;
-  font-size: 12px;
 }
-
 .analysis-recent__state {
   display: flex;
-  min-height: 96px;
+  min-height: 88px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 16px;
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 13px;
 }
-
 .analysis-recent__state.is-error {
   color: var(--red);
 }
-
+.analysis-recent__columns,
+.analysis-recent__list > li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 16px;
+}
+.analysis-recent__columns {
+  min-height: 32px;
+  border-bottom: 1px solid var(--borderPrimary);
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+.analysis-recent__columns span:last-child {
+  text-align: end;
+}
 .analysis-recent__list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
-
-.analysis-recent__columns,
-.analysis-recent__list li {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 220px;
-  align-items: center;
-  gap: 18px;
+.analysis-recent__list > li {
+  min-height: 64px;
+  padding-block: 8px;
 }
-
-.analysis-recent__columns {
-  min-height: 38px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--borderPrimary);
-  color: var(--textPrimary);
-  background: transparent;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.analysis-recent__columns span:last-child {
-  text-align: right;
-}
-
-.analysis-recent__list li {
-  min-height: 78px;
-  padding: 11px 20px;
-  transition: background-color 160ms ease;
-}
-
-.analysis-recent__list li + li {
+.analysis-recent__list > li + li {
   border-top: 1px solid var(--borderPrimary);
 }
-
-.analysis-recent__list li:hover {
-  background: color-mix(in srgb, var(--blue) 3%, var(--surfacePrimary));
-  box-shadow: none;
+.analysis-recent__list > li:hover {
+  background: var(--hover);
 }
-
 .analysis-recent__tool {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, currentColor 16%, var(--borderPrimary));
-  border-radius: 11px;
-  color: var(--blue);
-  background: color-mix(in srgb, currentColor 7%, var(--surfacePrimary));
-}
-
-.analysis-recent__tool.is-duplicates {
-  color: #327bdc;
-}
-
-.analysis-recent__tool.is-storage {
-  color: #7a5bd6;
-}
-
-.analysis-recent__content {
-  display: grid;
-  min-width: 0;
-  gap: 5px;
-}
-
-.analysis-recent__headline {
   display: flex;
-  min-width: 0;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  color: var(--blue);
 }
-
-.analysis-recent__headline strong {
-  color: var(--textSecondary);
-  font-size: 14px;
-  line-height: 1.3;
+.analysis-recent__tool.is-storage {
+  color: var(--icon-blue);
 }
-
-.analysis-recent__headline > span {
-  position: relative;
-  padding: 0 0 0 11px;
-  border-radius: 0;
-  color: var(--textPrimary);
-  background: transparent;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.analysis-recent__headline > span::before {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  content: "";
-  transform: translateY(-50%);
-}
-
-.analysis-recent__headline > span.is-completed {
-  color: #16845d;
-}
-
-.analysis-recent__headline > span.is-failed,
-.analysis-recent__headline > span.is-interrupted,
-.analysis-recent__headline > span.is-result-unavailable {
-  color: var(--red);
-}
-
-.analysis-recent__time-block {
-  display: grid;
+.analysis-recent__content {
   min-width: 0;
-  justify-items: start;
-  gap: 2px;
-  text-align: left;
 }
-
-.analysis-recent__time {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  color: var(--textSecondary);
-  font-variant-numeric: tabular-nums;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.analysis-recent__time span {
-  color: var(--textPrimary);
-  font-size: 12px;
-  line-height: 1.25;
-}
-
-.analysis-recent__time b {
-  color: var(--textSecondary);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
 .analysis-recent__scope {
   display: flex;
-  min-width: 0;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  min-height: 28px;
   color: var(--textSecondary);
-  font-size: 13px;
-  line-height: 1.35;
+  cursor: pointer;
+  list-style: none;
 }
-
+.analysis-recent__scope::-webkit-details-marker {
+  display: none;
+}
 .analysis-recent__scope b {
   overflow: hidden;
+  font-size: 13px;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-.analysis-recent__metrics {
-  overflow: hidden;
+.analysis-recent__scope .app-icon {
+  flex: 0 0 auto;
+  color: var(--textPrimary);
+}
+.analysis-recent__paths[open] .analysis-recent__scope .app-icon {
+  transform: rotate(180deg);
+}
+.analysis-recent__paths ul {
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  list-style: none;
+  border-radius: 6px;
+  background: var(--surfaceSecondary);
+}
+.analysis-recent__paths li {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.analysis-recent__headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
   color: var(--textPrimary);
   font-size: 12px;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
 }
-
+.analysis-recent__headline > span {
+  flex: 0 0 auto;
+}
+.analysis-recent__headline .is-completed {
+  color: var(--icon-green);
+}
+.analysis-recent__headline .is-failed,
+.analysis-recent__headline .is-interrupted,
+.analysis-recent__headline .is-result-unavailable {
+  color: var(--red);
+}
+.analysis-recent__metrics {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
 .analysis-recent__side {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto auto;
   min-width: 0;
   align-items: center;
-  justify-items: end;
-  gap: 12px;
+  gap: 16px;
 }
-
+.analysis-recent__time {
+  display: flex;
+  gap: 6px;
+  color: var(--textPrimary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.analysis-recent__time b {
+  font-weight: 400;
+}
 .analysis-recent__action {
   display: inline-flex;
-  justify-self: end;
-  width: auto;
-  box-sizing: border-box;
-  min-height: 36px;
+  min-height: 44px;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
-  border-radius: 7px;
+  padding: 0 4px;
   color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
   font-size: 12px;
-  font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease;
 }
-
-.analysis-recent__action:hover,
+.analysis-recent__action:hover {
+  text-decoration: underline;
+}
 .analysis-recent__action:focus-visible,
-.analysis-recent__header button:hover,
+.analysis-recent__scope:focus-visible,
 .analysis-recent__header button:focus-visible {
-  outline: none;
-  background: color-mix(in srgb, var(--blue) 10%, var(--surfacePrimary));
-  border-color: color-mix(in srgb, var(--blue) 40%, var(--borderPrimary));
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
-
-.analysis-recent__action:active {
-  transform: translateY(1px);
-}
-
-.analysis-recent__action:focus-visible,
-.analysis-recent__header button:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--focus-ring);
-}
-
-@media (max-width: 620px) {
-  .analysis-recent__header {
-    padding: 16px 14px 12px;
-  }
-
+@container (max-width: 720px) {
   .analysis-recent__columns {
     display: none;
   }
-
-  .analysis-recent__header p {
-    line-height: 1.4;
+  .analysis-recent__list > li {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 2px 8px;
+    padding-inline: 12px;
   }
-
-  .analysis-recent__list li {
-    grid-template-columns: 40px minmax(0, 1fr);
-    gap: 10px;
-    min-height: 0;
-    padding: 15px 14px;
+  .analysis-recent__scope {
+    min-height: 44px;
   }
-
   .analysis-recent__side {
     grid-column: 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    min-width: 0;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 0 0;
-    border-top: 1px solid var(--borderPrimary);
-  }
-
-  .analysis-recent__time-block,
-  .analysis-recent__time {
-    justify-items: start;
-    text-align: left;
-  }
-
-  .analysis-recent__action {
-    justify-self: auto;
-    width: auto;
-    min-width: 112px;
-    min-height: 44px;
-    padding: 0 10px;
-    border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
-    background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .analysis-recent__list li,
-  .analysis-recent__action {
-    transition: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 12px;
   }
 }
 </style>

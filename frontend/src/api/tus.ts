@@ -28,8 +28,12 @@ export async function upload(
   if (content === "") {
     return false;
   }
-  const transferId = uploadTransferId(filePath, content);
   return new Promise<void | string>((resolve, reject) => {
+    let transferId = uploadTransferId(filePath, content);
+    const contentSize =
+      typeof Blob !== "undefined" && content instanceof Blob
+        ? content.size
+        : undefined;
     const upload = new tus.Upload(content, {
       endpoint: `${origin}${baseURL}${resourcePath}`,
       chunkSize: tusSettings.chunkSize,
@@ -42,6 +46,7 @@ export async function upload(
       // Keep tus' fingerprint in localStorage so a reload can resume the
       // server-side offset instead of silently starting a second upload.
       storeFingerprintForResuming: true,
+      removeFingerprintOnSuccess: true,
       onShouldRetry: function (err) {
         const status = err.originalResponse
           ? err.originalResponse.getStatus()
@@ -83,8 +88,61 @@ export async function upload(
       },
     });
     CURRENT_UPLOAD_LIST[filePath] = upload;
-    upload.start();
+    void (async () => {
+      let previous: tus.PreviousUpload | undefined;
+      try {
+        previous = (await upload.findPreviousUploads()).find(
+          (candidate) =>
+            candidate.size === null ||
+            (contentSize !== undefined && candidate.size === contentSize)
+        );
+      } catch {
+        // Browser storage can be unavailable; the normal TUS create flow is
+        // still valid and remains the fallback.
+      }
+      if (previous) {
+        const resume =
+          typeof window === "undefined" ||
+          window.confirm(
+            "发现匹配的未完成上传。点击“确定”继续上传，点击“取消”重新上传。"
+          );
+        if (resume) {
+          upload.resumeFromPreviousUpload(previous);
+        } else {
+          await removePreviousFingerprint(upload, previous);
+          transferId = `${transferId}-${randomAttemptSuffix()}`;
+          upload.options.headers = {
+            ...(upload.options.headers || {}),
+            "X-Transfer-ID": transferId,
+          };
+        }
+      }
+      upload.start();
+    })().catch((error) => {
+      delete CURRENT_UPLOAD_LIST[filePath];
+      reject(error instanceof Error ? error : new Error(String(error)));
+    });
   });
+}
+
+async function removePreviousFingerprint(
+  upload: tus.Upload,
+  previous: tus.PreviousUpload
+) {
+  const storage = upload.options.urlStorage;
+  if (!storage || !previous.urlStorageKey) return;
+  try {
+    await storage.removeUpload(previous.urlStorageKey);
+  } catch {
+    // A stale browser storage entry must not prevent a deliberate restart.
+  }
+}
+
+function randomAttemptSuffix() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID().slice(0, 8);
+  }
+  return Math.random().toString(16).slice(2, 10);
 }
 
 export function uploadTransferId(

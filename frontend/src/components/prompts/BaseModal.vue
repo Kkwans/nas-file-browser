@@ -4,7 +4,8 @@
       ref="modalContainer"
       role="dialog"
       aria-modal="true"
-      :aria-label="props.prompt"
+      :aria-label="props.labelledBy ? undefined : props.prompt"
+      :aria-labelledby="props.labelledBy"
       tabindex="-1"
     >
       <slot></slot>
@@ -18,6 +19,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const props = withDefaults(
   defineProps<{
     prompt?: string;
+    labelledBy?: string;
   }>(),
   { prompt: "对话框" }
 );

@@ -34,6 +34,19 @@ describe("UI foundation and sidebar contract", () => {
     );
   });
 
+  it("provides one dialog shell on top of BaseModal", () => {
+    const dialogSource = readSource("components/ui/AppDialog.vue");
+    const modalSource = readSource("components/prompts/BaseModal.vue");
+
+    expect(dialogSource).toContain(
+      'import BaseModal from "@/components/prompts/BaseModal.vue"'
+    );
+    expect(dialogSource).toContain('class="app-dialog__body"');
+    expect(dialogSource).toContain('class="app-dialog__footer"');
+    expect(modalSource).toContain("labelledBy?: string");
+    expect(modalSource).toContain(':aria-labelledby="props.labelledBy"');
+  });
+
   it("keeps create commands out of the sidebar system section", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const computedBlock = sidebarSource.match(

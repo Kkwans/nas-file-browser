@@ -41,7 +41,7 @@ header > .header-center {
 }
 
 .listing-search input:placeholder-shown {
-  text-align: center;
+  text-align: left;
 }
 
 .listing-search input::placeholder {
@@ -95,19 +95,9 @@ header > .header-center {
   font-size: 19px;
 }
 
-@media (min-width: 1100px) {
-  header > .header-center {
-    position: absolute;
-    left: 50%;
-    width: min(46rem, 48vw);
-    padding: 0;
-    transform: translateX(-50%);
-  }
-}
-
 /* Breadcrumb ------------------------------------------------------------ */
 .breadcrumbs {
-  top: calc(3.5rem + 10px);
+  top: calc(var(--app-header-height, 56px) + 10px);
   z-index: 800;
   box-sizing: border-box;
   width: auto;
@@ -289,8 +279,8 @@ header > .header-center {
 }
 
 #listing.details .details-table-row td {
-  height: 68px;
-  padding: 8px 14px;
+  height: 60px;
+  padding: 6px 14px;
   border: 0;
   background: var(--surfacePrimary, #fff);
   vertical-align: middle;
@@ -606,8 +596,8 @@ header > .header-center {
 #listing.compact-list .item {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
-  min-height: 60px;
-  padding: 7px 12px;
+  min-height: 48px;
+  padding: 6px 12px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: var(--surfacePrimary, #fff);
@@ -1286,7 +1276,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
     height: 44px;
     padding-inline: 8px;
     font-size: 12px;
-    text-align: center;
+    text-align: left;
   }
 
   .listing-search input:focus,
@@ -1302,7 +1292,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
   }
 
   .breadcrumbs {
-    top: calc(48px + 8px);
+    top: calc(var(--app-mobile-header-height, 96px) + 8px);
     height: 44px;
     margin: 8px 10px 2px;
     padding-inline: 6px;
@@ -2021,6 +2011,8 @@ header > .header-trailing > .header-primary-actions {
  * so the search center is a real viewport column instead of a flex remainder. */
 header:has(.header-instance) {
   display: grid;
+  height: var(--app-header-height, 56px);
+  min-height: var(--app-header-height, 56px);
   grid-template-columns: minmax(0, 1fr) minmax(240px, min(36rem, 48vw)) minmax(
       0,
       1fr
@@ -2135,10 +2127,15 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 }
 
 @media (max-width: 899px) {
+  body:has(header .header-instance) {
+    padding-top: var(--app-mobile-header-height, 96px);
+  }
+
   header:has(.header-instance) {
-    min-height: 6rem;
+    height: var(--app-mobile-header-height, 96px);
+    min-height: var(--app-mobile-header-height, 96px);
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    grid-template-rows: 3rem 3rem;
+    grid-template-rows: 48px 48px;
     grid-template-areas:
       "leading trailing trailing"
       "center center center";
@@ -2147,11 +2144,11 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   }
 
   header:has(.header-instance) > .header-leading {
-    min-height: 3rem;
+    min-height: 48px;
   }
 
   header:has(.header-instance) > .header-center {
-    min-height: 3rem;
+    min-height: 48px;
     padding-inline: 0;
   }
 
@@ -2161,7 +2158,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   }
 
   header:has(.header-instance) > .header-trailing {
-    min-height: 3rem;
+    min-height: 48px;
   }
 
   header:has(.header-instance) > .header-trailing > .header-primary-actions {
@@ -2169,7 +2166,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   }
 
   header:has(.header-instance) > .header-trailing > #dropdown {
-    top: 3.25rem;
+    top: 52px;
     right: 0.5rem;
     max-height: calc(100dvh - 4rem);
   }

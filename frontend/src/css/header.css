@@ -12,19 +12,14 @@ header {
   position: fixed;
   top: 0;
   left: 0;
-  height: 3.5em;
+  height: var(--app-header-height, 56px);
+  min-height: var(--app-header-height, 56px);
   width: 100%;
   padding: 0 1em 0 1.25em;
   display: flex;
   align-items: center;
   gap: 0.5em;
-  transition:
-    box-shadow 0.3s ease,
-    background-color 0.3s ease;
-}
-
-header:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: background-color 0.3s ease;
 }
 
 header > * {
@@ -143,15 +138,8 @@ header img {
   height: 2.25em;
   margin-right: 0.625em;
   border-radius: 0.5em;
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
+  transition: none;
   flex-shrink: 0;
-}
-
-header img:hover {
-  transform: scale(1.06);
-  opacity: 0.85;
 }
 
 /* Title */
@@ -721,11 +709,6 @@ html.dark header {
   background: var(--surfacePrimary);
   border-bottom-color: var(--divider);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-:root.dark header:hover,
-html.dark header:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
 :root.dark header .action.active,

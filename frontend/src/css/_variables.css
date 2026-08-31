@@ -23,6 +23,8 @@
   --motion-fast: 120ms;
   --motion-standard: 180ms;
   --motion-panel: 240ms;
+  --app-header-height: 56px;
+  --app-mobile-header-height: 96px;
 
   --action: rgb(84, 110, 122);
 

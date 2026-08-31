@@ -1,6 +1,6 @@
 body {
   font-family: "Roboto", sans-serif;
-  padding-top: 3.5em;
+  padding-top: var(--app-header-height, 56px);
   background: var(--background);
   color: var(--textSecondary);
 }

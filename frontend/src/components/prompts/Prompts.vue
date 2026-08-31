@@ -83,7 +83,11 @@ const modal = computed(() => {
 });
 
 const directModal = computed(
-  () => currentPromptName.value === "copy" || currentPromptName.value === "move"
+  () =>
+    currentPromptName.value === "copy" ||
+    currentPromptName.value === "move" ||
+    (currentPromptName.value === "result-action" &&
+      layoutStore.currentPrompt?.props?.mode !== "info")
 );
 
 const close = () => {

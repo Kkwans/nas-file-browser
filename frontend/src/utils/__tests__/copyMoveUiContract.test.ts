@@ -8,12 +8,17 @@ function readSource(path: string) {
 
 describe("copy and move dialog contract", () => {
   it("uses PathPicker as the sole destination browser", () => {
-    for (const view of ["Copy.vue", "Move.vue"]) {
+    for (const view of ["Copy.vue", "Move.vue", "ResultAction.vue"]) {
       const source = readSource(`src/components/prompts/${view}`);
       expect(source, view).toContain("PathPicker");
       expect(source, view).not.toContain("FileList");
-      expect(source, view).not.toContain('class="card floating"');
     }
+    expect(readSource("src/components/prompts/Copy.vue")).not.toContain(
+      'class="card floating"'
+    );
+    expect(readSource("src/components/prompts/Move.vue")).not.toContain(
+      'class="card floating"'
+    );
   });
 
   it("renders picker prompts outside the legacy BaseModal wrapper", () => {
@@ -23,6 +28,7 @@ describe("copy and move dialog contract", () => {
     expect(prompts).toContain("const directModal = computed");
     expect(prompts).toContain('currentPromptName.value === "copy"');
     expect(prompts).toContain('currentPromptName.value === "move"');
+    expect(prompts).toContain('currentPromptName.value === "result-action"');
     expect(picker).toContain("exclude?: string[]");
     expect(picker).toContain("props.exclude.some");
   });

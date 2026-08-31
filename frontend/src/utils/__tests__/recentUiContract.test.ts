@@ -14,5 +14,6 @@ describe("recent page UI contract", () => {
       'import AppIcon from "@/components/ui/AppIcon.vue"'
     );
     expect(source).toContain("getResourceIconName");
+    expect(source).not.toContain('class="recent-summary"');
   });
 });

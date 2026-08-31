@@ -22,20 +22,6 @@
     </header-bar>
 
     <main class="activity-workspace">
-      <section class="recent-summary" aria-labelledby="recent-title">
-        <div class="recent-summary-icon" aria-hidden="true">
-          <app-icon name="history" :size="20" />
-        </div>
-        <div>
-          <h1 id="recent-title">接着上次的位置</h1>
-          <p>最多保留 100 项成功访问记录，同一路径只显示最新一次。</p>
-        </div>
-        <span class="activity-private-state">
-          <app-icon name="shield-check" :size="16" />
-          用户私有
-        </span>
-      </section>
-
       <section
         v-if="recentStore.error"
         class="activity-state activity-state--error"

@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"syscall"
 
 	fberrors "github.com/Kkwans/nas-file-browser/backend/errors"
 	"github.com/Kkwans/nas-file-browser/backend/fileutils"
@@ -216,6 +217,37 @@ func fileTransferRunner(d *data, task *tasks.Task, args fileTransferTaskArgs) ta
 				continue
 			}
 
+			if task.Type == tasks.TypeFileMove {
+				// A same-filesystem move is an atomic rename. Only an explicit
+				// cross-device error is allowed to fall through to the resumable
+				// copy path below; permission and conflict errors must be reported.
+				if _, destinationErr := lstatResource(d.user.Fs, item.To); errors.Is(destinationErr, os.ErrNotExist) {
+					renamed, renameErr := tryFastMove(d.user.Fs, item.From, item.To)
+					if renameErr != nil {
+						result.Failed = append(result.Failed, fileTransferFailure{From: item.From, To: item.To, Error: renameErr.Error()})
+						continue
+					}
+					if renamed {
+						if metadataErr := rewritePathMetadata(d, item.From, item.To); metadataErr != nil {
+							rollbackErr := d.user.Fs.Rename(item.To, item.From)
+							if rollbackErr != nil {
+								metadataErr = errors.Join(metadataErr, fmt.Errorf("元数据更新失败后的回滚失败: %w", rollbackErr))
+							}
+							result.Failed = append(result.Failed, fileTransferFailure{From: item.From, To: item.To, Error: metadataErr.Error()})
+							continue
+						}
+						processedItems++
+						processedBytes += processedBytesForItem(info, item)
+						checkpoint.Completed[key] = true
+						result.Completed = append(result.Completed, fileTransferResultItem{From: item.From, To: item.To})
+						if err := report(tasks.Progress{TotalItems: len(args.Items), ProcessedItems: processedItems, TotalBytes: totalBytes, ProcessedBytes: processedBytes, Checkpoint: checkpointJSON()}); err != nil {
+							return marshalFileTransferResult(result), err
+						}
+						continue
+					}
+				}
+			}
+
 			temp := path.Join(path.Dir(item.To), ".nfb-transfer-"+task.ID+fmt.Sprintf("-%d", index))
 			_ = d.user.Fs.RemoveAll(temp)
 			copyBytes := processedBytes
@@ -271,6 +303,17 @@ func fileTransferRunner(d *data, task *tasks.Task, args fileTransferTaskArgs) ta
 		}
 		return encoded, nil
 	}
+}
+
+func tryFastMove(afs afero.Fs, from, to string) (bool, error) {
+	err := afs.Rename(from, to)
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, syscall.EXDEV) {
+		return false, nil
+	}
+	return false, err
 }
 
 func fileTransferIdentity(afs afero.Fs, item fileTransferItem) (string, os.FileInfo, error) {

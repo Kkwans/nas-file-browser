@@ -2,8 +2,10 @@ package fbhttp
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -71,4 +73,44 @@ func TestNormalizeTransferPathDecodesFilesRouteOnce(t *testing.T) {
 	if err != nil || path != "/a b.txt" {
 		t.Fatalf("normalized path = %q err=%v", path, err)
 	}
+}
+
+func TestTryFastMoveOnlyFallsBackForCrossDeviceErrors(t *testing.T) {
+	base := afero.NewMemMapFs()
+	if err := afero.WriteFile(base, "/source.txt", []byte("payload"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+
+	renamed, err := tryFastMove(&renameErrorFs{Fs: base, err: syscall.EXDEV}, "/source.txt", "/target.txt")
+	if err != nil || renamed {
+		t.Fatalf("cross-device rename = renamed:%v err:%v", renamed, err)
+	}
+	if exists, _ := afero.Exists(base, "/source.txt"); !exists {
+		t.Fatal("cross-device probe removed the source")
+	}
+
+	renamed, err = tryFastMove(base, "/source.txt", "/target.txt")
+	if err != nil || !renamed {
+		t.Fatalf("same-device rename = renamed:%v err:%v", renamed, err)
+	}
+	if exists, _ := afero.Exists(base, "/source.txt"); exists {
+		t.Fatal("same-device rename left the source")
+	}
+}
+
+func TestTryFastMovePropagatesNonCrossDeviceErrors(t *testing.T) {
+	errPermission := syscall.EACCES
+	renamed, err := tryFastMove(&renameErrorFs{Fs: afero.NewMemMapFs(), err: errPermission}, "/source.txt", "/target.txt")
+	if renamed || !errors.Is(err, errPermission) {
+		t.Fatalf("permission rename = renamed:%v err:%v", renamed, err)
+	}
+}
+
+type renameErrorFs struct {
+	afero.Fs
+	err error
+}
+
+func (fs *renameErrorFs) Rename(_, _ string) error {
+	return fs.err
 }

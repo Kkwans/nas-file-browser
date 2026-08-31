@@ -25,23 +25,6 @@
     </header-bar>
 
     <main class="archive-workspace">
-      <section class="archive-hero" aria-labelledby="archive-title">
-        <div class="archive-hero-mark" aria-hidden="true">
-          <AppIcon name="archive" :size="30" />
-        </div>
-        <div>
-          <p class="archive-eyebrow">SAFE ARCHIVE BROWSER</p>
-          <h1 id="archive-title">先查看内容，再决定解压哪些项目</h1>
-          <p>
-            浏览阶段不会修改文件；解压只在你明确提交后运行，已有同名目标会跳过，不会覆盖。
-          </p>
-        </div>
-        <span class="archive-safety-badge">
-          <AppIcon name="shield-check" :size="18" />
-          路径穿越保护
-        </span>
-      </section>
-
       <section v-if="loading" class="archive-state" aria-live="polite">
         <AppIcon name="loader" class="archive-spin" :size="24" />
         <div>
@@ -117,7 +100,6 @@
         <section class="archive-browser" aria-labelledby="entries-title">
           <div class="archive-browser-toolbar">
             <div>
-              <span>01</span>
               <div>
                 <h2 id="entries-title">选择条目</h2>
                 <p>勾选目录会包含其全部后代；也可展开后只选单个文件。</p>
@@ -229,7 +211,6 @@
 
         <section class="archive-extract-card" aria-labelledby="extract-title">
           <div class="archive-section-title">
-            <span>02</span>
             <div>
               <h2 id="extract-title">确认解压</h2>
               <p>
@@ -267,10 +248,6 @@
             @close="showDestinationPicker = false"
           />
           <div class="archive-extract-footer">
-            <p>
-              <AppIcon name="info" :size="16" />
-              解压任务全局并发 1，可在任务中心取消或显式重试。
-            </p>
             <button
               type="button"
               class="archive-primary"
@@ -325,7 +302,6 @@
           <AppIcon name="circle-check" :size="24" />
         </div>
         <div>
-          <small>EXTRACTION COMPLETE</small>
           <h2 id="result-title">解压任务已完成</h2>
           <p>
             写入 {{ extractReport.extractedFiles }} 个文件、{{
@@ -821,64 +797,6 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   padding: 18px 0 56px;
 }
-.archive-hero {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px;
-  padding: 22px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 16px;
-  background: var(--surfacePrimary);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-}
-.archive-hero-mark {
-  display: grid;
-  width: 58px;
-  height: 58px;
-  place-items: center;
-  border-radius: 15px;
-  color: var(--icon-orange);
-  background: color-mix(in srgb, var(--icon-orange) 11%, transparent);
-}
-.archive-hero-mark .app-icon {
-  width: 30px;
-  height: 30px;
-}
-.archive-eyebrow {
-  margin: 0 0 5px;
-  color: var(--icon-orange);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-}
-.archive-hero h1 {
-  margin: 0;
-  color: var(--textSecondary);
-  font-size: 20px;
-  line-height: 1.3;
-}
-.archive-hero p:last-child {
-  margin: 7px 0 0;
-  color: var(--textPrimary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-.archive-safety-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  color: #16845d;
-  background: color-mix(in srgb, #1ea672 11%, transparent);
-  font-size: 11px;
-  font-weight: 700;
-}
-.archive-safety-badge .app-icon {
-  width: 16px;
-  height: 16px;
-}
 .archive-state,
 .archive-warning,
 .archive-task,
@@ -1026,24 +944,13 @@ onBeforeUnmount(() => {
   padding: 16px;
   border-bottom: 1px solid var(--borderPrimary);
 }
-.archive-browser-toolbar > div:first-child,
+.archive-browser-toolbar > div:first-child {
+  min-width: 0;
+}
 .archive-section-title {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-.archive-browser-toolbar > div:first-child > span,
-.archive-section-title > span {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 8px;
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 9%, transparent);
-  font-size: 10px;
-  font-weight: 800;
 }
 .archive-browser h2,
 .archive-section-title h2 {
@@ -1267,21 +1174,9 @@ onBeforeUnmount(() => {
 .archive-extract-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 14px;
   margin-top: 14px;
-}
-.archive-extract-footer p {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-.archive-extract-footer p .app-icon {
-  width: 16px;
-  height: 16px;
 }
 .archive-primary {
   display: inline-flex;
@@ -1430,14 +1325,6 @@ onBeforeUnmount(() => {
     width: min(100% - 20px, 1120px);
     padding-top: 12px;
   }
-  .archive-hero {
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: 16px;
-  }
-  .archive-safety-badge {
-    grid-column: 2;
-    justify-self: start;
-  }
   .archive-overview {
     grid-template-columns: 1fr;
   }
@@ -1483,13 +1370,6 @@ onBeforeUnmount(() => {
   }
   .archive-header-action:first-child {
     display: none;
-  }
-  .archive-hero-mark {
-    width: 48px;
-    height: 48px;
-  }
-  .archive-hero h1 {
-    font-size: 16px;
   }
   .archive-browser-actions {
     align-items: stretch;

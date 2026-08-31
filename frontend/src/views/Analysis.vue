@@ -5,7 +5,7 @@
         <AppIcon name="chart-storage" :size="23" />
         <div>
           <strong>存储工具</strong>
-          <span>主动、只读、低并发</span>
+          <span>按需分析存储与重复文件</span>
         </div>
       </div>
       <template #actions>
@@ -19,7 +19,7 @@
     <main class="analysis-workspace">
       <div class="analysis-workspace__topline">
         <p class="analysis-workspace__hint">
-          选择工具与范围后主动运行；所有分析均为只读并受低并发保护。
+          选择工具与范围后开始；报告只读，不会修改文件。
         </p>
         <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
       </div>
@@ -68,7 +68,9 @@
       <PathPicker
         v-if="showScopePicker"
         title="选择分析范围"
-        :model-value="scopeInput || scopes[0] || '/'"
+        mode="both"
+        multiple
+        :model-value="scopes.length ? scopes : ['/']"
         @select="addScopeValue"
         @close="showScopePicker = false"
       />

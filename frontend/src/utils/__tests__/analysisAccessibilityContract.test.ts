@@ -30,11 +30,15 @@ describe("存储工具无障碍契约", () => {
     );
   });
 
-  it("工具、范围和结果形成连续的三步工作流", () => {
+  it("路径选择器作为主入口，粘贴路径保留在高级区域", () => {
     expect(analysisSource).toContain("<AnalysisToolSwitcher");
     expect(analysisSource).toContain("<AnalysisScopePanel");
-    expect(scopePanelSource).toContain("步骤 1");
-    expect(scopePanelSource).toContain("步骤 2");
+    expect(analysisSource).toContain('mode="both"');
+    expect(analysisSource).toContain("multiple");
+    expect(scopePanelSource).toContain("analysis-run-panel__advanced");
+    expect(scopePanelSource).toContain("高级：粘贴路径");
+    expect(scopePanelSource).not.toContain("步骤 1");
+    expect(scopePanelSource).not.toContain("步骤 2");
     expect(analysisSource).toContain('class="analysis-results-heading__icon"');
     expect(analysisSource).toContain('name="analysis-duplicates"');
     expect(analysisSource).not.toContain('class="analysis-hero"');
@@ -61,13 +65,14 @@ describe("存储工具无障碍契约", () => {
     );
   });
 
-  it("扫描动作栏与范围表单保持同一层级", () => {
+  it("扫描动作栏保持独立层级并使用明确准备提示", () => {
     expect(scopePanelSource).toMatch(
       /\.analysis-run-panel__footer\s*\{[\s\S]*?border-left:\s*1px solid var\(--borderPrimary\)/
     );
     expect(scopePanelSource).not.toMatch(
       /\.analysis-run-panel__footer\s*\{[\s\S]*?border:\s*1px solid var\(--borderPrimary\)/
     );
+    expect(scopePanelSource).toContain("准备就绪后开始一次扫描。");
   });
 
   it("最近扫描同时呈现范围、指标、状态、时间和可达结果入口", () => {

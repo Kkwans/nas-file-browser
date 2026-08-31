@@ -133,7 +133,7 @@ describe("analysis page UI contract", () => {
     );
   });
 
-  it("扫描入口保留步骤信息但移除装饰性阴影和彩色侧栏", () => {
+  it("扫描入口保留准备提示并移除装饰性阴影和彩色侧栏", () => {
     const scopeSource = readFileSync(
       resolve(process.cwd(), "src/components/analysis/AnalysisScopePanel.vue"),
       "utf8"
@@ -152,5 +152,7 @@ describe("analysis page UI contract", () => {
     expect(pageSource).toMatch(
       /\.analysis-workspace__hint\s*\{[\s\S]*?font-size:\s*12px;/
     );
+    expect(scopeSource).toContain("准备就绪后开始一次扫描。");
+    expect(scopeSource).not.toContain("analysis-run-panel__safety");
   });
 });

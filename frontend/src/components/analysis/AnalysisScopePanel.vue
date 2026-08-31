@@ -6,25 +6,18 @@
           <AppIcon :name="content.icon" :size="22" />
         </span>
         <div>
-          <p class="analysis-run-panel__eyebrow">
-            {{ content.label }} · 只读扫描
-          </p>
+          <p class="analysis-run-panel__eyebrow">{{ content.label }}</p>
           <h1 id="analysis-title">{{ content.title }}</h1>
           <p class="analysis-run-panel__description">
             {{ content.description }}
           </p>
         </div>
       </div>
-      <span class="analysis-run-panel__safety">
-        <AppIcon name="shield-check" :size="16" />
-        并发 1
-      </span>
     </div>
 
     <div class="analysis-run-panel__body">
       <div class="analysis-run-panel__section">
         <div class="analysis-run-panel__step">
-          <span aria-label="步骤 1">01</span>
           <div>
             <h2>选择扫描范围</h2>
             <p>支持文件或目录；父目录已包含的子路径会自动合并。</p>
@@ -32,25 +25,35 @@
           <small aria-live="polite">{{ scopes.length }} / 32</small>
         </div>
 
-        <form class="analysis-run-panel__input" @submit.prevent="$emit('add')">
+        <button
+          type="button"
+          class="analysis-run-panel__browse"
+          @click="$emit('browse')"
+        >
           <AppIcon name="folder" :size="19" />
-          <input
-            :value="scopeInput"
-            type="text"
-            autocomplete="off"
-            placeholder="输入路径，例如 /照片/2026"
-            aria-label="添加扫描路径"
-            @input="updateScopeInput"
-          />
-          <button type="submit" :disabled="!scopeInput.trim()">添加范围</button>
-          <button
-            type="button"
-            class="analysis-run-panel__browse"
-            @click="$emit('browse')"
+          从路径选择器添加
+        </button>
+
+        <details class="analysis-run-panel__advanced">
+          <summary>高级：粘贴路径</summary>
+          <form
+            class="analysis-run-panel__input"
+            @submit.prevent="$emit('add')"
           >
-            浏览
-          </button>
-        </form>
+            <AppIcon name="clipboard" :size="18" />
+            <input
+              :value="scopeInput"
+              type="text"
+              autocomplete="off"
+              placeholder="输入路径，例如 /照片/2026"
+              aria-label="添加扫描路径"
+              @input="updateScopeInput"
+            />
+            <button type="submit" :disabled="!scopeInput.trim()">
+              添加范围
+            </button>
+          </form>
+        </details>
 
         <div
           v-if="scopes.length"
@@ -90,15 +93,7 @@
         <div
           class="analysis-run-panel__section analysis-run-panel__section--confirm"
         >
-          <div
-            class="analysis-run-panel__step analysis-run-panel__step--confirm"
-          >
-            <span aria-label="步骤 2">02</span>
-            <div>
-              <h2>准备开始</h2>
-              <p>不会后台定时扫描；每次都需要你主动开始。</p>
-            </div>
-          </div>
+          <p>准备就绪后开始一次扫描。</p>
         </div>
         <button
           type="button"
@@ -195,7 +190,8 @@ function updateRootConfirmed(event: Event) {
 .analysis-run-panel__header h1,
 .analysis-run-panel__header p,
 .analysis-run-panel__step h2,
-.analysis-run-panel__step p {
+.analysis-run-panel__step p,
+.analysis-run-panel__section--confirm p {
   margin: 0;
 }
 
@@ -222,21 +218,6 @@ function updateRootConfirmed(event: Event) {
   line-height: 1.5;
 }
 
-.analysis-run-panel__safety {
-  display: inline-flex;
-  min-height: 28px;
-  align-items: center;
-  gap: 6px;
-  padding: 0 8px;
-  border: 1px solid color-mix(in srgb, #16845d 22%, var(--borderPrimary));
-  border-radius: 7px;
-  color: #16845d;
-  background: color-mix(in srgb, #1ea672 7%, var(--surfacePrimary));
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .analysis-run-panel__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(208px, 224px);
@@ -255,25 +236,9 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__step {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
-}
-
-.analysis-run-panel__step > span {
-  display: inline-flex;
-  width: 26px;
-  height: 26px;
-  align-items: center;
-  justify-content: center;
-  color: var(--blue);
-  border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--blue) 8%, transparent);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  font-variant-numeric: tabular-nums;
 }
 
 .analysis-run-panel__step h2 {
@@ -290,7 +255,7 @@ function updateRootConfirmed(event: Event) {
 
 .analysis-run-panel__input {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   margin-top: 12px;
@@ -327,10 +292,52 @@ function updateRootConfirmed(event: Event) {
   background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
 }
 
-.analysis-run-panel__input .analysis-run-panel__browse {
-  color: var(--textSecondary);
-  border-color: var(--borderPrimary);
-  background: var(--surfacePrimary);
+.analysis-run-panel__browse {
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
+  border-radius: 9px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.analysis-run-panel__browse:hover,
+.analysis-run-panel__browse:focus-visible {
+  outline: none;
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 12%, var(--surfacePrimary));
+}
+
+.analysis-run-panel__advanced {
+  margin-top: 10px;
+  border-top: 1px solid var(--borderPrimary);
+}
+
+.analysis-run-panel__advanced summary {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  color: var(--textPrimary);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.analysis-run-panel__advanced summary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.analysis-run-panel__advanced .analysis-run-panel__input {
+  margin-top: 2px;
 }
 
 .analysis-run-panel__input button:disabled,
@@ -454,8 +461,10 @@ function updateRootConfirmed(event: Event) {
   border-bottom: 1px solid var(--borderPrimary);
 }
 
-.analysis-run-panel__step--confirm {
-  grid-template-columns: auto minmax(0, 1fr);
+.analysis-run-panel__section--confirm p {
+  color: var(--textPrimary);
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .analysis-run-panel__start {
@@ -480,10 +489,6 @@ function updateRootConfirmed(event: Event) {
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
     padding: 16px;
-  }
-
-  .analysis-run-panel__safety {
-    justify-self: start;
   }
 
   .analysis-run-panel__body {

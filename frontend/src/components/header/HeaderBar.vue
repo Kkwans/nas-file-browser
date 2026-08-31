@@ -1,5 +1,5 @@
 <template>
-  <header>
+  <header ref="headerElement">
     <div class="header-leading">
       <img v-if="showLogo" :src="logoURL" :alt="name" />
       <Action
@@ -50,6 +50,7 @@
       </router-link>
       <div
         id="dropdown"
+        ref="dropdownElement"
         :class="{
           active: layoutStore.currentPromptName === 'more',
           'has-primary-actions': Boolean(slots['primary-actions']),
@@ -64,6 +65,8 @@
         app-icon="more"
         :icon-size="22"
         label="更多"
+        :aria-expanded="layoutStore.currentPromptName === 'more'"
+        aria-controls="dropdown"
         @action="layoutStore.toggleTransient('more')"
       />
     </div>
@@ -71,7 +74,7 @@
     <div
       class="overlay"
       v-show="layoutStore.currentPromptName == 'more'"
-      @click="layoutStore.closeHovers"
+      @click="closeMore"
     />
   </header>
 </template>
@@ -88,7 +91,8 @@ import Action from "@/components/header/Action.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import PageTitle from "./PageTitle.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
-import { computed, onMounted, onUnmounted, ref, useSlots } from "vue";
+import { computed, onMounted, onUnmounted, ref, useSlots, watch } from "vue";
+import { useRoute } from "vue-router";
 defineProps<{
   showLogo?: boolean;
   showMenu?: boolean;
@@ -102,6 +106,54 @@ const authStore = useAuthStore();
 const tasksStore = useTasksStore();
 const transfersStore = useTransfersStore();
 const slots = useSlots();
+const route = useRoute();
+const headerElement = ref<HTMLElement | null>(null);
+const dropdownElement = ref<HTMLElement | null>(null);
+const closeMore = () => layoutStore.closeTransient("more");
+const moreButton = () =>
+  headerElement.value?.querySelector<HTMLElement>("#more");
+
+function onOutsideInteraction(event: Event) {
+  if (layoutStore.currentPromptName !== "more") return;
+  const target = event.target;
+  if (
+    target instanceof Node &&
+    !dropdownElement.value?.contains(target) &&
+    !moreButton()?.contains(target)
+  )
+    closeMore();
+}
+
+function onMenuKeydown(event: KeyboardEvent) {
+  if (event.key !== "Escape" || layoutStore.currentPromptName !== "more")
+    return;
+  event.preventDefault();
+  event.stopPropagation();
+  closeMore();
+  moreButton()?.focus();
+}
+
+function onMenuFocusout() {
+  queueMicrotask(() => {
+    if (layoutStore.currentPromptName !== "more") return;
+    const target = document.activeElement;
+    if (
+      !dropdownElement.value?.contains(target) &&
+      !moreButton()?.contains(target)
+    ) {
+      closeMore();
+    }
+  });
+}
+
+watch(() => route.fullPath, closeMore);
+watch(
+  () => layoutStore.currentPromptName,
+  (next, previous) => {
+    // Opening a dialog from More must not leave a hidden menu under the dialog.
+    if (previous === "more" && next !== "more") closeMore();
+  }
+);
 const taskCenterBadgeCount = computed(
   () => tasksStore.counts.active + transfersStore.active.length
 );
@@ -124,6 +176,11 @@ const updateMobileViewport = (event?: MediaQueryListEvent) => {
 };
 
 onMounted(() => {
+  document.addEventListener("pointerdown", onOutsideInteraction, true);
+  document.addEventListener("focusin", onOutsideInteraction);
+  document.addEventListener("focusout", onMenuFocusout);
+  document.addEventListener("keydown", onMenuKeydown, true);
+  window.addEventListener("blur", closeMore);
   mobileMediaQuery = window.matchMedia("(max-width: 899px)");
   updateMobileViewport();
   if (mobileMediaQuery.addEventListener) {
@@ -134,6 +191,12 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  document.removeEventListener("pointerdown", onOutsideInteraction, true);
+  document.removeEventListener("focusin", onOutsideInteraction);
+  document.removeEventListener("focusout", onMenuFocusout);
+  document.removeEventListener("keydown", onMenuKeydown, true);
+  window.removeEventListener("blur", closeMore);
+  closeMore();
   if (mobileMediaQuery) {
     if (mobileMediaQuery.removeEventListener) {
       mobileMediaQuery.removeEventListener("change", updateMobileViewport);

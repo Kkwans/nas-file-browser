@@ -28,4 +28,14 @@ describe("layout transient navigation", () => {
     expect(store.currentPromptName).toBe("more");
     expect(store.prompts.map((prompt) => prompt.prompt)).toEqual(["more"]);
   });
+
+  it("dismisses More without dismissing a dialog opened from it", () => {
+    const store = useLayoutStore();
+    store.toggleTransient("more");
+    store.showHover("copy");
+    store.closeTransient("more");
+    expect(store.prompts.map((prompt) => prompt.prompt)).toEqual(["copy"]);
+    store.closeTransient("more");
+    expect(store.currentPromptName).toBe("copy");
+  });
 });

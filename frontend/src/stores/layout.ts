@@ -68,6 +68,9 @@ export const useLayoutStore = defineStore("layout", {
       );
       this.showHover(prompt);
     },
+    closeTransient(prompt: "sidebar" | "more") {
+      this.prompts = this.prompts.filter((item) => item.prompt !== prompt);
+    },
     showError() {
       this.prompts.push({
         prompt: "error",

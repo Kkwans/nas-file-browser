@@ -1,11 +1,14 @@
 package fileutils
 
 import (
+	"context"
+	"errors"
 	"io"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
+	"syscall"
 
 	"github.com/spf13/afero"
 )
@@ -14,11 +17,14 @@ import (
 // By default the rename filesystem system call is used. If src and dst point to different volumes
 // the file copy is used as a fallback
 func MoveFile(afs afero.Fs, src, dst string, fileMode, dirMode fs.FileMode) error {
-	if afs.Rename(src, dst) == nil {
+	if err := afs.Rename(src, dst); err == nil {
 		return nil
+	} else if !errors.Is(err, syscall.EXDEV) {
+		return err
 	}
-	// fallback
-	err := Copy(afs, src, dst, fileMode, dirMode)
+	// A cross-device rename is the only safe fallback case. Permission,
+	// conflict and source errors must reach the caller unchanged.
+	err := CopyContext(context.Background(), afs, src, dst, fileMode, dirMode)
 	if err != nil {
 		_ = afs.Remove(dst)
 		return err

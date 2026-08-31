@@ -14,6 +14,9 @@ type Progress struct {
 	ProcessedItems int
 	TotalBytes     int64
 	ProcessedBytes int64
+	// Checkpoint is an optional durable file-task checkpoint. It is persisted
+	// immediately, while ordinary progress is throttled by Runtime.
+	Checkpoint json.RawMessage
 }
 
 type Reporter func(progress Progress) error
@@ -126,16 +129,31 @@ func (runtime *Runtime) run(ctx context.Context, task *Task, runner Runner) {
 		return
 	}
 
+	var reportMu sync.Mutex
+	lastPersistAt := time.Time{}
+	lastPersistBytes := int64(0)
 	report := func(progress Progress) error {
+		reportMu.Lock()
+		defer reportMu.Unlock()
 		task.TotalItems = progress.TotalItems
 		task.ProcessedItems = progress.ProcessedItems
 		task.TotalBytes = progress.TotalBytes
 		task.ProcessedBytes = progress.ProcessedBytes
+		if len(progress.Checkpoint) > 0 {
+			task.Result = append(json.RawMessage(nil), progress.Checkpoint...)
+		}
+		now := time.Now()
+		force := len(progress.Checkpoint) > 0
+		if !force && !lastPersistAt.IsZero() && now.Sub(lastPersistAt) < time.Second && progress.ProcessedBytes-lastPersistBytes < 8*1024*1024 {
+			return nil
+		}
+		lastPersistAt = now
+		lastPersistBytes = progress.ProcessedBytes
 		return runtime.storage.Update(task)
 	}
 
 	result, err := runner(ctx, report)
-	if err == nil {
+	if len(result) > 0 {
 		task.Result = append(json.RawMessage(nil), result...)
 	}
 	task.FinishedAt = time.Now().UnixMilli()

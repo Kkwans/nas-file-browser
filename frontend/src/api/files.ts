@@ -320,8 +320,42 @@ async function moveCopy(
   overwrite = false,
   rename = false
 ) {
-  // Note: items may have extra properties (to, overwrite, rename) from paste operation
+  // Copy and cross-directory move are durable file tasks. Same-directory move
+  // remains the lightweight rename contract for keyboard and inline rename
+  // callers that rely on its destination response header.
   const layoutStore = useLayoutStore();
+  const sameDirectoryMove =
+    !copy &&
+    items.every((item) => {
+      const source = urlUtils
+        .canonicalResourcePath(item.from)
+        .replace(/\/+$/, "");
+      const destination = urlUtils
+        .canonicalResourcePath(item.to ?? "")
+        .replace(/\/+$/, "");
+      const sourceParent = source.slice(0, source.lastIndexOf("/")) || "/";
+      const destinationParent =
+        destination.slice(0, destination.lastIndexOf("/")) || "/";
+      return sourceParent === destinationParent;
+    });
+
+  if (!sameDirectoryMove) {
+    const response = await fetchURL("/api/resources/transfer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: copy ? "copy" : "move",
+        items: items.map((item) => ({
+          ...item,
+          from: urlUtils.canonicalResourcePath(item.from),
+          to: urlUtils.canonicalResourcePath(item.to ?? ""),
+        })),
+      }),
+    });
+    layoutStore.closeHovers();
+    return [response];
+  }
+
   const promises: Promise<Response>[] = [];
 
   for (const item of items) {

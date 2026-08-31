@@ -72,6 +72,7 @@ func NewHandler(
 
 	api.Handle("/resources/batch", monkey(resourceBatchHandler, "")).Methods("POST")
 	api.Handle("/resources/batch-rename", monkey(resourceBatchRenameHandler(fileCache), "")).Methods("POST")
+	api.Handle("/resources/transfer", monkey(fileTransferTaskHandler(taskRuntime), "")).Methods("POST")
 	api.PathPrefix("/resources/recursive").Handler(monkey(resourceGetRecursiveHandler, "/api/resources/recursive")).Methods("GET")
 	api.PathPrefix("/resources").Handler(monkey(resourceGetHandler, "/api/resources")).Methods("GET")
 	api.PathPrefix("/resources").Handler(monkey(resourceDeleteHandler(fileCache), "/api/resources")).Methods("DELETE")

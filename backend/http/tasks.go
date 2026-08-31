@@ -96,7 +96,14 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 			return nil, http.StatusConflict, fmt.Errorf("该视频已有可用或正在执行的兼容播放任务")
 		}
 	} else {
-		retry, err = enqueueTask(runtime, d, owner, original.Type, original.Title, original.Args, original.ID)
+		args := original.Args
+		if original.Type == tasks.TypeFileCopy || original.Type == tasks.TypeFileMove {
+			args, err = resumeFileTransferArgs(original)
+			if err != nil {
+				return nil, http.StatusConflict, err
+			}
+		}
+		retry, err = enqueueTask(runtime, d, owner, original.Type, original.Title, args, original.ID)
 	}
 	if err != nil {
 		return nil, taskErrorStatus(err), err
@@ -213,6 +220,26 @@ func taskRunner(d *data, task *tasks.Task) (tasks.Runner, error) {
 		}
 		args.Selected = selected
 		return archiveExtractRunner(&ownerData, task, args), nil
+	case tasks.TypeFileCopy, tasks.TypeFileMove:
+		var args fileTransferTaskArgs
+		if err := json.Unmarshal(task.Args, &args); err != nil {
+			return nil, fmt.Errorf("任务参数损坏: %w", err)
+		}
+		owner, err := d.store.Users.Get(d.server.Root, task.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("任务所有者已不可用: %w", err)
+		}
+		if !owner.Perm.Create || (task.Type == tasks.TypeFileMove && !owner.Perm.Rename) {
+			return nil, fmt.Errorf("任务所有者没有执行文件操作的权限")
+		}
+		ownerData := *d
+		ownerData.user = owner
+		for _, item := range args.Items {
+			if !ownerData.Check(item.From) || !ownerData.Check(item.To) {
+				return nil, fmt.Errorf("任务路径已不可访问")
+			}
+		}
+		return fileTransferRunner(&ownerData, task, args), nil
 	default:
 		return nil, fmt.Errorf("不支持的任务类型 %q", task.Type)
 	}
@@ -233,6 +260,10 @@ func canRunTaskType(user *users.User, taskType tasks.Type) bool {
 		return user.Perm.Download && user.Perm.Create
 	case tasks.TypeMediaHLS:
 		return user.Perm.Download
+	case tasks.TypeFileCopy:
+		return user.Perm.Create
+	case tasks.TypeFileMove:
+		return user.Perm.Create && user.Perm.Rename
 	default:
 		return false
 	}

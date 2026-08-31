@@ -1,183 +1,132 @@
 <template>
-  <div class="card floating">
-    <div class="card-title">
-      <h2>移动</h2>
-    </div>
-
-    <div class="card-content">
-      <p>请选择目标目录：</p>
-      <file-list
-        ref="fileListRef"
-        @update:selected="(val) => (dest = val)"
-        :exclude="excludedFolders"
-        tabindex="1"
-      />
-    </div>
-
-    <div
-      class="card-action"
-      style="display: flex; align-items: center; justify-content: space-between"
-    >
-      <template v-if="user?.perm.create">
-        <button
-          class="button button--flat"
-          @click="fileListRef?.createDir()"
-          aria-label="新建文件夹"
-          title="新建文件夹"
-          style="justify-self: left"
-        >
-          <span>新建文件夹</span>
-        </button>
-      </template>
-      <div>
-        <button
-          class="button button--flat button--grey"
-          @click="closeHovers"
-          aria-label="取消"
-          title="取消"
-          tabindex="3"
-        >
-          取消
-        </button>
-        <button
-          id="focus-prompt"
-          class="button button--flat"
-          @click="move"
-          :disabled="route.path === dest"
-          aria-label="移动"
-          title="移动"
-          tabindex="2"
-        >
-          移动
-        </button>
-      </div>
-    </div>
-  </div>
+  <PathPicker
+    title="选择移动目标目录"
+    :exclude="excludedFolders"
+    @select="moveTo"
+    @close="closeHovers"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useAuthStore } from "@/stores/auth";
-import FileList from "./FileList.vue";
-import type { MoveCopyItem, ConflictResult } from "@/types/file";
+import PathPicker from "./PathPicker.vue";
+import type { ConflictResult, MoveCopyItem } from "@/types/file";
 import { files as api } from "@/api";
-import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { appendResourceRouteSegment, canonicalResourcePath } from "@/utils/url";
+import {
+  appendResourceRouteSegment,
+  canonicalResourcePath,
+  encodeResourceRoute,
+} from "@/utils/url";
+import buttons from "@/utils/buttons";
+
 const $showError = inject<IToastError>("$showError")!;
 const route = useRoute();
 const router = useRouter();
-
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const authStore = useAuthStore();
-const { showHover, closeHovers } = layoutStore;
-
-const { selectedItems } = storeToRefs(fileStore);
-const { reload, preselect } = storeToRefs(fileStore);
+const { selectedItems, reload, preselect } = storeToRefs(fileStore);
 const { user } = storeToRefs(authStore);
-
-const fileListRef = ref<InstanceType<typeof FileList> | null>(null);
-const dest = ref<string | null>(null);
+const { showHover, closeHovers } = layoutStore;
 
 const excludedFolders = computed(() =>
   selectedItems.value.filter((item) => item.isDir).map((item) => item.url)
 );
 
-const move = async (event: Event) => {
-  event.preventDefault();
+function firstPath(value: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
-  // Check risk level before moving
-  for (const item of selectedItems.value) {
-    const risk = item.riskLevel ?? "low";
-    if (risk === "high" || risk === "medium") {
-      showHover({
-        prompt: "risk-confirm",
-        props: {
-          riskLevel: risk,
-          targetPath: item.path,
-          actionType: "move",
-          onconfirm: () => {
-            executeMove();
-          },
-        },
-      });
-      return;
+function buildItems(destination: string): MoveCopyItem[] {
+  return selectedItems.value.map((item) => ({
+    from: item.url,
+    to: appendResourceRouteSegment(destination, item.name),
+    name: item.name,
+    size: item.size,
+    modified: item.modified,
+    isDir: item.isDir,
+    overwrite: false,
+    rename: false,
+  }));
+}
+
+async function submit(items: MoveCopyItem[], destination: string) {
+  buttons.loading("move");
+  try {
+    await api.move(items, false, false);
+    buttons.success("move");
+    preselect.value = canonicalResourcePath(items[0].to);
+    reload.value = true;
+    if (user.value?.redirectAfterCopyMove) {
+      await router.push({ path: encodeResourceRoute(destination) });
     }
+  } catch (error) {
+    buttons.done("move");
+    $showError(error as Error);
   }
+}
 
-  executeMove();
-};
+async function moveTo(value: string | string[]) {
+  const destination = firstPath(value);
+  if (!destination) return;
+  if (
+    canonicalResourcePath(route.path) === canonicalResourcePath(destination)
+  ) {
+    $showError(new Error("目标目录与当前目录相同"), false);
+    return;
+  }
+  const items = buildItems(destination);
+  if (items.length === 0) return;
 
-const executeMove = async () => {
-  const items: MoveCopyItem[] = [];
-
-  for (const item of selectedItems.value) {
-    items.push({
-      from: item.url,
-      to: appendResourceRouteSegment(dest.value!, item.name),
-      name: item.name,
-      size: item.size,
-      modified: item.modified,
-      isDir: item.isDir,
-      overwrite: false,
-      rename: false,
+  const risky = selectedItems.value.find((item) => {
+    const risk = item.riskLevel ?? "low";
+    return risk === "high" || risk === "medium";
+  });
+  if (risky) {
+    showHover({
+      prompt: "risk-confirm",
+      props: {
+        riskLevel: risky.riskLevel ?? "high",
+        targetPath: risky.path,
+        actionType: "move",
+        onconfirm: () => void resolveMove(items, destination),
+      },
     });
+    return;
   }
+  await resolveMove(items, destination);
+}
 
-  const action = async (overwrite?: boolean, rename?: boolean) => {
-    buttons.loading("move");
-
-    await api
-      .move(items, overwrite, rename)
-      .then(() => {
-        buttons.success("move");
-        preselect.value = canonicalResourcePath(items[0].to);
-        if (user.value?.redirectAfterCopyMove)
-          router.push({ path: dest.value! });
-        else reload.value = true;
-      })
-      .catch((e: any) => {
-        buttons.done("move");
-        $showError(e);
-      });
-  };
-
-  const conflict = await upload.checkConflict(items, dest.value!);
-
+async function resolveMove(items: MoveCopyItem[], destination: string) {
+  const conflict = await upload.checkConflict(
+    items,
+    encodeResourceRoute(destination)
+  );
   if (conflict.length > 0) {
     showHover({
       prompt: "resolve-conflict",
-      props: {
-        conflict: conflict,
-        files: items,
-      },
+      props: { conflict, files: items },
       confirm: (event: Event, result: ConflictResult[]) => {
         event.preventDefault();
         closeHovers();
-        for (let i = result.length - 1; i >= 0; i--) {
-          const item = result[i];
-          if (item.checked.length == 2) {
-            items[item.index].rename = true;
-          } else if (item.checked.length == 1 && item.checked[0] == "origin") {
+        for (let index = result.length - 1; index >= 0; index--) {
+          const item = result[index];
+          if (item.checked.length === 2) items[item.index].rename = true;
+          else if (item.checked.length === 1 && item.checked[0] === "origin")
             items[item.index].overwrite = true;
-          } else {
-            items.splice(item.index, 1);
-          }
+          else items.splice(item.index, 1);
         }
-        if (items.length > 0) {
-          action();
-        }
+        if (items.length > 0) void submit(items, destination);
       },
     });
-
     return;
   }
-
-  action(false, false);
-};
+  await submit(items, destination);
+}
 </script>

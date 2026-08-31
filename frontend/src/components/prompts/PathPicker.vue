@@ -138,6 +138,7 @@ const props = withDefaults(
     title?: string;
     mode?: "directory" | "file" | "both";
     multiple?: boolean;
+    exclude?: string[];
     shortcuts?: Array<{ label: string; path: string }>;
   }>(),
   {
@@ -145,6 +146,7 @@ const props = withDefaults(
     title: "选择目录",
     mode: "directory",
     multiple: false,
+    exclude: () => [],
     shortcuts: () => [{ label: "根目录", path: "/" }],
   }
 );
@@ -212,7 +214,15 @@ async function load(path: string) {
           item.isDir
         ),
         isDir: item.isDir,
-      }));
+      }))
+      .filter(
+        (item) =>
+          !props.exclude.some(
+            (excluded) =>
+              normalizePath(excluded, item.isDir) ===
+              normalizePath(item.path, item.isDir)
+          )
+      );
     entries.value = parentPath.value
       ? [
           {

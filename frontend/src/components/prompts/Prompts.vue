@@ -1,6 +1,12 @@
 <template>
+  <component
+    v-if="directModal"
+    :is="modal"
+    v-bind="layoutStore.currentPrompt?.props || {}"
+    @close="close"
+  />
   <base-modal
-    v-if="modal != null"
+    v-else-if="modal != null"
     :prompt="currentPromptName || undefined"
     @closed="close"
   >
@@ -75,6 +81,10 @@ const modal = computed(() => {
   if (!modal) return null;
   return modal;
 });
+
+const directModal = computed(
+  () => currentPromptName.value === "copy" || currentPromptName.value === "move"
+);
 
 const close = () => {
   if (!layoutStore.currentPrompt) return;

@@ -3,7 +3,7 @@
 
 services:
   filebrowser:
-    image: nas-file-browser:2026.8.30-product-quality-65566939
+    image: nas-file-browser:2026.8.31-round3-bbac0e3a
     build:
       context: .
       dockerfile: Dockerfile.custom

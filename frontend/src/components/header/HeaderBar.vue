@@ -80,14 +80,6 @@ import { useLayoutStore } from "@/stores/layout";
 import { useAuthStore } from "@/stores/auth";
 import { useTasksStore } from "@/stores/tasks";
 import { useTransfersStore } from "@/stores/transfers";
-import { useHistoryStore } from "@/stores/history";
-import {
-  subscribeSharedTaskCenterEvents,
-  type TaskCenterEvent,
-} from "@/utils/taskCenterEvents";
-import type { TaskItem } from "@/api/tasks";
-import type { TransferItem } from "@/api/transfers";
-import type { HistoryEntry } from "@/api/history";
 
 import { logoURL, name } from "@/utils/constants";
 
@@ -103,7 +95,6 @@ const layoutStore = useLayoutStore();
 const authStore = useAuthStore();
 const tasksStore = useTasksStore();
 const transfersStore = useTransfersStore();
-const historyStore = useHistoryStore();
 const slots = useSlots();
 const taskCenterBadgeCount = computed(
   () => tasksStore.counts.active + transfersStore.active.length
@@ -121,69 +112,6 @@ const isMobileViewport = ref(
     window.matchMedia("(max-width: 899px)").matches
 );
 let mobileMediaQuery: MediaQueryList | undefined;
-let stopSharedEvents: (() => void) | undefined;
-
-function isTask(value: unknown): value is TaskItem {
-  return Boolean(
-    value &&
-    typeof value === "object" &&
-    "id" in value &&
-    "status" in value &&
-    "type" in value
-  );
-}
-
-function isTransfer(value: unknown): value is TransferItem {
-  return Boolean(
-    value &&
-    typeof value === "object" &&
-    "id" in value &&
-    "kind" in value &&
-    "status" in value
-  );
-}
-
-function isHistory(value: unknown): value is HistoryEntry {
-  return Boolean(
-    value &&
-    typeof value === "object" &&
-    "id" in value &&
-    "action" in value &&
-    "createdAt" in value
-  );
-}
-
-function handleTaskCenterEvent(event: TaskCenterEvent) {
-  if (event.type === "task.changed" && isTask(event.data)) {
-    tasksStore.record(event.data);
-  } else if (event.type === "transfer.changed" && isTransfer(event.data)) {
-    transfersStore.record(event.data);
-  } else if (event.type === "history.created" && isHistory(event.data)) {
-    historyStore.record(event.data);
-  }
-}
-
-async function reloadTaskCenterSnapshot() {
-  await Promise.allSettled([
-    tasksStore.loadSummary(),
-    transfersStore.load(),
-    historyStore.loaded
-      ? historyStore.load(historyStore.currentFilter)
-      : Promise.resolve(),
-  ]);
-}
-
-function startSharedEvents() {
-  if (!authStore.isLoggedIn) return;
-  void tasksStore.loadSummary();
-  void transfersStore.load();
-  stopSharedEvents = subscribeSharedTaskCenterEvents(
-    handleTaskCenterEvent,
-    () => {
-      void reloadTaskCenterSnapshot();
-    }
-  );
-}
 const updateMobileViewport = (event?: MediaQueryListEvent) => {
   isMobileViewport.value =
     event?.matches ?? mobileMediaQuery?.matches ?? isMobileViewport.value;
@@ -197,7 +125,6 @@ onMounted(() => {
   } else {
     mobileMediaQuery.addListener(updateMobileViewport);
   }
-  if (authStore.isLoggedIn) startSharedEvents();
 });
 
 onUnmounted(() => {
@@ -208,8 +135,6 @@ onUnmounted(() => {
       mobileMediaQuery.removeListener(updateMobileViewport);
     }
   }
-  stopSharedEvents?.();
-  stopSharedEvents = undefined;
 });
 
 const ifActionsSlot = computed(() =>

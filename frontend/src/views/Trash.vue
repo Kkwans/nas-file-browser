@@ -25,20 +25,6 @@
     </header-bar>
 
     <main class="trash-workspace">
-      <section class="trash-intro" aria-labelledby="trash-title">
-        <div class="trash-intro-icon" aria-hidden="true">
-          <AppIcon name="archive-restore" :size="24" />
-        </div>
-        <div>
-          <h1 id="trash-title">回收站</h1>
-          <p>恢复和永久删除彼此独立；恢复时遇到同名文件可选择处理方式。</p>
-        </div>
-        <div class="trash-intro-status" aria-live="polite">
-          <span class="trash-status-dot"></span>
-          {{ trashStore.items.length > 0 ? "可随时恢复" : "回收站为空" }}
-        </div>
-      </section>
-
       <AppDialog
         v-if="showClearConfirm"
         title="永久删除全部项目？"
@@ -107,6 +93,7 @@
         <div class="trash-list-heading">
           <span>项目 · {{ countLabel }}</span>
           <span>删除信息</span>
+          <span>逻辑大小</span>
           <span>操作</span>
         </div>
         <article
@@ -138,13 +125,6 @@
               <AppIcon name="clock" :size="15" />
               {{ deletedLabel(item.deletedAt) }}
             </span>
-            <span>
-              <AppIcon
-                :name="item.isDir ? 'folder' : 'hard-drive'"
-                :size="15"
-              />
-              {{ item.isDir ? "文件夹" : filesize(item.size) }}
-            </span>
             <span v-if="authStore.user?.perm.admin">
               <AppIcon name="user" :size="15" />
               {{ item.ownerName || `用户 ${item.userId}` }}
@@ -152,6 +132,11 @@
             <span v-if="item.status !== 'available'" class="trash-status-chip">
               {{ statusLabel(item.status) }}
             </span>
+          </div>
+
+          <div class="trash-item-size">
+            <AppIcon :name="item.isDir ? 'folder' : 'hard-drive'" :size="15" />
+            <span>{{ item.isDir ? "未统计" : filesize(item.size) }}</span>
           </div>
 
           <div class="trash-item-actions">

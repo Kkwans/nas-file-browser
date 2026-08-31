@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header-bar showMenu showLogo>
+    <header-bar show-menu show-logo show-task-center>
       <div class="listing-search">
         <input
           v-model.trim="inlineSearch"

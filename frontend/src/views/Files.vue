@@ -4,6 +4,7 @@
       v-if="error || fileStore.req?.type === undefined"
       showMenu
       showLogo
+      show-task-center
     />
 
     <breadcrumbs base="/files" :root-label="rootLabel" />

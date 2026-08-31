@@ -34,7 +34,7 @@
         <slot name="mobile-actions" />
       </div>
       <router-link
-        v-if="authStore.isLoggedIn"
+        v-if="authStore.isLoggedIn && showTaskCenter"
         class="header-task-center"
         to="/tasks"
         aria-label="任务中心"
@@ -92,6 +92,7 @@ import { computed, onMounted, onUnmounted, ref, useSlots } from "vue";
 defineProps<{
   showLogo?: boolean;
   showMenu?: boolean;
+  showTaskCenter?: boolean;
   title?: string;
   titleIcon?: AppIconName;
 }>();

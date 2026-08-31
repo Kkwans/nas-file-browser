@@ -14,6 +14,7 @@ export const DEFAULT_SYSTEM_OPTION_ORDER = [
   "recent",
   "trash",
   "analysis",
+  "tasks",
   "new-directory",
   "new-file",
 ] as const;

@@ -1091,6 +1091,7 @@ const systemOptions = computed<
   { id: "recent", icon: "clock", label: "最近访问" },
   { id: "trash", icon: "trash", label: "回收站" },
   { id: "analysis", icon: "chart-storage", label: "存储工具" },
+  { id: "tasks", icon: "tasks", label: "任务中心" },
 ]);
 
 const orderedSystemOptions = computed(() =>
@@ -1439,6 +1440,9 @@ const runSystemOption = (id: SystemOptionId) => {
     closeHovers();
   } else if (id === "analysis") {
     router.push({ path: "/analysis" });
+    closeHovers();
+  } else if (id === "tasks") {
+    router.push({ path: "/tasks" });
     closeHovers();
   } else if (id === "new-directory") showHover("newDir");
   else showHover("newFile");

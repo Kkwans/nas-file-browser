@@ -10,7 +10,7 @@
       :aria-expanded="expanded"
       @click="$emit('toggle')"
     >
-      <AppIcon :name="icon" :size="20" :stroke-width="1.9" />
+      <AppIcon :name="icon" :size="22" :stroke-width="1.9" />
       <span>{{ label }}</span>
     </button>
     <div class="section-tools">

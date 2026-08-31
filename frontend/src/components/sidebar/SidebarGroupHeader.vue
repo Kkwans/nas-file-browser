@@ -10,7 +10,7 @@
     <AppIcon
       class="favorite-group-icon"
       :name="appIcon ?? resolveCategoryIcon(icon)"
-      :size="21"
+      :size="18"
       :stroke-width="1.9"
       :style="{ color }"
     />

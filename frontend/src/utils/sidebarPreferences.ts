@@ -37,7 +37,7 @@ export const DEFAULT_SIDEBAR_PREFERENCES: SidebarPreferences = {
   moduleOrder: [...DEFAULT_SIDEBAR_MODULE_ORDER],
   systemOptionOrder: [...DEFAULT_SYSTEM_OPTION_ORDER],
   tagOrder: [],
-  categoryOrder: [],
+  categoryOrder: ["nas-root"],
   categoryPathOrder: {},
   volumeOrder: [],
 };
@@ -84,6 +84,9 @@ export function normalizeSidebarPreferences(
     }
   }
 
+  const categoryOrder = stringArray(source.categoryOrder);
+  if (!categoryOrder.includes("nas-root")) categoryOrder.unshift("nas-root");
+
   return {
     desktopCollapsed: source.desktopCollapsed === true,
     moduleOrder: knownOrder(source.moduleOrder, DEFAULT_SIDEBAR_MODULE_ORDER),
@@ -92,7 +95,7 @@ export function normalizeSidebarPreferences(
       DEFAULT_SYSTEM_OPTION_ORDER
     ),
     tagOrder: stringArray(source.tagOrder),
-    categoryOrder: stringArray(source.categoryOrder),
+    categoryOrder,
     categoryPathOrder,
     volumeOrder: stringArray(source.volumeOrder),
   };

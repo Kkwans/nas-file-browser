@@ -191,7 +191,7 @@ describe("侧边栏分组交互契约", () => {
     const compactCss = cssSource.replace(/\s+/g, " ");
 
     expect(cssSource).toContain("--sidebar-level-two-icon-column: 1.75rem");
-    expect(cssSource).toContain("--sidebar-level-two-icon-size: 1.375rem");
+    expect(cssSource).toContain("--sidebar-level-two-icon-size: 1.125rem");
     expect(compactCss).toMatch(
       /\.favorites-ungrouped-drop-zone > \.favorite-item \{ grid-template-columns: var\(--sidebar-level-two-icon-column\) minmax\(\s*0,\s*1fr\s*\) 1\.75rem;/
     );

@@ -226,7 +226,15 @@
                     :key="group.id"
                     class="sidebar-rail-popover-group"
                   >
-                    <div class="sidebar-rail-popover-group-title">
+                    <button
+                      v-if="group.id === 'nas-root'"
+                      type="button"
+                      class="sidebar-rail-popover-item sidebar-root-link"
+                      @click="toRoot"
+                    >
+                      <AppIcon name="home" :size="18" /><span>NAS 根目录</span>
+                    </button>
+                    <div v-else class="sidebar-rail-popover-group-title">
                       <span>{{ group.name }}</span
                       ><small>{{ group.paths.length }}</small>
                     </div>
@@ -796,7 +804,33 @@
                 :key="group.id"
                 class="category-group"
               >
+                <button
+                  v-if="group.id === 'nas-root'"
+                  type="button"
+                  class="action sidebar-command sidebar-root-link"
+                  :class="
+                    sidebarDropClass('preference', 'categoryOrder', group.id)
+                  "
+                  draggable="true"
+                  @dragstart.stop="
+                    onPreferenceDragStart($event, 'categoryOrder', group.id)
+                  "
+                  @dragover.prevent="
+                    onSidebarDragOver(
+                      $event,
+                      'preference',
+                      'categoryOrder',
+                      group.id
+                    )
+                  "
+                  @drop.stop="onPreferenceDrop('categoryOrder', group.id)"
+                  @dragend="clearSidebarDrag"
+                  @click="toRoot"
+                >
+                  <AppIcon name="home" :size="18" /><span>NAS 根目录</span>
+                </button>
                 <SidebarGroupHeader
+                  v-else
                   class="category-group-header"
                   :icon="group.icon"
                   :label="group.name"
@@ -1133,8 +1167,8 @@ const systemOptions = computed<
 >(() => [
   {
     id: "files",
-    icon: user.value?.perm?.admin ? "server" : "folder",
-    label: user.value?.perm?.admin ? "NAS 根目录" : "我的文件",
+    icon: "folder",
+    label: "我的文件",
   },
   { id: "search", icon: "search", label: "搜索" },
   { id: "recent", icon: "clock", label: "最近访问" },
@@ -1145,7 +1179,9 @@ const systemOptions = computed<
 
 const orderedSystemOptions = computed(() =>
   sidebarPreferencesStore.ordered(
-    systemOptions.value,
+    systemOptions.value.filter(
+      (option) => option.id !== "files" || !user.value?.perm?.admin
+    ),
     "systemOptionOrder",
     (option) => option.id
   )
@@ -1169,7 +1205,7 @@ const orderedVolumes = computed(() =>
 
 const categoryGroups = computed(() => {
   const subDirs = volumesStore.allSubDirs;
-  if (!subDirs.length) return [];
+  if (!user.value?.perm?.admin) return [];
 
   const groups: Record<string, CategoryGroup> = {};
   const catOrder = ["personal", "shared", "system", "other"];
@@ -1198,9 +1234,19 @@ const categoryGroups = computed(() => {
     }
   }
 
-  return catOrder
-    .filter((id) => groups[id] && groups[id].paths.length > 0)
-    .map((id) => groups[id]);
+  const root: CategoryGroup = {
+    id: "nas-root",
+    name: "NAS 根目录",
+    icon: "home",
+    color: "var(--blue)",
+    paths: [],
+  };
+  return [
+    root,
+    ...catOrder
+      .filter((id) => groups[id] && groups[id].paths.length > 0)
+      .map((id) => groups[id]),
+  ];
 });
 
 const orderedCategoryGroups = computed(() =>

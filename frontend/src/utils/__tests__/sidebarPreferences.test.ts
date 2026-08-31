@@ -8,6 +8,17 @@ import {
 } from "../sidebarPreferences";
 
 describe("sidebar preferences", () => {
+  it("adds NAS root first once without resetting an existing category order", () => {
+    expect(
+      normalizeSidebarPreferences({ categoryOrder: ["system", "shared"] })
+        .categoryOrder
+    ).toEqual(["nas-root", "system", "shared"]);
+    expect(
+      normalizeSidebarPreferences({
+        categoryOrder: ["shared", "nas-root", "system"],
+      }).categoryOrder
+    ).toEqual(["shared", "nas-root", "system"]);
+  });
   it("uses the required default module order", () => {
     expect(DEFAULT_SIDEBAR_MODULE_ORDER).toEqual([
       "user",

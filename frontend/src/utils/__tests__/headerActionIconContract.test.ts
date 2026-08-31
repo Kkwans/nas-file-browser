@@ -53,6 +53,10 @@ describe("文件工具栏图标契约", () => {
     expect(headerCss).toMatch(
       /header \.action > \.app-icon\s*\{[^}]*width:\s*1\.25rem;[^}]*height:\s*1\.25rem;/s
     );
+    expect(headerCss).not.toContain("transform: scale(1.06)");
+    expect(headerCss).not.toMatch(
+      /header \.action:hover\s*\{[^}]*box-shadow:/s
+    );
     expect(contextCss).toContain(".context-menu .action > .app-icon");
     expect(contextCss).toContain("position: fixed;");
     expect(contextCss).not.toContain("backdrop-filter");

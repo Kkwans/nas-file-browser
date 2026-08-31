@@ -57,8 +57,8 @@ describe("analysis page UI contract", () => {
       "utf8"
     );
 
-    expect(scopeSource).toContain('class="analysis-run-panel__intro"');
-    expect(scopeSource).toContain('class="analysis-run-panel__section"');
+    expect(scopeSource).toContain('class="analysis-run-panel__heading"');
+    expect(scopeSource).toContain('class="analysis-run-panel__controls"');
     expect(recentSource).toContain('class="analysis-recent__side"');
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain("<span>完成与操作</span>");
@@ -133,7 +133,7 @@ describe("analysis page UI contract", () => {
     );
   });
 
-  it("扫描入口保留准备提示并移除装饰性阴影和彩色侧栏", () => {
+  it("扫描入口保留风险告知，移除重复介绍和侧栏布局", () => {
     const scopeSource = readFileSync(
       resolve(process.cwd(), "src/components/analysis/AnalysisScopePanel.vue"),
       "utf8"
@@ -142,17 +142,11 @@ describe("analysis page UI contract", () => {
       resolve(process.cwd(), "src/views/Analysis.vue"),
       "utf8"
     );
-
-    expect(scopeSource).toMatch(
-      /\.analysis-run-panel\s*\{[\s\S]*?box-shadow:\s*none;[\s\S]*?border-radius:\s*10px;/
-    );
-    expect(scopeSource).toMatch(
-      /\.analysis-run-panel__footer\s*\{[\s\S]*?background:\s*var\(--surfacePrimary\);/
-    );
-    expect(pageSource).toMatch(
-      /\.analysis-workspace__hint\s*\{[\s\S]*?font-size:\s*12px;/
-    );
-    expect(scopeSource).toContain("准备就绪后开始一次扫描。");
-    expect(scopeSource).not.toContain("analysis-run-panel__safety");
+    expect(scopeSource).not.toContain("analysis-run-panel__intro");
+    expect(scopeSource).not.toContain("analysis-run-panel__section--confirm");
+    expect(scopeSource).not.toContain("minmax(208px");
+    expect(pageSource).not.toContain("analysis-workspace__hint");
+    expect(scopeSource).toContain("确认扫描整个可访问范围");
+    expect(scopeSource).toContain(':disabled="!canStart"');
   });
 });

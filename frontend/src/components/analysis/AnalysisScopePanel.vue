@@ -1,123 +1,94 @@
 <template>
-  <section class="analysis-run-panel" aria-labelledby="analysis-title">
-    <div class="analysis-run-panel__header">
-      <div class="analysis-run-panel__intro">
-        <span class="analysis-run-panel__mark" aria-hidden="true">
-          <AppIcon :name="content.icon" :size="22" />
-        </span>
-        <div>
-          <p class="analysis-run-panel__eyebrow">{{ content.label }}</p>
-          <h1 id="analysis-title">{{ content.title }}</h1>
-          <p class="analysis-run-panel__description">
-            {{ content.description }}
-          </p>
-        </div>
-      </div>
+  <form
+    class="analysis-run-panel"
+    aria-labelledby="analysis-scope-title"
+    @submit.prevent="$emit('start')"
+  >
+    <div class="analysis-run-panel__heading">
+      <h2 id="analysis-scope-title">扫描范围</h2>
+      <small aria-live="polite">{{ scopes.length }} / 32</small>
     </div>
-
-    <div class="analysis-run-panel__body">
-      <div class="analysis-run-panel__section">
-        <div class="analysis-run-panel__step">
-          <div>
-            <h2>选择扫描范围</h2>
-            <p>支持文件或目录；父目录已包含的子路径会自动合并。</p>
-          </div>
-          <small aria-live="polite">{{ scopes.length }} / 32</small>
-        </div>
-
+    <div
+      v-if="scopes.length"
+      class="analysis-run-panel__scopes"
+      aria-label="已选扫描范围"
+    >
+      <span v-for="scope in scopes" :key="scope">
+        <AppIcon name="folder" :size="16" />
+        <b :title="scope">{{ scope }}</b>
         <button
           type="button"
-          class="analysis-run-panel__browse"
-          @click="$emit('browse')"
+          :aria-label="`移除 ${scope}`"
+          @click="$emit('remove', scope)"
         >
-          <AppIcon name="folder" :size="19" />
-          从路径选择器添加
+          <AppIcon name="x" :size="16" />
         </button>
-
-        <details class="analysis-run-panel__advanced">
-          <summary>高级：粘贴路径</summary>
-          <form
-            class="analysis-run-panel__input"
-            @submit.prevent="$emit('add')"
-          >
-            <AppIcon name="clipboard" :size="18" />
-            <input
-              :value="scopeInput"
-              type="text"
-              autocomplete="off"
-              placeholder="输入路径，例如 /照片/2026"
-              aria-label="添加扫描路径"
-              @input="updateScopeInput"
-            />
-            <button type="submit" :disabled="!scopeInput.trim()">
-              添加范围
-            </button>
-          </form>
-        </details>
-
-        <div
-          v-if="scopes.length"
-          class="analysis-run-panel__scopes"
-          aria-label="已选扫描范围"
-        >
-          <span v-for="scope in scopes" :key="scope">
-            <AppIcon name="folder" :size="16" />
-            <b :title="scope">{{ scope }}</b>
-            <button
-              type="button"
-              :aria-label="`移除 ${scope}`"
-              @click="$emit('remove', scope)"
-            >
-              <AppIcon name="x" :size="16" />
-            </button>
-          </span>
-        </div>
-        <div v-else class="analysis-run-panel__empty">
-          <AppIcon name="info" :size="17" />
-          <span>从文件列表选中项目后点击“分析”，或在这里输入路径。</span>
-        </div>
-
-        <label v-if="includesRoot" class="analysis-run-panel__root-confirm">
+      </span>
+    </div>
+    <p v-else class="analysis-run-panel__empty">添加要扫描的文件或目录。</p>
+    <div class="analysis-run-panel__controls">
+      <button
+        type="button"
+        class="analysis-run-panel__browse"
+        :disabled="scopes.length >= 32"
+        @click="$emit('browse')"
+      >
+        <AppIcon name="folder-new" :size="18" />添加范围
+      </button>
+      <details class="analysis-run-panel__advanced">
+        <summary>高级：粘贴路径</summary>
+        <div class="analysis-run-panel__input">
           <input
-            :checked="rootConfirmed"
-            type="checkbox"
-            @change="updateRootConfirmed"
+            :value="scopeInput"
+            type="text"
+            autocomplete="off"
+            placeholder="例如 /照片/2026"
+            aria-label="添加扫描路径"
+            @input="updateScopeInput"
+            @keydown.enter.prevent="$emit('add')"
           />
-          <span>
-            <strong>确认扫描整个可访问范围</strong>
-            根目录可能唤醒更多磁盘并持续较长时间，可随时在任务中心取消。
-          </span>
-        </label>
-      </div>
-      <footer class="analysis-run-panel__footer" aria-label="开始分析">
-        <div
-          class="analysis-run-panel__section analysis-run-panel__section--confirm"
-        >
-          <p>准备就绪后开始一次扫描。</p>
+          <button
+            type="button"
+            :disabled="!scopeInput.trim() || scopes.length >= 32"
+            @click="$emit('add')"
+          >
+            添加
+          </button>
         </div>
-        <button
-          type="button"
-          class="analysis-run-panel__start"
-          :disabled="!canStart"
-          @click="$emit('start')"
-        >
-          <AppIcon :name="starting ? 'scan' : 'play'" :size="18" />
-          {{ starting ? "正在提交…" : content.action }}
-        </button>
-      </footer>
+        <p>父目录已包含的子路径会自动合并。</p>
+      </details>
     </div>
-  </section>
+    <label v-if="includesRoot" class="analysis-run-panel__root-confirm">
+      <input
+        :checked="rootConfirmed"
+        type="checkbox"
+        @change="updateRootConfirmed"
+      />
+      <span
+        ><strong>确认扫描整个可访问范围</strong
+        >根目录扫描可能唤醒更多磁盘并持续较长时间，可在任务中心取消。</span
+      >
+    </label>
+    <div class="analysis-run-panel__footer">
+      <span>扫描只读，不会删除文件。</span>
+      <button
+        type="submit"
+        class="analysis-run-panel__start"
+        :disabled="!canStart"
+      >
+        <AppIcon :name="starting ? 'scan' : 'play'" :size="18" />{{
+          starting ? "正在提交…" : "开始扫描"
+        }}
+      </button>
+    </div>
+  </form>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
-import {
-  getAnalysisToolContent,
-  type AnalysisTool,
-} from "@/utils/analysisTools";
+import type { AnalysisTool } from "@/utils/analysisTools";
 
-const props = defineProps<{
+defineProps<{
   tool: AnalysisTool;
   scopes: string[];
   scopeInput: string;
@@ -136,8 +107,6 @@ const emit = defineEmits<{
   browse: [];
 }>();
 
-const content = computed(() => getAnalysisToolContent(props.tool));
-
 function updateScopeInput(event: Event) {
   emit("update:scopeInput", (event.target as HTMLInputElement).value);
 }
@@ -149,392 +118,192 @@ function updateRootConfirmed(event: Event) {
 
 <style scoped>
 .analysis-run-panel {
-  margin-top: 0;
-  overflow: hidden;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 11px;
-  background: var(--surfacePrimary);
-  box-shadow: none;
-}
-
-.analysis-run-panel__header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  min-width: 0;
   gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--borderPrimary);
-  background: var(--surfacePrimary);
-}
-
-.analysis-run-panel__intro {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  min-width: 0;
-  align-items: center;
-  gap: 9px;
-}
-
-.analysis-run-panel__mark {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  border: 0;
-  border-radius: 7px;
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 8%, transparent);
-}
-
-.analysis-run-panel__intro > div,
-.analysis-run-panel__header h1,
-.analysis-run-panel__header p,
-.analysis-run-panel__step h2,
-.analysis-run-panel__step p,
-.analysis-run-panel__section--confirm p {
-  margin: 0;
-}
-
-.analysis-run-panel__header h1 {
-  color: var(--textSecondary);
-  font-size: 16px;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-.analysis-run-panel__eyebrow {
-  margin-bottom: 3px !important;
-  color: var(--blue);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.analysis-run-panel__description {
-  max-width: none;
-  margin-top: 4px;
-  color: var(--textPrimary);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.analysis-run-panel__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(208px, 224px);
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-}
-
-.analysis-run-panel__section {
-  min-width: 0;
-}
-
-.analysis-run-panel__body > .analysis-run-panel__section {
   padding: 16px;
-}
-
-.analysis-run-panel__step {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 11px;
-}
-
-.analysis-run-panel__step h2 {
-  color: var(--textSecondary);
-  font-size: 14px;
-}
-
-.analysis-run-panel__step p,
-.analysis-run-panel__step small {
-  margin-top: 2px;
-  color: var(--textPrimary);
-  font-size: 10px;
-}
-
-.analysis-run-panel__input {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-  padding: 4px 4px 4px 13px;
   border: 1px solid var(--borderPrimary);
   border-radius: 10px;
-  color: var(--textPrimary);
-  background: var(--surfaceSecondary);
+  background: var(--surfacePrimary);
 }
-
-.analysis-run-panel__input input {
-  min-width: 0;
-  min-height: 40px;
-  border: 0;
-  outline: 0;
+.analysis-run-panel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.analysis-run-panel__heading h2 {
+  margin: 0;
   color: var(--textSecondary);
-  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
 }
-
-.analysis-run-panel__input button,
-.analysis-run-panel__start {
-  min-height: 40px;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.analysis-run-panel__input button {
-  padding: 0 16px;
-  border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
-  border-radius: 7px;
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
-}
-
-.analysis-run-panel__browse {
-  display: inline-flex;
-  width: 100%;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  margin-top: 12px;
-  padding: 0 14px;
-  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--borderPrimary));
-  border-radius: 9px;
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-}
-
-.analysis-run-panel__browse:hover,
-.analysis-run-panel__browse:focus-visible {
-  outline: none;
-  border-color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 12%, var(--surfacePrimary));
-}
-
-.analysis-run-panel__advanced {
-  margin-top: 10px;
-  border-top: 1px solid var(--borderPrimary);
-}
-
-.analysis-run-panel__advanced summary {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
+.analysis-run-panel__heading small,
+.analysis-run-panel__empty,
+.analysis-run-panel__footer > span,
+.analysis-run-panel__advanced p {
+  margin: 0;
   color: var(--textPrimary);
-  cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.5;
 }
-
-.analysis-run-panel__advanced summary:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
-.analysis-run-panel__advanced .analysis-run-panel__input {
-  margin-top: 2px;
-}
-
-.analysis-run-panel__input button:disabled,
-.analysis-run-panel__start:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .analysis-run-panel__scopes {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
 }
-
 .analysis-run-panel__scopes > span {
   display: grid;
   grid-template-columns: auto minmax(0, auto) auto;
   align-items: center;
   gap: 6px;
   max-width: 100%;
-  min-height: 40px;
-  padding-left: 12px;
-  border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--borderPrimary));
+  padding-inline-start: 10px;
+  border: 1px solid var(--borderPrimary);
   border-radius: 8px;
-  color: var(--textSecondary);
-  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+  background: var(--surfaceSecondary);
   font-size: 12px;
 }
-
 .analysis-run-panel__scopes b {
   overflow: hidden;
-  font-weight: 600;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .analysis-run-panel__scopes button {
   display: grid;
   width: 44px;
   height: 44px;
   place-items: center;
+  padding: 0;
   border: 0;
   border-radius: 7px;
   color: var(--textPrimary);
   background: transparent;
   cursor: pointer;
 }
-
-.analysis-run-panel__scopes button:hover,
-.analysis-run-panel__scopes button:focus-visible {
+.analysis-run-panel__scopes button:hover {
   color: var(--red);
   background: var(--hover);
 }
-
-.analysis-run-panel__scopes button:focus-visible,
-.analysis-run-panel__input button:focus-visible,
-.analysis-run-panel__start:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 1px;
-}
-
-.analysis-run-panel__empty {
+.analysis-run-panel__controls {
   display: flex;
-  min-height: 24px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 16px;
+}
+.analysis-run-panel__browse,
+.analysis-run-panel__input button,
+.analysis-run-panel__start {
+  display: inline-flex;
+  min-height: 40px;
   align-items: center;
-  gap: 8px;
-  margin-top: 5px;
-  padding: 4px 0;
-  border: 0;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 7px;
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.analysis-run-panel__browse:hover,
+.analysis-run-panel__input button:hover {
+  background: var(--hover);
+}
+.analysis-run-panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.analysis-run-panel button:focus-visible,
+.analysis-run-panel summary:focus-visible,
+.analysis-run-panel input:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.analysis-run-panel__advanced {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.analysis-run-panel__advanced summary {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  width: fit-content;
   color: var(--textPrimary);
   font-size: 12px;
-  line-height: 1.4;
+  cursor: pointer;
 }
-
+.analysis-run-panel__advanced p {
+  margin-top: 6px;
+}
+.analysis-run-panel__input {
+  display: flex;
+  gap: 8px;
+  max-width: 640px;
+}
+.analysis-run-panel__input input {
+  min-width: 0;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 7px;
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+}
+.analysis-run-panel__input button {
+  flex: 0 0 auto;
+}
 .analysis-run-panel__root-confirm {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
-  margin-top: 12px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 10px;
   border: 1px solid
-    color-mix(in srgb, var(--icon-orange) 26%, var(--borderPrimary));
-  border-radius: 10px;
+    color-mix(in srgb, var(--icon-orange) 30%, var(--borderPrimary));
+  border-radius: 8px;
   background: color-mix(in srgb, var(--icon-orange) 6%, transparent);
   font-size: 12px;
   line-height: 1.5;
 }
-
 .analysis-run-panel__root-confirm input {
+  flex: 0 0 18px;
   width: 18px;
   height: 18px;
-  margin-top: 1px;
+  margin: 2px 0 0;
 }
-
 .analysis-run-panel__root-confirm span {
   display: grid;
-  gap: 1px;
+  gap: 2px;
 }
-
-.analysis-run-panel__root-confirm strong {
-  color: var(--textSecondary);
-}
-
 .analysis-run-panel__footer {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px;
-  border: 0;
-  border-left: 1px solid var(--borderPrimary);
-  border-radius: 0;
-  background: var(--surfacePrimary);
-}
-
-.analysis-run-panel__section--confirm {
-  flex: 0 0 auto;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--borderPrimary);
-}
-
-.analysis-run-panel__section--confirm p {
-  color: var(--textPrimary);
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.analysis-run-panel__start {
-  display: inline-flex;
-  width: 100%;
-  min-height: 42px;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 18px;
-  color: #fff;
+  justify-content: space-between;
+  gap: 10px;
+}
+.analysis-run-panel__start {
+  color: white;
+  border-color: var(--blue);
   background: var(--blue);
-  box-shadow: none;
 }
-
-.analysis-run-panel__start:not(:disabled):active {
-  transform: translateY(1px);
-}
-
 @media (max-width: 680px) {
-  .analysis-run-panel__header {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-    padding: 16px;
+  .analysis-run-panel {
+    padding: 12px;
   }
-
-  .analysis-run-panel__body {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 0;
-  }
-
-  .analysis-run-panel__body > .analysis-run-panel__section {
-    padding: 16px;
-  }
-
-  .analysis-run-panel__input input,
-  .analysis-run-panel__input button {
+  .analysis-run-panel__browse,
+  .analysis-run-panel__input button,
+  .analysis-run-panel__advanced summary,
+  .analysis-run-panel__start {
     min-height: 44px;
   }
-
   .analysis-run-panel__footer {
     align-items: stretch;
     flex-direction: column;
-    gap: 14px;
-    padding: 16px;
-    border-top: 1px solid var(--borderPrimary);
-    border-left: 0;
-  }
-
-  .analysis-run-panel__start {
-    width: 100%;
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 460px) {
-  .analysis-run-panel__input {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .analysis-run-panel__input button {
-    grid-column: 1 / -1;
-    min-height: 44px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .analysis-run-panel__start {
-    transition: none;
   }
 }
 </style>

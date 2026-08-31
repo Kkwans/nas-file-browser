@@ -11,9 +11,6 @@
 
     <main class="analysis-workspace">
       <div class="analysis-workspace__topline">
-        <p class="analysis-workspace__hint">
-          选择工具与范围后开始；报告只读，不会修改文件。
-        </p>
         <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
       </div>
 
@@ -861,19 +858,9 @@ onBeforeUnmount(() => {
 
 .analysis-workspace__topline {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  min-height: 50px;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 12px;
-}
-
-.analysis-workspace__hint {
-  min-width: 0;
-  margin: 0 0 8px;
-  color: var(--textPrimary);
-  font-size: 12px;
-  line-height: 1.4;
 }
 
 .analysis-run-shell {
@@ -1648,10 +1635,6 @@ onBeforeUnmount(() => {
     flex-direction: column;
     gap: 8px;
     min-height: 0;
-  }
-
-  .analysis-workspace__hint {
-    margin: 0;
   }
 
   .analysis-tool-switcher {

@@ -56,23 +56,17 @@ describe("存储工具无障碍契约", () => {
     expect(analysisSource).not.toMatch(/<header(?:\s|>)/);
   });
 
-  it("运行面板不复用会触发全局定位规则的 header 元素", () => {
-    expect(scopePanelSource).toContain(
-      '<div class="analysis-run-panel__header">'
-    );
-    expect(scopePanelSource).not.toContain(
-      '<header class="analysis-run-panel__header">'
-    );
+  it("扫描面板使用单个表单，不嵌套表单或借用全局 header", () => {
+    expect(scopePanelSource.match(/<form(?:\s|>)/g)).toHaveLength(1);
+    expect(scopePanelSource).not.toMatch(/<header(?:\s|>)/);
+    expect(scopePanelSource).toContain(`@submit.prevent="$emit('start')"`);
   });
 
-  it("扫描动作栏保持独立层级并使用明确准备提示", () => {
-    expect(scopePanelSource).toMatch(
-      /\.analysis-run-panel__footer\s*\{[\s\S]*?border-left:\s*1px solid var\(--borderPrimary\)/
-    );
-    expect(scopePanelSource).not.toMatch(
-      /\.analysis-run-panel__footer\s*\{[\s\S]*?border:\s*1px solid var\(--borderPrimary\)/
-    );
-    expect(scopePanelSource).toContain("准备就绪后开始一次扫描。");
+  it("扫描动作紧随范围，不保留右侧启动栏与重复准备提示", () => {
+    expect(scopePanelSource).toContain('class="analysis-run-panel__footer"');
+    expect(scopePanelSource).not.toContain("border-left:");
+    expect(scopePanelSource).not.toContain("准备就绪后开始一次扫描。");
+    expect(scopePanelSource).toContain("扫描只读，不会删除文件。");
   });
 
   it("最近扫描同时呈现范围、指标、状态、时间和可达结果入口", () => {

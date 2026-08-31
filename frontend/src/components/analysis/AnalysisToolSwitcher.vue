@@ -13,7 +13,6 @@
       </span>
       <span>
         <strong>{{ tool.content.label }}</strong>
-        <small>{{ tool.content.summary }}</small>
       </span>
     </button>
   </nav>
@@ -40,122 +39,49 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 <style scoped>
 .analysis-tool-switcher {
   display: grid;
-  flex: 0 0 auto;
-  width: min(100%, 480px);
+  width: fit-content;
   max-width: 100%;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  padding: 0;
   border: 0;
   border-bottom: 1px solid var(--borderPrimary);
   background: transparent;
-  box-sizing: border-box;
 }
-
 .analysis-tool-switcher button {
-  display: grid;
-  position: relative;
-  flex: 1 1 0;
-  grid-template-columns: 34px minmax(0, 1fr);
+  display: inline-flex;
   min-width: 0;
-  min-height: 52px;
+  min-height: 44px;
   align-items: center;
-  gap: 10px;
-  padding: 7px 14px;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
   border: 0;
   border-bottom: 2px solid transparent;
-  border-radius: 0;
   color: var(--textPrimary);
   background: transparent;
   cursor: pointer;
-  text-align: left;
-  transition:
-    color 120ms ease,
-    background-color 120ms ease,
-    border-color 120ms ease,
-    box-shadow 120ms ease;
 }
-
 .analysis-tool-switcher button:hover {
-  background: color-mix(in srgb, var(--blue) 4%, transparent);
+  background: var(--hover);
 }
-
 .analysis-tool-switcher button:focus-visible {
   outline: 2px solid var(--focus-ring);
-  outline-offset: 1px;
+  outline-offset: -2px;
 }
-
 .analysis-tool-switcher button.is-active {
   color: var(--blue);
   border-bottom: 2px solid var(--blue);
-  background: color-mix(in srgb, var(--blue) 5%, transparent);
 }
-
 .analysis-tool-switcher__icon {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 0;
-  border-radius: 6px;
-  color: currentColor;
-  background: transparent;
+  display: flex;
+  align-items: center;
 }
-
-.analysis-tool-switcher button > span:last-child {
-  display: grid;
-  min-width: 0;
-  gap: 0;
-}
-
 .analysis-tool-switcher strong {
-  color: var(--textSecondary);
   font-size: 14px;
-  font-weight: 700;
-  line-height: 1.25;
+  font-weight: 600;
 }
-
-.analysis-tool-switcher small {
-  overflow: hidden;
-  color: var(--textPrimary);
-  font-size: 11px;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 @media (max-width: 520px) {
   .analysis-tool-switcher {
-    display: grid;
     width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .analysis-tool-switcher button {
-    grid-template-columns: 30px minmax(0, 1fr);
-    min-width: 0;
-    min-height: 52px;
-    gap: 10px;
-    padding-inline: 12px;
-  }
-
-  .analysis-tool-switcher__icon {
-    width: 30px;
-    height: 30px;
-  }
-
-  .analysis-tool-switcher strong {
-    font-size: 14px;
-  }
-
-  .analysis-tool-switcher small {
-    font-size: 10px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .analysis-tool-switcher button {
-    transition: none;
   }
 }
 </style>

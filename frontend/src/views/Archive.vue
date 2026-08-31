@@ -263,7 +263,7 @@
             v-if="showDestinationPicker"
             title="选择解压目标目录"
             :model-value="destination"
-            @select="destination = $event"
+            @select="selectDestination"
             @close="showDestinationPicker = false"
           />
           <div class="archive-extract-footer">
@@ -392,6 +392,14 @@ const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const archivePath = ref(archivePathFromRoute());
 const destination = ref(parentPath(archivePath.value));
 const showDestinationPicker = ref(false);
+
+function selectDestination(value: string | string[]) {
+  destination.value = Array.isArray(value)
+    ? value[0] || destination.value
+    : value;
+  showDestinationPicker.value = false;
+}
+
 const listing = ref<ArchiveListing | null>(null);
 const loading = ref(false);
 const loadError = ref("");

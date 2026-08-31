@@ -20,8 +20,35 @@
 
       <div class="path-picker__location" aria-live="polite">
         <AppIcon name="folder" :size="18" />
-        <code>{{ currentPath }}</code>
+        <nav aria-label="当前位置">
+          <button
+            v-for="crumb in breadcrumbs"
+            :key="crumb.path"
+            type="button"
+            @click="load(crumb.path)"
+          >
+            {{ crumb.name }}
+          </button>
+        </nav>
       </div>
+
+      <nav
+        v-if="shortcuts.length"
+        class="path-picker__shortcuts"
+        aria-label="快捷位置"
+      >
+        <button
+          v-for="shortcut in shortcuts"
+          :key="shortcut.path"
+          type="button"
+          :class="{
+            selected: currentPath === normalizePath(shortcut.path, true),
+          }"
+          @click="load(shortcut.path)"
+        >
+          <AppIcon name="folder" :size="16" />{{ shortcut.label }}
+        </button>
+      </nav>
 
       <div v-if="error" class="path-picker__error" role="alert">
         <AppIcon name="circle-alert" :size="18" />
@@ -31,43 +58,67 @@
       <div v-else-if="loading" class="path-picker__loading" aria-live="polite">
         <AppIcon name="loader" :size="20" />正在读取目录…
       </div>
-      <ul v-else class="path-picker__list" aria-label="目录列表">
-        <li v-for="item in directories" :key="item.path">
-          <button
-            type="button"
-            :class="{ selected: selectedPath === item.path }"
-            @click="selectedPath = item.path"
-            @dblclick="open(item.path)"
-            @keydown.enter="open(item.path)"
+      <ul v-else class="path-picker__list" aria-label="路径列表">
+        <li v-for="item in entries" :key="item.path">
+          <div
+            class="path-picker__entry"
+            :class="{
+              selected: !item.isParent && selectedPaths.includes(item.path),
+            }"
           >
-            <AppIcon
-              :name="item.path === '..' ? 'arrow-left' : 'folder'"
-              :size="19"
-            />
-            <span>{{ item.name }}</span>
-            <AppIcon
-              v-if="selectedPath === item.path"
-              name="circle-check"
-              :size="17"
-            />
-          </button>
+            <button
+              type="button"
+              class="path-picker__entry-main"
+              @click="item.isDir ? open(item.path) : select(item.path)"
+              @keydown.enter="item.isDir ? open(item.path) : select(item.path)"
+            >
+              <AppIcon
+                :name="
+                  item.isParent ? 'arrow-left' : item.isDir ? 'folder' : 'file'
+                "
+                :size="19"
+              />
+              <span>{{ item.name }}</span>
+            </button>
+            <label class="path-picker__entry-action" @click.stop>
+              <input
+                v-if="!item.isParent && (mode !== 'directory' || item.isDir)"
+                type="checkbox"
+                :checked="selectedPaths.includes(item.path)"
+                :aria-label="`选择 ${item.name}`"
+                @change="select(item.path)"
+              />
+              <AppIcon
+                v-else-if="selectedPaths.includes(item.path)"
+                name="circle-check"
+                :size="17"
+              />
+            </label>
+          </div>
         </li>
-        <li v-if="directories.length === 0" class="path-picker__empty">
-          当前目录没有子目录
+        <li v-if="entries.length === 0" class="path-picker__empty">
+          当前目录没有可选择的项目
         </li>
       </ul>
 
       <footer class="path-picker__footer">
-        <p>双击进入目录，单击选择当前目录。</p>
+        <p>单击目录进入；使用右侧选择控件选中路径。</p>
         <div>
           <button type="button" @click="close">取消</button>
           <button
             type="button"
             class="primary"
-            :disabled="!selectedPath"
+            :disabled="selectedPaths.length === 0 && mode === 'file'"
             @click="confirm"
           >
-            <AppIcon name="circle-check" :size="17" />选择此目录
+            <AppIcon name="circle-check" :size="17" />
+            {{
+              multiple
+                ? `选择 ${selectedPaths.length} 项`
+                : mode === "file"
+                  ? "选择此文件"
+                  : "选择此目录"
+            }}
           </button>
         </div>
       </footer>
@@ -83,24 +134,60 @@ import { canonicalResourcePath, encodeResourceRoute } from "@/utils/url";
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: string;
+    modelValue?: string | string[];
     title?: string;
+    mode?: "directory" | "file" | "both";
+    multiple?: boolean;
+    shortcuts?: Array<{ label: string; path: string }>;
   }>(),
-  { modelValue: "/", title: "选择目录" }
+  {
+    modelValue: "/",
+    title: "选择目录",
+    mode: "directory",
+    multiple: false,
+    shortcuts: () => [{ label: "根目录", path: "/" }],
+  }
 );
 
 const emit = defineEmits<{
   close: [];
-  select: [path: string];
-  "update:modelValue": [path: string];
+  select: [path: string | string[]];
+  "update:modelValue": [path: string | string[]];
 }>();
 
-const currentPath = ref(normalizePath(props.modelValue));
-const selectedPath = ref(currentPath.value);
+const currentPath = ref(
+  normalizePath(
+    typeof props.modelValue === "string"
+      ? props.modelValue
+      : props.modelValue[0] || "/",
+    true
+  )
+);
+const selectedPaths = ref<string[]>(
+  typeof props.modelValue === "string"
+    ? [normalizePath(props.modelValue, props.mode === "directory")]
+    : props.modelValue.map((value) =>
+        normalizePath(value, props.mode === "directory" || value.endsWith("/"))
+      )
+);
 const dialog = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const error = ref("");
-const directories = ref<Array<{ name: string; path: string }>>([]);
+const entries = ref<
+  Array<{ name: string; path: string; isDir: boolean; isParent?: boolean }>
+>([]);
+
+const breadcrumbs = computed(() => {
+  const result = [{ name: "根目录", path: "/" }];
+  if (currentPath.value === "/") return result;
+  const parts = currentPath.value.replace(/^\/+|\/+$/g, "").split("/");
+  let path = "";
+  for (const part of parts) {
+    path += `/${part}`;
+    result.push({ name: part, path: `${path}/` });
+  }
+  return result;
+});
 
 const parentPath = computed(() => {
   if (currentPath.value === "/") return null;
@@ -116,15 +203,30 @@ async function load(path: string) {
   try {
     const resource = await files.fetch(encodeResourceRoute(currentPath.value));
     const next = resource.items
-      .filter((item) => item.isDir)
+      .filter((item) => props.mode !== "directory" || item.isDir)
+      .filter((item) => props.mode !== "file" || !item.isDir)
       .map((item) => ({
         name: item.name,
-        path: normalizePath(canonicalResourcePath(item.path || item.url)),
+        path: normalizePath(
+          canonicalResourcePath(item.path || item.url),
+          item.isDir
+        ),
+        isDir: item.isDir,
       }));
-    directories.value = parentPath.value
-      ? [{ name: "上一级", path: parentPath.value }, ...next]
+    entries.value = parentPath.value
+      ? [
+          {
+            name: "上一级",
+            path: parentPath.value,
+            isDir: true,
+            isParent: true,
+          },
+          ...next,
+        ]
       : next;
-    selectedPath.value = currentPath.value;
+    if (props.mode === "directory") {
+      selectedPaths.value = [currentPath.value];
+    }
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause);
   } finally {
@@ -136,11 +238,22 @@ function open(path: string) {
   void load(path);
 }
 
+function select(path: string) {
+  if (!props.multiple) {
+    selectedPaths.value = [path];
+    return;
+  }
+  selectedPaths.value = selectedPaths.value.includes(path)
+    ? selectedPaths.value.filter((value) => value !== path)
+    : [...selectedPaths.value, path];
+}
+
 function confirm() {
-  if (!selectedPath.value) return;
-  const path = normalizePath(selectedPath.value);
-  emit("update:modelValue", path);
-  emit("select", path);
+  const values =
+    selectedPaths.value.length > 0 ? selectedPaths.value : [currentPath.value];
+  const value = props.multiple ? values : values[0];
+  emit("update:modelValue", value);
+  emit("select", value);
   emit("close");
 }
 
@@ -181,9 +294,11 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
-function normalizePath(value: string) {
+function normalizePath(value: string | undefined, directory = false) {
   const canonical = canonicalResourcePath(value || "/");
-  return canonical === "/" ? "/" : `${canonical.replace(/\/+$/, "")}/`;
+  if (canonical === "/") return "/";
+  const trimmed = canonical.replace(/\/+$/, "");
+  return directory || canonical.endsWith("/") ? `${trimmed}/` : trimmed;
 }
 
 onMounted(() => {
@@ -282,6 +397,58 @@ onBeforeUnmount(() => {
   color: var(--blue);
   background: var(--surfaceSecondary);
 }
+.path-picker__location nav {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: auto;
+}
+.path-picker__location button {
+  min-height: 32px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--textSecondary);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.path-picker__location button:hover,
+.path-picker__location button:focus-visible {
+  color: var(--blue);
+  background: var(--hover);
+}
+.path-picker__shortcuts {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--borderPrimary);
+}
+.path-picker__shortcuts button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 7px;
+  color: var(--textPrimary);
+  background: var(--surfacePrimary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.path-picker__shortcuts button.selected,
+.path-picker__shortcuts button:hover,
+.path-picker__shortcuts button:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+}
 .path-picker__location code {
   overflow: hidden;
   color: var(--textSecondary);
@@ -299,32 +466,55 @@ onBeforeUnmount(() => {
 .path-picker__list li + li {
   margin-top: 2px;
 }
-.path-picker__list button {
+.path-picker__entry {
   display: grid;
   width: 100%;
   min-height: 44px;
-  grid-template-columns: 26px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
   padding: 0 10px;
   border: 1px solid transparent;
   border-radius: 8px;
   color: var(--textSecondary);
   background: transparent;
-  cursor: pointer;
-  text-align: left;
 }
-.path-picker__list button:hover,
-.path-picker__list button:focus-visible,
-.path-picker__list button.selected {
+.path-picker__entry:hover,
+.path-picker__entry:focus-within,
+.path-picker__entry.selected {
   border-color: color-mix(in srgb, var(--blue) 25%, transparent);
   color: var(--blue);
   background: color-mix(in srgb, var(--blue) 8%, transparent);
 }
-.path-picker__list button span {
+.path-picker__entry-main {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.path-picker__entry-main span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.path-picker__entry-action {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  cursor: pointer;
+}
+.path-picker__entry-action input {
+  width: 18px;
+  height: 18px;
 }
 .path-picker__empty,
 .path-picker__loading,

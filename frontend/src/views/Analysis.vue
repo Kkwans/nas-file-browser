@@ -591,8 +591,10 @@ function addScope(value = scopeInput.value) {
   scopeInput.value = "";
 }
 
-function addScopeValue(value: string) {
-  addScope(value);
+function addScopeValue(value: string | string[]) {
+  for (const path of Array.isArray(value) ? value : [value]) {
+    addScope(path);
+  }
   showScopePicker.value = false;
 }
 

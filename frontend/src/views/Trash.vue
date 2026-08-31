@@ -37,10 +37,8 @@
           <AppIcon name="archive-restore" :size="24" />
         </div>
         <div>
-          <h1 id="trash-title">先恢复，再永久删除</h1>
-          <p>
-            文件会保留在原存储卷中。恢复时遇到同名文件，你可以保留两者、替换或跳过。
-          </p>
+          <h1 id="trash-title">回收站</h1>
+          <p>恢复和永久删除彼此独立；恢复时遇到同名文件可选择处理方式。</p>
         </div>
         <div class="trash-intro-status" aria-live="polite">
           <span class="trash-status-dot"></span>

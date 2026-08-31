@@ -71,6 +71,7 @@
 .trash-workspace {
   box-sizing: border-box;
   width: min(1180px, calc(100% - 32px));
+  min-width: 0;
   margin: 0 auto;
   padding: 24px 0 48px;
 }
@@ -85,6 +86,11 @@
   border-radius: 14px;
   background: var(--surfacePrimary);
   box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.trash-intro > div,
+.trash-confirm-panel > div {
+  min-width: 0;
 }
 
 .trash-intro-icon {
@@ -157,14 +163,17 @@
 .trash-confirm-actions,
 .trash-item-actions {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 7px;
 }
 
 .trash-confirm-actions button,
 .trash-item-actions button,
 .trash-dialog-cancel {
+  min-width: 0;
   min-height: 36px;
   padding: 0 12px;
   border: 1px solid var(--borderPrimary);
@@ -172,6 +181,12 @@
   color: var(--textSecondary);
   background: var(--surfacePrimary);
   cursor: pointer;
+}
+
+.trash-item-actions button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .trash-confirm-actions button:hover,
@@ -272,6 +287,7 @@
 
 .trash-list {
   display: grid;
+  min-width: 0;
   gap: 8px;
   margin-top: 18px;
 }
@@ -279,10 +295,8 @@
 .trash-list-heading,
 .trash-item {
   display: grid;
-  grid-template-columns: minmax(280px, 1.45fr) minmax(220px, 0.8fr) minmax(
-      190px,
-      0.55fr
-    );
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.8fr) minmax(0, 0.55fr);
   align-items: center;
   gap: 18px;
 }
@@ -391,6 +405,7 @@
 
 .trash-item-meta {
   display: grid;
+  min-width: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px 12px;
   color: var(--textPrimary);

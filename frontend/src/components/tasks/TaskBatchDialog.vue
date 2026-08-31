@@ -1,106 +1,85 @@
 <template>
-  <teleport to="body">
-    <div
-      class="task-batch-backdrop"
-      role="presentation"
-      @mousedown.self="emit('close')"
-    >
-      <section
-        class="task-batch-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="task-batch-title"
-        @keydown.esc="emit('close')"
-      >
-        <div class="task-batch-dialog__heading">
-          <span :class="['task-batch-dialog__icon', `is-${action}`]">
-            <app-icon :name="actionIcon" :size="22" />
-          </span>
-          <div>
-            <h2 id="task-batch-title">{{ title }}</h2>
-            <p v-if="!result">操作范围已锁定为当前筛选结果。</p>
-            <p v-else>本次批量操作已完成。</p>
-          </div>
-          <button
-            type="button"
-            class="task-batch-dialog__close"
-            aria-label="关闭"
-            :disabled="busy"
-            @click="emit('close')"
-          >
-            <app-icon name="x" :size="20" />
-          </button>
+  <app-dialog
+    :title="title"
+    :description="description"
+    :close-disabled="busy"
+    size="small"
+    @closed="emit('close')"
+  >
+    <template #icon>
+      <app-icon :name="actionIcon" :size="22" />
+    </template>
+
+    <template v-if="!result">
+      <dl class="task-batch-dialog__summary">
+        <div>
+          <dt>任务数量</dt>
+          <dd>{{ count }} 项</dd>
         </div>
-
-        <template v-if="!result">
-          <dl class="task-batch-dialog__summary">
-            <div>
-              <dt>任务数量</dt>
-              <dd>{{ count }} 项</dd>
-            </div>
-            <div>
-              <dt>涉及用户</dt>
-              <dd>{{ ownerLabel }}</dd>
-            </div>
-          </dl>
-          <p class="task-batch-dialog__note">{{ actionNote }}</p>
-        </template>
-
-        <template v-else>
-          <div class="task-batch-dialog__result">
-            <div class="is-success">
-              <strong>{{ result.succeeded }}</strong>
-              <span>成功</span>
-            </div>
-            <div>
-              <strong>{{ result.skipped }}</strong>
-              <span>跳过</span>
-            </div>
-            <div :class="{ 'is-failed': failureCount > 0 }">
-              <strong>{{ failureCount }}</strong>
-              <span>失败</span>
-            </div>
-          </div>
-          <details v-if="failureCount" class="task-batch-dialog__failures">
-            <summary>查看失败项</summary>
-            <ul>
-              <li v-for="failure in result.failures" :key="failure.id">
-                <strong>{{ failure.id }}</strong>
-                <span>{{ failure.error }}</span>
-              </li>
-            </ul>
-          </details>
-        </template>
-
-        <div class="task-batch-dialog__actions">
-          <button
-            type="button"
-            class="secondary"
-            :disabled="busy"
-            @click="emit('close')"
-          >
-            {{ result ? "完成" : "取消" }}
-          </button>
-          <button
-            v-if="!result"
-            ref="confirmButton"
-            type="button"
-            class="primary"
-            :disabled="busy || count === 0"
-            @click="emit('confirm')"
-          >
-            <app-icon v-if="busy" name="loader" :size="18" />
-            {{ busy ? "正在处理…" : confirmLabel }}
-          </button>
+        <div>
+          <dt>涉及用户</dt>
+          <dd>{{ ownerLabel }}</dd>
         </div>
-      </section>
-    </div>
-  </teleport>
+      </dl>
+      <p class="task-batch-dialog__note">{{ actionNote }}</p>
+    </template>
+
+    <template v-else>
+      <div class="task-batch-dialog__result">
+        <div class="is-success">
+          <strong>{{ result.succeeded }}</strong>
+          <span>成功</span>
+        </div>
+        <div>
+          <strong>{{ result.skipped }}</strong>
+          <span>跳过</span>
+        </div>
+        <div :class="{ 'is-failed': failureCount > 0 }">
+          <strong>{{ failureCount }}</strong>
+          <span>失败</span>
+        </div>
+      </div>
+      <details v-if="failureCount" class="task-batch-dialog__failures">
+        <summary>查看失败项</summary>
+        <ul>
+          <li v-for="failure in result.failures" :key="failure.id">
+            <strong>{{ failure.id }}</strong>
+            <span>{{ failure.error }}</span>
+          </li>
+        </ul>
+      </details>
+    </template>
+
+    <template #footer>
+      <div class="task-batch-dialog__actions">
+        <button
+          type="button"
+          class="secondary"
+          :disabled="busy"
+          @click="emit('close')"
+        >
+          {{ result ? "完成" : "取消" }}
+        </button>
+        <button
+          v-if="!result"
+          id="focus-prompt"
+          type="button"
+          class="primary"
+          :disabled="busy || count === 0"
+          @click="emit('confirm')"
+        >
+          <app-icon v-if="busy" name="loader" :size="18" />
+          {{ busy ? "正在处理…" : confirmLabel }}
+        </button>
+      </div>
+    </template>
+  </app-dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed } from "vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import AppDialog from "@/components/ui/AppDialog.vue";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 import type { TaskBatchAction, TaskBatchResponse } from "@/api/tasks";
 
@@ -113,7 +92,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ close: []; confirm: [] }>();
-const confirmButton = ref<HTMLButtonElement | null>(null);
 
 const actionMeta: Record<
   TaskBatchAction,
@@ -143,6 +121,9 @@ const meta = computed(() => actionMeta[props.action]);
 const title = computed(() =>
   props.result ? "批量操作结果" : meta.value.title
 );
+const description = computed(() =>
+  props.result ? "本次批量操作已完成。" : "操作范围已锁定为当前筛选结果。"
+);
 const confirmLabel = computed(() => meta.value.confirm);
 const actionNote = computed(() => meta.value.note);
 const actionIcon = computed(() => meta.value.icon);
@@ -152,82 +133,9 @@ const ownerLabel = computed(() => {
   if (props.owners.length <= 3) return props.owners.join("、");
   return `${props.owners.slice(0, 3).join("、")} 等 ${props.owners.length} 位用户`;
 });
-
-onMounted(() => nextTick(() => confirmButton.value?.focus()));
 </script>
 
 <style scoped>
-.task-batch-backdrop {
-  position: fixed;
-  z-index: 10020;
-  inset: 0;
-  display: grid;
-  padding: 20px;
-  place-items: center;
-  background: rgb(15 23 42 / 48%);
-  backdrop-filter: blur(3px);
-}
-
-.task-batch-dialog {
-  width: min(100%, 500px);
-  padding: 20px;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 16px;
-  color: var(--textSecondary);
-  background: var(--surfacePrimary);
-  box-shadow: 0 24px 70px rgb(15 23 42 / 24%);
-}
-
-.task-batch-dialog__heading {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 44px;
-  align-items: start;
-  gap: 12px;
-}
-
-.task-batch-dialog__icon,
-.task-batch-dialog__close {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border-radius: 10px;
-}
-
-.task-batch-dialog__icon {
-  color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 11%, transparent);
-}
-
-.task-batch-dialog__heading h2,
-.task-batch-dialog__heading p {
-  margin: 0;
-}
-
-.task-batch-dialog__heading h2 {
-  font-size: 17px;
-}
-
-.task-batch-dialog__heading p {
-  margin-top: 4px;
-  color: var(--textPrimary);
-  font-size: 12px;
-}
-
-.task-batch-dialog__close {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  color: var(--textPrimary);
-  background: transparent;
-  cursor: pointer;
-}
-
-.task-batch-dialog__close:hover {
-  background: var(--hover);
-}
-
 .task-batch-dialog__summary,
 .task-batch-dialog__result {
   display: grid;
@@ -308,7 +216,6 @@ onMounted(() => nextTick(() => confirmButton.value?.focus()));
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 18px;
 }
 
 .task-batch-dialog__actions button {
@@ -344,18 +251,6 @@ onMounted(() => nextTick(() => confirmButton.value?.focus()));
 @keyframes task-dialog-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 520px) {
-  .task-batch-backdrop {
-    align-items: end;
-    padding: 0;
-  }
-
-  .task-batch-dialog {
-    box-sizing: border-box;
-    border-radius: 16px 16px 0 0;
   }
 }
 

@@ -7,54 +7,57 @@
     <template v-if="listing">
       <div class="card-content">
         <table>
-          <tr>
-            <th>#</th>
-            <th>分享期限</th>
-            <th></th>
-            <th></th>
-            <th></th>
-          </tr>
-
-          <tr v-for="link in links" :key="link.hash">
-            <td>{{ link.hash }}</td>
-            <td>
-              <template v-if="link.expire !== 0">{{
-                humanTime(link.expire)
-              }}</template>
-              <template v-else>永久</template>
-            </td>
-            <td class="small">
-              <button
-                class="action"
-                aria-label="复制到剪贴板"
-                title="复制到剪贴板"
-                @click="copyToClipboard(buildLink(link))"
-              >
-                <AppIcon name="copy" :size="18" :stroke-width="1.9" />
-              </button>
-            </td>
-            <td class="small">
-              <button
-                class="action"
-                aria-label="复制下载链接到剪贴板"
-                title="复制下载链接到剪贴板"
-                :disabled="!!link.password_hash"
-                @click="copyToClipboard(buildDownloadLink(link))"
-              >
-                <AppIcon name="download" :size="18" :stroke-width="1.9" />
-              </button>
-            </td>
-            <td class="small">
-              <button
-                class="action"
-                @click="deleteLink($event, link)"
-                aria-label="删除"
-                title="删除"
-              >
-                <AppIcon name="trash" :size="18" :stroke-width="1.9" />
-              </button>
-            </td>
-          </tr>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">分享期限</th>
+              <th scope="col"></th>
+              <th scope="col"></th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="link in links" :key="link.hash">
+              <td>{{ link.hash }}</td>
+              <td>
+                <template v-if="link.expire !== 0">{{
+                  humanTime(link.expire)
+                }}</template>
+                <template v-else>永久</template>
+              </td>
+              <td class="small">
+                <button
+                  class="action"
+                  aria-label="复制到剪贴板"
+                  title="复制到剪贴板"
+                  @click="copyToClipboard(buildLink(link))"
+                >
+                  <AppIcon name="copy" :size="18" :stroke-width="1.9" />
+                </button>
+              </td>
+              <td class="small">
+                <button
+                  class="action"
+                  aria-label="复制下载链接到剪贴板"
+                  title="复制下载链接到剪贴板"
+                  :disabled="!!link.password_hash"
+                  @click="copyToClipboard(buildDownloadLink(link))"
+                >
+                  <AppIcon name="download" :size="18" :stroke-width="1.9" />
+                </button>
+              </td>
+              <td class="small">
+                <button
+                  class="action"
+                  @click="deleteLink($event, link)"
+                  aria-label="删除"
+                  title="删除"
+                >
+                  <AppIcon name="trash" :size="18" :stroke-width="1.9" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
 

@@ -9,48 +9,51 @@
 
         <div class="card-content full" v-if="links.length > 0">
           <table>
-            <tr>
-              <th>{{ "路径" }}</th>
-              <th>{{ "分享时长" }}</th>
-              <th v-if="authStore.user?.perm.admin">
-                {{ "用户名" }}
-              </th>
-              <th></th>
-              <th></th>
-            </tr>
-
-            <tr v-for="link in links" :key="link.hash">
-              <td>
-                <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
-              </td>
-              <td>
-                <template v-if="link.expire !== 0">{{
-                  humanTime(link.expire)
-                }}</template>
-                <template v-else>{{ "永久" }}</template>
-              </td>
-              <td v-if="authStore.user?.perm.admin">{{ link.username }}</td>
-              <td class="small">
-                <button
-                  class="action"
-                  @click="deleteLink($event, link)"
-                  aria-label="删除"
-                  title="删除"
-                >
-                  <AppIcon name="trash" :size="18" />
-                </button>
-              </td>
-              <td class="small">
-                <button
-                  class="action copy-clipboard"
-                  aria-label="复制到剪贴板"
-                  title="复制到剪贴板"
-                  @click="copyToClipboard(buildLink(link))"
-                >
-                  <AppIcon name="copy" :size="18" />
-                </button>
-              </td>
-            </tr>
+            <thead>
+              <tr>
+                <th scope="col">{{ "路径" }}</th>
+                <th scope="col">{{ "分享时长" }}</th>
+                <th v-if="authStore.user?.perm.admin" scope="col">
+                  {{ "用户名" }}
+                </th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="link in links" :key="link.hash">
+                <td>
+                  <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
+                </td>
+                <td>
+                  <template v-if="link.expire !== 0">{{
+                    humanTime(link.expire)
+                  }}</template>
+                  <template v-else>{{ "永久" }}</template>
+                </td>
+                <td v-if="authStore.user?.perm.admin">{{ link.username }}</td>
+                <td class="small">
+                  <button
+                    class="action"
+                    @click="deleteLink($event, link)"
+                    aria-label="删除"
+                    title="删除"
+                  >
+                    <AppIcon name="trash" :size="18" />
+                  </button>
+                </td>
+                <td class="small">
+                  <button
+                    class="action copy-clipboard"
+                    aria-label="复制到剪贴板"
+                    title="复制到剪贴板"
+                    @click="copyToClipboard(buildLink(link))"
+                  >
+                    <AppIcon name="copy" :size="18" />
+                  </button>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <h2 class="message" v-else>

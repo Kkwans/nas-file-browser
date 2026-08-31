@@ -12,30 +12,33 @@
 
         <div class="card-content full">
           <table>
-            <tr>
-              <th>用户名</th>
-              <th>管理员</th>
-              <th>作用域</th>
-              <th></th>
-            </tr>
-
-            <tr v-for="user in users" :key="user.id">
-              <td>{{ user.username }}</td>
-              <td>
-                <AppIcon
-                  v-if="user.perm.admin"
-                  name="circle-check"
-                  :size="18"
-                />
-                <AppIcon v-else name="circle-alert" :size="18" />
-              </td>
-              <td>{{ user.scope }}</td>
-              <td class="small">
-                <router-link :to="'/settings/users/' + user.id"
-                  ><AppIcon name="rename" :size="18"
-                /></router-link>
-              </td>
-            </tr>
+            <thead>
+              <tr>
+                <th scope="col">用户名</th>
+                <th scope="col">管理员</th>
+                <th scope="col">作用域</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in users" :key="user.id">
+                <td>{{ user.username }}</td>
+                <td>
+                  <AppIcon
+                    v-if="user.perm.admin"
+                    name="circle-check"
+                    :size="18"
+                  />
+                  <AppIcon v-else name="circle-alert" :size="18" />
+                </td>
+                <td>{{ user.scope }}</td>
+                <td class="small">
+                  <router-link :to="'/settings/users/' + user.id">
+                    <AppIcon name="rename" :size="18" />
+                  </router-link>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>

@@ -104,8 +104,10 @@ describe("Markdown 编辑器交互契约", () => {
 
   it("预览模式隐藏大纲后不保留右侧空白列", () => {
     expect(editorSource).toContain(
-      "previewShell.className = getMarkdownPreviewShellClass(showOutline.value)"
+      "previewShell.className = getMarkdownPreviewShellClass("
     );
+    expect(editorSource).toContain("showWidePreview.value");
+    expect(editorSource).toContain("togglePreviewWidth");
     expect(vditorStyles).toMatch(
       /\.markdown-preview-shell\.has-outline\s*\{[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)\s+15rem;/
     );
@@ -132,7 +134,10 @@ describe("Markdown 编辑器交互契约", () => {
     );
   });
   it("uses a focused reading width and styles prose primitives", () => {
-    expect(contentStyles).toMatch(/width:\s*min\(100%,\s*980px\);/);
+    expect(contentStyles).toMatch(/width:\s*min\(100%,\s*96ch\);/);
+    expect(vditorStyles).toMatch(
+      /\.markdown-preview-shell\.is-wide\s*>\s*\.vditor-preview--content\s*\{[\s\S]*width:\s*min\(100%,\s*1200px\);/
+    );
     expect(contentStyles).toMatch(/blockquote[\s\S]*border-radius:\s*6px;/);
     expect(contentStyles).toContain("kbd {");
     expect(contentStyles).toContain("mark {");

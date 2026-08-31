@@ -82,11 +82,17 @@
 
 .markdown-preview-shell > .vditor-preview--content {
   min-height: 0;
-  width: min(100%, 980px);
+  width: min(100%, 96ch);
   height: 100%;
   margin-inline: auto;
   overflow: auto;
   scrollbar-gutter: stable;
+}
+
+/* Reading mode keeps a readable measure by default; wide mode is an explicit
+ * preference for documents whose tables and diagrams benefit from more room. */
+.markdown-preview-shell.is-wide > .vditor-preview--content {
+  width: min(100%, 1200px);
 }
 
 .markdown-preview-outline {

@@ -379,11 +379,25 @@ export function getMarkdownOutlineStorageKey(
   return `nas-file-browser:markdown-outline:${namespace}`;
 }
 
+export function getMarkdownWidthStorageKey(
+  userId: string | number | null | undefined
+): string {
+  const namespace = String(userId ?? "").trim() || "guest";
+  return `nas-file-browser:markdown-width:${namespace}`;
+}
+
 /** 预览正文只有在大纲实际可见时才保留右侧栏。 */
-export function getMarkdownPreviewShellClass(showOutline: boolean): string {
-  return showOutline
-    ? "markdown-preview-shell has-outline"
-    : "markdown-preview-shell";
+export function getMarkdownPreviewShellClass(
+  showOutline: boolean,
+  wide = false
+): string {
+  return [
+    "markdown-preview-shell",
+    showOutline ? "has-outline" : "",
+    wide ? "is-wide" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 /** Keep Vditor's editable renderer and the custom reading renderer in sync. */

@@ -7,6 +7,7 @@ import {
   getMarkdownLineNumberStorageKey,
   getMarkdownOutlineStorageKey,
   getMarkdownPreviewShellClass,
+  getMarkdownWidthStorageKey,
   inferMarkdownCodeLanguage,
   MARKDOWN_CODE_LANGUAGES,
   normalizeMarkdownCodeLanguage,
@@ -100,6 +101,12 @@ describe("Markdown 代码块契约", () => {
     expect(getMarkdownOutlineStorageKey("42")).toBe(
       "nas-file-browser:markdown-outline:42"
     );
+    expect(getMarkdownWidthStorageKey("42")).toBe(
+      "nas-file-browser:markdown-width:42"
+    );
+    expect(getMarkdownWidthStorageKey(null)).toBe(
+      "nas-file-browser:markdown-width:guest"
+    );
   });
 
   it("语言选择器写回可复现的 Markdown 围栏", () => {
@@ -148,6 +155,12 @@ describe("Markdown 代码块契约", () => {
     expect(getMarkdownPreviewShellClass(false)).toBe("markdown-preview-shell");
     expect(getMarkdownPreviewShellClass(true)).toBe(
       "markdown-preview-shell has-outline"
+    );
+    expect(getMarkdownPreviewShellClass(false, true)).toBe(
+      "markdown-preview-shell is-wide"
+    );
+    expect(getMarkdownPreviewShellClass(true, true)).toBe(
+      "markdown-preview-shell has-outline is-wide"
     );
   });
   it("只修改目标代码块的语言，不破坏代码内容或其他围栏", () => {

@@ -78,6 +78,14 @@
             @action="toggleOutline()"
             :class="{ active: showOutline }"
           />
+          <action
+            v-if="currentMode === 'preview'"
+            :app-icon="showWidePreview ? 'minimize-2' : 'maximize-2'"
+            :label="showWidePreview ? '可读正文（96ch）' : '宽版正文（1200px）'"
+            class="editor-mode-action"
+            @action="togglePreviewWidth()"
+            :class="{ active: showWidePreview }"
+          />
         </template>
       </template>
     </header-bar>
@@ -105,6 +113,7 @@
         v-if="usesVditor"
         id="vditor-mount"
         class="vditor-mount markdown-editor-active"
+        :class="{ 'markdown-wide': showWidePreview }"
       ></div>
       <!-- Ace 编辑器（非 Markdown 文件） -->
       <div v-else class="editor-lightweight-shell">
@@ -218,6 +227,7 @@ import {
   getMarkdownLineNumberStorageKey,
   getMarkdownOutlineStorageKey,
   getMarkdownPreviewShellClass,
+  getMarkdownWidthStorageKey,
   MARKDOWN_CODE_LANGUAGES,
   updateMarkdownCodeFenceLanguage,
 } from "@/utils/markdownCode";
@@ -301,6 +311,7 @@ type MarkdownEditMode = Exclude<MarkdownMode, "preview">;
 
 const currentMode = ref<MarkdownMode>("ir");
 const showOutline = ref(true);
+const showWidePreview = ref(false);
 let vditorInstance: VditorInstance | null = null;
 let aceEditor: Ace.Editor | null = null;
 // Content tracking removed - unused variables
@@ -318,6 +329,7 @@ const markdownLineNumberKey = () =>
   getMarkdownLineNumberStorageKey(authStore.user?.id);
 const markdownOutlineKey = () =>
   getMarkdownOutlineStorageKey(authStore.user?.id);
+const markdownWidthKey = () => getMarkdownWidthStorageKey(authStore.user?.id);
 
 const scheduleMarkdownPreviewHighlight = (generation: number) => {
   // Vditor can emit a burst of mutations while an IR block settles. Keep the
@@ -403,14 +415,29 @@ const persistOutlinePreference = () => {
   localStorage.setItem(markdownOutlineKey(), String(showOutline.value));
 };
 
+const restoreWidthPreference = () => {
+  if (!isMarkdownFile) return;
+  showWidePreview.value = localStorage.getItem(markdownWidthKey()) === "wide";
+};
+
+const persistWidthPreference = () => {
+  if (!isMarkdownFile) return;
+  localStorage.setItem(
+    markdownWidthKey(),
+    showWidePreview.value ? "wide" : "readable"
+  );
+};
+
 restoreLineNumberPreference();
 restoreOutlinePreference();
+restoreWidthPreference();
 
 watch(
   () => authStore.user?.id,
   () => {
     restoreLineNumberPreference();
     restoreOutlinePreference();
+    restoreWidthPreference();
   }
 );
 
@@ -878,7 +905,10 @@ const initVditorPreview = async (content: string) => {
   }
 
   const previewShell = document.createElement("div");
-  previewShell.className = getMarkdownPreviewShellClass(showOutline.value);
+  previewShell.className = getMarkdownPreviewShellClass(
+    showOutline.value,
+    showWidePreview.value
+  );
 
   const previewElement = document.createElement("div");
   previewElement.className = "vditor-reset vditor-preview--content";
@@ -1196,6 +1226,20 @@ const toggleOutline = async () => {
   showOutline.value = !showOutline.value;
   persistOutlinePreference();
   await rebuildMarkdownMode(currentMode.value);
+};
+
+const togglePreviewWidth = () => {
+  if (markdownImageUploading.value) {
+    $showError("图片正在保存，请稍候再切换正文宽度", false);
+    return;
+  }
+  if (!usesVditor || currentMode.value !== "preview") return;
+
+  showWidePreview.value = !showWidePreview.value;
+  persistWidthPreference();
+  document
+    .querySelector("#vditor-mount .markdown-preview-shell")
+    ?.classList.toggle("is-wide", showWidePreview.value);
 };
 
 const refreshMarkdownCodeBlocks = () => {

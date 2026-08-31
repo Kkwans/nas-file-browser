@@ -5,31 +5,30 @@
     <div id="nav">
       <div class="wrapper">
         <ul>
-          <router-link to="/settings/profile"
-            ><li :class="{ active: $route.path === '/settings/profile' }">
-              账户设置
-            </li></router-link
+          <li :class="{ active: $route.path === '/settings/profile' }">
+            <router-link to="/settings/profile">账户设置</router-link>
+          </li>
+          <li
+            v-if="user?.perm.share"
+            :class="{ active: $route.path === '/settings/shares' }"
           >
-          <router-link to="/settings/shares" v-if="user?.perm.share"
-            ><li :class="{ active: $route.path === '/settings/shares' }">
-              分享管理
-            </li></router-link
+            <router-link to="/settings/shares">分享管理</router-link>
+          </li>
+          <li
+            v-if="user?.perm.admin"
+            :class="{ active: $route.path === '/settings/global' }"
           >
-          <router-link to="/settings/global" v-if="user?.perm.admin"
-            ><li :class="{ active: $route.path === '/settings/global' }">
-              全局设置
-            </li></router-link
+            <router-link to="/settings/global">全局设置</router-link>
+          </li>
+          <li
+            v-if="user?.perm.admin"
+            :class="{
+              active:
+                $route.path === '/settings/users' || $route.name === 'User',
+            }"
           >
-          <router-link to="/settings/users" v-if="user?.perm.admin"
-            ><li
-              :class="{
-                active:
-                  $route.path === '/settings/users' || $route.name === 'User',
-              }"
-            >
-              用户管理
-            </li></router-link
-          >
+            <router-link to="/settings/users">用户管理</router-link>
+          </li>
         </ul>
       </div>
     </div>

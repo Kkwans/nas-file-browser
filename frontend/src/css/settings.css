@@ -27,14 +27,22 @@
 
 .dashboard #nav ul li {
   display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0.85em 1.5em;
+  min-height: 0;
+  padding: 0;
   border-radius: 0.5em 0.5em 0 0;
   font-size: 0.85em;
   letter-spacing: 0.01em;
   position: relative;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dashboard #nav ul li > a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.85em 1.5em;
+  color: inherit;
+  text-decoration: none;
 }
 
 .dashboard #nav ul li:hover {
@@ -641,9 +649,12 @@
   }
 
   .dashboard #nav ul li {
+    font-size: 0.8em;
+  }
+
+  .dashboard #nav ul li > a {
     min-height: 44px;
     padding: 0 0.9em;
-    font-size: 0.8em;
   }
 
   .dashboard .card .card-content {

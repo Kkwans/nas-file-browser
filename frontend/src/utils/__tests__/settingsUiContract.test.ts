@@ -11,6 +11,16 @@ const settingsViews = [
 ];
 
 describe("settings UI contract", () => {
+  it("keeps settings navigation semantically ordered as list items with links", () => {
+    const settings = readFileSync(
+      resolve(process.cwd(), "src/views/Settings.vue"),
+      "utf8"
+    );
+
+    expect(settings).toMatch(/<ul>[\s\S]*<li[\s\S]*<router-link/);
+    expect(settings).not.toMatch(/<router-link[^>]*>\s*<li/);
+  });
+
   it("uses the shared local icon component across settings views", () => {
     for (const view of settingsViews) {
       const source = readFileSync(

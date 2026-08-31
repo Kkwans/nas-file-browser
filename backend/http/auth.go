@@ -291,6 +291,14 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 }
 
 func currentHostname() string {
+	if displayName := strings.TrimSpace(os.Getenv("FB_INSTANCE_HOSTNAME")); displayName != "" {
+		return displayName
+	}
+	// Docker's default hostname identifies the container, not the NAS. Hide it
+	// unless the deployment explicitly supplies the host's display name.
+	if _, err := os.Stat("/.dockerenv"); err == nil {
+		return ""
+	}
 	hostname, err := os.Hostname()
 	if err != nil {
 		return ""

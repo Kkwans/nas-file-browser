@@ -26,6 +26,7 @@ services:
       - nas-file-browser-preview-cache:/cache/previews
       - nas-file-browser-hls-cache:/cache/hls
     environment:
+      - FB_INSTANCE_HOSTNAME=DH4300Plus
       - UGREEN_SMB_SHARE_CONFIG=/run/ugreen/smbshare.conf
       - FB_DATABASE=/database/filebrowser.db
       - FB_ROOT=/srv

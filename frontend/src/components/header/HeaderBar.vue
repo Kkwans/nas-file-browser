@@ -43,8 +43,8 @@
         <span
           v-if="taskCenterBadgeCount > 0"
           class="header-task-center__badge"
-          aria-label="有进行中或需处理的任务"
-          >{{ taskCenterBadgeCount }}</span
+          :aria-label="`有 ${taskCenterBadgeCount} 项进行中的任务或传输`"
+          >{{ taskCenterBadgeText }}</span
         >
       </router-link>
       <div
@@ -82,7 +82,7 @@ import { useTasksStore } from "@/stores/tasks";
 import { useTransfersStore } from "@/stores/transfers";
 import { useHistoryStore } from "@/stores/history";
 import {
-  connectTaskCenterEvents,
+  subscribeSharedTaskCenterEvents,
   type TaskCenterEvent,
 } from "@/utils/taskCenterEvents";
 import type { TaskItem } from "@/api/tasks";
@@ -108,6 +108,9 @@ const slots = useSlots();
 const taskCenterBadgeCount = computed(
   () => tasksStore.counts.active + transfersStore.active.length
 );
+const taskCenterBadgeText = computed(() =>
+  taskCenterBadgeCount.value > 99 ? "99+" : String(taskCenterBadgeCount.value)
+);
 
 // The desktop header must not render the transient sidebar toggle at all.
 // Keeping this contract in the component (instead of relying on a cascade of
@@ -118,8 +121,7 @@ const isMobileViewport = ref(
     window.matchMedia("(max-width: 899px)").matches
 );
 let mobileMediaQuery: MediaQueryList | undefined;
-let sharedEventConsumers = 0;
-let sharedEventStop: (() => void) | undefined;
+let stopSharedEvents: (() => void) | undefined;
 
 function isTask(value: unknown): value is TaskItem {
   return Boolean(
@@ -172,21 +174,15 @@ async function reloadTaskCenterSnapshot() {
 }
 
 function startSharedEvents() {
-  sharedEventConsumers++;
-  if (sharedEventConsumers !== 1 || !authStore.isLoggedIn) return;
+  if (!authStore.isLoggedIn) return;
   void tasksStore.loadSummary();
   void transfersStore.load();
-  sharedEventStop = connectTaskCenterEvents(handleTaskCenterEvent, () => {
-    void reloadTaskCenterSnapshot();
-  });
-}
-
-function stopSharedEvents() {
-  sharedEventConsumers = Math.max(0, sharedEventConsumers - 1);
-  if (sharedEventConsumers === 0) {
-    sharedEventStop?.();
-    sharedEventStop = undefined;
-  }
+  stopSharedEvents = subscribeSharedTaskCenterEvents(
+    handleTaskCenterEvent,
+    () => {
+      void reloadTaskCenterSnapshot();
+    }
+  );
 }
 const updateMobileViewport = (event?: MediaQueryListEvent) => {
   isMobileViewport.value =
@@ -212,7 +208,8 @@ onUnmounted(() => {
       mobileMediaQuery.removeListener(updateMobileViewport);
     }
   }
-  stopSharedEvents();
+  stopSharedEvents?.();
+  stopSharedEvents = undefined;
 });
 
 const ifActionsSlot = computed(() =>

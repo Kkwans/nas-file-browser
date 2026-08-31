@@ -7,11 +7,13 @@ export const useTransfersStore = defineStore("transfers", {
     loading: boolean;
     loaded: boolean;
     error: string;
+    requestGeneration: Record<string, number>;
   } => ({
     items: [],
     loading: false,
     loaded: false,
     error: "",
+    requestGeneration: {},
   }),
   getters: {
     uploads: (state) => state.items.filter((item) => item.kind === "upload"),
@@ -24,10 +26,14 @@ export const useTransfersStore = defineStore("transfers", {
   },
   actions: {
     async load(kind?: api.TransferKind) {
+      const key = kind || "all";
+      const generation = (this.requestGeneration[key] || 0) + 1;
+      this.requestGeneration[key] = generation;
       this.loading = true;
       this.error = "";
       try {
         const response = await api.list(kind);
+        if (generation !== this.requestGeneration[key]) return;
         const existing = kind
           ? this.items.filter((item) => item.kind !== kind)
           : [];
@@ -39,7 +45,7 @@ export const useTransfersStore = defineStore("transfers", {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        this.loading = false;
+        if (generation === this.requestGeneration[key]) this.loading = false;
       }
     },
     record(item: api.TransferItem) {

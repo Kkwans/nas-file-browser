@@ -11,6 +11,7 @@ export const useHistoryStore = defineStore("history", {
     total: number;
     nextCursor: string;
     currentFilter: HistoryListFilter;
+    requestGeneration: number;
   } => ({
     items: [],
     loading: false,
@@ -19,17 +20,22 @@ export const useHistoryStore = defineStore("history", {
     total: 0,
     nextCursor: "",
     currentFilter: {},
+    requestGeneration: 0,
   }),
   actions: {
     record(item: HistoryEntry) {
-      this.items = [item, ...this.items.filter((saved) => saved.id !== item.id)]
-        .sort((left, right) => right.createdAt - left.createdAt);
+      this.items = [
+        item,
+        ...this.items.filter((saved) => saved.id !== item.id),
+      ].sort((left, right) => right.createdAt - left.createdAt);
     },
     async load(filter: HistoryListFilter = {}) {
+      const generation = ++this.requestGeneration;
       this.loading = true;
       this.error = "";
       try {
         const response = await api.list(filter);
+        if (generation !== this.requestGeneration) return;
         this.items = response.items;
         this.total = response.total;
         this.nextCursor = response.nextCursor ?? "";
@@ -39,11 +45,12 @@ export const useHistoryStore = defineStore("history", {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        this.loading = false;
+        if (generation === this.requestGeneration) this.loading = false;
       }
     },
     async loadMore() {
       if (!this.nextCursor || this.loading) return;
+      const generation = ++this.requestGeneration;
       this.loading = true;
       this.error = "";
       try {
@@ -51,6 +58,7 @@ export const useHistoryStore = defineStore("history", {
           ...this.currentFilter,
           cursor: this.nextCursor,
         });
+        if (generation !== this.requestGeneration) return;
         const known = new Set(this.items.map((item) => item.id));
         this.items.push(
           ...response.items.filter((item) => !known.has(item.id))
@@ -61,7 +69,7 @@ export const useHistoryStore = defineStore("history", {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        this.loading = false;
+        if (generation === this.requestGeneration) this.loading = false;
       }
     },
     resetForUser() {

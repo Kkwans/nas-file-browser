@@ -43,11 +43,12 @@ type taskListCounts struct {
 }
 
 type taskListResponse struct {
-	Items      []*tasks.Task  `json:"items"`
-	NextCursor string         `json:"nextCursor,omitempty"`
-	Total      int            `json:"total"`
-	Counts     taskListCounts `json:"counts"`
-	Owners     []string       `json:"owners"`
+	Items          []*tasks.Task             `json:"items"`
+	NextCursor     string                    `json:"nextCursor,omitempty"`
+	Total          int                       `json:"total"`
+	Counts         taskListCounts            `json:"counts"`
+	CategoryCounts map[string]taskListCounts `json:"categoryCounts"`
+	Owners         []string                  `json:"owners"`
 }
 
 type taskCursor struct {
@@ -88,6 +89,7 @@ var taskListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 	baseFilter := filter
 	baseFilter.Statuses = nil
 	baseFilter.Archived = nil
+	baseFilter.Category = ""
 	base := filterTasks(all, baseFilter)
 	matched := filterTasks(all, filter)
 	owners := taskOwners(matched)
@@ -96,7 +98,18 @@ var taskListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 		matched = tasksAfterCursor(matched, *cursor)
 	}
 
-	response := taskListResponse{Total: total, Counts: summarizeTasks(base), Owners: owners}
+	categoryCounts := map[string]taskListCounts{}
+	for _, category := range []string{"file", "background"} {
+		categoryFilter := baseFilter
+		categoryFilter.Category = category
+		categoryCounts[category] = summarizeTasks(filterTasks(all, categoryFilter))
+	}
+	response := taskListResponse{
+		Total:          total,
+		Counts:         summarizeTasks(base),
+		CategoryCounts: categoryCounts,
+		Owners:         owners,
+	}
 	if len(matched) > limit {
 		response.Items = matched[:limit]
 		response.NextCursor = encodeTaskCursor(response.Items[len(response.Items)-1])
@@ -221,9 +234,9 @@ func taskBatchHandler(runtime *tasks.Runtime, hlsServices ...*hls.Service) handl
 func taskFilterFromQuery(r *http.Request) (taskFilterSnapshot, int, *taskCursor, error) {
 	query := r.URL.Query()
 	filter := taskFilterSnapshot{
-		User: strings.TrimSpace(query.Get("user")),
-		Type: tasks.Type(strings.TrimSpace(query.Get("type"))),
-		Text: strings.TrimSpace(query.Get("text")),
+		User:     strings.TrimSpace(query.Get("user")),
+		Type:     tasks.Type(strings.TrimSpace(query.Get("type"))),
+		Text:     strings.TrimSpace(query.Get("text")),
 		Category: strings.TrimSpace(query.Get("category")),
 	}
 	archived := false

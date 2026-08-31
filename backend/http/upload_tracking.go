@@ -5,23 +5,26 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/Kkwans/nas-file-browser/backend/events"
 	"github.com/Kkwans/nas-file-browser/backend/transfers"
 )
 
-const uploadProgressFlushBytes int64 = 1 << 20
+const uploadProgressFlushBytes int64 = 8 << 20
+const uploadProgressFlushInterval = time.Second
 
 // uploadTracker records resource-POST uploads without buffering the request
 // body. TUS has its own offset source; this reader covers the fallback
 // XMLHttpRequest upload path used when TUS is unavailable.
 type uploadTracker struct {
-	request  *http.Request
-	data     *data
-	item     *transfers.Item
-	bytes    int64
-	flushed  int64
-	finished bool
+	request   *http.Request
+	data      *data
+	item      *transfers.Item
+	bytes     int64
+	flushed   int64
+	lastFlush time.Time
+	finished  bool
 }
 
 func newUploadTracker(r *http.Request, d *data) *uploadTracker {
@@ -56,21 +59,23 @@ func (tracker *uploadTracker) progress(bytes int64) {
 		return
 	}
 	tracker.bytes += bytes
-	if tracker.bytes-tracker.flushed < uploadProgressFlushBytes {
+	if tracker.bytes-tracker.flushed < uploadProgressFlushBytes && time.Since(tracker.lastFlush) < uploadProgressFlushInterval {
 		return
 	}
-	tracker.flush()
+	tracker.flush(false)
 }
 
-func (tracker *uploadTracker) flush() {
+func (tracker *uploadTracker) flush(force bool) {
 	if tracker == nil || tracker.item == nil || tracker.bytes <= tracker.flushed {
 		return
 	}
-	if _, err := tracker.data.store.Transfers.Progress(tracker.item.ID, tracker.data.user.ID, tracker.bytes); err == nil {
+	if !force && tracker.bytes-tracker.flushed < uploadProgressFlushBytes && time.Since(tracker.lastFlush) < uploadProgressFlushInterval {
+		return
+	}
+	if latest, err := tracker.data.store.Transfers.Progress(tracker.item.ID, tracker.data.user.ID, tracker.bytes); err == nil {
 		tracker.flushed = tracker.bytes
-		if latest, getErr := tracker.data.store.Transfers.Get(tracker.data.user.ID, tracker.item.ID, false); getErr == nil {
-			events.Default.PublishForUser(latest.UserID, "transfer.changed", latest)
-		}
+		tracker.lastFlush = time.Now()
+		events.Default.PublishForUser(latest.UserID, "transfer.changed", latest)
 	}
 }
 
@@ -79,7 +84,7 @@ func (tracker *uploadTracker) finish(status int, responseErr error) {
 		return
 	}
 	tracker.finished = true
-	tracker.flush()
+	tracker.flush(true)
 	if tracker.item == nil {
 		return
 	}

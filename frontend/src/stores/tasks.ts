@@ -9,6 +9,23 @@ import type {
 
 const activeStatuses = new Set<TaskItem["status"]>(["queued", "running"]);
 type TaskCountBucket = Exclude<keyof TaskListCounts, "all">;
+type TaskCategory = "file" | "background";
+type TaskCategoryCounts = Record<TaskCategory, TaskListCounts>;
+
+function emptyTaskListCounts(): TaskListCounts {
+  return {
+    all: 0,
+    active: 0,
+    attention: 0,
+    canceled: 0,
+    completed: 0,
+    archived: 0,
+  };
+}
+
+function emptyCategoryCounts(): TaskCategoryCounts {
+  return { file: emptyTaskListCounts(), background: emptyTaskListCounts() };
+}
 
 function taskCountBucket(value: TaskItem | undefined): TaskCountBucket {
   if (!value || value.archivedAt) return "archived";
@@ -18,6 +35,14 @@ function taskCountBucket(value: TaskItem | undefined): TaskCountBucket {
   }
   if (value.status === "canceled") return "canceled";
   return "completed";
+}
+
+function isFileTask(value: TaskItem) {
+  return value.type === "file.copy" || value.type === "file.move";
+}
+
+function taskCategory(value: TaskItem): TaskCategory {
+  return isFileTask(value) ? "file" : "background";
 }
 
 export const useTasksStore = defineStore("tasks", {
@@ -30,7 +55,10 @@ export const useTasksStore = defineStore("tasks", {
     nextCursor: string;
     owners: string[];
     counts: TaskListCounts;
+    categoryCounts: TaskCategoryCounts;
     currentFilter: TaskListFilter;
+    requestGeneration: number;
+    summaryGeneration: number;
   } => ({
     items: [],
     loading: false,
@@ -39,15 +67,11 @@ export const useTasksStore = defineStore("tasks", {
     total: 0,
     nextCursor: "",
     owners: [],
-    counts: {
-      all: 0,
-      active: 0,
-      attention: 0,
-      canceled: 0,
-      completed: 0,
-      archived: 0,
-    },
+    counts: emptyTaskListCounts(),
+    categoryCounts: emptyCategoryCounts(),
     currentFilter: {},
+    requestGeneration: 0,
+    summaryGeneration: 0,
   }),
   getters: {
     activeItems: (state) =>
@@ -55,22 +79,27 @@ export const useTasksStore = defineStore("tasks", {
   },
   actions: {
     async load(filter: TaskListFilter = {}) {
+      const generation = ++this.requestGeneration;
+      ++this.summaryGeneration;
       this.loading = true;
       this.error = "";
       try {
         const response = await api.list(filter);
+        if (generation !== this.requestGeneration) return;
         this.items = response.items;
         this.total = response.total;
         this.nextCursor = response.nextCursor ?? "";
         this.owners = response.owners;
         this.counts = response.counts;
+        if (response.categoryCounts)
+          this.categoryCounts = response.categoryCounts;
         this.currentFilter = { ...filter, statuses: filter.statuses?.slice() };
         this.loaded = true;
       } catch (error) {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        this.loading = false;
+        if (generation === this.requestGeneration) this.loading = false;
       }
     },
     // Header only needs the aggregate badge. Keep the full list untouched so
@@ -78,10 +107,14 @@ export const useTasksStore = defineStore("tasks", {
     // filter/page while still making the global badge useful after login.
     async loadSummary() {
       if (this.loading && this.loaded) return;
+      const generation = ++this.summaryGeneration;
       try {
         const response = await api.list({ limit: 1 });
+        if (generation !== this.summaryGeneration) return;
         this.total = response.total;
         this.counts = response.counts;
+        if (response.categoryCounts)
+          this.categoryCounts = response.categoryCounts;
         this.owners = response.owners;
       } catch {
         // The header is non-blocking; the Task Center itself exposes errors
@@ -90,6 +123,8 @@ export const useTasksStore = defineStore("tasks", {
     },
     async loadMore() {
       if (!this.nextCursor || this.loading) return;
+      const generation = ++this.requestGeneration;
+      ++this.summaryGeneration;
       this.loading = true;
       this.error = "";
       try {
@@ -97,6 +132,7 @@ export const useTasksStore = defineStore("tasks", {
           ...this.currentFilter,
           cursor: this.nextCursor,
         });
+        if (generation !== this.requestGeneration) return;
         const known = new Set(this.items.map((item) => item.id));
         this.items.push(
           ...response.items.filter((item) => !known.has(item.id))
@@ -105,40 +141,61 @@ export const useTasksStore = defineStore("tasks", {
         this.total = response.total;
         this.owners = response.owners;
         this.counts = response.counts;
+        if (response.categoryCounts)
+          this.categoryCounts = response.categoryCounts;
       } catch (error) {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        this.loading = false;
+        if (generation === this.requestGeneration) this.loading = false;
       }
     },
     record(item: TaskItem) {
       const previous = this.items.find((saved) => saved.id === item.id);
-      this.items = [
-        item,
-        ...this.items.filter((saved) => saved.id !== item.id),
-      ].sort((left, right) => right.createdAt - left.createdAt);
+      const categoryMatches =
+        !this.loaded ||
+        !this.currentFilter.category ||
+        (this.currentFilter.category === "file" && isFileTask(item)) ||
+        (this.currentFilter.category === "background" && !isFileTask(item));
+      if (categoryMatches) {
+        this.items = [
+          item,
+          ...this.items.filter((saved) => saved.id !== item.id),
+        ].sort((left, right) => right.createdAt - left.createdAt);
+      } else if (previous) {
+        this.items = this.items.filter((saved) => saved.id !== item.id);
+      }
       // Events are the live source between snapshots. Adjust the aggregate
       // counters using the previous visible value instead of reloading the
       // entire task page for every progress update.
       const after = taskCountBucket(item);
-      const adjust = (bucket: TaskCountBucket, delta: number) => {
-        this.counts[bucket] = Math.max(0, this.counts[bucket] + delta);
+      const adjust = (
+        counts: TaskListCounts,
+        bucket: TaskCountBucket,
+        delta: number
+      ) => {
+        counts[bucket] = Math.max(0, counts[bucket] + delta);
+        if (bucket !== "archived") {
+          counts.all = Math.max(0, counts.all + delta);
+        }
+      };
+      const adjustAll = (
+        task: TaskItem,
+        bucket: TaskCountBucket,
+        delta: number
+      ) => {
+        adjust(this.counts, bucket, delta);
+        adjust(this.categoryCounts[taskCategory(task)], bucket, delta);
       };
       if (!previous) {
-        adjust(after, 1);
-        if (after !== "archived") this.counts.all++;
+        adjustAll(item, after, 1);
         return;
       }
 
       const before = taskCountBucket(previous);
       if (before === after) return;
-      adjust(before, -1);
-      adjust(after, 1);
-      if (before === "archived" && after !== "archived") this.counts.all++;
-      if (before !== "archived" && after === "archived") {
-        this.counts.all = Math.max(0, this.counts.all - 1);
-      }
+      adjustAll(previous, before, -1);
+      adjustAll(item, after, 1);
     },
     async cancel(id: string) {
       const item = await api.cancel(id);

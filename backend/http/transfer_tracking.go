@@ -3,13 +3,15 @@ package fbhttp
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Kkwans/nas-file-browser/backend/events"
 	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/Kkwans/nas-file-browser/backend/transfers"
 )
 
-const transferProgressFlushBytes int64 = 1 << 20
+const transferProgressFlushBytes int64 = 8 << 20
+const transferProgressFlushInterval = time.Second
 
 // transferTracker keeps native downloads streamable while recording server
 // side progress. It intentionally does not buffer response bytes.
@@ -20,6 +22,7 @@ type transferTracker struct {
 	item       *transfers.Item
 	bytes      int64
 	flushed    int64
+	lastFlush  time.Time
 	statusCode int
 	finished   bool
 }
@@ -56,29 +59,31 @@ func (tracker *transferTracker) Write(payload []byte) (int, error) {
 	count, err := tracker.ResponseWriter.Write(payload)
 	if count > 0 {
 		tracker.bytes += int64(count)
-		if tracker.bytes-tracker.flushed >= transferProgressFlushBytes {
-			tracker.flushProgress()
+		if tracker.bytes-tracker.flushed >= transferProgressFlushBytes || time.Since(tracker.lastFlush) >= transferProgressFlushInterval {
+			tracker.flushProgress(false)
 		}
 	}
 	return count, err
 }
 
 func (tracker *transferTracker) Flush() {
-	tracker.flushProgress()
+	tracker.flushProgress(true)
 	if flusher, ok := tracker.ResponseWriter.(http.Flusher); ok {
 		flusher.Flush()
 	}
 }
 
-func (tracker *transferTracker) flushProgress() {
+func (tracker *transferTracker) flushProgress(force bool) {
 	if tracker.item == nil || tracker.bytes <= tracker.flushed {
 		return
 	}
-	if _, err := tracker.data.store.Transfers.Progress(tracker.item.ID, tracker.data.user.ID, tracker.bytes); err == nil {
+	if !force && tracker.bytes-tracker.flushed < transferProgressFlushBytes && time.Since(tracker.lastFlush) < transferProgressFlushInterval {
+		return
+	}
+	if latest, err := tracker.data.store.Transfers.Progress(tracker.item.ID, tracker.data.user.ID, tracker.bytes); err == nil {
 		tracker.flushed = tracker.bytes
-		if latest, progressErr := tracker.data.store.Transfers.Get(tracker.data.user.ID, tracker.item.ID, false); progressErr == nil {
-			publishTransfer(latest)
-		}
+		tracker.lastFlush = time.Now()
+		publishTransfer(latest)
 	}
 }
 
@@ -87,7 +92,7 @@ func (tracker *transferTracker) finish(statusCode int, responseErr error) {
 		return
 	}
 	tracker.finished = true
-	tracker.flushProgress()
+	tracker.flushProgress(true)
 	if tracker.item == nil {
 		return
 	}

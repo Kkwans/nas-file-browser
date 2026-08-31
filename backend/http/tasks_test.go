@@ -192,6 +192,56 @@ func TestTaskFiltersPaginationArchiveAndBatchContract(t *testing.T) {
 	}
 }
 
+func TestTaskListIncludesCompleteCategoryCounts(t *testing.T) {
+	h := newTrashHTTPHarness(t, users.User{
+		Username: "owner",
+		Perm:     users.Permissions{Modify: true},
+	})
+	owner := firstTrashHTTPUser(h)
+	if _, err := h.storage.Tasks.New(
+		owner.ID,
+		owner.Username,
+		tasks.TypeTrashClear,
+		"后台任务",
+		json.RawMessage(`{}`),
+		"",
+	); err != nil {
+		t.Fatal(err)
+	}
+	fileTask, err := h.storage.Tasks.New(
+		owner.ID,
+		owner.Username,
+		tasks.TypeFileCopy,
+		"文件任务",
+		json.RawMessage(`{}`),
+		"",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	response := h.request(t, owner.ID, taskListHandler, http.MethodGet, "/tasks?category=file", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("category list status = %d body=%s", response.Code, response.Body.String())
+	}
+	var listed taskListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if listed.Total != 1 || len(listed.Items) != 1 || listed.Items[0].ID != fileTask.ID {
+		t.Fatalf("file category list = %#v", listed)
+	}
+	if listed.Counts.All != 2 || listed.Counts.Active != 2 {
+		t.Fatalf("global counts = %#v", listed.Counts)
+	}
+	if listed.CategoryCounts["file"].All != 1 || listed.CategoryCounts["file"].Active != 1 {
+		t.Fatalf("file category counts = %#v", listed.CategoryCounts["file"])
+	}
+	if listed.CategoryCounts["background"].All != 1 || listed.CategoryCounts["background"].Active != 1 {
+		t.Fatalf("background category counts = %#v", listed.CategoryCounts["background"])
+	}
+}
+
 func TestTrashClearRunsAsTrackedTaskAndScopesNormalUser(t *testing.T) {
 	h := newTrashHTTPHarness(t,
 		users.User{Username: "first", Perm: users.Permissions{Delete: true, Modify: true, Download: true}},

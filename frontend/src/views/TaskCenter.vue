@@ -371,17 +371,13 @@ const tabs = computed(() => [
     id: "file" as const,
     label: "文件任务",
     icon: "folder" as const,
-    count: tasksStore.items.filter(
-      (item) => isFileTask(item.type) && isTaskActive(item)
-    ).length,
+    count: tasksStore.categoryCounts.file.active,
   },
   {
     id: "background" as const,
     label: "后台任务",
     icon: "tasks" as const,
-    count: tasksStore.items.filter(
-      (item) => !isFileTask(item.type) && isTaskActive(item)
-    ).length,
+    count: tasksStore.categoryCounts.background.active,
   },
   {
     id: "history" as const,
@@ -597,10 +593,6 @@ function taskTypeLabel(type: TaskType) {
       "media.hls": "兼容播放",
     } satisfies Record<TaskType, string>
   )[type];
-}
-
-function isFileTask(type: TaskType) {
-  return type === "file.copy" || type === "file.move";
 }
 
 function historyActionLabel(action: string) {

@@ -62,6 +62,10 @@ export interface TaskListResponse {
   nextCursor?: string;
   total: number;
   counts: TaskListCounts;
+  categoryCounts?: {
+    file: TaskListCounts;
+    background: TaskListCounts;
+  };
   owners: string[];
 }
 

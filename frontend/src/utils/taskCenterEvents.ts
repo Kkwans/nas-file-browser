@@ -14,6 +14,59 @@ export interface TaskCenterEvent {
 
 export type TaskCenterEventHandler = (event: TaskCenterEvent) => void;
 
+const sharedConsumers = new Map<
+  TaskCenterEventHandler,
+  { onResync: () => void; onStatus?: (connected: boolean) => void }
+>();
+let sharedStop: (() => void) | undefined;
+let sharedFallbackTimer: number | undefined;
+
+/** Keep one authenticated SSE connection for the application shell. */
+export function subscribeSharedTaskCenterEvents(
+  onChange: TaskCenterEventHandler,
+  onResync: () => void,
+  onStatus?: (connected: boolean) => void
+) {
+  sharedConsumers.set(onChange, { onResync, onStatus });
+  if (!sharedStop) {
+    sharedStop = connectTaskCenterEvents(
+      (event) => {
+        for (const consumer of sharedConsumers.keys()) consumer(event);
+      },
+      () => {
+        for (const consumer of sharedConsumers.values()) consumer.onResync();
+      },
+      (connected) => {
+        for (const consumer of sharedConsumers.values()) {
+          consumer.onStatus?.(connected);
+        }
+        if (connected) {
+          if (sharedFallbackTimer !== undefined) {
+            window.clearInterval(sharedFallbackTimer);
+            sharedFallbackTimer = undefined;
+          }
+        } else if (sharedFallbackTimer === undefined) {
+          sharedFallbackTimer = window.setInterval(() => {
+            for (const consumer of sharedConsumers.values())
+              consumer.onResync();
+          }, 15000);
+        }
+      }
+    );
+  }
+  return () => {
+    sharedConsumers.delete(onChange);
+    if (sharedConsumers.size === 0) {
+      sharedStop?.();
+      sharedStop = undefined;
+      if (sharedFallbackTimer !== undefined) {
+        window.clearInterval(sharedFallbackTimer);
+        sharedFallbackTimer = undefined;
+      }
+    }
+  };
+}
+
 /**
  * Connect to the authenticated task-center event stream. REST remains the
  * snapshot source: normal notifications are merged locally and an explicit
@@ -21,7 +74,8 @@ export type TaskCenterEventHandler = (event: TaskCenterEvent) => void;
  */
 export function connectTaskCenterEvents(
   onChange: TaskCenterEventHandler,
-  onResync: () => void
+  onResync: () => void,
+  onStatus?: (connected: boolean) => void
 ) {
   if (typeof window === "undefined" || typeof EventSource === "undefined") {
     return () => {};
@@ -55,8 +109,10 @@ export function connectTaskCenterEvents(
     source = new EventSource(url.toString(), { withCredentials: true });
     source.onopen = () => {
       retryDelay = 1000;
+      onStatus?.(true);
     };
     source.onerror = () => {
+      onStatus?.(false);
       source?.close();
       source = null;
       if (closed || retryTimer !== undefined) return;

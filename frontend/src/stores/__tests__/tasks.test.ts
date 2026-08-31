@@ -62,6 +62,36 @@ describe("tasks store", () => {
     expect(store.activeItems.map((item) => item.id)).toEqual(["newer"]);
   });
 
+  it("replays events received while a snapshot is in flight", async () => {
+    let resolveList!: (value: unknown) => void;
+    mocks.list.mockReturnValue(
+      new Promise((resolve) => {
+        resolveList = resolve;
+      })
+    );
+    const store = useTasksStore();
+    const loading = store.load();
+
+    store.record(task("live", "running", 2));
+    resolveList({
+      items: [task("older", "completed", 1)],
+      total: 1,
+      counts: {
+        all: 1,
+        active: 0,
+        attention: 0,
+        canceled: 0,
+        completed: 1,
+        archived: 0,
+      },
+      owners: ["owner"],
+    });
+    await loading;
+
+    expect(store.items.map((item) => item.id)).toEqual(["live", "older"]);
+    expect(store.activeItems.map((item) => item.id)).toEqual(["live"]);
+  });
+
   it("waits until the backend reports a terminal state", async () => {
     vi.useFakeTimers();
     try {

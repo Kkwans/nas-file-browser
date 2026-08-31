@@ -2,6 +2,12 @@ import { defineStore } from "pinia";
 import * as api from "@/api/history";
 import type { HistoryEntry, HistoryListFilter } from "@/api/history";
 
+function upsertPendingEvent(events: HistoryEntry[], item: HistoryEntry) {
+  const index = events.findIndex((saved) => saved.id === item.id);
+  if (index === -1) events.push(item);
+  else events[index] = item;
+}
+
 export const useHistoryStore = defineStore("history", {
   state: (): {
     items: HistoryEntry[];
@@ -12,6 +18,8 @@ export const useHistoryStore = defineStore("history", {
     nextCursor: string;
     currentFilter: HistoryListFilter;
     requestGeneration: number;
+    pendingEvents: HistoryEntry[];
+    eventRevision: number;
   } => ({
     items: [],
     loading: false,
@@ -21,13 +29,29 @@ export const useHistoryStore = defineStore("history", {
     nextCursor: "",
     currentFilter: {},
     requestGeneration: 0,
+    pendingEvents: [],
+    eventRevision: 0,
   }),
   actions: {
-    record(item: HistoryEntry) {
+    flushPendingEvents() {
+      if (this.loading || this.pendingEvents.length === 0) return;
+      const pending = this.pendingEvents;
+      this.pendingEvents = [];
+      for (const item of pending) this.applyRecord(item);
+    },
+    applyRecord(item: HistoryEntry) {
       this.items = [
         item,
         ...this.items.filter((saved) => saved.id !== item.id),
       ].sort((left, right) => right.createdAt - left.createdAt);
+    },
+    record(item: HistoryEntry) {
+      this.eventRevision += 1;
+      if (this.loading) {
+        upsertPendingEvent(this.pendingEvents, item);
+        return;
+      }
+      this.applyRecord(item);
     },
     async load(filter: HistoryListFilter = {}) {
       const generation = ++this.requestGeneration;
@@ -45,7 +69,10 @@ export const useHistoryStore = defineStore("history", {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        if (generation === this.requestGeneration) this.loading = false;
+        if (generation === this.requestGeneration) {
+          this.loading = false;
+          this.flushPendingEvents();
+        }
       }
     },
     async loadMore() {
@@ -69,7 +96,10 @@ export const useHistoryStore = defineStore("history", {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        if (generation === this.requestGeneration) this.loading = false;
+        if (generation === this.requestGeneration) {
+          this.loading = false;
+          this.flushPendingEvents();
+        }
       }
     },
     resetForUser() {

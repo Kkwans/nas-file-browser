@@ -45,6 +45,15 @@ function taskCategory(value: TaskItem): TaskCategory {
   return isFileTask(value) ? "file" : "background";
 }
 
+function upsertPendingEvent(events: TaskItem[], item: TaskItem) {
+  const index = events.findIndex((saved) => saved.id === item.id);
+  if (index === -1) {
+    events.push(item);
+  } else {
+    events[index] = item;
+  }
+}
+
 export const useTasksStore = defineStore("tasks", {
   state: (): {
     items: TaskItem[];
@@ -59,6 +68,9 @@ export const useTasksStore = defineStore("tasks", {
     currentFilter: TaskListFilter;
     requestGeneration: number;
     summaryGeneration: number;
+    summaryLoading: boolean;
+    pendingEvents: TaskItem[];
+    eventRevision: number;
   } => ({
     items: [],
     loading: false,
@@ -72,6 +84,9 @@ export const useTasksStore = defineStore("tasks", {
     currentFilter: {},
     requestGeneration: 0,
     summaryGeneration: 0,
+    summaryLoading: false,
+    pendingEvents: [],
+    eventRevision: 0,
   }),
   getters: {
     activeItems: (state) =>
@@ -81,6 +96,7 @@ export const useTasksStore = defineStore("tasks", {
     async load(filter: TaskListFilter = {}) {
       const generation = ++this.requestGeneration;
       ++this.summaryGeneration;
+      this.summaryLoading = false;
       this.loading = true;
       this.error = "";
       try {
@@ -99,15 +115,19 @@ export const useTasksStore = defineStore("tasks", {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        if (generation === this.requestGeneration) this.loading = false;
+        if (generation === this.requestGeneration) {
+          this.loading = false;
+          this.flushPendingEvents();
+        }
       }
     },
     // Header only needs the aggregate badge. Keep the full list untouched so
     // navigating away from Task Center does not discard a caller's current
     // filter/page while still making the global badge useful after login.
     async loadSummary() {
-      if (this.loading && this.loaded) return;
+      if (this.loading || this.summaryLoading) return;
       const generation = ++this.summaryGeneration;
+      this.summaryLoading = true;
       try {
         const response = await api.list({ limit: 1 });
         if (generation !== this.summaryGeneration) return;
@@ -119,12 +139,18 @@ export const useTasksStore = defineStore("tasks", {
       } catch {
         // The header is non-blocking; the Task Center itself exposes errors
         // and offers an explicit retry action.
+      } finally {
+        if (generation === this.summaryGeneration) {
+          this.summaryLoading = false;
+          this.flushPendingEvents();
+        }
       }
     },
     async loadMore() {
       if (!this.nextCursor || this.loading) return;
       const generation = ++this.requestGeneration;
       ++this.summaryGeneration;
+      this.summaryLoading = false;
       this.loading = true;
       this.error = "";
       try {
@@ -147,10 +173,24 @@ export const useTasksStore = defineStore("tasks", {
         this.error = error instanceof Error ? error.message : String(error);
         throw error;
       } finally {
-        if (generation === this.requestGeneration) this.loading = false;
+        if (generation === this.requestGeneration) {
+          this.loading = false;
+          this.flushPendingEvents();
+        }
       }
     },
-    record(item: TaskItem) {
+    flushPendingEvents() {
+      if (
+        this.loading ||
+        this.summaryLoading ||
+        this.pendingEvents.length === 0
+      )
+        return;
+      const pending = this.pendingEvents;
+      this.pendingEvents = [];
+      for (const item of pending) this.applyRecord(item);
+    },
+    applyRecord(item: TaskItem) {
       const previous = this.items.find((saved) => saved.id === item.id);
       const categoryMatches =
         !this.loaded ||
@@ -196,6 +236,14 @@ export const useTasksStore = defineStore("tasks", {
       if (before === after) return;
       adjustAll(previous, before, -1);
       adjustAll(item, after, 1);
+    },
+    record(item: TaskItem) {
+      this.eventRevision += 1;
+      if (this.loading || this.summaryLoading) {
+        upsertPendingEvent(this.pendingEvents, item);
+        return;
+      }
+      this.applyRecord(item);
     },
     async cancel(id: string) {
       const item = await api.cancel(id);

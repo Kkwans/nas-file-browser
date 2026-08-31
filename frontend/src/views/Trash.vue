@@ -1,13 +1,6 @@
 <template>
   <div id="trash-page">
-    <header-bar show-menu show-logo>
-      <div class="trash-header-title">
-        <AppIcon name="trash" :size="24" />
-        <div>
-          <strong>回收站</strong>
-          <span>{{ countLabel }}</span>
-        </div>
-      </div>
+    <header-bar show-menu show-logo title="回收站" title-icon="trash">
       <template #actions>
         <button
           type="button"
@@ -112,7 +105,7 @@
 
       <section v-else class="trash-list" aria-label="回收站项目">
         <div class="trash-list-heading">
-          <span>项目</span>
+          <span>项目 · {{ countLabel }}</span>
           <span>删除信息</span>
           <span>操作</span>
         </div>

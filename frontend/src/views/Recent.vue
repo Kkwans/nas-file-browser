@@ -1,13 +1,6 @@
 <template>
   <div id="recent-page" class="activity-page">
-    <header-bar show-menu show-logo>
-      <div class="activity-header-title">
-        <app-icon name="history" :size="24" />
-        <div>
-          <strong>最近访问</strong>
-          <span>最近 {{ recentStore.items.length }} 项</span>
-        </div>
-      </div>
+    <header-bar show-menu show-logo title="最近访问" title-icon="history">
       <template #actions>
         <button
           type="button"

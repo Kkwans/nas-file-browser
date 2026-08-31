@@ -22,7 +22,8 @@
     </div>
 
     <div class="header-center">
-      <slot />
+      <PageTitle v-if="title" :title="title" :icon="titleIcon || 'info'" />
+      <slot v-else />
     </div>
 
     <div class="header-trailing">
@@ -85,10 +86,14 @@ import { logoURL, name } from "@/utils/constants";
 
 import Action from "@/components/header/Action.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import PageTitle from "./PageTitle.vue";
+import type { AppIconName } from "@/components/ui/iconRegistry";
 import { computed, onMounted, onUnmounted, ref, useSlots } from "vue";
 defineProps<{
   showLogo?: boolean;
   showMenu?: boolean;
+  title?: string;
+  titleIcon?: AppIconName;
 }>();
 
 const layoutStore = useLayoutStore();

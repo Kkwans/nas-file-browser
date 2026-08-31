@@ -1,6 +1,8 @@
 <template>
   <div id="search-page">
-    <header-bar show-menu show-logo>
+    <header-bar show-menu show-logo title="搜索" title-icon="search" />
+
+    <main class="search-page-content">
       <form v-if="!tagMode" class="search-page-input" @submit.prevent="submit">
         <input
           ref="inputRef"
@@ -35,9 +37,7 @@
           >{{ searchResults.length }} 项</span
         >
       </form>
-    </header-bar>
 
-    <main class="search-page-content">
       <result-explorer
         v-if="tagMode"
         kind="tag"

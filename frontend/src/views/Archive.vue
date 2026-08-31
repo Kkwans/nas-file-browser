@@ -1,13 +1,11 @@
 <template>
   <div id="archive-page" class="archive-page">
-    <header-bar show-menu show-logo>
-      <div class="archive-header-title">
-        <AppIcon name="file-archive" :size="25" />
-        <div>
-          <strong>压缩包浏览</strong>
-          <span>{{ archiveName || "只读查看并选择性解压" }}</span>
-        </div>
-      </div>
+    <header-bar
+      show-menu
+      show-logo
+      title="压缩包浏览"
+      title-icon="file-archive"
+    >
       <template #actions>
         <router-link
           v-if="archivePath"
@@ -61,6 +59,7 @@
           <article>
             <small>格式</small>
             <strong>{{ listing.format.toUpperCase() }}</strong>
+            <span :title="archivePath">{{ archiveName }}</span>
             <span>{{ formatBytes(listing.sourceSize) }} 源文件</span>
           </article>
           <article>
@@ -746,31 +745,6 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   color: var(--textSecondary);
   background: var(--background);
-}
-.archive-header-title,
-.archive-header-title > div {
-  display: flex;
-  min-width: 0;
-}
-.archive-header-title {
-  align-items: center;
-  gap: 10px;
-}
-.archive-header-title > div {
-  flex-direction: column;
-  gap: 1px;
-}
-.archive-header-title > .app-icon {
-  color: var(--icon-orange);
-  width: 25px;
-  height: 25px;
-}
-.archive-header-title strong {
-  font-size: 15px;
-}
-.archive-header-title span {
-  color: var(--textPrimary);
-  font-size: 11px;
 }
 .archive-header-action {
   display: inline-flex;

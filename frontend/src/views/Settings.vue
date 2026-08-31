@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <header-bar showMenu showLogo />
+    <header-bar show-menu show-logo title="设置" title-icon="system-options" />
 
     <div id="nav">
       <div class="wrapper">

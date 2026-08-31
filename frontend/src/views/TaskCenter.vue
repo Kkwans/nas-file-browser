@@ -1,13 +1,6 @@
 <template>
   <div class="task-center-page activity-page">
-    <header-bar show-menu show-logo>
-      <div class="task-center-header-title">
-        <app-icon name="tasks" :size="22" />
-        <div>
-          <strong>任务中心</strong>
-          <span>{{ activeSummary }}</span>
-        </div>
-      </div>
+    <header-bar show-menu show-logo title="任务中心" title-icon="tasks">
       <template #actions>
         <action
           app-icon="refresh"
@@ -421,13 +414,6 @@ const tabs = computed(() => [
   },
 ]);
 
-const activeSummary = computed(() => {
-  const active = activeCount.value;
-  return active ? `${active} 项活动进行中` : "当前没有进行中的项目";
-});
-const activeCount = computed(
-  () => tasksStore.counts.active + transfersStore.active.length
-);
 const activeTransfers = computed(() =>
   activeTab.value === "upload"
     ? transfersStore.uploads

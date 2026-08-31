@@ -4,34 +4,6 @@
   color: var(--textSecondary);
 }
 
-.activity-header-title {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-}
-
-.activity-header-title > .app-icon {
-  color: var(--blue);
-  font-size: 25px;
-}
-
-.activity-header-title > div {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-}
-
-.activity-header-title strong {
-  font-size: 15px;
-  line-height: 1.2;
-}
-
-.activity-header-title span {
-  color: var(--textPrimary);
-  font-size: 12px;
-}
-
 .activity-header-action {
   display: inline-flex;
   width: auto;

@@ -4,32 +4,6 @@
   color: var(--color-text);
 }
 
-.task-center-header-title,
-.task-center-header-title > div {
-  display: grid;
-  min-width: 0;
-}
-
-.task-center-header-title {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-}
-
-.task-center-header-title > .app-icon {
-  color: var(--color-accent);
-}
-
-.task-center-header-title strong {
-  font-size: 14px;
-  line-height: 1.2;
-}
-
-.task-center-header-title span {
-  color: var(--color-text-muted);
-  font-size: 11px;
-}
-
 .task-center-workspace {
   box-sizing: border-box;
   width: min(1120px, calc(100% - 40px));

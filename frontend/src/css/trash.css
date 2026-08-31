@@ -4,35 +4,6 @@
   color: var(--textSecondary);
 }
 
-.trash-header-title {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-}
-
-.trash-header-title > .app-icon {
-  color: var(--icon-red);
-  width: 25px;
-  height: 25px;
-}
-
-.trash-header-title > div {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-}
-
-.trash-header-title strong {
-  font-size: 15px;
-  line-height: 1.2;
-}
-
-.trash-header-title span {
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-
 .trash-header-action {
   display: flex;
   width: 100%;

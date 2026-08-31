@@ -1,13 +1,6 @@
 <template>
   <div id="analysis-page" class="analysis-page">
-    <header-bar show-menu show-logo>
-      <div class="analysis-header-title">
-        <AppIcon name="chart-storage" :size="23" />
-        <div>
-          <strong>存储工具</strong>
-          <span>按需分析存储与重复文件</span>
-        </div>
-      </div>
+    <header-bar show-menu show-logo title="存储工具" title-icon="chart-storage">
       <template #actions>
         <router-link class="analysis-header-action" :to="taskReturnRoute">
           <AppIcon :name="taskReturnId ? 'arrow-left' : 'tasks'" :size="19" />
@@ -833,37 +826,6 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   color: var(--textSecondary);
   background: var(--background);
-}
-
-.analysis-header-title,
-.analysis-header-title > div {
-  display: flex;
-  min-width: 0;
-}
-
-.analysis-header-title {
-  align-items: center;
-  gap: 11px;
-}
-
-.analysis-header-title > div {
-  flex-direction: column;
-  gap: 1px;
-}
-
-.analysis-header-title > .app-icon {
-  color: var(--blue);
-}
-
-.analysis-header-title strong {
-  font-size: 16px;
-  line-height: 1.25;
-}
-
-.analysis-header-title span {
-  color: var(--textPrimary);
-  font-size: 12px;
-  line-height: 1.35;
 }
 
 .analysis-header-action {

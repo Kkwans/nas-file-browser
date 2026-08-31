@@ -13,11 +13,11 @@
           :to="parentRoute"
         >
           <AppIcon name="arrow-left" :size="18" />
-          返回所在目录
+          打开所在目录
         </router-link>
         <router-link class="archive-header-action" :to="taskReturnRoute">
           <AppIcon :name="taskReturnId ? 'arrow-left' : 'tasks'" :size="18" />
-          {{ taskReturnId ? "返回原任务" : "任务中心" }}
+          {{ taskReturnId ? "查看关联任务" : "任务中心" }}
         </router-link>
       </template>
     </header-bar>

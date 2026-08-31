@@ -33,6 +33,7 @@
       </div>
 
       <router-link
+        v-if="showReturn"
         class="result-explorer-back"
         :to="returnRoute"
         replace
@@ -193,6 +194,7 @@ const props = withDefaults(
     loading?: boolean;
     basePath?: string;
     returnRoute: string;
+    showReturn?: boolean;
     iconColor?: string;
     error?: string;
     termination?: {
@@ -202,6 +204,7 @@ const props = withDefaults(
   }>(),
   {
     loading: false,
+    showReturn: true,
     basePath: "/",
     iconColor: "var(--blue, #1677ff)",
     error: "",

@@ -21,7 +21,17 @@
       </div>
     </div>
 
-    <div class="header-center">
+    <div
+      class="header-center"
+      :class="{ 'header-center--page': Boolean(title) }"
+    >
+      <IconButton
+        v-if="title"
+        class="header-back"
+        icon="arrow-left"
+        label="返回上一页"
+        @click="goBack"
+      />
       <PageTitle v-if="title" :title="title" :icon="titleIcon || 'info'" />
       <slot v-else />
     </div>
@@ -90,9 +100,11 @@ import { logoURL, name } from "@/utils/constants";
 import Action from "@/components/header/Action.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import PageTitle from "./PageTitle.vue";
+import IconButton from "@/components/ui/IconButton.vue";
+import { useNavigationStore } from "@/stores/navigation";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 import { computed, onMounted, onUnmounted, ref, useSlots, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 defineProps<{
   showLogo?: boolean;
   showMenu?: boolean;
@@ -107,6 +119,26 @@ const tasksStore = useTasksStore();
 const transfersStore = useTransfersStore();
 const slots = useSlots();
 const route = useRoute();
+const router = useRouter();
+const navigation = useNavigationStore();
+function goBack() {
+  const target = navigation.returnEntry;
+  navigation.prepareReturn(target.path);
+  const current = navigation.trail.at(-1);
+  const position = window.history.state?.position;
+  if (
+    target.position !== null &&
+    Number.isSafeInteger(position) &&
+    target.position < position &&
+    current &&
+    current.position === position &&
+    current.path === route.fullPath
+  ) {
+    router.go(target.position - position);
+  } else {
+    void router.replace(target.path);
+  }
+}
 const headerElement = ref<HTMLElement | null>(null);
 const dropdownElement = ref<HTMLElement | null>(null);
 const closeMore = () => layoutStore.closeTransient("more");

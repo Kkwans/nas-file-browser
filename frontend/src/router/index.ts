@@ -1,6 +1,7 @@
 import type { RouteLocation } from "vue-router";
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useNavigationStore } from "@/stores/navigation";
 import { baseURL, name } from "@/utils/constants";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
@@ -318,6 +319,27 @@ router.beforeResolve(async (to, from) => {
   }
 
   return true;
+});
+
+router.afterEach((to, from, failure) => {
+  const navigation = useNavigationStore();
+  if (failure) {
+    navigation.restorePath = null;
+    return;
+  }
+  if (
+    !useAuthStore().isLoggedIn ||
+    !to.matched.some((record) => record.meta.requiresAuth)
+  )
+    return;
+  const position = window.history.state?.position;
+  navigation.record(
+    {
+      path: to.fullPath,
+      position: Number.isSafeInteger(position) ? position : null,
+    },
+    !from.name
+  );
 });
 
 export { router, router as default };

@@ -922,7 +922,13 @@ import {
   ref,
   watch,
 } from "vue";
-import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
+import {
+  useRoute,
+  useRouter,
+  onBeforeRouteUpdate,
+  onBeforeRouteLeave,
+} from "vue-router";
+import { useNavigationStore } from "@/stores/navigation";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
 import {
@@ -1035,11 +1041,49 @@ const { req } = storeToRefs(fileStore);
 
 const route = useRoute();
 const router = useRouter();
-onBeforeRouteUpdate(() => {
+const navigation = useNavigationStore();
+const listingUserId = authStore.user?.id;
+let listingRoute = route.fullPath;
+let leavingDirectory = false;
+const returningState = navigation.takeDirectoryState(listingRoute);
+if (returningState) {
+  currentSortBy.value = returningState.sortBy;
+  currentSortAsc.value = returningState.sortAsc;
+  sortIsOverridden.value = returningState.sortOverridden;
+  currentViewMode.value = normalizeViewMode(returningState.viewMode);
+  inlineSearch.value = returningState.search;
+  showLimit.value = Math.max(
+    50,
+    Math.min(returningState.limit, fileStore.req?.items.length || 50)
+  );
+  tagsStore.activeFilter = returningState.tag;
+  tagsStore.filterMode = returningState.filterMode;
+}
+
+function saveDirectoryState() {
+  if (navigation.userId !== listingUserId) return;
+  navigation.rememberDirectory(listingRoute, {
+    scrollY: window.scrollY,
+    limit: showLimit.value,
+    sortBy: currentSortBy.value,
+    sortAsc: currentSortAsc.value,
+    sortOverridden: sortIsOverridden.value,
+    viewMode: currentViewMode.value,
+    search: inlineSearch.value,
+    tag: tagsStore.activeFilter,
+    filterMode: tagsStore.filterMode,
+  });
+}
+
+onBeforeRouteLeave(() => {
+  saveDirectoryState();
+  leavingDirectory = true;
+});
+onBeforeRouteUpdate((to, from) => {
+  saveDirectoryState();
   hideContextMenu();
-  sortIsOverridden.value = false;
-  currentSortBy.value = accountSortBy.value;
-  currentSortAsc.value = accountSortAsc.value;
+  leavingDirectory = to.path !== from.path;
+  if (!leavingDirectory) listingRoute = to.fullPath;
 });
 
 const listing = ref<HTMLElement | null>(null);
@@ -1233,7 +1277,11 @@ onMounted(() => {
   setItemWeight();
 
   // Scroll to the item opened previously
-  if (!revealPreviousItem()) {
+  if (returningState) {
+    nextTick(() =>
+      window.scrollTo({ top: returningState.scrollY, behavior: "instant" })
+    );
+  } else if (!revealPreviousItem()) {
     // Fill and fit the window with listing items
     fillWindow(true);
   }
@@ -1242,6 +1290,9 @@ onMounted(() => {
   window.addEventListener("keydown", keyEvent);
   window.addEventListener("scroll", scrollEvent);
   document.addEventListener("click", handleOutsideClick);
+  window.addEventListener("pagehide", saveDirectoryState);
+  // Save the directory identity immediately; later snapshots capture its scroll.
+  if (!returningState) saveDirectoryState();
 
   if (typeof ResizeObserver !== "undefined") {
     listingResizeObserver = new ResizeObserver(resizeListing);
@@ -1258,6 +1309,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  if (!leavingDirectory) saveDirectoryState();
+  window.removeEventListener("pagehide", saveDirectoryState);
   // Remove event listeners before destroying this page.
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("scroll", scrollEvent);

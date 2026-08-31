@@ -48,11 +48,12 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useRecentStore } from "@/stores/recent";
 import { useAuthStore } from "@/stores/auth";
+import { useNavigationStore } from "@/stores/navigation";
 
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import FileListing from "@/views/files/FileListing.vue";
 import { StatusError } from "@/api/utils";
 import { name } from "../utils/constants";
@@ -72,6 +73,8 @@ const rootLabel = computed(() =>
 );
 
 const route = useRoute();
+const router = useRouter();
+const navigation = useNavigationStore();
 
 let fetchDataController = new AbortController();
 let lastRecordedPath = "";
@@ -166,6 +169,7 @@ const applyPreSelection = () => {
 };
 
 const fetchData = async () => {
+  const requestedRoute = route.fullPath;
   // Reset view information.
   fileStore.reload = false;
   layoutStore.closeHovers();
@@ -197,6 +201,20 @@ const fetchData = async () => {
     applyPreSelection();
   } catch (err) {
     if (err instanceof StatusError && err.is_canceled) {
+      return;
+    }
+    if (
+      err instanceof StatusError &&
+      (err.status === 403 || err.status === 404) &&
+      route.fullPath === requestedRoute &&
+      navigation.restorePath === requestedRoute &&
+      route.path !== "/files/"
+    ) {
+      // The saved directory may have been removed or access revoked since leaving it.
+      navigation.restorePath = null;
+      navigation.lastDirectory = "/files/";
+      navigation.persist();
+      await router.replace("/files/");
       return;
     }
     if (err instanceof Error) {

@@ -4,7 +4,7 @@
       <template #actions>
         <router-link class="analysis-header-action" :to="taskReturnRoute">
           <AppIcon :name="taskReturnId ? 'arrow-left' : 'tasks'" :size="19" />
-          {{ taskReturnId ? "返回原任务" : "任务中心" }}
+          {{ taskReturnId ? "查看关联任务" : "任务中心" }}
         </router-link>
       </template>
     </header-bar>

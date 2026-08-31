@@ -51,9 +51,11 @@ describe("activity page UI contract", () => {
     );
   });
 
-  it("keeps recent page shared layout styles", () => {
+  it("keeps recent page shared layout styles without legacy task selectors", () => {
     expect(activityCss).toContain(".activity-page {");
     expect(activityCss).toContain(".recent-entry {");
     expect(activityCss).toContain(".activity-state,");
+    expect(activityCss).not.toContain(".task-row {");
+    expect(activityCss).not.toContain(".history-entry {");
   });
 });

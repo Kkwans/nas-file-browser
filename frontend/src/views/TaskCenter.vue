@@ -120,15 +120,44 @@
                 {{ taskTypeLabel(task.type) }} · {{ taskTime(task.createdAt) }}
               </p>
               <div
-                v-if="isTaskActive(task) && task.totalItems > 0"
+                v-if="isTaskActive(task) && taskProgress(task).mode === 'bytes'"
                 class="task-center-progress"
               >
                 <progress
-                  :value="task.processedItems"
-                  :max="task.totalItems"
+                  :value="taskProgress(task).value"
+                  :max="taskProgress(task).max"
                   :aria-label="`${task.title}进度`"
                 ></progress>
-                <span>{{ task.processedItems }} / {{ task.totalItems }}</span>
+                <span>{{
+                  byteProgress(
+                    taskProgress(task).value ?? 0,
+                    taskProgress(task).max
+                  )
+                }}</span>
+              </div>
+              <div
+                v-else-if="
+                  isTaskActive(task) && taskProgress(task).mode === 'items'
+                "
+                class="task-center-progress"
+              >
+                <progress
+                  :value="taskProgress(task).value"
+                  :max="taskProgress(task).max"
+                  :aria-label="`${task.title}进度`"
+                ></progress>
+                <span
+                  >{{ taskProgress(task).value }} /
+                  {{ taskProgress(task).max }}</span
+                >
+              </div>
+              <div
+                v-else-if="isTaskActive(task)"
+                class="task-center-progress task-center-progress--indeterminate"
+                role="status"
+                aria-live="polite"
+              >
+                <span>{{ task.title }}正在处理</span>
               </div>
               <p v-else-if="task.error" class="task-center-error">
                 {{ task.error }}
@@ -341,6 +370,11 @@ import type {
 import { useTasksStore } from "@/stores/tasks";
 import { useHistoryStore } from "@/stores/history";
 import { useTransfersStore } from "@/stores/transfers";
+import {
+  formatTaskBytes,
+  getTaskProgress,
+  type TaskProgress,
+} from "@/utils/taskProgress";
 
 type TaskCenterTab = "download" | "upload" | "file" | "background" | "history";
 type TaskFilter = "all" | "active" | "attention" | "completed";
@@ -620,19 +654,11 @@ function taskTime(timestamp: number) {
 
 function byteProgress(value: number, total?: number) {
   if (!total) return `${value} B`;
-  return `${formatBytes(value)} / ${formatBytes(total)}`;
+  return `${formatTaskBytes(value)} / ${formatTaskBytes(total)}`;
 }
 
-function formatBytes(value: number) {
-  if (value < 1024) return `${value} B`;
-  const units = ["KB", "MB", "GB", "TB"];
-  let size = value;
-  let index = -1;
-  do {
-    size /= 1024;
-    index++;
-  } while (size >= 1024 && index < units.length - 1);
-  return `${size.toFixed(size >= 10 ? 0 : 1)} ${units[index]}`;
+function taskProgress(task: TaskItem): TaskProgress {
+  return getTaskProgress(task);
 }
 
 watch(

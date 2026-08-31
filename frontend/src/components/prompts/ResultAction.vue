@@ -226,8 +226,10 @@ async function transfer(value: string | string[]) {
 
 .result-path-copy {
   display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   place-items: center;
   border: 0;
   border-radius: 0.5rem;

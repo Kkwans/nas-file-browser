@@ -48,7 +48,11 @@ describe("preview chrome contract", () => {
   });
 
   it("keeps the breadcrumb gap in its sticky offsets", () => {
-    expect(workspaceStyles).toContain("top: calc(3.5rem + 10px);");
-    expect(workspaceStyles).toContain("top: calc(48px + 8px);");
+    expect(workspaceStyles).toContain(
+      "top: calc(var(--app-header-height, 56px) + 10px);"
+    );
+    expect(workspaceStyles).toContain(
+      "top: calc(var(--app-mobile-header-height, 96px) + 8px);"
+    );
   });
 });

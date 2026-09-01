@@ -72,6 +72,7 @@ function fixtureToken() {
     base64Url({ alg: "none", typ: "JWT" }),
     base64Url({
       exp: Math.floor(Date.now() / 1000) + 3600,
+      instance: { hostname: "DH4300Plus" },
       user: {
         id: 1,
         username: "fixture",
@@ -277,6 +278,8 @@ test.describe("NAS File Browser browser gate", () => {
 
     if (mode === "fixture") await installFixtureApi(page);
     await login(page);
+
+    await expect(page.getByLabel("当前实例")).toContainText("DH4300Plus");
 
     const taskEntry = page.locator(".header-task-center");
     await expect(taskEntry).toHaveCount(0);

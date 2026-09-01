@@ -10,7 +10,7 @@
     :data-size="size"
     :data-tone="tone"
     :aria-label="label || undefined"
-    :aria-pressed="active || undefined"
+    :aria-pressed="pressed ?? (active ? true : undefined)"
     :title="label || undefined"
     :disabled="disabled"
     @click="onClick"
@@ -34,6 +34,7 @@ const props = withDefaults(
     iconSize?: number;
     tone?: "neutral" | "primary" | "danger";
     active?: boolean;
+    pressed?: boolean;
     counter?: number | string;
     disabled?: boolean;
   }>(),

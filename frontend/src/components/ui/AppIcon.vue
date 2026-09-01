@@ -1,7 +1,7 @@
 <template>
   <component
     :is="appIcons[name]"
-    class="app-icon"
+    :class="['app-icon', `app-icon--${name}`]"
     :size="size"
     :stroke-width="strokeWidth"
     :aria-hidden="decorative ? 'true' : undefined"

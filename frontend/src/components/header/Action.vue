@@ -6,6 +6,8 @@
     :icon-size="iconSize"
     :label="label"
     :counter="counter"
+    :active="active"
+    :pressed="active"
     :disabled="disabled"
     @click="action"
   >
@@ -29,6 +31,7 @@ const props = withDefaults(
     iconSize?: number;
     label?: string;
     counter?: number;
+    active?: boolean;
     show?: string;
     disabled?: boolean;
   }>(),

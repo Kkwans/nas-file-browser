@@ -36,6 +36,10 @@ img {
   vertical-align: middle;
 }
 
+.app-icon--heart-filled {
+  fill: currentcolor;
+}
+
 audio,
 video {
   width: 100%;

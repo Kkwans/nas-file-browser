@@ -24,7 +24,8 @@
         <action
           v-if="isUnifiedMedia"
           :disabled="favoritePending"
-          :app-icon="isCurrentFavorite ? 'heart' : 'heart-off'"
+          :app-icon="isCurrentFavorite ? 'heart-filled' : 'heart'"
+          :active="isCurrentFavorite"
           :label="isCurrentFavorite ? '取消收藏' : '收藏'"
           @action="toggleCurrentFavorite"
         />

@@ -609,6 +609,7 @@ function taskTypeLabel(type: TaskType) {
       "trash.clear": "回收站清理",
       "trash.size": "回收站大小统计",
       "analysis.duplicates": "重复文件分析",
+      "analysis.duplicates.cleanup": "重复文件清理",
       "analysis.storage": "空间分析",
       "archive.extract": "压缩包解压",
       "media.hls": "兼容播放",

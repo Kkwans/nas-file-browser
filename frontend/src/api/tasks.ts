@@ -6,6 +6,7 @@ export type TaskType =
   | "trash.clear"
   | "trash.size"
   | "analysis.duplicates"
+  | "analysis.duplicates.cleanup"
   | "analysis.storage"
   | "archive.extract"
   | "media.hls";

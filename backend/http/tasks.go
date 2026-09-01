@@ -69,7 +69,15 @@ func retryExistingTask(runtime *tasks.Runtime, d *data, original *tasks.Task, hl
 		return nil, http.StatusConflict, fmt.Errorf("任务所有者已不可用: %w", err)
 	}
 	var retry *tasks.Task
-	if original.Type == tasks.TypeTrashSize {
+	if original.Type == tasks.TypeDuplicateCleanup {
+		var args duplicateCleanupArgs
+		if err := json.Unmarshal(original.Args, &args); err != nil {
+			return nil, http.StatusBadRequest, err
+		}
+		ownerData := *d
+		ownerData.user = owner
+		retry, _, err = enqueueDuplicateCleanup(runtime, &ownerData, args.ReportID, args.Groups, original.ID, true)
+	} else if original.Type == tasks.TypeTrashSize {
 		var args trashSizeArgs
 		if err := json.Unmarshal(original.Args, &args); err != nil {
 			return nil, http.StatusBadRequest, err
@@ -262,6 +270,8 @@ func canRunTaskType(user *users.User, taskType tasks.Type) bool {
 		return user.Perm.Delete
 	case tasks.TypeDuplicateAnalysis:
 		return user.Perm.Download
+	case tasks.TypeDuplicateCleanup:
+		return user.Perm.Delete
 	case tasks.TypeStorageAnalysis:
 		return user.Perm.Download
 	case tasks.TypeArchiveExtract:

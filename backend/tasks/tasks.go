@@ -25,6 +25,7 @@ const (
 	TypeTrashClear        Type = "trash.clear"
 	TypeTrashSize         Type = "trash.size"
 	TypeDuplicateAnalysis Type = "analysis.duplicates"
+	TypeDuplicateCleanup  Type = "analysis.duplicates.cleanup"
 	TypeStorageAnalysis   Type = "analysis.storage"
 	TypeArchiveExtract    Type = "archive.extract"
 	TypeMediaHLS          Type = "media.hls"
@@ -85,7 +86,7 @@ func (task *Task) CanRetry() bool {
 	if task.Status == StatusFailed || task.Status == StatusInterrupted {
 		return true
 	}
-	return task.Status == StatusCanceled && (task.Type == TypeFileCopy || task.Type == TypeFileMove)
+	return task.Status == StatusCanceled && (task.Type == TypeFileCopy || task.Type == TypeFileMove || task.Type == TypeDuplicateCleanup)
 }
 
 func (task *Task) CanArchive() bool {

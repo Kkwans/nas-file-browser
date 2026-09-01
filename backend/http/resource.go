@@ -152,8 +152,19 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 }
 
 func moveResourceToTrash(w http.ResponseWriter, r *http.Request, d *data, fileCache FileCache, file *files.FileInfo) (int, error) {
-	if err := delThumbs(r.Context(), fileCache, file); err != nil {
-		return errToStatus(err), fmt.Errorf("清理缩略图失败，文件未移入回收站: %w", err)
+	item, status, err := moveResourceToTrashItem(r.Context(), d, fileCache, file)
+	if err != nil {
+		return status, err
+	}
+	return renderJSON(w, r, item.Public())
+}
+
+func moveResourceToTrashItem(ctx context.Context, d *data, fileCache FileCache, file *files.FileInfo) (*trash.Item, int, error) {
+	if fileCache == nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("文件缓存服务不可用，文件未移入回收站")
+	}
+	if err := delThumbs(ctx, fileCache, file); err != nil {
+		return nil, errToStatus(err), fmt.Errorf("清理缩略图失败，文件未移入回收站: %w", err)
 	}
 
 	service := newTrashService(d, d.user)
@@ -168,14 +179,14 @@ func moveResourceToTrash(w http.ResponseWriter, r *http.Request, d *data, fileCa
 			_, rollbackErr := service.Restore(d.user.ID, item.ID, false, trash.ConflictFail)
 			err = errors.Join(err, rollbackErr)
 		}
-		return errToStatus(err), fmt.Errorf("文件未移入回收站: %w", err)
+		return nil, errToStatus(err), fmt.Errorf("文件未移入回收站: %w", err)
 	}
 
 	if err := d.store.Share.DeleteWithPathPrefix(file.Path); err != nil {
 		log.Printf("WARNING: Error(s) occurred while deleting associated shares with trashed file: %s", err)
 	}
 	recordHistory(d, "trash.move", file.Path, item.ID, history.StatusSuccess)
-	return renderJSON(w, r, item.Public())
+	return item, 0, nil
 }
 
 func resourcePostHandler(fileCache FileCache) handleFunc {

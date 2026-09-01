@@ -56,6 +56,7 @@ func NewHandler(
 	monkey := func(fn handleFunc, prefix string) http.Handler {
 		return handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 			d.taskRuntime = taskRuntime
+			d.fileCache = fileCache
 			return fn(w, r, d)
 		}, prefix, store, server)
 	}
@@ -107,6 +108,8 @@ func NewHandler(
 	api.Handle("/transfers/{id}/cancel", monkey(transferCancelHandler, "")).Methods("POST")
 	api.Handle("/transfers/{id}", monkey(transferDeleteHandler, "")).Methods("DELETE")
 	api.Handle("/analysis/duplicates", monkey(duplicateAnalysisStartHandler(taskRuntime), "")).Methods("POST")
+	api.Handle("/analysis/duplicates/{id}/cleanup", monkey(duplicateCleanupStartHandler(taskRuntime), "")).Methods("POST")
+	api.Handle("/analysis/duplicates/cleanup/{id}", monkey(duplicateCleanupResultHandler, "")).Methods("GET")
 	api.Handle("/analysis/storage", monkey(storageAnalysisStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/recent", monkey(analysisRecentHandler, "")).Methods("GET")
 	api.Handle("/analysis/storage/{id}", monkey(storageAnalysisResultHandler, "")).Methods("GET")

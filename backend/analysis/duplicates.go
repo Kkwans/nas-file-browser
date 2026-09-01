@@ -33,10 +33,11 @@ type ScanProgress struct {
 }
 
 type DuplicateFile struct {
-	Created  *time.Time `json:"created,omitempty"`
-	Path     string     `json:"path"`
-	Size     int64      `json:"size"`
-	Modified int64      `json:"modified"`
+	Identity *files.Identity `json:"identity,omitempty"`
+	Created  *time.Time      `json:"created,omitempty"`
+	Path     string          `json:"path"`
+	Size     int64           `json:"size"`
+	Modified int64           `json:"modified"`
 }
 
 type DuplicateGroup struct {
@@ -76,6 +77,7 @@ type duplicateCandidate struct {
 	size     int64
 	modified time.Time
 	created  *time.Time
+	identity *files.Identity
 }
 
 type duplicateScanner struct {
@@ -104,7 +106,7 @@ func FindDuplicates(
 		sampleBytes: DefaultSampleBytes, resultFileLimit: DefaultResultFiles,
 		reportProgress: reportProgress, skipped: make(map[string]struct{}),
 	}
-	scanner.report.SchemaVersion = 2
+	scanner.report.SchemaVersion = 3
 	scanner.report.Scopes = append([]string(nil), scopes...)
 	scanner.report.Groups = make([]DuplicateGroup, 0)
 	scanner.report.ResultFileLimit = scanner.resultFileLimit
@@ -200,6 +202,7 @@ func (scanner *duplicateScanner) compare(candidatesIn []duplicateCandidate) erro
 			return err
 		}
 		candidate.created = files.CreatedTime(scanner.fs, candidate.path)
+		candidate.identity = files.FileIdentity(scanner.fs, candidate.path)
 		sample, err := scanner.hashSample(candidate)
 		progress.ProcessedItems++
 		if err != nil {
@@ -267,7 +270,7 @@ func (scanner *duplicateScanner) compare(candidatesIn []duplicateCandidate) erro
 		for _, file := range sameHash {
 			group.Files = append(group.Files, DuplicateFile{
 				Path: file.path, Size: file.size, Modified: file.modified.UnixMilli(),
-				Created: file.created,
+				Created: file.created, Identity: file.identity,
 			})
 		}
 		groups = append(groups, group)

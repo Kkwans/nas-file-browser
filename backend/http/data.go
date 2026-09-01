@@ -19,6 +19,7 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, d *data) (int, erro
 
 type data struct {
 	taskRuntime *tasks.Runtime
+	fileCache   FileCache
 	*runner.Runner
 	settings *settings.Settings
 	server   *settings.Server

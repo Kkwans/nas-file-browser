@@ -13,6 +13,9 @@ func RecommendDuplicateKeeper(files []DuplicateFile) (string, string) {
 		if file.Created == nil {
 			return "", "missing-created"
 		}
+		if file.Identity == nil || file.Identity.Links != 1 || !file.Identity.IsRegular() {
+			return "", "unsafe-identity"
+		}
 		if index == 0 {
 			continue
 		}

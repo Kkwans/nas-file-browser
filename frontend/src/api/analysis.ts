@@ -3,6 +3,15 @@ import { fetchJSON, fetchURL } from "./utils";
 
 export interface DuplicateFile {
   created?: string;
+  identity?: {
+    deviceMajor: number;
+    deviceMinor: number;
+    inode: number;
+    links: number;
+    mode: number;
+    uid: number;
+    gid: number;
+  };
   path: string;
   size: number;
   modified: number;
@@ -14,7 +23,8 @@ export interface DuplicateGroup {
     | "oldest-created"
     | "missing-created"
     | "tied-created"
-    | "truncated";
+    | "truncated"
+    | "unsafe-identity";
   sha256: string;
   size: number;
   totalFiles: number;

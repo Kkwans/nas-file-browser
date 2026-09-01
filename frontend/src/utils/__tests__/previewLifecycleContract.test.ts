@@ -54,7 +54,8 @@ describe("媒体预览生命周期契约", () => {
     expect(videoPlayerSource).toContain(
       'player.value.on("error", onPlayerError)'
     );
-    expect(videoPlayerSource).toContain("directPlaybackFailed.value = true");
+    expect(videoPlayerSource).toContain("getDirectVideoFailure(");
+    expect(videoPlayerSource).toContain("directPlaybackFailure.value =");
     expect(videoPlayerSource).toContain("startHLSPlayback(");
     expect(videoPlayerSource).not.toContain("preflightDirectPlayback");
   });

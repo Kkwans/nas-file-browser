@@ -22,6 +22,15 @@ const recentScansSource = readFileSync(
   ),
   "utf8"
 );
+const cleanupPanelSource = readFileSync(
+  fileURLToPath(
+    new URL(
+      "../../components/analysis/DuplicateCleanupPanel.vue",
+      import.meta.url
+    )
+  ),
+  "utf8"
+);
 
 describe("存储工具无障碍契约", () => {
   it("扫描范围移除按钮保留 44px 触摸目标", () => {
@@ -52,8 +61,18 @@ describe("存储工具无障碍契约", () => {
 
   it("分析报告卡片不复用会继承全局定位规则的原生 header", () => {
     expect(analysisSource).toContain('class="storage-ranking-header"');
-    expect(analysisSource).toContain('class="duplicate-group__header"');
+    expect(cleanupPanelSource).toContain('class="cleanup-group__header"');
     expect(analysisSource).not.toMatch(/<header(?:\s|>)/);
+    expect(cleanupPanelSource).not.toMatch(/<header(?:\s|>)/);
+  });
+
+  it("重复清理的保留选择与弹窗操作保留完整触摸目标", () => {
+    expect(cleanupPanelSource).toContain('class="cleanup-file-choice"');
+    expect(cleanupPanelSource).toMatch(
+      /\.cleanup-file-choice\s*\{[\s\S]*?height:\s*44px;/
+    );
+    expect(cleanupPanelSource).toContain("<AppDialog");
+    expect(cleanupPanelSource).toContain("移入回收站不会立即释放磁盘空间");
   });
 
   it("扫描面板使用单个表单，不嵌套表单或借用全局 header", () => {

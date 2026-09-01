@@ -170,50 +170,11 @@
           项，当前仅展示前一部分；顶部统计仍为完整扫描结果。
         </section>
 
-        <section
-          v-if="report.groups.length"
-          class="duplicate-groups"
-          aria-label="重复文件组"
-        >
-          <article
-            v-for="(group, index) in report.groups"
-            :key="group.sha256"
-            class="duplicate-group"
-          >
-            <div class="duplicate-group__header" role="heading" aria-level="3">
-              <div>
-                <span>{{ String(index + 1).padStart(2, "0") }}</span>
-                <div>
-                  <strong>{{ group.totalFiles }} 个完全相同的文件</strong>
-                  <small
-                    >{{ formatBytes(group.size) }} / 个 · 可回收
-                    {{ formatBytes(group.reclaimableBytes) }}</small
-                  >
-                </div>
-              </div>
-              <code :title="group.sha256"
-                >SHA-256 {{ group.sha256.slice(0, 12) }}…</code
-              >
-            </div>
-            <div class="duplicate-file-list">
-              <router-link
-                v-for="file in group.files"
-                :key="file.path"
-                :to="fileRoute(file.path)"
-              >
-                <AppIcon :name="resourceIcon(file.path)" :size="19" />
-                <span>
-                  <strong>{{ fileName(file.path) }}</strong>
-                  <small :title="file.path">{{ file.path }}</small>
-                </span>
-                <time :datetime="new Date(file.modified).toISOString()">{{
-                  formatModified(file.modified)
-                }}</time>
-                <AppIcon name="external-link" :size="17" />
-              </router-link>
-            </div>
-          </article>
-        </section>
+        <DuplicateCleanupPanel
+          v-if="report.groups.length && currentTask"
+          :report="report"
+          :report-id="currentTask.id"
+        />
 
         <section v-else class="analysis-clean-state">
           <AppIcon name="circle-check" :size="34" />
@@ -420,6 +381,7 @@ import { useRoute, useRouter } from "vue-router";
 import AnalysisRecentScans from "@/components/analysis/AnalysisRecentScans.vue";
 import AnalysisScopePanel from "@/components/analysis/AnalysisScopePanel.vue";
 import AnalysisToolSwitcher from "@/components/analysis/AnalysisToolSwitcher.vue";
+import DuplicateCleanupPanel from "@/components/analysis/DuplicateCleanupPanel.vue";
 import PathPicker from "@/components/prompts/PathPicker.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
@@ -1412,131 +1374,6 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-.duplicate-groups {
-  display: grid;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.duplicate-group {
-  overflow: hidden;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 9px;
-  background: var(--surfacePrimary);
-}
-
-.duplicate-group > .duplicate-group__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--borderPrimary);
-  background: color-mix(
-    in srgb,
-    var(--surfaceSecondary) 34%,
-    var(--surfacePrimary)
-  );
-}
-
-.duplicate-group > .duplicate-group__header > div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.duplicate-group > .duplicate-group__header > div > span {
-  color: var(--blue);
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.duplicate-group__header strong,
-.duplicate-group__header small {
-  display: block;
-}
-
-.duplicate-group__header strong {
-  color: var(--textSecondary);
-  font-size: 13px;
-}
-
-.duplicate-group__header small {
-  margin-top: 3px;
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-
-.duplicate-group code {
-  max-width: 180px;
-  overflow: hidden;
-  color: var(--textPrimary);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.duplicate-file-list > a {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 10px;
-  min-height: 64px;
-  padding: 9px 16px;
-  border-bottom: 1px solid var(--borderPrimary);
-  color: var(--textSecondary);
-  text-decoration: none;
-}
-
-.duplicate-file-list > a:last-child {
-  border-bottom: 0;
-}
-
-.duplicate-file-list > a:hover,
-.duplicate-file-list > a:focus-visible {
-  outline: none;
-  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
-}
-
-.duplicate-file-list > a:focus-visible {
-  box-shadow: inset 3px 0 var(--focus-ring);
-}
-
-.duplicate-file-list > a > .app-icon:first-child {
-  width: 20px;
-  height: 20px;
-  color: var(--textPrimary);
-}
-
-.duplicate-file-list > a > .app-icon:last-child {
-  width: 17px;
-  height: 17px;
-  color: var(--textPrimary);
-}
-
-.duplicate-file-list span {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-}
-
-.duplicate-file-list strong,
-.duplicate-file-list small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.duplicate-file-list strong {
-  font-size: 13px;
-}
-
-.duplicate-file-list small,
-.duplicate-file-list time {
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-
 .analysis-clean-state {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -1696,19 +1533,6 @@ onBeforeUnmount(() => {
 
   .analysis-readonly-chip {
     align-self: flex-end;
-  }
-
-  .duplicate-group > .duplicate-group__header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .duplicate-file-list > a {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .duplicate-file-list time {
-    display: none;
   }
 }
 

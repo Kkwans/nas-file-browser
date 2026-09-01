@@ -46,6 +46,10 @@ func TestDuplicateCleanupMovesOnlyReportMembersToTrash(t *testing.T) {
 		t.Fatal(err)
 	}
 	completed := waitForHTTPTask(t, h, created.ID, tasks.StatusCompleted)
+	lookup := h.request(t, owner.ID, duplicateCleanupForReportHandler, http.MethodGet, "/cleanup", nil, map[string]string{"id": reportTask.ID})
+	if lookup.Code != http.StatusOK || !bytes.Contains(lookup.Body.Bytes(), []byte(created.ID)) {
+		t.Fatalf("cleanup lookup status=%d body=%s", lookup.Code, lookup.Body.String())
+	}
 	var result duplicateCleanupResult
 	if err := json.Unmarshal(completed.Result, &result); err != nil {
 		t.Fatal(err)

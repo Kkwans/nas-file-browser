@@ -93,6 +93,31 @@ var duplicateCleanupResultHandler = withUser(func(w http.ResponseWriter, r *http
 	return renderJSON(w, r, &result)
 })
 
+var duplicateCleanupForReportHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	all, err := d.store.Tasks.List(d.user.ID, false)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	reportID := mux.Vars(r)["id"]
+	var latest *tasks.Task
+	for _, task := range all {
+		if task.Type != tasks.TypeDuplicateCleanup {
+			continue
+		}
+		var args duplicateCleanupArgs
+		if json.Unmarshal(task.Args, &args) != nil || args.ReportID != reportID {
+			continue
+		}
+		if latest == nil || task.CreatedAt > latest.CreatedAt {
+			latest = task
+		}
+	}
+	if latest == nil {
+		return http.StatusNotFound, tasks.ErrNotExist
+	}
+	return renderJSON(w, r, latest)
+})
+
 func enqueueDuplicateCleanup(runtime *tasks.Runtime, d *data, reportID string, selections []duplicateCleanupSelection, retryOf string, isRetry bool) (*tasks.Task, int, error) {
 	reportTask, err := d.store.Tasks.Get(d.user.ID, reportID, false)
 	if err != nil {

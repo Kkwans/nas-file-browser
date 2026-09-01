@@ -1,5 +1,5 @@
 import type { TaskItem } from "./tasks";
-import { fetchJSON, fetchURL } from "./utils";
+import { fetchJSON, fetchURL, StatusError } from "./utils";
 
 export interface DuplicateFile {
   created?: string;
@@ -52,6 +52,27 @@ export interface DuplicateReport {
   truncated: boolean;
   completedAt: number;
   resultFileLimit: number;
+}
+
+export interface DuplicateCleanupSelection {
+  sha256: string;
+  keepPath: string;
+}
+
+export interface DuplicateCleanupFileResult {
+  path: string;
+  status: "success" | "skipped" | "failed";
+  trashId?: string;
+  reason?: string;
+}
+
+export interface DuplicateCleanupResult {
+  reportId: string;
+  groups: Array<{
+    sha256: string;
+    keepPath: string;
+    files: DuplicateCleanupFileResult[];
+  }>;
 }
 
 export interface StorageScope {
@@ -122,6 +143,38 @@ export async function startDuplicateScan(paths: string[]) {
 export function getDuplicateReport(taskId: string) {
   return fetchJSON<DuplicateReport>(
     `/api/analysis/${encodeURIComponent(taskId)}`
+  );
+}
+
+export async function startDuplicateCleanup(
+  reportId: string,
+  groups: DuplicateCleanupSelection[]
+) {
+  const response = await fetchURL(
+    `/api/analysis/duplicates/${encodeURIComponent(reportId)}/cleanup`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ groups }),
+    }
+  );
+  return (await response.json()) as TaskItem;
+}
+
+export async function getDuplicateCleanupForReport(reportId: string) {
+  try {
+    return await fetchJSON<TaskItem>(
+      `/api/analysis/duplicates/${encodeURIComponent(reportId)}/cleanup`
+    );
+  } catch (error) {
+    if (error instanceof StatusError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+export function getDuplicateCleanupResult(taskId: string) {
+  return fetchJSON<DuplicateCleanupResult>(
+    `/api/analysis/duplicates/cleanup/${encodeURIComponent(taskId)}`
   );
 }
 

@@ -109,6 +109,7 @@ func NewHandler(
 	api.Handle("/transfers/{id}", monkey(transferDeleteHandler, "")).Methods("DELETE")
 	api.Handle("/analysis/duplicates", monkey(duplicateAnalysisStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/duplicates/{id}/cleanup", monkey(duplicateCleanupStartHandler(taskRuntime), "")).Methods("POST")
+	api.Handle("/analysis/duplicates/{id}/cleanup", monkey(duplicateCleanupForReportHandler, "")).Methods("GET")
 	api.Handle("/analysis/duplicates/cleanup/{id}", monkey(duplicateCleanupResultHandler, "")).Methods("GET")
 	api.Handle("/analysis/storage", monkey(storageAnalysisStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/analysis/recent", monkey(analysisRecentHandler, "")).Methods("GET")

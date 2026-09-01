@@ -129,6 +129,14 @@ async function installFixtureApi(page: Page) {
     });
   });
 
+  await page.route(/\/api\/renew(?:\?|$)/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "text/plain; charset=utf-8",
+      body: token,
+    });
+  });
+
   await page.route(/\/api\/task-center\/events(?:\?|$)/, async (route) => {
     await route.fulfill({
       status: 200,
@@ -170,6 +178,26 @@ async function installFixtureApi(page: Page) {
 
   await page.route(/\/api\/history(?:\?|$)/, async (route) => {
     await fulfillJSON(route, { items: [], total: 0, nextCursor: "" });
+  });
+
+  await page.route(/\/api\/resources\/(?:\?|$)/, async (route) => {
+    await fulfillJSON(route, {
+      path: "/",
+      name: "",
+      size: 0,
+      extension: "",
+      modified: new Date(now).toISOString(),
+      mode: 0,
+      isDir: true,
+      isSymlink: false,
+      type: "dir",
+      riskLevel: "low",
+      items: [],
+      numDirs: 0,
+      numFiles: 0,
+      sorting: { by: "name", asc: true },
+      index: 0,
+    });
   });
 
   await page.route(
@@ -250,11 +278,19 @@ test.describe("NAS File Browser browser gate", () => {
     if (mode === "fixture") await installFixtureApi(page);
     await login(page);
 
-    const badge = page.locator(".header-task-center__badge");
-    await expect(badge).toBeVisible();
-    await expect(badge).toHaveAttribute("aria-label", /3/);
+    const taskEntry = page.locator(".header-task-center");
+    await expect(taskEntry).toHaveCount(0);
 
-    await page.getByRole("tab", { name: "文件任务" }).click();
+    await page.goto("/files/");
+    await expect(taskEntry).toBeVisible();
+    if (mode === "fixture") {
+      const badge = taskEntry.locator(".header-task-center__badge");
+      await expect(badge).toBeVisible();
+      await expect(badge).toHaveAttribute("aria-label", /3/);
+    }
+    await page.goto("/tasks?tab=file");
+    await expect(taskEntry).toHaveCount(0);
+
     await expect(page.getByRole("heading", { name: "文件任务" })).toBeVisible();
     await expect(page.getByText("8.0 MB / 16 MB")).toBeVisible();
 

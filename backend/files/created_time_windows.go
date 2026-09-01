@@ -4,23 +4,19 @@ package files
 
 import (
 	"os"
-	"path/filepath"
 	"syscall"
 	"time"
-
-	"github.com/spf13/afero"
 )
 
 func setCreatedTime(file *FileInfo) {
 	if file == nil || file.Fs == nil {
 		return
 	}
-	base, ok := file.Fs.(*afero.BasePathFs)
+	path, ok := osBackedPath(file.Fs, file.Path)
 	if !ok {
 		return
 	}
-	path := filepath.Clean(afero.FullBaseFsPath(base, file.Path))
-	info, err := os.Stat(path)
+	info, err := os.Lstat(path)
 	if err != nil {
 		return
 	}

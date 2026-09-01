@@ -3,10 +3,8 @@
 package files
 
 import (
-	"path/filepath"
 	"time"
 
-	"github.com/spf13/afero"
 	"golang.org/x/sys/unix"
 )
 
@@ -30,12 +28,4 @@ func setCreatedTime(file *FileInfo) {
 	}
 	created := time.Unix(int64(stat.Btime.Sec), int64(stat.Btime.Nsec))
 	file.Created = &created
-}
-
-func osBackedPath(fs afero.Fs, path string) (string, bool) {
-	base, ok := fs.(*afero.BasePathFs)
-	if !ok {
-		return "", false
-	}
-	return filepath.Clean(afero.FullBaseFsPath(base, path)), true
 }

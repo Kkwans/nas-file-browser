@@ -2,12 +2,19 @@ import type { TaskItem } from "./tasks";
 import { fetchJSON, fetchURL } from "./utils";
 
 export interface DuplicateFile {
+  created?: string;
   path: string;
   size: number;
   modified: number;
 }
 
 export interface DuplicateGroup {
+  suggestedKeepPath?: string;
+  keepReason?:
+    | "oldest-created"
+    | "missing-created"
+    | "tied-created"
+    | "truncated";
   sha256: string;
   size: number;
   totalFiles: number;
@@ -21,6 +28,7 @@ export interface SkippedFile {
 }
 
 export interface DuplicateReport {
+  schemaVersion?: number;
   scopes: string[];
   scannedFiles: number;
   scannedBytes: number;

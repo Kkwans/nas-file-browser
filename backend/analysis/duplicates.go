@@ -11,6 +11,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/spf13/afero"
 )
 
@@ -32,17 +33,20 @@ type ScanProgress struct {
 }
 
 type DuplicateFile struct {
-	Path     string `json:"path"`
-	Size     int64  `json:"size"`
-	Modified int64  `json:"modified"`
+	Created  *time.Time `json:"created,omitempty"`
+	Path     string     `json:"path"`
+	Size     int64      `json:"size"`
+	Modified int64      `json:"modified"`
 }
 
 type DuplicateGroup struct {
-	SHA256           string          `json:"sha256"`
-	Size             int64           `json:"size"`
-	TotalFiles       int             `json:"totalFiles"`
-	ReclaimableBytes int64           `json:"reclaimableBytes"`
-	Files            []DuplicateFile `json:"files"`
+	SuggestedKeepPath string          `json:"suggestedKeepPath,omitempty"`
+	KeepReason        string          `json:"keepReason"`
+	SHA256            string          `json:"sha256"`
+	Size              int64           `json:"size"`
+	TotalFiles        int             `json:"totalFiles"`
+	ReclaimableBytes  int64           `json:"reclaimableBytes"`
+	Files             []DuplicateFile `json:"files"`
 }
 
 type SkippedFile struct {
@@ -51,6 +55,7 @@ type SkippedFile struct {
 }
 
 type DuplicateReport struct {
+	SchemaVersion    int              `json:"schemaVersion"`
 	Scopes           []string         `json:"scopes"`
 	ScannedFiles     int              `json:"scannedFiles"`
 	ScannedBytes     int64            `json:"scannedBytes"`
@@ -70,6 +75,7 @@ type duplicateCandidate struct {
 	path     string
 	size     int64
 	modified time.Time
+	created  *time.Time
 }
 
 type duplicateScanner struct {
@@ -98,6 +104,7 @@ func FindDuplicates(
 		sampleBytes: DefaultSampleBytes, resultFileLimit: DefaultResultFiles,
 		reportProgress: reportProgress, skipped: make(map[string]struct{}),
 	}
+	scanner.report.SchemaVersion = 2
 	scanner.report.Scopes = append([]string(nil), scopes...)
 	scanner.report.Groups = make([]DuplicateGroup, 0)
 	scanner.report.ResultFileLimit = scanner.resultFileLimit
@@ -162,9 +169,9 @@ func (scanner *duplicateScanner) collect(scopes []string) ([]duplicateCandidate,
 	return files, nil
 }
 
-func (scanner *duplicateScanner) compare(files []duplicateCandidate) error {
+func (scanner *duplicateScanner) compare(candidatesIn []duplicateCandidate) error {
 	bySize := make(map[int64][]duplicateCandidate)
-	for _, file := range files {
+	for _, file := range candidatesIn {
 		bySize[file.size] = append(bySize[file.size], file)
 	}
 	candidates := make([]duplicateCandidate, 0)
@@ -192,6 +199,7 @@ func (scanner *duplicateScanner) compare(files []duplicateCandidate) error {
 		if err := scanner.ctx.Err(); err != nil {
 			return err
 		}
+		candidate.created = files.CreatedTime(scanner.fs, candidate.path)
 		sample, err := scanner.hashSample(candidate)
 		progress.ProcessedItems++
 		if err != nil {
@@ -259,6 +267,7 @@ func (scanner *duplicateScanner) compare(files []duplicateCandidate) error {
 		for _, file := range sameHash {
 			group.Files = append(group.Files, DuplicateFile{
 				Path: file.path, Size: file.size, Modified: file.modified.UnixMilli(),
+				Created: file.created,
 			})
 		}
 		groups = append(groups, group)
@@ -282,6 +291,11 @@ func (scanner *duplicateScanner) compare(files []duplicateCandidate) error {
 		if len(group.Files) > remaining {
 			group.Files = group.Files[:remaining]
 			scanner.report.Truncated = true
+		}
+		if len(group.Files) != group.TotalFiles {
+			group.KeepReason = "truncated"
+		} else {
+			group.SuggestedKeepPath, group.KeepReason = RecommendDuplicateKeeper(group.Files)
 		}
 		scanner.report.Groups = append(scanner.report.Groups, group)
 		remaining -= len(group.Files)

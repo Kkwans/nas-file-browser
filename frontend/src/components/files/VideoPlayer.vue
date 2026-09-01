@@ -2,7 +2,10 @@
   <div
     ref="stage"
     class="media-video-stage"
-    :class="{ 'media-video-stage--awaiting-source': !sourceAttached }"
+    :class="{
+      'media-video-stage--awaiting-source': !sourceAttached,
+      'media-video-stage--compatibility-open': compatibilityPanelOpen,
+    }"
     :style="{ '--video-brightness': brightness }"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
@@ -107,14 +110,16 @@
       @pointermove.stop
       @pointerup.stop
     >
-      <div class="media-compatibility-card__icon" aria-hidden="true">
-        <AppIcon :name="mediaIcon(compatibilityCopy.icon)" :size="24" />
-      </div>
       <div class="media-compatibility-card__body">
         <div class="media-compatibility-card__heading">
-          <div>
-            <span>兼容播放</span>
-            <strong>{{ compatibilityCopy.title }}</strong>
+          <div class="media-compatibility-card__identity">
+            <div class="media-compatibility-card__icon" aria-hidden="true">
+              <AppIcon :name="mediaIcon(compatibilityCopy.icon)" :size="22" />
+            </div>
+            <div class="media-compatibility-card__title">
+              <span>兼容播放</span>
+              <strong>{{ compatibilityCopy.title }}</strong>
+            </div>
           </div>
           <button
             type="button"
@@ -245,11 +250,14 @@ import {
   type VideoGestureAxis,
 } from "@/utils/videoGestures";
 import {
+  getDirectVideoFailure,
+  getDirectVideoFailureCopy,
   getVideoSourceType,
   getNativeContainerPlayback,
   isPlaybackPositionSeekable,
   isKnownIncompatibleVideo,
   supportsH264CompatibilityPlayback,
+  type DirectVideoFailure,
 } from "@/utils/videoPlayback";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
@@ -291,7 +299,10 @@ const compatibilityPanelOpen = ref(false);
 const compatibilityBusy = ref(false);
 const compatibilityNetworkError = ref("");
 const compatibilityStatus = ref<HLSPlaybackStatus | null>(null);
-const directPlaybackFailed = ref(false);
+const directPlaybackFailure = ref<DirectVideoFailure | null>(null);
+const directPlaybackFailed = computed(
+  () => directPlaybackFailure.value !== null
+);
 const hlsActive = ref(false);
 const nativeProbeBusy = ref(false);
 // Do not attach containers that the active browser has already declared
@@ -618,13 +629,14 @@ const compatibilityCopy = computed(() => {
           "网络恢复后可重新尝试；已提交的后台任务不会因此被自动取消。",
       };
     default:
+      if (directPlaybackFailure.value) {
+        return getDirectVideoFailureCopy(directPlaybackFailure.value);
+      }
       return {
         icon: "movie_filter",
         title: nativeProbeBusy.value
           ? "正在检查原生播放"
-          : directPlaybackFailed.value
-            ? "当前浏览器无法直接播放"
-            : "此格式可能需要兼容播放",
+          : "此格式可能需要兼容播放",
         description: nativeProbeBusy.value
           ? "正在读取视频编码并检查当前浏览器能力，不会自动转码。"
           : "原视频已先尝试浏览器原生 Range 播放；只有浏览器明确不支持时才会处理。兼容文件生成后支持拖动进度，原文件不会修改。",
@@ -734,14 +746,19 @@ function onPlayerError() {
   if (hlsActive.value) {
     compatibilityNetworkError.value = "兼容视频流暂时中断，可重试或下载原文件";
   } else {
-    directPlaybackFailed.value = true;
+    directPlaybackFailure.value = getDirectVideoFailure(
+      player.value?.error()?.code
+    );
   }
   compatibilityPanelOpen.value = true;
 }
 
 function onPlayerPlaying() {
   setVideoLoadState("ready");
-  if (!hlsActive.value) return;
+  if (!hlsActive.value) {
+    directPlaybackFailure.value = null;
+    return;
+  }
   compatibilityNetworkError.value = "";
   compatibilityPanelOpen.value = false;
 }
@@ -819,7 +836,7 @@ function shouldAttachDirectSource(path: string) {
 
 function detachDirectSource() {
   sourceAttached.value = false;
-  directPlaybackFailed.value = false;
+  directPlaybackFailure.value = null;
   compatibilityPanelOpen.value = true;
   videoLoadState.value = "idle";
   loadingOverlayVisible.value = false;
@@ -829,7 +846,7 @@ function detachDirectSource() {
 function attachDirectSource(path: string, source: string) {
   if (disposed || path !== props.path) return;
   sourceAttached.value = true;
-  directPlaybackFailed.value = false;
+  directPlaybackFailure.value = null;
   compatibilityPanelOpen.value = false;
   const currentPlayer = player.value;
   if (!currentPlayer) return;
@@ -1124,7 +1141,7 @@ function tryDirectPlayback() {
   clearHLSResumeWait();
   activeHLSURL = "";
   hlsActive.value = false;
-  directPlaybackFailed.value = false;
+  directPlaybackFailure.value = null;
   compatibilityNetworkError.value = "";
   sourceAttached.value = true;
   beginVideoLoading();
@@ -1153,7 +1170,7 @@ function resetCompatibility() {
   compatibilityBusy.value = false;
   compatibilityNetworkError.value = "";
   compatibilityStatus.value = null;
-  directPlaybackFailed.value = false;
+  directPlaybackFailure.value = null;
   hlsActive.value = false;
   activeHLSURL = "";
   sourceAttached.value = shouldAttachDirectSource(props.path);
@@ -1586,11 +1603,9 @@ const languageImports: LanguageImports = {
   z-index: 14;
   bottom: 76px;
   left: 50%;
-  display: grid;
+  display: block;
   width: min(620px, calc(100% - 32px));
   max-height: calc(100% - 152px);
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
   padding: 17px;
   overflow: auto;
   color: #f5f8ff;
@@ -1621,8 +1636,9 @@ const languageImports: LanguageImports = {
 
 .media-compatibility-card__icon {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
   place-items: center;
   color: #a8ceff;
   background: rgb(124 181 255 / 13%);
@@ -1643,13 +1659,21 @@ const languageImports: LanguageImports = {
 
 .media-compatibility-card__heading {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
 
-.media-compatibility-card__heading > div {
+.media-compatibility-card__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.media-compatibility-card__title {
   display: grid;
+  min-width: 0;
   gap: 2px;
 }
 
@@ -1668,8 +1692,8 @@ const languageImports: LanguageImports = {
 
 .media-compatibility-card__close {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
@@ -1686,7 +1710,7 @@ const languageImports: LanguageImports = {
 }
 
 .media-compatibility-card__body > p {
-  margin: 7px 0 0;
+  margin: 11px 0 0;
   color: rgb(235 242 255 / 68%);
   font-size: 13px;
   line-height: 1.55;
@@ -1744,7 +1768,7 @@ const languageImports: LanguageImports = {
 
 .media-compatibility-action {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 7px;
@@ -1824,25 +1848,17 @@ const languageImports: LanguageImports = {
     bottom: 68px;
     width: calc(100% - 24px);
     max-height: calc(100% - 132px);
-    grid-template-columns: 36px minmax(0, 1fr);
-    gap: 11px;
     padding: 14px;
     border-radius: 16px;
   }
 
-  .media-compatibility-card__icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
+  .media-compatibility-card__actions {
+    align-items: stretch;
   }
+}
 
-  .media-compatibility-card__icon i {
-    font-size: 21px;
-  }
-
-  .media-compatibility-action {
-    min-height: 42px;
-  }
+.media-video-stage--compatibility-open :deep(.vjs-error-display) {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getDirectVideoFailure,
+  getDirectVideoFailureCopy,
   getVideoSourceType,
   getNativeContainerPlayback,
   isDefinitelyUnsupportedVideoCodec,
@@ -11,6 +13,18 @@ import {
 } from "../videoPlayback";
 
 describe("视频播放源策略", () => {
+  it("区分网络、解码与格式错误，网络失败不冒充格式不支持", () => {
+    expect(getDirectVideoFailure(2)).toBe("network");
+    expect(getDirectVideoFailure(3)).toBe("decode");
+    expect(getDirectVideoFailure(4)).toBe("unsupported");
+    expect(getDirectVideoFailure(1)).toBe("unknown");
+    expect(getDirectVideoFailureCopy("network").description).toContain(
+      "不能说明视频格式不受支持"
+    );
+    expect(getDirectVideoFailureCopy("unsupported").title).toBe(
+      "当前浏览器不支持此视频格式"
+    );
+  });
   it("识别需要用户主动选择兼容播放的格式", () => {
     expect(isKnownIncompatibleVideo("/movie/demo.MKV")).toBe(true);
     expect(isKnownIncompatibleVideo("/movie/demo.avi?download=true")).toBe(

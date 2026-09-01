@@ -39,9 +39,11 @@ describe("视频兼容播放依赖契约", () => {
     expect(videoPlayerSource).toContain("durationSeconds");
     expect(videoPlayerSource).toContain('role="progressbar"');
     expect(videoPlayerSource).toContain("compatibilityProgressPercent");
+    expect(videoPlayerSource).toContain("getDirectVideoFailure");
     expect(videoPlayerSource).toContain(
-      "原视频已先尝试浏览器原生 Range 播放；只有浏览器明确不支持时才会处理"
+      "media-video-stage--compatibility-open"
     );
+    expect(videoPlayerSource).toContain("media-compatibility-card__identity");
     expect(videoPlayerSource).toContain(
       'v-if="compatibilityProgressSummary && !compatibilityProgressVisible"'
     );

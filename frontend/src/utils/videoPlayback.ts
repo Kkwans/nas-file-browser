@@ -157,6 +157,54 @@ export function getVideoSourceType(source: string, fallbackPath = "") {
   return VIDEO_MIME_TYPES[extension] ?? "";
 }
 
+export type DirectVideoFailure =
+  | "network"
+  | "decode"
+  | "unsupported"
+  | "unknown";
+
+export function getDirectVideoFailure(
+  errorCode?: number | null
+): DirectVideoFailure {
+  if (errorCode === 2) return "network";
+  if (errorCode === 3) return "decode";
+  if (errorCode === 4) return "unsupported";
+  return "unknown";
+}
+
+export function getDirectVideoFailureCopy(failure: DirectVideoFailure) {
+  switch (failure) {
+    case "network":
+      return {
+        icon: "cloud_off",
+        title: "视频源暂时无法读取",
+        description:
+          "网络连接或视频源响应异常；这不能说明视频格式不受支持。可先重试原视频，或下载后检查文件。",
+      };
+    case "decode":
+      return {
+        icon: "error_outline",
+        title: "当前浏览器无法解码此视频",
+        description:
+          "浏览器已经读取视频源，但无法解码其中的音视频轨道。可启动兼容播放，原文件不会修改。",
+      };
+    case "unsupported":
+      return {
+        icon: "movie_filter",
+        title: "当前浏览器不支持此视频格式",
+        description:
+          "浏览器明确拒绝了当前视频源。可启动兼容播放，兼容文件生成后支持拖动进度，原文件不会修改。",
+      };
+    default:
+      return {
+        icon: "error_outline",
+        title: "原视频播放失败",
+        description:
+          "播放器没有返回可确认的失败原因。可重试原视频、启动兼容播放，或下载后使用本地播放器。",
+      };
+  }
+}
+
 /**
  * The bundled Chromium on some NAS installations deliberately omits the
  * proprietary H.264 decoder.  Video.js then rejects HLS before requesting

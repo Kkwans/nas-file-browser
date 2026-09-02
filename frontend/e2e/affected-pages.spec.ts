@@ -445,7 +445,9 @@ test.describe("affected page browser gate", () => {
     await expect(resizeHandle).toHaveAttribute("aria-valuenow", "256");
 
     await page.getByRole("button", { name: "目录分类", exact: true }).click();
-    await expect(page.getByRole("link", { name: "NAS 根目录" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "NAS 根目录", exact: true })
+    ).toBeVisible();
 
     await page.goto(
       "/analysis?tool=duplicates&paths=%2F%E9%A1%B9%E7%9B%AE%2F%E7%85%A7%E7%89%87"

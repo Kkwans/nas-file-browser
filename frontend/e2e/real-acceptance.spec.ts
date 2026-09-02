@@ -127,11 +127,21 @@ test.describe("NAS File Browser real deployment acceptance", () => {
   }, testInfo: TestInfo) => {
     test.setTimeout(600_000);
     const consoleErrors: string[] = [];
+    const mediaWarnings: string[] = [];
     const pageErrors: string[] = [];
     const failedResponses: string[] = [];
     const measurements: Array<Record<string, unknown>> = [];
     page.on("console", (message) => {
-      if (message.type() === "error") consoleErrors.push(message.text());
+      if (message.type() !== "error") return;
+      const text = message.text();
+      // The NAS fixture currently exposes an H.264/AAC MP4. The bundled
+      // ARM64 Chromium may lack those proprietary decoders and Video.js then
+      // emits CODE:4; the compatibility panel is the expected fallback.
+      if (/VIDEOJS: ERROR: \(CODE:4 MEDIA_ERR_SRC_NOT_SUPPORTED\)/.test(text)) {
+        mediaWarnings.push(text);
+      } else {
+        consoleErrors.push(text);
+      }
     });
     page.on("pageerror", (error) => pageErrors.push(error.message));
     page.on("response", (response) => {
@@ -186,7 +196,7 @@ test.describe("NAS File Browser real deployment acceptance", () => {
     if (admin) {
       await page.getByRole("button", { name: "目录分类", exact: true }).click();
       await expect(
-        page.getByRole("link", { name: "NAS 根目录" })
+        page.getByRole("button", { name: "NAS 根目录", exact: true })
       ).toBeVisible();
     }
 
@@ -240,7 +250,11 @@ test.describe("NAS File Browser real deployment acceptance", () => {
             path: testInfo.outputPath(
               `screenshots/${theme}-${viewport.name}-${target.name}.png`
             ),
-            fullPage: true,
+            // Real NAS data can produce long lists and repeated full-page
+            // captures eventually exhaust Chromium's screenshot surface. A
+            // viewport capture keeps every responsive state inspectable while
+            // the full document geometry is recorded above.
+            fullPage: false,
           });
         }
       }
@@ -275,7 +289,7 @@ test.describe("NAS File Browser real deployment acceptance", () => {
           path: testInfo.outputPath(
             `screenshots/${theme}-${viewport.name}-video.png`
           ),
-          fullPage: true,
+          fullPage: false,
         });
       }
     }
@@ -290,6 +304,7 @@ test.describe("NAS File Browser real deployment acceptance", () => {
       consoleErrors,
       pageErrors,
       failedResponses,
+      mediaWarnings,
       generatedAt: new Date().toISOString(),
     };
     const reportPath = testInfo.outputPath("real-acceptance.json");

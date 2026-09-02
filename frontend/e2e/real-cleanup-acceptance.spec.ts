@@ -15,7 +15,13 @@ function scopedPath(path: string) {
 async function requestJSON<T>(page: Page, path: string, init?: RequestInit) {
   return page.evaluate(
     async ({ path: requestPath, init: requestInit }) => {
-      const response = await fetch(requestPath, requestInit);
+      const headers = new Headers(requestInit?.headers);
+      const token = localStorage.getItem("jwt");
+      if (token) headers.set("X-Auth", token);
+      const response = await fetch(requestPath, {
+        ...requestInit,
+        headers,
+      });
       const body = await response.text();
       let data: unknown = null;
       try {
@@ -67,10 +73,14 @@ async function login(page: Page) {
 async function removeTestDirectory(page: Page, path: string) {
   try {
     const response = await page.evaluate(async (target) => {
+      const headers = new Headers();
+      const token = localStorage.getItem("jwt");
+      if (token) headers.set("X-Auth", token);
       const result = await fetch(
         `/api/resources${encodeURI(target)}?mode=permanent`,
         {
           method: "DELETE",
+          headers,
         }
       );
       return result.status;
@@ -87,8 +97,12 @@ async function removeTestDirectory(page: Page, path: string) {
       entry.originalPath.startsWith(path)
     )) {
       await page.evaluate(async (id) => {
+        const headers = new Headers();
+        const token = localStorage.getItem("jwt");
+        if (token) headers.set("X-Auth", token);
         await fetch(`/api/trash/${encodeURIComponent(id)}`, {
           method: "DELETE",
+          headers,
         });
       }, item.id);
     }
@@ -118,8 +132,12 @@ test.describe("NAS File Browser real duplicate cleanup acceptance", () => {
     );
     try {
       const mkdir = await page.evaluate(async (path) => {
+        const headers = new Headers();
+        const token = localStorage.getItem("jwt");
+        if (token) headers.set("X-Auth", token);
         const response = await fetch(`/api/resources${encodeURI(path)}/`, {
           method: "POST",
+          headers,
         });
         return response.status;
       }, testDirectory);
@@ -129,9 +147,12 @@ test.describe("NAS File Browser real duplicate cleanup acceptance", () => {
         if (index === 1) await page.waitForTimeout(1_100);
         const response = await page.evaluate(
           async ({ path: target, content }) => {
+            const headers = new Headers({ "Content-Type": "text/plain" });
+            const token = localStorage.getItem("jwt");
+            if (token) headers.set("X-Auth", token);
             const result = await fetch(`/api/resources${encodeURI(target)}`, {
               method: "POST",
-              headers: { "Content-Type": "text/plain" },
+              headers,
               body: content,
             });
             return result.status;
@@ -205,8 +226,12 @@ test.describe("NAS File Browser real duplicate cleanup acceptance", () => {
       );
       expect(keeper.status).toBe(200);
       const removed = await page.evaluate(async (path) => {
+        const headers = new Headers();
+        const token = localStorage.getItem("jwt");
+        if (token) headers.set("X-Auth", token);
         const response = await fetch(
-          `/api/resources${encodeURI(path)}?metadata=1`
+          `/api/resources${encodeURI(path)}?metadata=1`,
+          { headers }
         );
         return response.status;
       }, later);

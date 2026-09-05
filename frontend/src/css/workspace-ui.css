@@ -2292,3 +2292,52 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   .header-back-label {
   display: none;
 }
+
+/* 2026-09-05: keep the secondary More menu wide enough for every action.
+ * View/sort controls are the only nested menus that may intentionally shrink;
+ * changing their width must not change the outer action menu's width. */
+@media (min-width: 900px) {
+  header:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions {
+    width: 272px;
+    max-width: min(22rem, calc(100vw - 1rem));
+  }
+
+  header:has(.header-instance) > .header-leading {
+    overflow: visible;
+  }
+
+  header:has(.header-instance) > .header-leading > .header-instance {
+    overflow: hidden;
+  }
+
+  header:has(.header-instance) .header-back {
+    flex: 0 0 auto;
+    overflow: visible;
+    border-radius: 999px;
+  }
+}
+
+@media (max-width: 899px) {
+  header:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions {
+    width: min(17rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+  }
+
+  /* The outer More card is intentionally wide. When a nested view/sort menu
+   * is open, only that card adopts the compact content width. */
+  header:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions:has(.view-mode-dropdown.open) {
+    width: min(11rem, calc(100vw - 1rem));
+  }
+
+  header:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions:has(.sort-dropdown.open) {
+    width: min(15rem, calc(100vw - 1rem));
+  }
+}

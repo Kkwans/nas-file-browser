@@ -52,7 +52,7 @@ describe("activity page UI contract", () => {
 
   it("keeps the task title centered and moves back navigation into the leading group", () => {
     expect(source).toContain('back-placement="leading"');
-    expect(source).toContain('back-label="返回文件"');
+    expect(source).toContain('back-label="返回"');
   });
 
   it("keeps task tabs and mobile task actions at accessible hit sizes", () => {

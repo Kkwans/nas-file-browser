@@ -32,4 +32,16 @@ describe("桌面应用壳层布局契约", () => {
     expect(taskCenter).toContain('back-label="返回"');
     expect(taskCenter).not.toContain('back-label="返回文件"');
   });
+
+  it("搜索框缩短四分之一且折叠无返回动作时保留品牌图标", () => {
+    const css = readSource("css/workspace-ui.css");
+
+    expect(css).toContain("width: min(27rem, 36%) !important;");
+    expect(css).toMatch(
+      /> \.header-leading:not\(:has\(\.header-back--leading\)\)\s*> img\s*\{[^}]*display:\s*block;[^}]*margin-inline:\s*auto;/s
+    );
+    expect(css).toMatch(
+      /> \.header-leading:has\(\.header-back--leading\)\s*> img\s*\{[^}]*display:\s*none;/s
+    );
+  });
 });

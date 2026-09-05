@@ -275,11 +275,12 @@ describe("侧边栏分组交互契约", () => {
     expect(workspaceCss).toContain("#app:has(.sidebar-frame.is-rail)");
     expect(workspaceCss).toContain("border-radius: 0.625rem;");
     expect(sidebarCss).toContain(
-      ".sidebar-frame {\n    top: 0;\n    z-index: auto;"
+      ".sidebar-frame {\n    top: 0;\n    z-index: 1001;"
     );
     expect(sidebarCss).toContain(
-      "padding-top: calc(var(--app-header-height, 56px) + 0.5rem);"
+      "height: calc(100% - var(--app-header-height, 56px));"
     );
+    expect(sidebarCss).toContain("margin-top: var(--app-header-height, 56px);");
   });
 
   it("账户卡片与侧栏内容共用一条边界，折叠按钮不再另起一个孤立方框", () => {

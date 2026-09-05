@@ -58,6 +58,17 @@ describe("桌面侧边栏图标轨契约", () => {
     expect(iconRegistrySource).toContain('from "@lucide/vue"');
   });
 
+  it("折叠轨不在账户入口后绘制孤立分隔线", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const profileStart = sidebarSource.indexOf("sidebar-rail-profile");
+    const systemOptionsStart = sidebarSource.indexOf(
+      'v-for="option in orderedSystemOptions"'
+    );
+    const between = sidebarSource.slice(profileStart, systemOptionsStart);
+
+    expect(between).not.toContain("sidebar-rail-divider");
+  });
+
   it("展开侧栏与图标轨使用稳定的视觉尺寸而不缩小点击区", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
     const sectionHeaderSource = readSource(

@@ -31,8 +31,6 @@
               <AppIcon name="user" :size="22" />
               <span class="sidebar-rail-avatar-dot" aria-hidden="true"></span>
             </button>
-            <div class="sidebar-rail-divider" aria-hidden="true"></div>
-
             <button
               v-for="option in orderedSystemOptions"
               :key="option.id"

@@ -3875,14 +3875,16 @@ nav.sidebar .sidebar-footer-actions > #logout:focus-visible {
 @media (min-width: 900px) {
   .sidebar-frame {
     top: 0;
-    z-index: auto;
-  }
-
-  .sidebar-frame > .sidebar-resize-handle {
     z-index: 1001;
   }
 
+  .sidebar-frame > .sidebar-resize-handle {
+    z-index: 2;
+  }
+
   nav.sidebar {
-    padding-top: calc(var(--app-header-height, 56px) + 0.5rem);
+    height: calc(100% - var(--app-header-height, 56px));
+    margin-top: var(--app-header-height, 56px);
+    padding-top: 0.5rem;
   }
 }

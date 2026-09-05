@@ -211,7 +211,7 @@ function openCurrentAudio() {
   z-index: 1100;
   right: 18px;
   bottom: 18px;
-  left: calc(var(--sidebar-width, 256px) + 18px);
+  left: calc(var(--sidebar-width, 288px) + 18px);
   display: grid;
   min-height: 68px;
   grid-template-columns: minmax(160px, 1fr) auto minmax(220px, 1.5fr) auto auto;

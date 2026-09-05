@@ -232,7 +232,7 @@ describe("侧边栏分组交互契约", () => {
     );
   });
 
-  it("登出图标默认与导航同色，仅在悬停或聚焦时表达危险性", () => {
+  it("图标轨登出保留危险色语义并在悬停或聚焦时强化反馈", () => {
     const cssSource = readSource("css/sidebar.css");
 
     expect(cssSource).toMatch(
@@ -242,8 +242,38 @@ describe("侧边栏分组交互契约", () => {
       /nav\.sidebar \.sidebar-rail-logout:hover,[\s\S]*nav\.sidebar \.sidebar-rail-logout:focus-visible\s*\{[^}]*color:\s*var\(--icon-red, #dc2626\)\s*!important;/s
     );
     expect(cssSource).toMatch(
-      /nav\.sidebar \.sidebar-personalized-stack > #logout > \.app-icon,\s*nav\.sidebar \.sidebar-rail-logout > \.app-icon\s*\{[^}]*color:\s*inherit\s*!important;/s
+      /nav\.sidebar \.sidebar-footer-actions > #logout > \.app-icon,[\s\S]*?nav\.sidebar \.sidebar-rail-logout > \.app-icon\s*\{[^}]*color:\s*var\(--icon-red, #dc2626\) !important;/s
     );
+  });
+
+  it("展开态登出沿用主图标列并以红色图标标识", () => {
+    const cssSource = readSidebarFinalCss();
+
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-footer-actions > #logout\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*var\(--sidebar-primary-icon-column\) minmax\(0, 1fr\);/s
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-footer-actions > #logout > \.app-icon,[\s\S]*?color:\s*var\(--icon-red, #dc2626\) !important;/s
+    );
+    expect(cssSource).toContain("white-space: nowrap;");
+  });
+
+  it("侧栏最小宽度保护菜单标签不换行，顶栏使用同一宽度变量", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const sidebarCss = readSource("css/sidebar.css");
+    const workspaceCss = readSource("css/workspace-ui.css");
+
+    expect(sidebarSource).toContain("const SIDEBAR_MIN_WIDTH = 256;");
+    expect(sidebarSource).toContain("const SIDEBAR_DEFAULT_WIDTH = 288;");
+    expect(sidebarSource).toContain(':aria-valuemin="SIDEBAR_MIN_WIDTH"');
+    expect(sidebarCss).toContain(
+      "width: min(20rem, max(16rem, calc(100vw - 1rem)));"
+    );
+    expect(workspaceCss).toContain(
+      "grid-template-columns: var(--sidebar-width, 288px) minmax(0, 1fr) auto;"
+    );
+    expect(workspaceCss).toContain("#app:has(.sidebar-frame.is-rail)");
+    expect(workspaceCss).toContain("border-radius: 0.625rem;");
   });
 
   it("账户卡片与侧栏内容共用一条边界，折叠按钮不再另起一个孤立方框", () => {

@@ -2199,3 +2199,96 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     min-height: 44px;
   }
 }
+
+/* 2026-09-05: the desktop brand/back area is the same shell column as the
+ * resizable sidebar. This keeps the content edge and the header edge aligned
+ * while giving the back control one consistent rounded hit area. */
+@media (min-width: 900px) {
+  header:has(.header-instance) {
+    grid-template-columns: var(--sidebar-width, 288px) minmax(0, 1fr) auto;
+  }
+
+  header:has(.header-instance) > .header-leading {
+    width: var(--sidebar-width, 288px);
+    min-width: var(--sidebar-width, 288px);
+    flex: 0 0 var(--sidebar-width, 288px);
+    gap: 0.5rem;
+    overflow: hidden;
+    padding-inline: 0.5rem 0.25rem;
+  }
+
+  header:has(.header-instance) > .header-leading > .header-instance {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  header:has(.header-instance) .header-back {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    gap: 0.375rem;
+    color: var(--textSecondary);
+    border: 1px solid transparent;
+    border-radius: 0.625rem;
+    background: transparent;
+    transition:
+      color 140ms ease,
+      background-color 140ms ease,
+      border-color 140ms ease;
+  }
+
+  header:has(.header-instance) .header-back:hover,
+  header:has(.header-instance) .header-back:focus-visible {
+    color: var(--blue, #1677ff);
+    border-color: color-mix(in srgb, var(--blue, #1677ff) 18%, transparent);
+    background: color-mix(in srgb, var(--blue, #1677ff) 8%, transparent);
+  }
+
+  header:has(.header-instance) .header-back--leading {
+    width: auto;
+    max-width: 11rem;
+    flex-basis: auto;
+    margin-inline: auto 0;
+    padding-inline: 0.625rem;
+    border-left-color: transparent;
+  }
+}
+
+/* In the collapsed desktop rail the brand is intentionally absent; the
+ * leading column remains a single back affordance. */
+#app:has(.sidebar-frame.is-rail)
+  header:has(.header-instance)
+  > .header-leading
+  > img,
+#app:has(.sidebar-frame.is-rail)
+  header:has(.header-instance)
+  > .header-leading
+  > .header-instance {
+  display: none;
+}
+
+#app:has(.sidebar-frame.is-rail)
+  header:has(.header-instance)
+  > .header-leading {
+  justify-content: center;
+  padding-inline: 0.25rem;
+}
+
+#app:has(.sidebar-frame.is-rail)
+  header:has(.header-instance)
+  .header-back--leading {
+  width: 44px;
+  max-width: 44px;
+  flex-basis: 44px;
+  margin-inline: 0;
+  padding: 0;
+}
+
+#app:has(.sidebar-frame.is-rail)
+  header:has(.header-instance)
+  .header-back-label {
+  display: none;
+}

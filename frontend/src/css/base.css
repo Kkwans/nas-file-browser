@@ -92,8 +92,8 @@ nav.sidebar .action > * {
 .app-main {
   min-height: 1em;
   margin: 0 1rem 1rem auto;
-  margin-left: var(--sidebar-width, 256px);
-  width: calc(100% - var(--sidebar-width, 256px) - 1rem);
+  margin-left: var(--sidebar-width, 288px);
+  width: calc(100% - var(--sidebar-width, 288px) - 1rem);
   transition:
     margin-left 0.15s ease,
     width 0.15s ease;

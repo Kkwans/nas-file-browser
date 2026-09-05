@@ -987,8 +987,8 @@
       tabindex="0"
       aria-label="调整侧栏宽度"
       aria-orientation="vertical"
-      :aria-valuemin="180"
-      :aria-valuemax="500"
+      :aria-valuemin="SIDEBAR_MIN_WIDTH"
+      :aria-valuemax="SIDEBAR_MAX_WIDTH"
       :aria-valuenow="sidebarWidth"
       title="拖拽调整宽度；方向键微调，双击复位"
       @pointerdown="startResize"
@@ -1121,12 +1121,22 @@ const draggedPreference = ref<{
   id: string;
 } | null>(null);
 const draggedCategoryPath = ref<{ groupId: string; path: string } | null>(null);
+const SIDEBAR_MIN_WIDTH = 256;
+const SIDEBAR_DEFAULT_WIDTH = 288;
+const SIDEBAR_MAX_WIDTH = 500;
 const clampSidebarWidth = (value: number) =>
-  Math.min(500, Math.max(180, Number.isFinite(value) ? value : 256));
-let savedSidebarWidth = 256;
+  Math.min(
+    SIDEBAR_MAX_WIDTH,
+    Math.max(
+      SIDEBAR_MIN_WIDTH,
+      Number.isFinite(value) ? value : SIDEBAR_DEFAULT_WIDTH
+    )
+  );
+let savedSidebarWidth = SIDEBAR_DEFAULT_WIDTH;
 try {
   savedSidebarWidth = Number(
-    localStorage.getItem("nas-file-browser-sidebar-width") || "256"
+    localStorage.getItem("nas-file-browser-sidebar-width") ||
+      String(SIDEBAR_DEFAULT_WIDTH)
   );
 } catch {
   /* Use the default when storage is blocked. */
@@ -1604,7 +1614,7 @@ const cancelResize = () => {
   stopResize();
 };
 const resetSidebarWidth = () => {
-  setSidebarWidth(256);
+  setSidebarWidth(SIDEBAR_DEFAULT_WIDTH);
   persistSidebarWidth();
 };
 const resizeByKeyboard = (event: KeyboardEvent) => {
@@ -1625,9 +1635,9 @@ const resizeByKeyboard = (event: KeyboardEvent) => {
     (event.shiftKey ? 1 : 10);
   setSidebarWidth(
     event.key === "Home"
-      ? 180
+      ? SIDEBAR_MIN_WIDTH
       : event.key === "End"
-        ? 500
+        ? SIDEBAR_MAX_WIDTH
         : sidebarWidth.value + delta
   );
   persistSidebarWidth();

@@ -42,7 +42,7 @@ describe("侧边栏分组交互契约", () => {
     expect(headerSource).toContain("@click=\"$emit('toggle')\"");
   });
 
-  it("收藏夹分组和目录分类保持相同的单行五列布局", () => {
+  it("收藏夹分组保留计数列，目录分类释放计数空间", () => {
     const headerSource = readSource(
       "components/sidebar/SidebarGroupHeader.vue"
     );
@@ -54,6 +54,9 @@ describe("侧边栏分组交互契约", () => {
     );
     expect(refinementCssSource).not.toContain(".sidebar-group-primary");
     expect(refinementCssSource).not.toContain(".sidebar-group-tools");
+    expect(refinementCssSource).toMatch(
+      /\.category-group-header\.sidebar-level-two\s*\{[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) 34px 24px;/s
+    );
   });
 
   it("拖拽区位于滚动容器外并支持指针捕获和键盘", () => {
@@ -88,6 +91,26 @@ describe("侧边栏分组交互契约", () => {
     expect(sidebarSource).toContain("sidebar-collapse-label");
     expect(cssSource).toContain(".sidebar-rail-footer");
     expect(cssSource).toContain(".sidebar-footer-actions");
+  });
+
+  it("折叠态保留帮助入口并使用完整退出登录文案", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+
+    expect(sidebarSource).toContain("sidebar-rail-help");
+    expect(sidebarSource).toContain('data-tooltip="帮助"');
+    expect(sidebarSource).toContain("退出登录");
+    expect(sidebarSource).not.toContain('data-tooltip="登出"');
+  });
+
+  it("目录分类隐藏数量徽标以给单行名称留出空间", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const categoryStart = sidebarSource.indexOf(
+      'class="category-group-header"'
+    );
+    const categoryEnd = sidebarSource.indexOf("/>", categoryStart);
+    const categoryHeader = sidebarSource.slice(categoryStart, categoryEnd);
+
+    expect(categoryHeader).not.toContain(':count="group.paths.length"');
   });
 
   it("侧边栏排序提供统一的前后落点提示", () => {

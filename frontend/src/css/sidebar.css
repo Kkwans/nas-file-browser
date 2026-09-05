@@ -3834,6 +3834,17 @@ nav.sidebar .sidebar-footer-actions > #logout > span {
   white-space: nowrap;
 }
 
+nav.sidebar .category-group-header.sidebar-level-two {
+  grid-template-columns: 26px minmax(0, 1fr) 34px 24px;
+}
+
+nav.sidebar .category-group-header .group-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 nav.sidebar .sidebar-footer-actions > #logout {
   display: grid;
   grid-template-columns: var(--sidebar-primary-icon-column) minmax(0, 1fr);

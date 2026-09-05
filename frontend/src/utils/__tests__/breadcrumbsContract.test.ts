@@ -10,7 +10,7 @@ const readSource = (relativePath: string) =>
   );
 
 describe("文件面包屑根入口契约", () => {
-  it("文件页显示与权限对应的 NAS 根入口名称", () => {
+  it("文件页显示与权限对应的根入口名称", () => {
     const breadcrumbsSource = readSource("components/Breadcrumbs.vue");
     const filesSource = readSource("views/Files.vue");
 
@@ -18,7 +18,8 @@ describe("文件面包屑根入口契约", () => {
     expect(breadcrumbsSource).toContain("breadcrumb-root-label");
     expect(filesSource).toContain(':root-label="rootLabel"');
     expect(filesSource).toContain(
-      'user.value?.perm?.admin ? "NAS 根目录" : "我的文件"'
+      'user.value?.perm?.admin ? "根目录" : "我的文件"'
     );
+    expect(filesSource).not.toContain("NAS 根目录");
   });
 });

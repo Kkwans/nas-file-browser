@@ -114,6 +114,17 @@
             <div class="sidebar-rail-footer">
               <button
                 type="button"
+                class="sidebar-rail-action sidebar-rail-help"
+                data-tooltip="帮助"
+                title="帮助"
+                aria-label="帮助"
+                @click="help"
+              >
+                <AppIcon name="info" :size="21" />
+                <span class="sidebar-rail-action-label">帮助</span>
+              </button>
+              <button
+                type="button"
                 class="sidebar-rail-action sidebar-rail-expand"
                 data-tooltip="展开侧边栏"
                 title="展开侧边栏"
@@ -127,13 +138,13 @@
                 v-if="canLogout"
                 type="button"
                 class="sidebar-rail-action sidebar-rail-logout"
-                data-tooltip="登出"
-                title="登出"
-                aria-label="登出"
+                data-tooltip="退出登录"
+                title="退出登录"
+                aria-label="退出登录"
                 @click="logout"
               >
                 <AppIcon name="logout" :size="21" />
-                <span class="sidebar-rail-action-label">登出</span>
+                <span class="sidebar-rail-action-label">退出登录</span>
               </button>
             </div>
           </div>
@@ -230,11 +241,10 @@
                       class="sidebar-rail-popover-item sidebar-root-link"
                       @click="toRoot"
                     >
-                      <AppIcon name="home" :size="18" /><span>NAS 根目录</span>
+                      <AppIcon name="home" :size="18" /><span>根目录</span>
                     </button>
                     <div v-else class="sidebar-rail-popover-group-title">
-                      <span>{{ group.name }}</span
-                      ><small>{{ group.paths.length }}</small>
+                      <span>{{ group.name }}</span>
                     </div>
                     <button
                       v-for="path in orderedCategoryPaths(group)"
@@ -825,14 +835,13 @@
                   @dragend="clearSidebarDrag"
                   @click="toRoot"
                 >
-                  <AppIcon name="home" :size="18" /><span>NAS 根目录</span>
+                  <AppIcon name="home" :size="18" /><span>根目录</span>
                 </button>
                 <SidebarGroupHeader
                   v-else
                   class="category-group-header"
                   :icon="group.icon"
                   :label="group.name"
-                  :count="group.paths.length"
                   :expanded="Boolean(expandedCategories[group.id])"
                   :color="group.color"
                   draggable="true"
@@ -931,11 +940,11 @@
               @click="logout"
               class="action sidebar-command"
               id="logout"
-              aria-label="退出"
-              title="登出"
+              aria-label="退出登录"
+              title="退出登录"
             >
               <AppIcon name="logout" :size="20" />
-              <span>登出</span>
+              <span>退出登录</span>
             </button>
           </div>
         </div>
@@ -1244,7 +1253,7 @@ const categoryGroups = computed(() => {
 
   const root: CategoryGroup = {
     id: "nas-root",
-    name: "NAS 根目录",
+    name: "根目录",
     icon: "home",
     color: "var(--blue)",
     paths: [],

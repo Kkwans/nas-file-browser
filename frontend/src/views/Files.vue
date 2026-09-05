@@ -69,7 +69,7 @@ const { reload } = storeToRefs(fileStore);
 const { user } = storeToRefs(authStore);
 
 const rootLabel = computed(() =>
-  user.value?.perm?.admin ? "NAS 根目录" : "我的文件"
+  user.value?.perm?.admin ? "根目录" : "我的文件"
 );
 
 const route = useRoute();

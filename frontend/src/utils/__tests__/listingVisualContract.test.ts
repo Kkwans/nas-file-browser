@@ -39,12 +39,22 @@ describe("文件列表视觉契约", () => {
     expect(main).not.toContain("document.fonts.ready");
   });
 
-  it("详细网格把条目操作固定在卡片底部，和标题及时间共享基线", () => {
+  it("详细网格把操作区收进卡片内部并保留完整圆角", () => {
     const workspaceStyles = readWorkspace();
+    const insetControls = workspaceStyles
+      .split("Detailed-grid actions are an inset control surface")[1]
+      ?.match(
+        /#listing\.mosaic \.item > \.item-controls\s*\{([\s\S]*?)\}/
+      )?.[1];
 
-    expect(workspaceStyles).toMatch(
-      /#listing\.mosaic \.item > \.item-controls\s*\{[^}]*top:\s*auto;[^}]*right:\s*12px;[^}]*bottom:\s*10px;[^}]*left:\s*12px;[^}]*width:\s*auto;[^}]*border-top:\s*1px/s
-    );
+    expect(insetControls).toBeTruthy();
+    expect(insetControls).toContain("top: auto;");
+    expect(insetControls).toContain("right: 12px;");
+    expect(insetControls).toContain("bottom: 10px;");
+    expect(insetControls).toContain("left: 12px;");
+    expect(insetControls).toContain("width: auto;");
+    expect(insetControls).toContain("border: 1px solid");
+    expect(insetControls).toContain("border-radius: 10px;");
     expect(workspaceStyles).toMatch(
       /#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/s
     );
@@ -64,14 +74,14 @@ describe("文件列表视觉契约", () => {
     );
   });
 
-  it("详细网格的操作按钮在底部操作带内居中，避免图标贴在右侧形成空洞", () => {
+  it("详细网格操作按钮居中且不再使用灰色底部条", () => {
     const workspaceStyles = readWorkspace();
 
     expect(workspaceStyles).toMatch(
-      /@media \(min-width: 900px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?background:\s*color-mix\(/s
+      /Detailed-grid actions are an inset control surface[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?background:\s*color-mix\(/s
     );
-    expect(workspaceStyles).toMatch(
-      /@media \(max-width: 899px\)[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;/s
+    expect(workspaceStyles).not.toMatch(
+      /Detailed-grid actions are an inset control surface[\s\S]*?border-radius:\s*0 0/s
     );
   });
 });

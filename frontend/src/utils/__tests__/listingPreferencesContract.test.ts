@@ -51,15 +51,18 @@ describe("listing preference integration contract", () => {
     );
   });
 
-  it("keeps detailed-grid actions on one stable top-right alignment", () => {
-    const controls = workspaceStyles.match(
-      /#listing\.mosaic \.item > \.item-controls\s*\{([\s\S]*?)\}/
-    )?.[1];
+  it("keeps detailed-grid actions on one stable inset bottom alignment", () => {
+    const controls = workspaceStyles
+      .split("Detailed-grid actions are an inset control surface")[1]
+      ?.match(
+        /#listing\.mosaic \.item > \.item-controls\s*\{([\s\S]*?)\}/
+      )?.[1];
     expect(controls).toBeTruthy();
-    expect(controls).toContain("top: 8px;");
-    expect(controls).toContain("right: 8px;");
-    expect(controls).toContain("bottom: auto;");
-    expect(controls).toContain("left: auto;");
+    expect(controls).toContain("top: auto;");
+    expect(controls).toContain("right: 12px;");
+    expect(controls).toContain("bottom: 10px;");
+    expect(controls).toContain("left: 12px;");
     expect(controls).toContain("width: auto;");
+    expect(controls).toContain("border-radius: 10px;");
   });
 });

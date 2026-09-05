@@ -2461,3 +2461,42 @@ header:has(.header-instance)
 .view-mode-dropdown .dropdown-item[aria-pressed="true"] > .app-icon {
   color: var(--blue, #1677ff);
 }
+
+/* Detailed-grid actions are an inset control surface, not a card footer.
+ * Keeping space on every side preserves all four corners and avoids the flat
+ * grey slab that visually merged with the card edge. */
+#listing.mosaic .item > .item-controls {
+  top: auto;
+  right: 12px;
+  bottom: 10px;
+  left: 12px;
+  width: auto;
+  justify-content: center;
+  padding: 3px 6px;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--listing-accent, #1677ff) 12%,
+      var(--listing-border, #e2e7ed)
+    );
+  border-radius: 10px;
+  background: color-mix(
+    in srgb,
+    var(--listing-accent, #1677ff) 3%,
+    var(--listing-surface, #fff)
+  );
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#listing.mosaic .item:hover > .item-controls,
+#listing.mosaic .item:focus-within > .item-controls {
+  border-color: color-mix(
+    in srgb,
+    var(--listing-accent, #1677ff) 28%,
+    var(--listing-border, #e2e7ed)
+  );
+  background: var(--listing-surface, #fff);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+}

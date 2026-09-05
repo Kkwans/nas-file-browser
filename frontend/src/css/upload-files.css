@@ -2,21 +2,22 @@
   left: auto;
   top: auto;
   margin: 0;
-  right: 0.5rem;
-  bottom: 0.5rem;
-  width: min(36rem, calc(100vw - 1rem));
+  right: 0.75rem;
+  bottom: 0.75rem;
+  width: min(27rem, calc(100vw - 1.5rem));
   max-height: min(32rem, calc(100dvh - 2rem));
   overflow: hidden;
-  border: 1px solid var(--divider);
-  border-radius: 0.875rem;
-  box-shadow: 0 1rem 3rem rgba(15, 23, 42, 0.2);
+  border: 1px solid color-mix(in srgb, var(--divider) 88%, transparent);
+  border-radius: 1rem;
+  background: var(--surfacePrimary, #fff);
+  box-shadow: 0 1.125rem 3.5rem rgba(15, 23, 42, 0.18);
   transform: none !important;
   animation: none !important;
   z-index: 1001;
 }
 
 .upload-files .file {
-  margin-bottom: 8px;
+  margin-bottom: 0.625rem;
 }
 
 .upload-files .file .file-name {
@@ -40,14 +41,14 @@
 }
 
 .upload-files .file .file-progress {
-  margin-top: 2px;
+  margin-top: 0.375rem;
   width: 100%;
   height: 5px;
 }
 
 .upload-files .file .file-progress div {
   height: 100%;
-  background-color: #40c4ff;
+  background-color: var(--blue, #1677ff);
   width: 0;
   transition: 0.2s ease width;
   border-radius: 10px;
@@ -55,21 +56,31 @@
 
 .upload-files.closed .card-content {
   display: none;
-  padding: 0em 1em 1em 1em;
 }
 
 .upload-files .card .card-title {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--divider) 72%, transparent);
+  gap: 0.625rem;
+  padding: 0.875rem 0.875rem 0.625rem;
+  border-bottom: 0;
+}
+
+.upload-files .upload-heading-icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+  place-items: center;
+  border-radius: 0.6875rem;
+  color: var(--blue, #1677ff);
+  background: color-mix(in srgb, var(--blue, #1677ff) 11%, transparent);
 }
 
 .upload-files .card .upload-title {
   flex: 1 1 auto;
-  min-width: 7rem;
+  min-width: 0;
   margin: 0;
   font-size: 1rem;
   line-height: 1.3;
@@ -77,13 +88,13 @@
 }
 
 .upload-files .upload-title-main {
-  display: block;
+  display: inline;
   color: var(--textPrimary, #1e293b);
 }
 
 .upload-files .upload-count {
-  display: block;
-  margin-top: 0.15rem;
+  display: inline;
+  margin-left: 0.5rem;
   color: var(--textSecondary, #64748b);
   font-size: 0.78rem;
   font-weight: 500;
@@ -97,19 +108,49 @@
   border-radius: 0.65rem;
 }
 
-.upload-files .card-title > .action:first-of-type {
+.upload-files .card-title > .upload-abort {
   color: var(--danger, #c62828);
+}
+
+.upload-files .upload-summary {
+  padding: 0 0.875rem 0.875rem;
+}
+
+.upload-files .upload-summary-topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--textSecondary, #64748b);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.upload-files .upload-summary-topline strong {
+  color: var(--textPrimary, #1e293b);
+  font-size: 1rem;
+}
+
+.upload-files .upload-summary-progress {
+  height: 0.4375rem;
+  margin-top: 0.4375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surfaceSecondary, #edf2f7);
+}
+
+.upload-files .upload-summary-progress > div {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue, #1677ff);
+  transition: width 220ms ease;
 }
 
 .upload-files .card-content {
   max-height: min(25rem, calc(100dvh - 9rem));
   overflow-y: auto;
-  padding: 0.85rem 1rem 1rem;
-}
-
-.upload-files.closed .card-title {
-  font-size: 0.7em;
-  padding: 0.5em 1em;
+  padding: 0.75rem 0.875rem 0.875rem;
+  border-top: 1px solid color-mix(in srgb, var(--divider) 72%, transparent);
 }
 
 @media (max-width: 450px) {
@@ -124,7 +165,7 @@
   }
 
   .upload-files .card .card-title {
-    gap: 0.45rem;
+    gap: 0.375rem;
     padding-inline: 0.75rem;
   }
 

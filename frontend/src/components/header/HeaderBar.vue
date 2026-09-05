@@ -19,6 +19,15 @@
           {{ authStore.instanceHostname }}
         </span>
       </div>
+      <IconButton
+        v-if="title && backPlacement === 'leading'"
+        class="header-back header-back--leading"
+        icon="arrow-left"
+        :label="backLabel"
+        @click="goBack"
+      >
+        <span class="header-back-label">{{ backLabel }}</span>
+      </IconButton>
     </div>
 
     <div
@@ -26,10 +35,10 @@
       :class="{ 'header-center--page': Boolean(title) }"
     >
       <IconButton
-        v-if="title"
+        v-if="title && backPlacement !== 'leading'"
         class="header-back"
         icon="arrow-left"
-        label="返回上一页"
+        :label="backLabel"
         @click="goBack"
       />
       <PageTitle v-if="title" :title="title" :icon="titleIcon || 'info'" />
@@ -105,13 +114,21 @@ import { useNavigationStore } from "@/stores/navigation";
 import type { AppIconName } from "@/components/ui/iconRegistry";
 import { computed, onMounted, onUnmounted, ref, useSlots, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-defineProps<{
-  showLogo?: boolean;
-  showMenu?: boolean;
-  showTaskCenter?: boolean;
-  title?: string;
-  titleIcon?: AppIconName;
-}>();
+withDefaults(
+  defineProps<{
+    showLogo?: boolean;
+    showMenu?: boolean;
+    showTaskCenter?: boolean;
+    title?: string;
+    titleIcon?: AppIconName;
+    backPlacement?: "center" | "leading";
+    backLabel?: string;
+  }>(),
+  {
+    backPlacement: "center",
+    backLabel: "返回上一页",
+  }
+);
 
 const layoutStore = useLayoutStore();
 const authStore = useAuthStore();

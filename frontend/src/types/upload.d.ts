@@ -1,4 +1,5 @@
 type Upload = {
+  transferId: string;
   path: string;
   name: string;
   file: File | null;
@@ -6,8 +7,11 @@ type Upload = {
   overwrite: boolean;
   totalBytes: number;
   sentBytes: number;
+  createdAt: number;
+  speedBytesPerSecond: number;
   rawProgress: {
     sentBytes: number;
+    sampledAt: number;
   };
 };
 

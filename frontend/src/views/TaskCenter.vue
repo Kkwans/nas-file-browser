@@ -1,6 +1,13 @@
 <template>
   <div class="task-center-page activity-page">
-    <header-bar show-menu show-logo title="任务中心" title-icon="tasks">
+    <header-bar
+      show-menu
+      show-logo
+      title="任务中心"
+      title-icon="tasks"
+      back-placement="leading"
+      back-label="返回文件"
+    >
       <template #actions>
         <action
           app-icon="refresh"
@@ -197,7 +204,7 @@
         <div class="task-center-panel-heading">
           <div>
             <h2>{{ activeTab === "upload" ? "上传记录" : "下载记录" }}</h2>
-            <p>记录保存在服务器端；下载完成表示服务端已发送完响应字节。</p>
+            <p>上传和下载进度会在传输期间实时更新。</p>
           </div>
         </div>
         <div
@@ -254,16 +261,31 @@
               </p>
               <div
                 v-if="isTransferActive(item) && item.bytesTotal"
-                class="task-center-progress"
+                class="task-center-transfer-progress"
               >
-                <progress
-                  :value="item.bytesTransferred"
-                  :max="item.bytesTotal"
+                <div class="task-center-progress-summary">
+                  <span>{{
+                    byteProgress(item.bytesTransferred, item.bytesTotal)
+                  }}</span>
+                  <strong>{{ transferPercent(item) }}%</strong>
+                </div>
+                <div
+                  class="task-center-progress-track"
+                  role="progressbar"
                   :aria-label="`${item.name}进度`"
-                ></progress>
-                <span>{{
-                  byteProgress(item.bytesTransferred, item.bytesTotal)
-                }}</span>
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  :aria-valuenow="transferPercent(item)"
+                >
+                  <span :style="{ width: `${transferPercent(item)}%` }"></span>
+                </div>
+                <div
+                  v-if="item.speedBytesPerSecond !== undefined"
+                  class="task-center-progress-metrics"
+                >
+                  <span>速度 {{ transferSpeed(item) }}</span>
+                  <span>预计剩余 {{ transferEta(item) }}</span>
+                </div>
               </div>
               <p v-else-if="item.error" class="task-center-error">
                 {{ item.error }}
@@ -363,6 +385,7 @@ import type {
 import { useTasksStore } from "@/stores/tasks";
 import { useHistoryStore } from "@/stores/history";
 import { useTransfersStore } from "@/stores/transfers";
+import { useUploadStore } from "@/stores/upload";
 import {
   formatTaskBytes,
   getTaskProgress,
@@ -371,12 +394,17 @@ import {
 
 type TaskCenterTab = "download" | "upload" | "file" | "background" | "history";
 type TaskFilter = "all" | "active" | "attention" | "completed";
+type DisplayTransfer = TransferItem & {
+  speedBytesPerSecond?: number;
+  etaSeconds?: number;
+};
 
 const route = useRoute();
 const router = useRouter();
 const tasksStore = useTasksStore();
 const historyStore = useHistoryStore();
 const transfersStore = useTransfersStore();
+const uploadStore = useUploadStore();
 const activeTab = ref<TaskCenterTab>(parseTab(route.query.tab));
 const taskFilter = ref<TaskFilter>(parseTaskFilter(route.query.status));
 const busyIds = reactive(new Set<string>());
@@ -392,7 +420,12 @@ const tabs = computed(() => [
     id: "upload" as const,
     label: "上传",
     icon: "upload" as const,
-    count: transfersStore.uploads.filter(isTransferActive).length,
+    count: new Set([
+      ...transfersStore.uploads.filter(isTransferActive).map((item) => item.id),
+      ...Array.from(uploadStore.activeUploads).map(
+        (upload) => upload.transferId
+      ),
+    ]).size,
   },
   {
     id: "file" as const,
@@ -414,11 +447,54 @@ const tabs = computed(() => [
   },
 ]);
 
-const activeTransfers = computed(() =>
-  activeTab.value === "upload"
-    ? transfersStore.uploads
-    : transfersStore.downloads
-);
+const activeTransfers = computed<DisplayTransfer[]>(() => {
+  if (activeTab.value !== "upload") return transfersStore.downloads;
+
+  const localUploads = new Map(
+    Array.from(uploadStore.activeUploads).map((upload) => [
+      upload.transferId,
+      upload,
+    ])
+  );
+  const merged = transfersStore.uploads.map<DisplayTransfer>((item) => {
+    const local = localUploads.get(item.id);
+    if (!local) return item;
+    localUploads.delete(item.id);
+    return {
+      ...item,
+      status: "running",
+      bytesTotal: local.totalBytes,
+      bytesTransferred: local.sentBytes,
+      speedBytesPerSecond: local.speedBytesPerSecond,
+      etaSeconds:
+        local.speedBytesPerSecond > 0
+          ? Math.max(0, local.totalBytes - local.sentBytes) /
+            local.speedBytesPerSecond
+          : Infinity,
+    };
+  });
+
+  for (const upload of localUploads.values()) {
+    merged.unshift({
+      id: upload.transferId,
+      kind: "upload",
+      status: "running",
+      name: upload.name,
+      target: upload.path,
+      bytesTotal: upload.totalBytes,
+      bytesTransferred: upload.sentBytes,
+      createdAt: upload.createdAt,
+      speedBytesPerSecond: upload.speedBytesPerSecond,
+      etaSeconds:
+        upload.speedBytesPerSecond > 0
+          ? Math.max(0, upload.totalBytes - upload.sentBytes) /
+            upload.speedBytesPerSecond
+          : Infinity,
+    });
+  }
+
+  return merged.sort((left, right) => right.createdAt - left.createdAt);
+});
 const loadingCurrent = computed(() => {
   if (activeTab.value === "file" || activeTab.value === "background") {
     return tasksStore.loading;
@@ -593,7 +669,7 @@ function transferStatusLabel(status: TransferStatus) {
     {
       queued: "排队中",
       running: "传输中",
-      completed: "服务端已完成",
+      completed: "已完成",
       failed: "失败",
       canceled: "已取消",
       interrupted: "已中断",
@@ -643,6 +719,33 @@ function taskTime(timestamp: number) {
 function byteProgress(value: number, total?: number) {
   if (!total) return `${value} B`;
   return `${formatTaskBytes(value)} / ${formatTaskBytes(total)}`;
+}
+
+function transferPercent(item: DisplayTransfer) {
+  if (!item.bytesTotal) return 0;
+  return Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round((item.bytesTransferred / item.bytesTotal) * 1000) / 10
+    )
+  );
+}
+
+function transferSpeed(item: DisplayTransfer) {
+  return `${formatTaskBytes(Math.round(item.speedBytesPerSecond ?? 0))}/秒`;
+}
+
+function transferEta(item: DisplayTransfer) {
+  const seconds = item.etaSeconds;
+  if (seconds === undefined || !Number.isFinite(seconds)) return "--:--:--";
+  const rounded = Math.max(0, Math.round(seconds));
+  const hours = Math.floor(rounded / 3600);
+  const minutes = Math.floor((rounded % 3600) / 60);
+  const remainder = rounded % 60;
+  return [hours, minutes, remainder]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
 }
 
 function taskProgress(task: TaskItem): TaskProgress {

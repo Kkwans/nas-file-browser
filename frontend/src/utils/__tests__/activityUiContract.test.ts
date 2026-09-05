@@ -42,6 +42,19 @@ describe("activity page UI contract", () => {
     expect(source).toContain("item.bytesTransferred");
   });
 
+  it("merges the current browser upload queue into live transfer rows", () => {
+    expect(source).toContain("useUploadStore");
+    expect(source).toContain("upload.transferId");
+    expect(source).toContain("speedBytesPerSecond: local.speedBytesPerSecond");
+    expect(source).toContain("task-center-progress-track");
+    expect(source).not.toContain('completed: "服务端已完成"');
+  });
+
+  it("keeps the task title centered and moves back navigation into the leading group", () => {
+    expect(source).toContain('back-placement="leading"');
+    expect(source).toContain('back-label="返回文件"');
+  });
+
   it("keeps task tabs and mobile task actions at accessible hit sizes", () => {
     expect(taskCenterCss).toMatch(
       /\.task-center-tabs button\s*\{[\s\S]*?min-height:\s*44px;/

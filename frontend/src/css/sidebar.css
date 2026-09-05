@@ -35,7 +35,7 @@
 @media (max-width: 899px) {
   .sidebar-frame {
     top: 0;
-    width: min(20rem, max(16rem, calc(100vw - 1rem)));
+    width: min(20rem, max(15rem, calc(100vw - 1rem)));
     z-index: 99999;
     transform: translateX(-100%);
     visibility: hidden;
@@ -3866,4 +3866,23 @@ nav.sidebar .sidebar-footer-actions > #logout:focus-visible {
   color: var(--icon-red, #dc2626);
   border-color: color-mix(in srgb, var(--icon-red, #dc2626) 22%, transparent);
   background: color-mix(in srgb, var(--icon-red, #dc2626) 7%, transparent);
+}
+
+/* Keep the resizable sidebar boundary continuous through the fixed header.
+ * The header remains the visible top shell; the nav starts below it so its
+ * content is never hidden underneath the header. Only the resize hit area is
+ * allowed to paint above the header while it is being used. */
+@media (min-width: 900px) {
+  .sidebar-frame {
+    top: 0;
+    z-index: auto;
+  }
+
+  .sidebar-frame > .sidebar-resize-handle {
+    z-index: 1001;
+  }
+
+  nav.sidebar {
+    padding-top: calc(var(--app-header-height, 56px) + 0.5rem);
+  }
 }

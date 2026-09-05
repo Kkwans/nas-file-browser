@@ -1121,7 +1121,7 @@ const draggedPreference = ref<{
   id: string;
 } | null>(null);
 const draggedCategoryPath = ref<{ groupId: string; path: string } | null>(null);
-const SIDEBAR_MIN_WIDTH = 256;
+const SIDEBAR_MIN_WIDTH = 240;
 const SIDEBAR_DEFAULT_WIDTH = 288;
 const SIDEBAR_MAX_WIDTH = 500;
 const clampSidebarWidth = (value: number) =>

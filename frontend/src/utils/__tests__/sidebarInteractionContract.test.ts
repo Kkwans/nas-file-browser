@@ -263,17 +263,23 @@ describe("侧边栏分组交互契约", () => {
     const sidebarCss = readSource("css/sidebar.css");
     const workspaceCss = readSource("css/workspace-ui.css");
 
-    expect(sidebarSource).toContain("const SIDEBAR_MIN_WIDTH = 256;");
+    expect(sidebarSource).toContain("const SIDEBAR_MIN_WIDTH = 240;");
     expect(sidebarSource).toContain("const SIDEBAR_DEFAULT_WIDTH = 288;");
     expect(sidebarSource).toContain(':aria-valuemin="SIDEBAR_MIN_WIDTH"');
     expect(sidebarCss).toContain(
-      "width: min(20rem, max(16rem, calc(100vw - 1rem)));"
+      "width: min(20rem, max(15rem, calc(100vw - 1rem)));"
     );
     expect(workspaceCss).toContain(
       "grid-template-columns: var(--sidebar-width, 288px) minmax(0, 1fr) auto;"
     );
     expect(workspaceCss).toContain("#app:has(.sidebar-frame.is-rail)");
     expect(workspaceCss).toContain("border-radius: 0.625rem;");
+    expect(sidebarCss).toContain(
+      ".sidebar-frame {\n    top: 0;\n    z-index: auto;"
+    );
+    expect(sidebarCss).toContain(
+      "padding-top: calc(var(--app-header-height, 56px) + 0.5rem);"
+    );
   });
 
   it("账户卡片与侧栏内容共用一条边界，折叠按钮不再另起一个孤立方框", () => {

@@ -2473,9 +2473,9 @@ header:has(.header-instance)
   color: var(--blue, #1677ff);
 }
 
-/* Detailed-grid actions are an inset control surface, not a card footer.
- * Keeping space on every side preserves all four corners and avoids the flat
- * grey slab that visually merged with the card edge. */
+/* Detailed-grid actions stay as bare icons at rest. Hover and keyboard focus
+ * reveal the inset control surface without turning every file card into a
+ * stack of competing panels. */
 #listing.mosaic .item > .item-controls {
   top: auto;
   right: 12px;
@@ -2484,19 +2484,10 @@ header:has(.header-instance)
   width: auto;
   justify-content: center;
   padding: 3px 6px;
-  border: 1px solid
-    color-mix(
-      in srgb,
-      var(--listing-accent, #1677ff) 12%,
-      var(--listing-border, #e2e7ed)
-    );
+  border: 1px solid transparent;
   border-radius: 10px;
-  background: color-mix(
-    in srgb,
-    var(--listing-accent, #1677ff) 3%,
-    var(--listing-surface, #fff)
-  );
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  background: transparent;
+  box-shadow: none;
   opacity: 1;
   pointer-events: auto;
 }
@@ -2508,6 +2499,10 @@ header:has(.header-instance)
     var(--listing-accent, #1677ff) 28%,
     var(--listing-border, #e2e7ed)
   );
-  background: var(--listing-surface, #fff);
+  background: color-mix(
+    in srgb,
+    var(--listing-surface, #fff) 96%,
+    transparent
+  );
   box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
 }

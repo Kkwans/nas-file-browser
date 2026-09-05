@@ -42,7 +42,7 @@ describe("文件列表视觉契约", () => {
   it("详细网格把操作区收进卡片内部并保留完整圆角", () => {
     const workspaceStyles = readWorkspace();
     const insetControls = workspaceStyles
-      .split("Detailed-grid actions are an inset control surface")[1]
+      .split("Detailed-grid actions stay as bare icons at rest")[1]
       ?.match(
         /#listing\.mosaic \.item > \.item-controls\s*\{([\s\S]*?)\}/
       )?.[1];
@@ -53,8 +53,10 @@ describe("文件列表视觉契约", () => {
     expect(insetControls).toContain("bottom: 10px;");
     expect(insetControls).toContain("left: 12px;");
     expect(insetControls).toContain("width: auto;");
-    expect(insetControls).toContain("border: 1px solid");
+    expect(insetControls).toContain("border: 1px solid transparent;");
     expect(insetControls).toContain("border-radius: 10px;");
+    expect(insetControls).toContain("background: transparent;");
+    expect(insetControls).toContain("box-shadow: none;");
     expect(workspaceStyles).toMatch(
       /#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/s
     );
@@ -74,11 +76,14 @@ describe("文件列表视觉契约", () => {
     );
   });
 
-  it("详细网格操作按钮居中且不再使用灰色底部条", () => {
+  it("详细网格默认展示裸图标，仅在悬停或聚焦时展示操作卡片", () => {
     const workspaceStyles = readWorkspace();
 
     expect(workspaceStyles).toMatch(
-      /Detailed-grid actions are an inset control surface[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?background:\s*color-mix\(/s
+      /Detailed-grid actions stay as bare icons at rest[\s\S]*?#listing\.mosaic \.item > \.item-controls\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?background:\s*transparent;/s
+    );
+    expect(workspaceStyles).toMatch(
+      /#listing\.mosaic \.item:hover > \.item-controls,[\s\S]*?#listing\.mosaic \.item:focus-within > \.item-controls\s*\{[\s\S]*?background:\s*color-mix\(/s
     );
     expect(workspaceStyles).not.toMatch(
       /Detailed-grid actions are an inset control surface[\s\S]*?border-radius:\s*0 0/s

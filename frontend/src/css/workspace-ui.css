@@ -2041,12 +2041,16 @@ header:has(.header-instance) > .header-trailing > .header-primary-actions {
   border-right: 1px solid var(--divider, #e5e7eb);
 }
 
-header:has(.header-instance) > .header-trailing > #dropdown {
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0.75rem;
   display: flex;
-  width: min(18rem, calc(100vw - 1rem));
+  width: max-content;
+  min-width: 0;
+  max-width: min(22rem, calc(100vw - 1rem));
   max-height: min(34rem, calc(100dvh - 5rem));
   flex-direction: column;
   gap: 0.125rem;
@@ -2070,12 +2074,32 @@ header:has(.header-instance) > .header-trailing > #dropdown.active {
   transform: translateY(0) scale(1);
 }
 
-header:has(.header-instance) > .header-trailing > #dropdown > div,
-header:has(.header-instance) > .header-trailing > #dropdown > .action {
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions
+  > div,
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions
+  > .action {
   width: 100%;
 }
 
-header:has(.header-instance) > .header-trailing > #dropdown .action {
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions
+  .action,
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions
+  .dropdown-item {
+  white-space: nowrap;
+}
+
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions
+  .action {
   display: flex;
   min-height: 2.5rem;
   align-items: center;
@@ -2084,7 +2108,10 @@ header:has(.header-instance) > .header-trailing > #dropdown .action {
   border-radius: 0.5rem;
 }
 
-header:has(.header-instance) > .header-trailing > #dropdown .action-label {
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions
+  .action-label {
   display: inline;
   padding-left: 0.5rem;
   color: inherit;

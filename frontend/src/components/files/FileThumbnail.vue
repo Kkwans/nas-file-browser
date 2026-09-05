@@ -9,6 +9,7 @@
       v-if="displaySource"
       ref="thumbnailImage"
       :src="displaySource"
+      :class="{ 'thumbnail-image--loading': status === 'generating' }"
       alt=""
       width="256"
       height="256"

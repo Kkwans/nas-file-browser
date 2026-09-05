@@ -87,5 +87,16 @@ describe("文件工具栏图标契约", () => {
     expect(workspaceCss).toMatch(
       /@media \(max-width: 899px\)[\s\S]*header > \.header-trailing > #more\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/
     );
+    expect(workspaceCss).toMatch(
+      /header:has\(\.header-instance\)\s*>\s*\.header-trailing\s*>\s*#dropdown\.has-primary-actions\s*\{/s
+    );
+    expect(workspaceCss).toContain("width: max-content;");
+    expect(workspaceCss).toContain(
+      "max-width: min(22rem, calc(100vw - 1rem));"
+    );
+    expect(workspaceCss).toMatch(
+      /#dropdown\.has-primary-actions\s+\.dropdown-item/
+    );
+    expect(workspaceCss).toContain("white-space: nowrap;");
   });
 });

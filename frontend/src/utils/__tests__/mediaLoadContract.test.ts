@@ -5,6 +5,10 @@ const thumbnailSource = readFileSync(
   new URL("../../components/files/FileThumbnail.vue", import.meta.url),
   "utf8"
 );
+const listingStyles = readFileSync(
+  new URL("../../css/listing.css", import.meta.url),
+  "utf8"
+);
 const imageSource = readFileSync(
   new URL("../../components/files/ExtendedImage.vue", import.meta.url),
   "utf8"
@@ -31,6 +35,20 @@ describe("media loading contract", () => {
     expect(thumbnailSource).not.toContain("getDownloadURL");
     expect(thumbnailSource).not.toContain("extractVideoFrame");
     expect(thumbnailSource).not.toContain("browserVideoThumbnailScheduler");
+  });
+
+  it("keeps the animated placeholder visible while the server thumbnail is loading", () => {
+    expect(thumbnailSource).toContain("thumbnail-image--loading");
+    expect(thumbnailSource).toContain("status === 'generating'");
+    expect(listingStyles).toContain(
+      '#listing .file-thumbnail[data-status="generating"]::before'
+    );
+    expect(listingStyles).toContain(
+      "animation: thumbnail-skeleton 1.2s linear infinite;"
+    );
+    expect(listingStyles).toContain(
+      "#listing .file-thumbnail > img.thumbnail-image--loading"
+    );
   });
 
   it("does not prefetch adjacent media before the current image is ready", () => {

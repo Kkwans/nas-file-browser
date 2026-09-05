@@ -32,7 +32,7 @@ services:
       - FB_ROOT=/srv
       - FB_LOGLEVEL=info
       - FB_CACHE_DIR=/cache/previews
-      - FB_CACHE_MAX_BYTES=2147483648
+      - FB_CACHE_MAX_BYTES=10737418240
       - FB_HLS_CACHE_DIR=/cache/hls
       - FB_HLS_CACHE_MAX_BYTES=10737418240
       - FB_HLS_PROCESSORS=1

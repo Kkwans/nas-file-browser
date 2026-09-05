@@ -23,8 +23,14 @@ describe("media loading contract", () => {
     expect(thumbnailSource).toContain("useLayoutStore");
     expect(thumbnailSource).toContain("layoutStore.loading");
     expect(thumbnailSource).toContain('removeAttribute("src")');
-    expect(thumbnailSource).toContain("request?.cancel()");
     expect(thumbnailSource).toContain('{ flush: "sync" }');
+  });
+
+  it("uses the persistent server thumbnail for both images and videos", () => {
+    expect(thumbnailSource).toContain('api.getPreviewURL(item.value, "thumb")');
+    expect(thumbnailSource).not.toContain("getDownloadURL");
+    expect(thumbnailSource).not.toContain("extractVideoFrame");
+    expect(thumbnailSource).not.toContain("browserVideoThumbnailScheduler");
   });
 
   it("does not prefetch adjacent media before the current image is ready", () => {

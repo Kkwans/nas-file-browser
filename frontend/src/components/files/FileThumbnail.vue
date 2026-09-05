@@ -53,11 +53,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { files as api } from "@/api";
 import type { ResourceItem } from "@/types/file";
 import { useLayoutStore } from "@/stores/layout";
-import {
-  browserVideoThumbnailScheduler,
-  extractVideoFrame,
-  type ThumbnailRequest,
-} from "@/utils/thumbnailScheduler";
 import RiskResourceIcon from "@/components/files/RiskResourceIcon.vue";
 import type { RiskLevel } from "@/types/file";
 import AppIcon from "@/components/ui/AppIcon.vue";
@@ -75,13 +70,7 @@ const props = defineProps<{
   readOnly?: boolean;
 }>();
 
-type ThumbnailStatus =
-  | "idle"
-  | "queued"
-  | "generating"
-  | "fallback"
-  | "success"
-  | "error";
+type ThumbnailStatus = "idle" | "generating" | "success" | "error";
 
 const container = ref<HTMLElement | null>(null);
 const thumbnailImage = ref<HTMLImageElement | null>(null);
@@ -89,7 +78,6 @@ const visible = ref(false);
 const status = ref<ThumbnailStatus>("idle");
 const displaySource = ref("");
 let observer: IntersectionObserver | null = null;
-let request: ThumbnailRequest | null = null;
 const normalizedRiskLevel = computed(() => props.riskLevel ?? "low");
 const resourceIconName = computed(() =>
   getResourceIconName(props.name, props.type, props.isDir)
@@ -113,12 +101,9 @@ const item = computed(
     }) as ResourceItem
 );
 const imagePreviewUrl = computed(() => api.getPreviewURL(item.value, "thumb"));
-const rawVideoUrl = computed(() => api.getDownloadURL(item.value, true));
 const layoutStore = useLayoutStore();
 const statusTitle = computed(() => {
-  if (status.value === "queued") return "缩略图已排队";
   if (status.value === "generating") return "正在生成缩略图";
-  if (status.value === "fallback") return "浏览器不支持，正在生成兼容封面";
   if (status.value === "error") return "无法生成缩略图";
   return "";
 });
@@ -132,37 +117,14 @@ function start() {
     status.value === "error"
   )
     return;
-  if (props.type === "image") {
-    status.value = "generating";
-    displaySource.value = imagePreviewUrl.value;
-    return;
-  }
-
-  status.value = "queued";
-  const key = `${props.path}:${props.modified}:${props.size}:browser-video-v1`;
-  request = browserVideoThumbnailScheduler.request(
-    key,
-    (signal) => extractVideoFrame(rawVideoUrl.value, signal),
-    () => (status.value = "generating")
-  );
-  void request.promise
-    .then((source) => {
-      displaySource.value = source;
-      status.value = "success";
-    })
-    .catch((error) => {
-      if (error instanceof Error && error.name === "AbortError") {
-        status.value = "idle";
-        return;
-      }
-      status.value = "fallback";
-      displaySource.value = imagePreviewUrl.value;
-    });
+  // Both images and videos use the same server-side, persistent thumbnail
+  // endpoint. The browser never downloads a full video just to draw a canvas
+  // frame; the server can reuse the /cache/previews result across sessions.
+  status.value = "generating";
+  displaySource.value = imagePreviewUrl.value;
 }
 
 function cancelActiveLoad() {
-  request?.cancel();
-  request = null;
   // Removing the attribute aborts a native image request without starting a
   // new request for the current document (which assigning src="" can do).
   thumbnailImage.value?.removeAttribute("src");
@@ -182,11 +144,7 @@ function retry() {
 
 watch(visible, (next) => {
   if (next) start();
-  else if (
-    status.value === "queued" ||
-    status.value === "generating" ||
-    status.value === "fallback"
-  ) {
+  else if (status.value === "generating") {
     cancelActiveLoad();
   }
 });
@@ -228,6 +186,5 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   observer?.disconnect();
-  request?.cancel();
 });
 </script>

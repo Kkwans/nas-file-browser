@@ -327,18 +327,33 @@ header > .header-center {
   gap: 12px;
 }
 
+#listing.details .details-table-row {
+  --details-thumbnail-size: 44px;
+  --resource-icon-size: var(--details-thumbnail-size);
+}
+
 #listing.details .details-row-visual,
 #listing.details .details-row-visual > img,
 #listing.details .details-row-visual > video,
-#listing.details .details-row-visual > .file-type-icon {
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
+#listing.details .details-row-visual > .file-type-icon,
+#listing.details .details-row-visual > .file-thumbnail {
+  flex: 0 0 var(--details-thumbnail-size);
+  width: var(--details-thumbnail-size);
+  min-width: var(--details-thumbnail-size);
+  height: var(--details-thumbnail-size);
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: 10px;
   object-fit: cover;
-  font-size: 44px;
+  font-size: var(--details-thumbnail-size);
   line-height: 1;
+}
+
+#listing.details .details-row-visual > .file-thumbnail {
+  min-width: 0;
+}
+
+#listing.details .details-row-visual > .file-thumbnail > img {
+  border-radius: inherit;
 }
 
 #listing.details .details-name-content,

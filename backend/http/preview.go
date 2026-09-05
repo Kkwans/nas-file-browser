@@ -390,7 +390,7 @@ func storePreviewCache(ctx context.Context, fileCache FileCache, key string, val
 }
 
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
-	return fmt.Sprintf("preview:v2:%s:%d:%d:%s", f.RealPath(), f.ModTime.UnixNano(), f.Size, previewSize.String())
+	return fmt.Sprintf("preview:v3:%s:%d:%d:%s", f.RealPath(), f.ModTime.UnixNano(), f.Size, previewSize.String())
 }
 
 func validCachedPreview(value []byte) bool {

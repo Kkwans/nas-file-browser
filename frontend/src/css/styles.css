@@ -66,11 +66,11 @@
   animation: sk-bouncedelay 1.4s infinite ease-in-out both;
 }
 
-main .spinner .bounce1 {
+.app-main .spinner .bounce1 {
   animation-delay: -0.32s;
 }
 
-main .spinner .bounce2 {
+.app-main .spinner .bounce2 {
   animation-delay: -0.16s;
 }
 

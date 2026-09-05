@@ -486,6 +486,7 @@ export function getPreviewURL(
 ) {
   const params = {
     inline: "true",
+    generator: "v3",
     key: `${Date.parse(file.modified)}-${file.size}`,
     ...(options.warm ? { warm: options.warm } : {}),
   };

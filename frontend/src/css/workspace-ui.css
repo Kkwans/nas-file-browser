@@ -2429,3 +2429,35 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     text-align: center;
   }
 }
+
+/* Balanced menu sizing and an explicit theme-color selection state. The More
+ * card and the view chooser are separate surfaces and therefore keep separate
+ * width contracts. */
+header:has(.header-instance)
+  > .header-trailing
+  > #dropdown.has-primary-actions {
+  width: min(14rem, calc(100vw - 1rem));
+  max-width: calc(100vw - 1rem);
+}
+
+.header-primary-actions .view-mode-dropdown > .dropdown-menu {
+  width: 10rem;
+  min-width: 10rem;
+}
+
+.view-mode-dropdown .dropdown-item.active,
+.view-mode-dropdown .dropdown-item[aria-pressed="true"] {
+  color: var(--blue, #1677ff);
+  background: color-mix(
+    in srgb,
+    var(--blue, #1677ff) 11%,
+    var(--surfacePrimary, #fff)
+  );
+  box-shadow: inset 2px 0 0 var(--blue, #1677ff);
+  font-weight: 600;
+}
+
+.view-mode-dropdown .dropdown-item.active > .app-icon,
+.view-mode-dropdown .dropdown-item[aria-pressed="true"] > .app-icon {
+  color: var(--blue, #1677ff);
+}

@@ -184,27 +184,7 @@ function onMenuKeydown(event: KeyboardEvent) {
   moreButton()?.focus();
 }
 
-function onMenuFocusout() {
-  queueMicrotask(() => {
-    if (layoutStore.currentPromptName !== "more") return;
-    const target = document.activeElement;
-    if (
-      !dropdownElement.value?.contains(target) &&
-      !moreButton()?.contains(target)
-    ) {
-      closeMore();
-    }
-  });
-}
-
 watch(() => route.fullPath, closeMore);
-watch(
-  () => layoutStore.currentPromptName,
-  (next, previous) => {
-    // Opening a dialog from More must not leave a hidden menu under the dialog.
-    if (previous === "more" && next !== "more") closeMore();
-  }
-);
 const taskCenterBadgeCount = computed(
   () => tasksStore.counts.active + transfersStore.active.length
 );
@@ -229,7 +209,6 @@ const updateMobileViewport = (event?: MediaQueryListEvent) => {
 onMounted(() => {
   document.addEventListener("pointerdown", onOutsideInteraction);
   document.addEventListener("focusin", onOutsideInteraction);
-  document.addEventListener("focusout", onMenuFocusout);
   document.addEventListener("keydown", onMenuKeydown, true);
   window.addEventListener("blur", closeMore);
   mobileMediaQuery = window.matchMedia("(max-width: 899px)");
@@ -244,7 +223,6 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener("pointerdown", onOutsideInteraction);
   document.removeEventListener("focusin", onOutsideInteraction);
-  document.removeEventListener("focusout", onMenuFocusout);
   document.removeEventListener("keydown", onMenuKeydown, true);
   window.removeEventListener("blur", closeMore);
   closeMore();

@@ -91,12 +91,8 @@ describe("文件工具栏图标契约", () => {
     expect(workspaceCss).toMatch(
       /header:has\(\.header-instance\)\s*>\s*\.header-trailing\s*>\s*#dropdown\.has-primary-actions\s*\{/s
     );
-    expect(workspaceCss).toContain("width: 272px;");
-    expect(workspaceCss).toContain(
-      "max-width: min(22rem, calc(100vw - 1rem));"
-    );
-    expect(workspaceCss).toContain("width: min(17rem, calc(100vw - 1rem));");
-    expect(workspaceCss).toContain("width: min(11rem, calc(100vw - 1rem));");
+    expect(workspaceCss).toContain("width: min(14rem, calc(100vw - 1rem));");
+    expect(workspaceCss).toContain("width: 10rem;");
     expect(workspaceCss).toMatch(
       /#dropdown\.has-primary-actions\s+\.dropdown-item/
     );
@@ -108,6 +104,14 @@ describe("文件工具栏图标契约", () => {
     );
     expect(headerSource).not.toContain(
       'document.addEventListener("pointerdown", onOutsideInteraction, true);'
+    );
+    expect(headerSource).not.toContain('addEventListener("focusout"');
+    expect(headerSource).not.toContain("onMenuFocusout");
+    expect(headerSource).not.toContain(
+      "Opening a dialog from More must not leave a hidden menu"
+    );
+    expect(workspaceCss).toMatch(
+      /\.view-mode-dropdown \.dropdown-item\[aria-pressed="true"\]\s*\{[^}]*color:\s*var\(--blue/s
     );
   });
 });

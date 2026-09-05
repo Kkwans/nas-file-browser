@@ -6,7 +6,7 @@
       title="任务中心"
       title-icon="tasks"
       back-placement="leading"
-      back-label="返回文件"
+      back-label="返回"
     >
       <template #actions>
         <action

@@ -2341,3 +2341,91 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     width: min(15rem, calc(100vw - 1rem));
   }
 }
+
+/* 2026-09-06: the branded desktop shell has two visual regions, not three
+ * independent header columns. The leading region is the top of the sidebar;
+ * center and trailing content share the main-region grid so the page title or
+ * search stays centered even when the action cluster changes width. */
+@media (min-width: 900px) {
+  header:has(.header-instance) {
+    grid-template-columns: var(--sidebar-width, 288px) minmax(0, 1fr);
+    grid-template-areas: "leading main";
+    column-gap: 0;
+    padding-inline: 0;
+    border-bottom: 0;
+    box-shadow: none;
+  }
+
+  header:has(.header-instance)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: var(--sidebar-width, 288px);
+    height: 1px;
+    background: var(--divider, #e5e7eb);
+    pointer-events: none;
+  }
+
+  header:has(.header-instance) > .header-leading {
+    grid-area: leading;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding-inline: 1rem 0.75rem;
+    border-right: 1px solid var(--borderPrimary, #e5e7eb);
+    background: var(--surfacePrimary, #fff);
+    box-shadow: 1px 0 8px rgba(15, 23, 42, 0.03);
+  }
+
+  header:has(.header-instance) > .header-center,
+  header:has(.header-instance) > .header-trailing {
+    grid-area: main;
+  }
+
+  header:has(.header-instance) > .header-center {
+    z-index: 0;
+    width: min(36rem, 48%) !important;
+    justify-self: center;
+  }
+
+  header:has(.header-instance) > .header-center > .listing-search {
+    width: 100%;
+    max-width: none;
+  }
+
+  header:has(.header-instance) > .header-trailing {
+    z-index: 1;
+    justify-self: end;
+    padding-inline-end: 0.75rem;
+  }
+
+  header:has(.header-instance) .header-back--leading {
+    min-width: auto;
+    min-height: 2.5rem;
+    height: 2.5rem;
+    margin-inline: auto 0;
+    padding-inline: 0.5rem;
+    gap: 0.25rem;
+    overflow: visible;
+    color: var(--textSecondary, #64748b);
+    border-color: transparent;
+    border-radius: 0.5rem;
+  }
+
+  header:has(.header-instance) .header-back--leading:hover,
+  header:has(.header-instance) .header-back--leading:focus-visible {
+    color: var(--blue, #1677ff);
+    border-color: transparent;
+    background: color-mix(in srgb, var(--blue, #1677ff) 8%, transparent);
+  }
+
+  header:has(.header-instance) .header-back-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .listing-search input::placeholder {
+    text-align: center;
+  }
+}

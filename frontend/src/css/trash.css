@@ -41,7 +41,7 @@
 
 .trash-workspace {
   box-sizing: border-box;
-  width: min(1180px, calc(100% - 32px));
+  width: calc(100% - 32px);
   min-width: 0;
   margin: 0 auto;
   padding: 12px 0 48px;

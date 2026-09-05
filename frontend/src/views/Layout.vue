@@ -8,7 +8,7 @@
       ></div>
     </div>
     <sidebar></sidebar>
-    <main>
+    <main class="app-main">
       <router-view></router-view>
       <shell
         v-if="

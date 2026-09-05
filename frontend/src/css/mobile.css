@@ -1,12 +1,12 @@
 /* 全局移动端壳层。文件列表和 Markdown 各自拥有独立的响应式布局文件。 */
 
 @media (max-width: 899px) {
-  main {
+  .app-main {
     width: calc(100% - 1rem);
     margin: 0 0.5rem;
   }
 
-  html[dir="rtl"] main {
+  html[dir="rtl"] .app-main {
     margin-right: 0.5rem;
     margin-left: 0;
   }
@@ -55,12 +55,12 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  main {
+  .app-main {
     width: calc(100% - 1.5rem);
     margin: 0 0.75rem;
   }
 
-  html[dir="rtl"] main {
+  html[dir="rtl"] .app-main {
     margin-right: 0.75rem;
   }
 

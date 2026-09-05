@@ -46,6 +46,109 @@
             show="newDir"
           />
         </template>
+        <template v-if="!isMobile">
+          <div
+            ref="viewDropdownRef"
+            class="view-mode-dropdown header-primary-control"
+            :class="{ open: showViewDropdown }"
+          >
+            <action
+              :app-icon="viewAppIcon"
+              label="切换视图"
+              :active="showViewDropdown"
+              @action="toggleViewDropdown"
+            />
+            <div v-if="showViewDropdown" class="dropdown-menu">
+              <button
+                v-for="mode in viewModes"
+                :key="mode.value"
+                type="button"
+                class="dropdown-item"
+                :class="{ active: currentViewMode === mode.value }"
+                @click.stop="selectViewMode(mode.value)"
+              >
+                <AppIcon :name="mode.icon" :size="19" />
+                <span>{{ mode.label }}</span>
+                <AppIcon
+                  v-if="currentViewMode === mode.value"
+                  name="circle-check"
+                  :size="18"
+                />
+              </button>
+              <template v-if="currentViewMode === 'compact-grid'">
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-section-title">图标大小</div>
+                <button
+                  v-for="size in compactGridSizes"
+                  :key="size.value"
+                  type="button"
+                  class="dropdown-item compact-grid-size-option"
+                  :class="{ active: compactGridSize === size.value }"
+                  @click.stop="selectCompactGridSize(size.value)"
+                >
+                  <AppIcon :name="size.icon" :size="19" />
+                  <span>{{ size.label }}</span>
+                  <AppIcon
+                    v-if="compactGridSize === size.value"
+                    name="circle-check"
+                    :size="18"
+                  />
+                </button>
+              </template>
+            </div>
+          </div>
+          <div
+            ref="sortDropdownRef"
+            class="sort-dropdown header-primary-control"
+            :class="{ open: showSortDropdown }"
+          >
+            <action
+              app-icon="sort"
+              label="排序"
+              :active="showSortDropdown"
+              @action="toggleSortDropdown"
+            />
+            <div v-if="showSortDropdown" class="dropdown-menu">
+              <button
+                v-for="opt in sortOptions"
+                :key="opt.by"
+                type="button"
+                class="dropdown-item"
+                :class="{
+                  active: sortIsOverridden && currentSortBy === opt.by,
+                }"
+                @click.stop="selectSort(opt.by)"
+              >
+                <AppIcon :name="opt.icon" :size="19" />
+                <span>{{ opt.label }}</span>
+                <AppIcon
+                  v-if="sortIsOverridden && currentSortBy === opt.by"
+                  class="sort-arrow"
+                  :name="listingSortDirectionIcon(currentSortAsc)"
+                  :size="17"
+                />
+              </button>
+              <div class="dropdown-divider"></div>
+              <button
+                type="button"
+                class="dropdown-item"
+                @click.stop="toggleSortDirection"
+              >
+                <AppIcon name="sort" :size="19" />
+                <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
+              </button>
+              <button
+                type="button"
+                class="dropdown-item"
+                :disabled="!sortIsOverridden"
+                @click.stop="resetSortOverride"
+              >
+                <AppIcon name="undo" :size="19" />
+                <span>恢复账号默认排序</span>
+              </button>
+            </div>
+          </div>
+        </template>
       </template>
       <template #actions>
         <template v-if="isMobile && authStore.user?.perm.create">
@@ -107,8 +210,11 @@
           label="上传"
           @action="uploadFunc"
         />
-        <!-- View Mode Dropdown -->
+        <!-- Mobile view controls stay in More because the phone header has no
+             room for six persistent actions. Desktop renders these controls
+             in the primary icon group above. -->
         <div
+          v-if="isMobile"
           class="view-mode-dropdown"
           :class="{ open: showViewDropdown }"
           ref="viewDropdownRef"
@@ -166,6 +272,7 @@
         </div>
         <!-- Sort Dropdown -->
         <div
+          v-if="isMobile"
           class="sort-dropdown"
           :class="{ open: showSortDropdown }"
           ref="sortDropdownRef"

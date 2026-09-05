@@ -40,6 +40,12 @@ describe("文件工具栏图标契约", () => {
     expect(listingSource).toContain('app-icon="file-new"');
     expect(listingSource).toContain('app-icon="folder-new"');
     expect(listingSource).toContain(':app-icon="viewAppIcon"');
+    expect(listingSource).toContain(
+      'class="view-mode-dropdown header-primary-control"'
+    );
+    expect(listingSource).toContain(
+      'class="sort-dropdown header-primary-control"'
+    );
   });
 
   it("桌面点击区和图形尺寸彼此独立", () => {

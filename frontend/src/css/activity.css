@@ -53,7 +53,7 @@
 
 .activity-workspace {
   box-sizing: border-box;
-  width: min(1160px, calc(100% - 40px));
+  width: calc(100% - 32px);
   margin: 0 auto;
   padding: 24px 0 64px;
 }

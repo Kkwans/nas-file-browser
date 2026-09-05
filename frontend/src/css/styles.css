@@ -48,14 +48,14 @@
   background: var(--iconPrimary);
 }
 
-main .spinner {
+.app-main .spinner {
   display: block;
   text-align: center;
   line-height: 0;
   padding: 1em 0;
 }
 
-main .spinner > div {
+.app-main .spinner > div {
   width: 0.8em;
   height: 0.8em;
   margin: 0 0.1em;

@@ -65,15 +65,11 @@
                 type="button"
                 class="dropdown-item"
                 :class="{ active: currentViewMode === mode.value }"
+                :aria-pressed="currentViewMode === mode.value"
                 @click.stop="selectViewMode(mode.value)"
               >
                 <AppIcon :name="mode.icon" :size="19" />
                 <span>{{ mode.label }}</span>
-                <AppIcon
-                  v-if="currentViewMode === mode.value"
-                  name="circle-check"
-                  :size="18"
-                />
               </button>
               <template v-if="currentViewMode === 'compact-grid'">
                 <div class="dropdown-divider"></div>
@@ -84,15 +80,11 @@
                   type="button"
                   class="dropdown-item compact-grid-size-option"
                   :class="{ active: compactGridSize === size.value }"
+                  :aria-pressed="compactGridSize === size.value"
                   @click.stop="selectCompactGridSize(size.value)"
                 >
                   <AppIcon :name="size.icon" :size="19" />
                   <span>{{ size.label }}</span>
-                  <AppIcon
-                    v-if="compactGridSize === size.value"
-                    name="circle-check"
-                    :size="18"
-                  />
                 </button>
               </template>
             </div>
@@ -238,15 +230,11 @@
               :key="mode.value"
               class="dropdown-item"
               :class="{ active: currentViewMode === mode.value }"
+              :aria-pressed="currentViewMode === mode.value"
               @click="selectViewMode(mode.value)"
             >
               <AppIcon :name="mode.icon" :size="19" />
               <span>{{ mode.label }}</span>
-              <AppIcon
-                v-if="currentViewMode === mode.value"
-                name="circle-check"
-                :size="18"
-              />
             </button>
             <template v-if="currentViewMode === 'compact-grid'">
               <div class="dropdown-divider"></div>
@@ -257,15 +245,11 @@
                 class="dropdown-item compact-grid-size-option"
                 :class="{ active: compactGridSize === size.value }"
                 type="button"
+                :aria-pressed="compactGridSize === size.value"
                 @click="selectCompactGridSize(size.value)"
               >
                 <AppIcon :name="size.icon" :size="19" />
                 <span>{{ size.label }}</span>
-                <AppIcon
-                  v-if="compactGridSize === size.value"
-                  name="circle-check"
-                  :size="18"
-                />
               </button>
             </template>
           </div>
@@ -2030,6 +2014,7 @@ const selectViewMode = (mode: ViewModeType) => {
 const selectCompactGridSize = (size: CompactGridSize) => {
   compactGridSize.value = size;
   localStorage.setItem("nas-file-browser-compact-grid-size", size);
+  showViewDropdown.value = false;
 };
 
 const selectSort = (by: string) => {

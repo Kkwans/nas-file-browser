@@ -20,8 +20,14 @@ describe("本地图标对齐契约", () => {
   });
 
   it("视图和排序菜单使用真实 SVG 状态图标", () => {
-    expect(fileListingSource).toMatch(
-      /<AppIcon[\s\S]{0,180}name="circle-check"[\s\S]{0,80}\/\>/
+    expect(fileListingSource).not.toMatch(
+      /v-if="(?:currentViewMode|compactGridSize) === [^\"]+"\s*\n?\s*name="circle-check"/
+    );
+    expect(fileListingSource).toContain(
+      ':aria-pressed="currentViewMode === mode.value"'
+    );
+    expect(fileListingSource).toContain(
+      ':aria-pressed="compactGridSize === size.value"'
     );
     expect(fileListingSource).toMatch(
       /<AppIcon[\s\S]{0,100}class="sort-arrow"[\s\S]{0,120}:name="listingSortDirectionIcon/

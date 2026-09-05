@@ -52,6 +52,7 @@ describe("文件工具栏图标契约", () => {
     const headerCss = readSource("css/header.css");
     const contextCss = readSource("css/context-menu.css");
     const workspaceCss = readSource("css/workspace-ui.css");
+    const headerSource = readSource("components/header/HeaderBar.vue");
 
     expect(headerCss).toMatch(
       /header \.action\s*\{[^}]*width:\s*2\.5rem;[^}]*height:\s*2\.5rem;/s
@@ -90,13 +91,23 @@ describe("文件工具栏图标契约", () => {
     expect(workspaceCss).toMatch(
       /header:has\(\.header-instance\)\s*>\s*\.header-trailing\s*>\s*#dropdown\.has-primary-actions\s*\{/s
     );
-    expect(workspaceCss).toContain("width: max-content;");
+    expect(workspaceCss).toContain("width: 272px;");
     expect(workspaceCss).toContain(
       "max-width: min(22rem, calc(100vw - 1rem));"
     );
+    expect(workspaceCss).toContain("width: min(17rem, calc(100vw - 1rem));");
+    expect(workspaceCss).toContain("width: min(11rem, calc(100vw - 1rem));");
     expect(workspaceCss).toMatch(
       /#dropdown\.has-primary-actions\s+\.dropdown-item/
     );
     expect(workspaceCss).toContain("white-space: nowrap;");
+    expect(headerSource).toContain("@pointerdown.stop");
+    expect(headerSource).toContain("@click.stop");
+    expect(headerSource).toContain(
+      'document.addEventListener("pointerdown", onOutsideInteraction);'
+    );
+    expect(headerSource).not.toContain(
+      'document.addEventListener("pointerdown", onOutsideInteraction, true);'
+    );
   });
 });

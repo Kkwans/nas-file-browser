@@ -70,6 +70,8 @@
       <div
         id="dropdown"
         ref="dropdownElement"
+        @pointerdown.stop
+        @click.stop
         :class="{
           active: layoutStore.currentPromptName === 'more',
           'has-primary-actions': Boolean(slots['primary-actions']),
@@ -225,7 +227,7 @@ const updateMobileViewport = (event?: MediaQueryListEvent) => {
 };
 
 onMounted(() => {
-  document.addEventListener("pointerdown", onOutsideInteraction, true);
+  document.addEventListener("pointerdown", onOutsideInteraction);
   document.addEventListener("focusin", onOutsideInteraction);
   document.addEventListener("focusout", onMenuFocusout);
   document.addEventListener("keydown", onMenuKeydown, true);
@@ -240,7 +242,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  document.removeEventListener("pointerdown", onOutsideInteraction, true);
+  document.removeEventListener("pointerdown", onOutsideInteraction);
   document.removeEventListener("focusin", onOutsideInteraction);
   document.removeEventListener("focusout", onMenuFocusout);
   document.removeEventListener("keydown", onMenuKeydown, true);

@@ -21,7 +21,19 @@ describe("桌面应用壳层布局契约", () => {
     expect(css).toMatch(
       /\.app-header-bar:has\(\.header-instance\)\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0 0 auto;/s
     );
+    expect(css).toMatch(
+      /\.app-header-bar\.app-header-bar--branded\s*\{[^}]*display:\s*flex;[^}]*position:\s*fixed;[^}]*inset:\s*0 0 auto;/s
+    );
     expect(css).not.toContain("header:has(.header-instance)");
+  });
+
+  it("品牌顶栏使用显式类名，避免依赖 :has() 才能定位搜索和标题", () => {
+    const header = readSource("components/header/HeaderBar.vue");
+
+    expect(header).toContain("app-header-bar--branded");
+    expect(header).toContain(
+      ":class=\"{ 'app-header-bar--branded': showLogo }\""
+    );
   });
 
   it("搜索提示居中且任务中心返回文案保持简洁", () => {

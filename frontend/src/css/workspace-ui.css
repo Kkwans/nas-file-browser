@@ -2736,3 +2736,72 @@ nav.sidebar .favorite-item.drag-over-bottom {
 .app-header-bar .header-more-overlay {
   z-index: 99990;
 }
+
+/* 2026-09-07 authoritative desktop shell contract. The branded header is
+ * explicitly flex-based here instead of relying on the older :has() grid
+ * cascade. The sidebar/brand owns the first column, while the center is an
+ * overlay over the main column so title/search never drift with action width.
+ */
+@media (min-width: 900px) {
+  .app-header-bar.app-header-bar--branded {
+    display: flex;
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
+    height: var(--app-header-height, 56px);
+    min-height: var(--app-header-height, 56px);
+    box-sizing: border-box;
+    gap: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .app-header-bar.app-header-bar--branded > .header-leading {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 0 0 var(--sidebar-width, 288px);
+    width: var(--sidebar-width, 288px);
+    min-width: var(--sidebar-width, 288px);
+    height: 100%;
+    min-height: 0;
+    align-items: center;
+    padding-inline: 1rem 0.75rem;
+    border-right: 1px solid var(--borderPrimary, #e5e7eb);
+    background: var(--surfacePrimary, #fff);
+    box-shadow: 1px 0 8px rgba(15, 23, 42, 0.03);
+  }
+
+  .app-header-bar.app-header-bar--branded > .header-center {
+    position: absolute !important;
+    inset: 0 0 0 var(--sidebar-width, 288px);
+    z-index: 0;
+    display: flex;
+    width: auto !important;
+    max-width: none;
+    min-width: 0;
+    flex: none !important;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 1rem;
+    transform: none !important;
+  }
+
+  .app-header-bar.app-header-bar--branded
+    > .header-center
+    > .listing-search {
+    width: min(27rem, 75%);
+    max-width: calc(100% - 2rem);
+    min-width: 0;
+  }
+
+  .app-header-bar.app-header-bar--branded > .header-trailing {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-left: auto;
+    padding-inline-end: 0.75rem;
+  }
+}

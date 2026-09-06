@@ -1,5 +1,9 @@
 <template>
-  <header ref="headerElement" class="app-header-bar">
+  <header
+    ref="headerElement"
+    class="app-header-bar"
+    :class="{ 'app-header-bar--branded': showLogo }"
+  >
     <div class="header-leading">
       <img v-if="showLogo" :src="logoURL" :alt="name" />
       <Action

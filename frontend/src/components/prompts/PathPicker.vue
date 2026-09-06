@@ -431,11 +431,13 @@ onBeforeUnmount(() => {
 .path-picker {
   display: grid;
   width: min(560px, 100%);
+  height: min(720px, calc(100dvh - 36px));
   max-height: min(720px, calc(100dvh - 36px));
+  min-height: 0;
   /* Keep the optional shortcut row in the grid even when it is hidden. The
    * previous four-row template assigned the flexible list row to shortcuts,
    * producing a huge root tile and leaving the directory list unscrollable. */
-  grid-template-rows: auto auto auto minmax(180px, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
   border-radius: 16px;
@@ -554,7 +556,9 @@ onBeforeUnmount(() => {
   min-height: 0;
   max-height: none;
   margin: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 8px;
   list-style: none;
 }
@@ -702,7 +706,9 @@ onBeforeUnmount(() => {
     place-items: end center;
   }
   .path-picker {
+    height: 100dvh;
     max-height: 100dvh;
+    min-height: 0;
     border-radius: 16px 16px 0 0;
   }
   .path-picker__footer {

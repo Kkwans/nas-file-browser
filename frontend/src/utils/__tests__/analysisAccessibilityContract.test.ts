@@ -116,11 +116,15 @@ describe("存储工具无障碍契约", () => {
 
     expect(pickerSource).toContain("visibleShortcuts");
     expect(pickerSource).toMatch(
-      /grid-template-rows:\s*auto auto auto minmax\(180px, 1fr\) auto;/
+      /height:\s*min\(720px, calc\(100dvh - 36px\)\);/
     );
     expect(pickerSource).toMatch(
-      /\.path-picker__list\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?overflow:\s*auto;/
+      /grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/
     );
+    expect(pickerSource).toMatch(
+      /\.path-picker__list\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?overflow-y:\s*auto;/
+    );
+    expect(pickerSource).toContain("touch-action: pan-y;");
     expect(pickerSource).toContain(
       "grid-template-columns: repeat(3, minmax(0, 1fr));"
     );

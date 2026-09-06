@@ -184,7 +184,7 @@ const executeDelete = async (mode: "trash" | "permanent") => {
     preselect.value = nearbyItem?.path;
     reload.value = true;
   } catch (error) {
-    $showError(error);
+    $showError(error instanceof Error ? error : String(error));
     if (isListing.value) reload.value = true;
   } finally {
     submitting.value = false;

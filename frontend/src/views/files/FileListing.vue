@@ -109,7 +109,8 @@
                 :class="{
                   active: sortIsOverridden && currentSortBy === opt.by,
                 }"
-                @click.stop="selectSort(opt.by)"
+                :aria-pressed="sortIsOverridden && currentSortBy === opt.by"
+                @click.stop="cycleSort(opt.by)"
               >
                 <AppIcon :name="opt.icon" :size="19" />
                 <span>{{ opt.label }}</span>
@@ -121,14 +122,10 @@
                 />
               </button>
               <div class="dropdown-divider"></div>
-              <button
-                type="button"
-                class="dropdown-item"
-                @click.stop="toggleSortDirection"
-              >
-                <AppIcon name="sort" :size="19" />
-                <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
-              </button>
+              <div class="sort-state" role="status" aria-live="polite">
+                <AppIcon name="sort" :size="18" />
+                <span>当前：{{ sortStateLabel }}</span>
+              </div>
               <button
                 type="button"
                 class="dropdown-item"
@@ -276,7 +273,8 @@
               :key="opt.by"
               class="dropdown-item"
               :class="{ active: sortIsOverridden && currentSortBy === opt.by }"
-              @click="selectSort(opt.by)"
+              :aria-pressed="sortIsOverridden && currentSortBy === opt.by"
+              @click="cycleSort(opt.by)"
             >
               <AppIcon :name="opt.icon" :size="19" />
               <span>{{ opt.label }}</span>
@@ -288,14 +286,10 @@
               />
             </button>
             <div class="dropdown-divider"></div>
-            <button
-              class="dropdown-item"
-              type="button"
-              @click="toggleSortDirection"
-            >
-              <AppIcon name="sort" :size="19" />
-              <span>{{ currentSortAsc ? "降序排列" : "升序排列" }}</span>
-            </button>
+            <div class="sort-state" role="status" aria-live="polite">
+              <AppIcon name="sort" :size="18" />
+              <span>当前：{{ sortStateLabel }}</span>
+            </div>
             <button
               class="dropdown-item"
               type="button"
@@ -691,6 +685,13 @@
                     <button
                       type="button"
                       class="details-sort-button"
+                      :class="{
+                        'is-active':
+                          sortIsOverridden && currentSortBy === 'name',
+                      }"
+                      :aria-pressed="
+                        sortIsOverridden && currentSortBy === 'name'
+                      "
                       @click="sortByHeader('name')"
                     >
                       名称
@@ -705,6 +706,13 @@
                     <button
                       type="button"
                       class="details-sort-button"
+                      :class="{
+                        'is-active':
+                          sortIsOverridden && currentSortBy === 'type',
+                      }"
+                      :aria-pressed="
+                        sortIsOverridden && currentSortBy === 'type'
+                      "
                       @click="sortByHeader('type')"
                     >
                       类型
@@ -719,6 +727,13 @@
                     <button
                       type="button"
                       class="details-sort-button"
+                      :class="{
+                        'is-active':
+                          sortIsOverridden && currentSortBy === 'size',
+                      }"
+                      :aria-pressed="
+                        sortIsOverridden && currentSortBy === 'size'
+                      "
                       @click="sortByHeader('size')"
                     >
                       大小
@@ -733,6 +748,13 @@
                     <button
                       type="button"
                       class="details-sort-button"
+                      :class="{
+                        'is-active':
+                          sortIsOverridden && currentSortBy === 'modified',
+                      }"
+                      :aria-pressed="
+                        sortIsOverridden && currentSortBy === 'modified'
+                      "
                       @click="sortByHeader('modified')"
                     >
                       修改时间
@@ -976,6 +998,7 @@ import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
 import * as upload from "@/utils/upload";
 import {
+  cycleListingSort,
   normalizeFileKey,
   normalizeViewMode,
   selectForContextMenu,
@@ -1118,15 +1141,20 @@ const currentSortAsc = ref<boolean>(accountSortAsc.value);
 const sortIsOverridden = ref(false);
 const inlineSearch = ref("");
 const sortOptions = [
-  { by: "name", icon: listingSortIcon("name"), label: "按名称排序" },
-  { by: "size", icon: listingSortIcon("size"), label: "按大小排序" },
+  { by: "name", icon: listingSortIcon("name"), label: "名称" },
+  { by: "size", icon: listingSortIcon("size"), label: "大小" },
   {
     by: "modified",
     icon: listingSortIcon("modified"),
-    label: "按修改时间排序",
+    label: "修改时间",
   },
-  { by: "type", icon: listingSortIcon("type"), label: "按类型排序" },
+  { by: "type", icon: listingSortIcon("type"), label: "类型" },
 ];
+
+const sortStateLabel = computed(() => {
+  if (!sortIsOverridden.value) return "默认";
+  return currentSortAsc.value ? "升序" : "降序";
+});
 
 const { req } = storeToRefs(fileStore);
 
@@ -2017,49 +2045,28 @@ const selectCompactGridSize = (size: CompactGridSize) => {
   showViewDropdown.value = false;
 };
 
-const selectSort = (by: string) => {
-  currentSortBy.value = by;
-  currentSortAsc.value = sortIsOverridden.value
-    ? currentSortAsc.value
-    : accountSortAsc.value;
-  sortIsOverridden.value = true;
-  showSortDropdown.value = false;
+const cycleSort = (by: string) => {
+  const next = cycleListingSort(
+    {
+      by: currentSortBy.value,
+      asc: currentSortAsc.value,
+      overridden: sortIsOverridden.value,
+    },
+    by,
+    { by: accountSortBy.value, asc: accountSortAsc.value }
+  );
+  currentSortBy.value = next.by;
+  currentSortAsc.value = next.asc;
+  sortIsOverridden.value = next.overridden;
 };
 
 const sortByHeader = (by: string) => {
-  if (!sortIsOverridden.value || currentSortBy.value !== by) {
-    currentSortBy.value = by;
-    currentSortAsc.value = true;
-    sortIsOverridden.value = true;
-    return;
-  }
-
-  if (currentSortAsc.value) {
-    currentSortAsc.value = false;
-    return;
-  }
-
-  // Third click restores the account default without changing the account
-  // preference itself. The header deliberately renders no active column in
-  // this state even though the rows use the default ordering.
-  sortIsOverridden.value = false;
-  currentSortBy.value = accountSortBy.value;
-  currentSortAsc.value = accountSortAsc.value;
+  cycleSort(by);
 };
 
 const headerSortState = (by: string) => {
   if (!sortIsOverridden.value || currentSortBy.value !== by) return "none";
   return currentSortAsc.value ? "ascending" : "descending";
-};
-
-const toggleSortDirection = () => {
-  if (!sortIsOverridden.value) {
-    sortIsOverridden.value = true;
-    currentSortAsc.value = true;
-  } else {
-    currentSortAsc.value = !currentSortAsc.value;
-  }
-  showSortDropdown.value = false;
 };
 
 const resetSortOverride = () => {

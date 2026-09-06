@@ -91,8 +91,8 @@ describe("文件工具栏图标契约", () => {
     expect(workspaceCss).toMatch(
       /(?:\.app-header-bar:has\(\.header-instance\)|header:has\(\.header-instance\))\s*>\s*\.header-trailing\s*>\s*#dropdown\.has-primary-actions\s*\{/s
     );
-    expect(workspaceCss).toContain("width: min(14rem, calc(100vw - 1rem));");
-    expect(workspaceCss).toContain("width: 10rem;");
+    expect(workspaceCss).toContain("width: min(9rem, calc(100vw - 1rem));");
+    expect(workspaceCss).toContain("width: 7rem;");
     expect(workspaceCss).toMatch(
       /#dropdown\.has-primary-actions\s+\.dropdown-item/
     );

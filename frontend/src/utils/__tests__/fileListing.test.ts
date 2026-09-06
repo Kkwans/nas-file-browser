@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  cycleListingSort,
   getFileTypeLabel,
   normalizeFileKey,
   normalizeViewMode,
@@ -55,6 +56,22 @@ describe("file listing preferences", () => {
   it("selects the right-clicked item without discarding an existing target selection", () => {
     expect(selectForContextMenu([1, 3], 3)).toEqual([1, 3]);
     expect(selectForContextMenu([1, 3], 8)).toEqual([8]);
+  });
+
+  it("cycles sorting from default to ascending, descending, then account default", () => {
+    const accountDefault = { by: "modified", asc: false };
+    const initial = { by: "modified", asc: false, overridden: false };
+    const ascending = cycleListingSort(initial, "name", accountDefault);
+    const descending = cycleListingSort(ascending, "name", accountDefault);
+    const restored = cycleListingSort(descending, "name", accountDefault);
+
+    expect(ascending).toEqual({ by: "name", asc: true, overridden: true });
+    expect(descending).toEqual({ by: "name", asc: false, overridden: true });
+    expect(restored).toEqual({
+      by: "modified",
+      asc: false,
+      overridden: false,
+    });
   });
 
   it("sorts by directory, type, name, and direction", () => {

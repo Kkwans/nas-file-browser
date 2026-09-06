@@ -2447,30 +2447,131 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 .app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions {
-  width: min(14rem, calc(100vw - 1rem));
+  width: min(9rem, calc(100vw - 1rem));
   max-width: calc(100vw - 1rem);
 }
 
 .header-primary-actions .view-mode-dropdown > .dropdown-menu {
-  width: 10rem;
-  min-width: 10rem;
+  width: 7rem;
+  min-width: 7rem;
+}
+
+.header-primary-actions .sort-dropdown > .dropdown-menu {
+  width: 9rem;
+  min-width: 9rem;
 }
 
 .view-mode-dropdown .dropdown-item.active,
 .view-mode-dropdown .dropdown-item[aria-pressed="true"] {
+  margin-inline: 1px;
+  border: 1px solid
+    color-mix(in srgb, var(--blue, #1677ff) 30%, var(--borderPrimary, #dbe3ec));
+  border-radius: 8px;
   color: var(--blue, #1677ff);
   background: color-mix(
     in srgb,
     var(--blue, #1677ff) 11%,
     var(--surfacePrimary, #fff)
   );
-  box-shadow: inset 2px 0 0 var(--blue, #1677ff);
+  box-shadow: none;
   font-weight: 600;
 }
 
 .view-mode-dropdown .dropdown-item.active > .app-icon,
 .view-mode-dropdown .dropdown-item[aria-pressed="true"] > .app-icon {
   color: var(--blue, #1677ff);
+}
+
+.sort-dropdown .dropdown-item.active,
+.sort-dropdown .dropdown-item[aria-pressed="true"] {
+  margin-inline: 1px;
+  border: 1px solid
+    color-mix(in srgb, var(--blue, #1677ff) 30%, var(--borderPrimary, #dbe3ec));
+  border-radius: 8px;
+  color: var(--blue, #1677ff);
+  background: color-mix(
+    in srgb,
+    var(--blue, #1677ff) 11%,
+    var(--surfacePrimary, #fff)
+  );
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.sort-dropdown .dropdown-item.active > .app-icon,
+.sort-dropdown .dropdown-item[aria-pressed="true"] > .app-icon,
+.sort-dropdown .dropdown-item.active > .sort-arrow,
+.sort-dropdown .dropdown-item[aria-pressed="true"] > .sort-arrow {
+  color: var(--blue, #1677ff);
+}
+
+.sort-state {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 10px;
+  color: var(--textSecondary, #64748b);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+#listing .listing-table-header button[aria-pressed="true"],
+#listing.details .details-sort-button.is-active,
+#listing.details
+  .details-table
+  thead
+  th[aria-sort="ascending"]
+  .details-sort-button,
+#listing.details
+  .details-table
+  thead
+  th[aria-sort="descending"]
+  .details-sort-button {
+  color: var(--blue, #1677ff);
+}
+
+#listing.details .details-sort-button.is-active > .app-icon {
+  color: var(--blue, #1677ff);
+}
+
+@media (max-width: 899px) {
+  .app-header-bar:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions {
+    width: min(9rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+  }
+
+  .app-header-bar:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions:has(.view-mode-dropdown.open) {
+    width: min(7rem, calc(100vw - 1rem));
+  }
+
+  .app-header-bar:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions:has(.sort-dropdown.open) {
+    width: min(9rem, calc(100vw - 1rem));
+  }
+
+  .app-header-bar:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions
+    .view-mode-dropdown
+    > .dropdown-menu {
+    width: 7rem;
+    min-width: 7rem;
+  }
+
+  .app-header-bar:has(.header-instance)
+    > .header-trailing
+    > #dropdown.has-primary-actions
+    .sort-dropdown
+    > .dropdown-menu {
+    width: 9rem;
+    min-width: 9rem;
+  }
 }
 
 /* Detailed-grid actions stay as bare icons at rest. Hover and keyboard focus

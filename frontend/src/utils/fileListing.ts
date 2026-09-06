@@ -74,6 +74,26 @@ export function selectForContextMenu<T>(selected: T[], target: T): T[] {
   return selected.includes(target) ? selected : [target];
 }
 
+export interface ListingSortState {
+  by: string;
+  asc: boolean;
+  overridden: boolean;
+}
+
+export function cycleListingSort(
+  state: ListingSortState,
+  by: string,
+  accountDefault: Pick<ListingSortState, "by" | "asc">
+): ListingSortState {
+  if (!state.overridden || state.by !== by) {
+    return { by, asc: true, overridden: true };
+  }
+  if (state.asc) {
+    return { ...state, asc: false };
+  }
+  return { ...accountDefault, overridden: false };
+}
+
 export function sortItemsByType<T extends FileListingSortItem>(
   items: T[],
   ascending: boolean

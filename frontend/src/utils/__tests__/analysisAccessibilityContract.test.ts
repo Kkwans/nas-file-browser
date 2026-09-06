@@ -106,6 +106,27 @@ describe("存储工具无障碍契约", () => {
     expect(pickerSource).toContain("path-picker__entry-enter");
   });
 
+  it("分析路径选择器为目录列表保留独立滚动区并保持移动端操作单行", () => {
+    const pickerSource = readFileSync(
+      fileURLToPath(
+        new URL("../../components/prompts/PathPicker.vue", import.meta.url)
+      ),
+      "utf8"
+    );
+
+    expect(pickerSource).toContain("visibleShortcuts");
+    expect(pickerSource).toMatch(
+      /grid-template-rows:\s*auto auto auto minmax\(180px, 1fr\) auto;/
+    );
+    expect(pickerSource).toMatch(
+      /\.path-picker__list\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?overflow:\s*auto;/
+    );
+    expect(pickerSource).toContain(
+      "grid-template-columns: repeat(3, minmax(0, 1fr));"
+    );
+    expect(pickerSource).toContain("white-space: nowrap;");
+  });
+
   it("最近扫描同时呈现范围、指标、状态、时间和可达结果入口", () => {
     expect(analysisSource).toContain("<AnalysisRecentScans");
     expect(recentScansSource).toContain("item.scopes.join");

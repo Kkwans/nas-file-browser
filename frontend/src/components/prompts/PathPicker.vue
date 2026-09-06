@@ -33,12 +33,12 @@
       </div>
 
       <nav
-        v-if="shortcuts.length"
+        v-if="visibleShortcuts.length"
         class="path-picker__shortcuts"
         aria-label="快捷位置"
       >
         <button
-          v-for="shortcut in shortcuts"
+          v-for="shortcut in visibleShortcuts"
           :key="shortcut.path"
           type="button"
           :class="{
@@ -208,6 +208,13 @@ const error = ref("");
 const entries = ref<
   Array<{ name: string; path: string; isDir: boolean; isParent?: boolean }>
 >([]);
+
+// Analysis starts at the current directory and uses the list plus the
+// explicit “选择当前目录” action. Showing the generic root shortcut there
+// duplicates the breadcrumb and used to consume the whole dialog grid row.
+const visibleShortcuts = computed(() =>
+  props.interactionMode === "analysis" ? [] : props.shortcuts
+);
 
 const breadcrumbs = computed(() => {
   const result = [{ name: "根目录", path: "/" }];
@@ -425,7 +432,10 @@ onBeforeUnmount(() => {
   display: grid;
   width: min(560px, 100%);
   max-height: min(720px, calc(100dvh - 36px));
-  grid-template-rows: auto auto minmax(180px, 1fr) auto;
+  /* Keep the optional shortcut row in the grid even when it is hidden. The
+   * previous four-row template assigned the flexible list row to shortcuts,
+   * producing a huge root tile and leaving the directory list unscrollable. */
+  grid-template-rows: auto auto auto minmax(180px, 1fr) auto;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
   border-radius: 16px;
@@ -541,7 +551,8 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 .path-picker__list {
-  min-height: 180px;
+  min-height: 0;
+  max-height: none;
   margin: 0;
   overflow: auto;
   padding: 8px;
@@ -691,7 +702,7 @@ onBeforeUnmount(() => {
     place-items: end center;
   }
   .path-picker {
-    max-height: 88dvh;
+    max-height: 100dvh;
     border-radius: 16px 16px 0 0;
   }
   .path-picker__footer {
@@ -700,10 +711,14 @@ onBeforeUnmount(() => {
   }
   .path-picker__footer > div {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
   .path-picker__footer button {
+    min-width: 0;
+    padding-inline: 6px;
     justify-content: center;
+    white-space: nowrap;
   }
 }
 </style>

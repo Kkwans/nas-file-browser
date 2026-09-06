@@ -2,7 +2,7 @@
   <base-modal :prompt="title" :labelled-by="titleId" @closed="emit('closed')">
     <section
       class="app-dialog"
-      :class="`app-dialog--${size}`"
+      :class="[`app-dialog--${size}`, `app-dialog--tone-${tone}`]"
       :aria-describedby="description ? descriptionId : undefined"
     >
       <header class="app-dialog__header">
@@ -53,11 +53,13 @@ const props = withDefaults(
     closeLabel?: string;
     closeDisabled?: boolean;
     size?: "small" | "medium" | "large";
+    tone?: "neutral" | "danger";
   }>(),
   {
     closeLabel: "关闭对话框",
     closeDisabled: false,
     size: "medium",
+    tone: "neutral",
   }
 );
 
@@ -66,7 +68,7 @@ let nextDialogId = 0;
 const dialogId = ++nextDialogId;
 const titleId = ref(`app-dialog-title-${dialogId}`);
 const descriptionId = ref(`app-dialog-description-${dialogId}`);
-const { title, description, closeLabel, closeDisabled, size } = props;
+const { title, description, closeLabel, closeDisabled, size, tone } = props;
 </script>
 
 <style scoped>
@@ -89,6 +91,19 @@ const { title, description, closeLabel, closeDisabled, size } = props;
 
 .app-dialog--large {
   width: min(100%, 760px);
+}
+
+.app-dialog--tone-danger {
+  border-color: color-mix(in srgb, var(--icon-red) 24%, var(--borderPrimary));
+}
+
+.app-dialog--tone-danger .app-dialog__icon {
+  color: var(--icon-red);
+  background: color-mix(in srgb, var(--icon-red) 10%, transparent);
+}
+
+.app-dialog--tone-danger .app-dialog__heading h2 {
+  color: var(--textPrimary);
 }
 
 .app-dialog__header {

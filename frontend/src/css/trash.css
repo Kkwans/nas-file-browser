@@ -93,6 +93,14 @@
   background: var(--icon-red);
 }
 
+.trash-confirm-actions .danger:hover,
+.trash-confirm-actions .danger:focus-visible,
+.trash-item-actions .danger:hover,
+.trash-item-actions .danger:focus-visible {
+  color: #fff;
+  background: color-mix(in srgb, var(--icon-red) 84%, #7f1d1d);
+}
+
 .trash-state,
 .trash-empty {
   display: grid;

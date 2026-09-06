@@ -63,7 +63,7 @@ app.directive("focus", {
 
 const toastConfig = {
   position: POSITION.BOTTOM_CENTER,
-  timeout: 4000,
+  timeout: 2500,
   closeOnClick: true,
   pauseOnFocusLoss: true,
   pauseOnHover: true,
@@ -75,7 +75,20 @@ const toastConfig = {
   icon: true,
 } satisfies ToastOptions;
 
-app.provide("$showSuccess", (message: string) => {
+const timeoutFor = (
+  options?: { importance?: ToastImportance; timeout?: number; persistent?: boolean },
+  fallback = 2500
+) => {
+  if (options?.persistent) return 0;
+  if (typeof options?.timeout === "number") return options.timeout;
+  if (options?.importance === "minor") return 1500;
+  if (options?.importance === "important") return 5000;
+  return fallback;
+};
+
+app.provide(
+  "$showSuccess",
+  (message: string, options?: ToastFeedbackOptions) => {
   const $toast = useToast();
   $toast.success(
     {
@@ -84,9 +97,10 @@ app.provide("$showSuccess", (message: string) => {
         message: message,
       },
     },
-    { ...toastConfig, rtl: false }
+    { ...toastConfig, timeout: timeoutFor(options), rtl: false }
   );
-});
+  }
+);
 
 app.provide(
   "$showAction",
@@ -94,9 +108,13 @@ app.provide(
     message: string,
     actionLabel: string,
     action: () => void | Promise<void>,
-    timeout = 10000
+    options?: ToastFeedbackOptions | number
   ) => {
     const $toast = useToast();
+    const normalized =
+      typeof options === "number"
+        ? { timeout: options }
+        : options;
     $toast.success(
       {
         component: CustomToast,
@@ -104,7 +122,7 @@ app.provide(
       },
       {
         ...toastConfig,
-        timeout,
+        timeout: timeoutFor(normalized, 5000),
         closeOnClick: false,
         rtl: false,
       }
@@ -112,7 +130,13 @@ app.provide(
   }
 );
 
-app.provide("$showError", (error: Error | string, displayReport = true) => {
+app.provide(
+  "$showError",
+  (
+    error: Error | string,
+    displayReport = true,
+    options?: ToastFeedbackOptions
+  ) => {
   const $toast = useToast();
   $toast.error(
     {
@@ -126,10 +150,11 @@ app.provide("$showError", (error: Error | string, displayReport = true) => {
     },
     {
       ...toastConfig,
-      timeout: 0,
+      timeout: timeoutFor(options, 5000),
       rtl: false,
     }
   );
-});
+  }
+);
 
 router.isReady().then(() => app.mount("#app"));

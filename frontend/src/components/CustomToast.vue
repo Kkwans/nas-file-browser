@@ -58,8 +58,10 @@ const openReport = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 .action {
+  flex: 0 0 auto;
   text-align: center;
   height: 40px;
   padding: 0 10px;
@@ -68,6 +70,7 @@ const openReport = () => {
   color: white;
   cursor: pointer;
   border: thin solid currentColor;
+  white-space: nowrap;
 }
 
 .action--primary {

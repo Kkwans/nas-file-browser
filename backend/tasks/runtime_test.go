@@ -67,6 +67,65 @@ func TestRuntimeCancellationStopsWorker(t *testing.T) {
 	}
 }
 
+func TestRuntimeStartAfterKeepsDestructiveTaskUndoable(t *testing.T) {
+	backend := newMemoryBackend()
+	storage := NewStorage(backend)
+	runtime, err := NewRuntime(storage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	task, err := storage.New(1, "owner", TypeFileDeletePermanent, "永久删除文件", nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	started := make(chan struct{})
+	if err := runtime.StartAfter(task, time.Now().Add(100*time.Millisecond), func(context.Context, Reporter) (json.RawMessage, error) {
+		close(started)
+		return nil, nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	queued := waitForTaskStatus(t, backend, task.ID, StatusQueued)
+	if queued.Status != StatusQueued {
+		t.Fatalf("delayed task status = %#v", queued)
+	}
+	if _, err := runtime.Cancel(task.UserID, task.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	waitForTaskStatus(t, backend, task.ID, StatusCanceled)
+	select {
+	case <-started:
+		t.Fatal("destructive runner started after undo")
+	default:
+	}
+}
+
+func TestRuntimeStartAfterRunsAfterDeadline(t *testing.T) {
+	backend := newMemoryBackend()
+	storage := NewStorage(backend)
+	runtime, err := NewRuntime(storage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	task, err := storage.New(1, "owner", TypeTrashDeletePermanent, "永久删除回收站项目", nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	started := make(chan struct{})
+	if err := runtime.StartAfter(task, time.Now().Add(20*time.Millisecond), func(context.Context, Reporter) (json.RawMessage, error) {
+		close(started)
+		return nil, nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-started:
+	case <-time.After(2 * time.Second):
+		t.Fatal("delayed runner did not start")
+	}
+	waitForTaskStatus(t, backend, task.ID, StatusCompleted)
+}
+
 func TestRuntimeExclusiveKeyRejectsOverlappingDestructiveTask(t *testing.T) {
 	backend := newMemoryBackend()
 	storage := NewStorage(backend)

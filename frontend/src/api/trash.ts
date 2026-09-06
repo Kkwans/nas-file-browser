@@ -49,8 +49,23 @@ export async function removePermanent(id: string): Promise<void> {
   });
 }
 
+export async function schedulePermanentDeletion(
+  ids: string[]
+): Promise<TaskItem> {
+  const response = await fetchURL("/api/deletions/pending", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kind: "trash-items", ids }),
+  });
+  return (await response.json()) as TaskItem;
+}
+
 export async function clear(): Promise<TaskItem> {
-  const response = await fetchURL("/api/trash", { method: "DELETE" });
+  const response = await fetchURL("/api/deletions/pending", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kind: "trash-all" }),
+  });
   return (await response.json()) as TaskItem;
 }
 

@@ -22,6 +22,18 @@ type trashClearTaskArgs struct {
 	AllUsers bool `json:"allUsers"`
 }
 
+type pendingDeletionArgs struct {
+	Kind  string   `json:"kind"`
+	Paths []string `json:"paths,omitempty"`
+	IDs   []string `json:"ids,omitempty"`
+	Admin bool     `json:"admin,omitempty"`
+}
+
+type deletionResult struct {
+	Target string `json:"target"`
+	Error  string `json:"error,omitempty"`
+}
+
 var taskGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	task, err := d.store.Tasks.Get(d.user.ID, mux.Vars(r)["id"], d.user.Perm.Admin)
 	if err != nil {
@@ -135,6 +147,46 @@ func enqueueTrashClearTask(runtime *tasks.Runtime, d *data) (*tasks.Task, error)
 	return enqueueTask(runtime, d, d.user, tasks.TypeTrashClear, "清空回收站", args, "")
 }
 
+func enqueuePendingDeletionTask(runtime *tasks.Runtime, d *data, args pendingDeletionArgs) (*tasks.Task, error) {
+	taskType := tasks.TypeTrashClear
+	title := "清空回收站"
+	key := "trash.clear"
+	switch args.Kind {
+	case "resources":
+		taskType = tasks.TypeFileDeletePermanent
+		title = "永久删除文件"
+		key = "file.delete.permanent"
+	case "trash-items":
+		taskType = tasks.TypeTrashDeletePermanent
+		title = "永久删除回收站项目"
+		key = "trash.delete.permanent"
+	case "trash-all":
+		args.Admin = d.user.Perm.Admin
+	default:
+		return nil, fmt.Errorf("不支持的待删除类型 %q", args.Kind)
+	}
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return nil, err
+	}
+	task, err := d.store.Tasks.New(d.user.ID, d.user.Username, taskType, title, payload, "")
+	if err != nil {
+		return nil, err
+	}
+	task.UndoUntil = time.Now().Add(5 * time.Second).UnixMilli()
+	if err := d.store.Tasks.Update(task); err != nil {
+		return nil, err
+	}
+	runner, err := taskRunner(d, task)
+	if err != nil {
+		return nil, err
+	}
+	if err := runtime.StartAfter(task, time.UnixMilli(task.UndoUntil), runner, key); err != nil {
+		return nil, err
+	}
+	return task, nil
+}
+
 func enqueueTask(runtime *tasks.Runtime, d *data, owner *users.User, taskType tasks.Type, title string, args json.RawMessage, retryOf string) (*tasks.Task, error) {
 	task, err := d.store.Tasks.New(owner.ID, owner.Username, taskType, title, args, retryOf)
 	if err != nil {
@@ -175,6 +227,12 @@ func taskRunner(d *data, task *tasks.Task) (tasks.Runner, error) {
 			}
 		}
 		return trashClearRunner(d, task, args), nil
+	case tasks.TypeFileDeletePermanent, tasks.TypeTrashDeletePermanent:
+		var args pendingDeletionArgs
+		if err := json.Unmarshal(task.Args, &args); err != nil {
+			return nil, fmt.Errorf("任务参数损坏: %w", err)
+		}
+		return permanentDeletionRunner(d, task, args), nil
 	case tasks.TypeDuplicateAnalysis:
 		var args duplicateAnalysisArgs
 		if err := json.Unmarshal(task.Args, &args); err != nil {
@@ -268,6 +326,8 @@ func canRunTaskType(user *users.User, taskType tasks.Type) bool {
 	switch taskType {
 	case tasks.TypeTrashClear, tasks.TypeTrashSize:
 		return user.Perm.Delete
+	case tasks.TypeFileDeletePermanent, tasks.TypeTrashDeletePermanent:
+		return user.Perm.Delete
 	case tasks.TypeDuplicateAnalysis:
 		return user.Perm.Download
 	case tasks.TypeDuplicateCleanup:
@@ -292,6 +352,13 @@ func trashClearRunner(d *data, task *tasks.Task, args trashClearTaskArgs) tasks.
 	root := d.server.Root
 	dirMode := d.settings.DirMode
 	return func(ctx context.Context, report tasks.Reporter) (json.RawMessage, error) {
+		actor, err := store.Users.Get(root, task.UserID)
+		if err != nil || (!actor.Perm.Admin && !actor.Perm.Delete) {
+			return nil, fmt.Errorf("执行时没有清空回收站权限")
+		}
+		if args.AllUsers && !actor.Perm.Admin {
+			return nil, fmt.Errorf("执行时没有清空全部用户回收站权限")
+		}
 		items, err := store.Trash.List(task.UserID, args.AllUsers)
 		if err != nil {
 			return nil, err
@@ -317,11 +384,79 @@ func trashClearRunner(d *data, task *tasks.Task, args trashClearTaskArgs) tasks.
 				return nil, fmt.Errorf("第 %d 项永久删除失败: %w", index+1, err)
 			}
 			progress.ProcessedItems++
+			recordHistory(d, "trash.delete", item.OriginalPath, item.ID, history.StatusSuccess)
 			if err := report(progress); err != nil {
 				return nil, err
 			}
 		}
 		return nil, nil
+	}
+}
+
+func permanentDeletionRunner(d *data, task *tasks.Task, args pendingDeletionArgs) tasks.Runner {
+	return func(ctx context.Context, report tasks.Reporter) (json.RawMessage, error) {
+		actor, err := d.store.Users.Get(d.server.Root, task.UserID)
+		if err != nil || !actor.Perm.Delete {
+			return nil, fmt.Errorf("执行时没有永久删除权限")
+		}
+		ownerData := *d
+		ownerData.user = actor
+		results := make([]deletionResult, 0)
+		total := len(args.Paths) + len(args.IDs)
+		progress := tasks.Progress{TotalItems: total}
+		if err := report(progress); err != nil {
+			return nil, err
+		}
+		var firstErr error
+		for _, resourcePath := range args.Paths {
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+			result := deletionResult{Target: resourcePath}
+			if err := permanentDeleteResource(ctx, &ownerData, d.fileCache, resourcePath); err != nil {
+				result.Error = err.Error()
+				if firstErr == nil {
+					firstErr = err
+				}
+			}
+			results = append(results, result)
+			progress.ProcessedItems++
+			if err := report(progress); err != nil {
+				return nil, err
+			}
+		}
+		for _, id := range args.IDs {
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+			result := deletionResult{Target: id}
+			item, itemErr := d.store.Trash.Get(task.UserID, id, actor.Perm.Admin)
+			if itemErr == nil {
+				owner, ownerErr := d.store.Users.Get(d.server.Root, item.UserID)
+				if ownerErr != nil {
+					itemErr = ownerErr
+				} else {
+					service := newTrashService(&ownerData, owner)
+					itemErr = service.DeletePermanent(task.UserID, id, actor.Perm.Admin)
+					if itemErr == nil {
+						recordHistory(&ownerData, "trash.delete", item.OriginalPath, id, history.StatusSuccess)
+					}
+				}
+			}
+			if itemErr != nil {
+				result.Error = itemErr.Error()
+				if firstErr == nil {
+					firstErr = itemErr
+				}
+			}
+			results = append(results, result)
+			progress.ProcessedItems++
+			if err := report(progress); err != nil {
+				return nil, err
+			}
+		}
+		encoded, encodeErr := json.Marshal(results)
+		return encoded, errors.Join(firstErr, encodeErr)
 	}
 }
 

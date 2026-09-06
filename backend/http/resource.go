@@ -120,35 +120,47 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 			return http.StatusBadRequest, fmt.Errorf("不支持的删除模式 %q", mode)
 		}
 
-		favoriteMutation, tagMutation, recentMutation, err := removePathMetadata(d, file.Path)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("清理关联元数据失败，文件未删除: %w", err)
+		if err := permanentDeleteResource(r.Context(), d, fileCache, file.Path); err != nil {
+			return errToStatus(err), err
 		}
-
-		err = d.store.Share.DeleteWithPathPrefix(file.Path)
-		if err != nil {
-			log.Printf("WARNING: Error(s) occurred while deleting associated shares with file: %s", err)
-		}
-
-		// delete thumbnails
-		err = delThumbs(r.Context(), fileCache, file)
-		if err != nil {
-			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation, recentMutation)
-			return errToStatus(err), fmt.Errorf("清理缩略图失败，文件未删除: %w", errors.Join(err, restoreErr))
-		}
-
-		err = d.RunHook(func() error {
-			return d.user.Fs.RemoveAll(r.URL.Path)
-		}, "delete", r.URL.Path, "", d.user)
-
-		if err != nil {
-			restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation, recentMutation)
-			return errToStatus(err), fmt.Errorf("删除文件失败，关联元数据已回滚: %w", errors.Join(err, restoreErr))
-		}
-		recordHistory(d, "file.delete", file.Path, "", history.StatusSuccess)
-
 		return http.StatusNoContent, nil
 	})
+}
+
+// permanentDeleteResource is shared by the legacy immediate endpoint and the
+// delayed deletion task. It keeps metadata, shares, thumbnails and hooks
+// transactional enough to restore metadata when the filesystem operation
+// fails.
+func permanentDeleteResource(ctx context.Context, d *data, fileCache FileCache, resourcePath string) error {
+	if resourcePath == "/" || !d.user.Perm.Delete {
+		return fmt.Errorf("没有删除权限")
+	}
+	file, err := files.NewFileInfo(&files.FileOptions{
+		Fs: d.user.Fs, Path: resourcePath, Modify: d.user.Perm.Modify,
+		Expand: false, ReadHeader: d.server.TypeDetectionByHeader, Checker: d,
+	})
+	if err != nil {
+		return err
+	}
+	favoriteMutation, tagMutation, recentMutation, err := removePathMetadata(d, file.Path)
+	if err != nil {
+		return fmt.Errorf("清理关联元数据失败，文件未删除: %w", err)
+	}
+	if err := d.store.Share.DeleteWithPathPrefix(file.Path); err != nil {
+		log.Printf("WARNING: Error(s) occurred while deleting associated shares with file: %s", err)
+	}
+	if err := delThumbs(ctx, fileCache, file); err != nil {
+		restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation, recentMutation)
+		return fmt.Errorf("清理缩略图失败，文件未删除: %w", errors.Join(err, restoreErr))
+	}
+	if err := d.RunHook(func() error {
+		return d.user.Fs.RemoveAll(file.Path)
+	}, "delete", file.Path, "", d.user); err != nil {
+		restoreErr := restorePathMetadata(d, favoriteMutation, tagMutation, recentMutation)
+		return fmt.Errorf("删除文件失败，关联元数据已回滚: %w", errors.Join(err, restoreErr))
+	}
+	recordHistory(d, "file.delete", file.Path, "", history.StatusSuccess)
+	return nil
 }
 
 func moveResourceToTrash(w http.ResponseWriter, r *http.Request, d *data, fileCache FileCache, file *files.FileInfo) (int, error) {

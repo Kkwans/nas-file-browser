@@ -3,6 +3,8 @@ import { fetchJSON, fetchURL } from "./utils";
 export type TaskType =
   | "file.copy"
   | "file.move"
+  | "file.delete.permanent"
+  | "trash.delete.permanent"
   | "trash.clear"
   | "trash.size"
   | "analysis.duplicates"
@@ -35,6 +37,7 @@ export interface TaskItem {
   processedBytes: number;
   error?: string;
   retryOf?: string;
+  undoUntil?: number;
 }
 
 export interface TaskListCounts {

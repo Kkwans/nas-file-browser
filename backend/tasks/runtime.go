@@ -49,6 +49,68 @@ func (runtime *Runtime) Start(task *Task, runner Runner) error {
 	return runtime.start(task, runner, nil)
 }
 
+// StartAfter keeps a task queued until the deadline. Cancellation during the
+// delay marks it canceled without invoking the destructive runner.
+func (runtime *Runtime) StartAfter(task *Task, at time.Time, runner Runner, keys ...string) error {
+	if task == nil || task.Status != StatusQueued || runner == nil {
+		return ErrState
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	runtime.mu.Lock()
+	if _, exists := runtime.cancels[task.ID]; exists {
+		runtime.mu.Unlock()
+		cancel()
+		return ErrState
+	}
+	for _, key := range keys {
+		if key == "" {
+			continue
+		}
+		if _, exists := runtime.keys[key]; exists {
+			runtime.mu.Unlock()
+			cancel()
+			return ErrState
+		}
+	}
+	runtime.cancels[task.ID] = cancel
+	for _, key := range keys {
+		if key != "" {
+			runtime.keys[key] = task.ID
+			runtime.taskKeys[task.ID] = append(runtime.taskKeys[task.ID], key)
+		}
+	}
+	runtime.mu.Unlock()
+
+	go func() {
+		defer runtime.release(task.ID)
+		delay := time.Until(at)
+		if delay > 0 {
+			timer := time.NewTimer(delay)
+			defer timer.Stop()
+			select {
+			case <-ctx.Done():
+				runtime.markCanceled(task)
+				return
+			case <-timer.C:
+			}
+		}
+		if ctx.Err() != nil {
+			runtime.markCanceled(task)
+			return
+		}
+		runtime.run(ctx, task.Clone(), runner)
+	}()
+	return nil
+}
+
+func (runtime *Runtime) markCanceled(task *Task) {
+	clone := task.Clone()
+	clone.Status = StatusCanceled
+	clone.FinishedAt = time.Now().UnixMilli()
+	clone.Error = "任务已取消"
+	_ = runtime.storage.Update(clone)
+}
+
 // StartExclusive prevents overlapping workers that would contend for the same
 // destructive resource. Keys are process-local because every queued/running
 // task is marked interrupted before a new Runtime accepts work.

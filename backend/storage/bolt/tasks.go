@@ -19,6 +19,7 @@ type taskRecord struct {
 	CreatedAt      int64        `storm:"index"`
 	StartedAt      int64
 	FinishedAt     int64
+	UndoUntil      int64
 	ArchivedAt     int64 `storm:"index"`
 	TotalItems     int
 	ProcessedItems int
@@ -73,6 +74,7 @@ func (backend taskBackend) Update(task *tasks.Task) error {
 	// clearable when a task is retried or a diagnostic is resolved.
 	for field, value := range map[string]interface{}{
 		"StartedAt": task.StartedAt, "FinishedAt": task.FinishedAt,
+		"UndoUntil":  task.UndoUntil,
 		"ArchivedAt": task.ArchivedAt,
 		"TotalItems": task.TotalItems, "ProcessedItems": task.ProcessedItems,
 		"TotalBytes": task.TotalBytes, "ProcessedBytes": task.ProcessedBytes,
@@ -91,7 +93,7 @@ func newTaskRecord(task *tasks.Task) *taskRecord {
 		ID: task.ID, UserID: task.UserID, OwnerName: task.OwnerName,
 		Type: task.Type, Title: task.Title, Status: task.Status,
 		CreatedAt: task.CreatedAt, StartedAt: task.StartedAt,
-		FinishedAt: task.FinishedAt, TotalItems: task.TotalItems,
+		FinishedAt: task.FinishedAt, UndoUntil: task.UndoUntil, TotalItems: task.TotalItems,
 		ArchivedAt:     task.ArchivedAt,
 		ProcessedItems: task.ProcessedItems, TotalBytes: task.TotalBytes,
 		ProcessedBytes: task.ProcessedBytes, Error: task.Error,
@@ -104,7 +106,7 @@ func (record *taskRecord) task() *tasks.Task {
 		ID: record.ID, UserID: record.UserID, OwnerName: record.OwnerName,
 		Type: record.Type, Title: record.Title, Status: record.Status,
 		CreatedAt: record.CreatedAt, StartedAt: record.StartedAt,
-		FinishedAt: record.FinishedAt, TotalItems: record.TotalItems,
+		FinishedAt: record.FinishedAt, UndoUntil: record.UndoUntil, TotalItems: record.TotalItems,
 		ArchivedAt:     record.ArchivedAt,
 		ProcessedItems: record.ProcessedItems, TotalBytes: record.TotalBytes,
 		ProcessedBytes: record.ProcessedBytes, Error: record.Error,

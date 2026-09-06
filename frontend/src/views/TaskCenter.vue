@@ -682,6 +682,8 @@ function taskTypeLabel(type: TaskType) {
     {
       "file.copy": "复制文件",
       "file.move": "移动文件",
+      "file.delete.permanent": "永久删除文件",
+      "trash.delete.permanent": "永久删除回收站项目",
       "trash.clear": "回收站清理",
       "trash.size": "回收站大小统计",
       "analysis.duplicates": "重复文件分析",

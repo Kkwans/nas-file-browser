@@ -20,15 +20,17 @@ var (
 type Type string
 
 const (
-	TypeFileCopy          Type = "file.copy"
-	TypeFileMove          Type = "file.move"
-	TypeTrashClear        Type = "trash.clear"
-	TypeTrashSize         Type = "trash.size"
-	TypeDuplicateAnalysis Type = "analysis.duplicates"
-	TypeDuplicateCleanup  Type = "analysis.duplicates.cleanup"
-	TypeStorageAnalysis   Type = "analysis.storage"
-	TypeArchiveExtract    Type = "archive.extract"
-	TypeMediaHLS          Type = "media.hls"
+	TypeFileCopy             Type = "file.copy"
+	TypeFileMove             Type = "file.move"
+	TypeFileDeletePermanent  Type = "file.delete.permanent"
+	TypeTrashDeletePermanent Type = "trash.delete.permanent"
+	TypeTrashClear           Type = "trash.clear"
+	TypeTrashSize            Type = "trash.size"
+	TypeDuplicateAnalysis    Type = "analysis.duplicates"
+	TypeDuplicateCleanup     Type = "analysis.duplicates.cleanup"
+	TypeStorageAnalysis      Type = "analysis.storage"
+	TypeArchiveExtract       Type = "archive.extract"
+	TypeMediaHLS             Type = "media.hls"
 )
 
 type Status string
@@ -54,6 +56,7 @@ type Task struct {
 	CreatedAt      int64           `json:"createdAt" storm:"index"`
 	StartedAt      int64           `json:"startedAt,omitempty"`
 	FinishedAt     int64           `json:"finishedAt,omitempty"`
+	UndoUntil      int64           `json:"undoUntil,omitempty"`
 	ArchivedAt     int64           `json:"archivedAt,omitempty" storm:"index"`
 	TotalItems     int             `json:"totalItems"`
 	ProcessedItems int             `json:"processedItems"`
@@ -81,6 +84,9 @@ func (task *Task) CanCancel() bool {
 
 func (task *Task) CanRetry() bool {
 	if task == nil || task.ArchivedAt != 0 {
+		return false
+	}
+	if task.Type == TypeFileDeletePermanent || task.Type == TypeTrashDeletePermanent {
 		return false
 	}
 	if task.Status == StatusFailed || task.Status == StatusInterrupted {

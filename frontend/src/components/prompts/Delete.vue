@@ -19,12 +19,21 @@
       <button
         id="focus-prompt"
         @click="submit"
-        class="button button--flat button--red"
+        class="button button--flat button--blue"
         aria-label="移入回收站"
         title="移入回收站"
         tabindex="1"
       >
         移入回收站
+      </button>
+      <button
+        @click="submitPermanent"
+        class="button button--flat button--red"
+        aria-label="永久删除"
+        title="永久删除（5 秒内可撤回）"
+        tabindex="1"
+      >
+        永久删除
       </button>
     </div>
   </div>
@@ -38,8 +47,7 @@ import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
-import { useTrashStore } from "@/stores/trash";
-import type { TrashItem } from "@/api/trash";
+import * as taskApi from "@/api/tasks";
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const $showAction = inject<IToastAction>("$showAction")!;
@@ -47,51 +55,74 @@ const route = useRoute();
 
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
-const trashStore = useTrashStore();
 const { closeHovers, showHover } = layoutStore;
 
 const { isListing, selectedCount, req, selectedItems } = storeToRefs(fileStore);
 const { reload, preselect } = storeToRefs(fileStore);
 
-const submit = async () => {
-  buttons.loading("delete");
+function candidates() {
+  return isListing.value && selectedCount.value > 0
+    ? [...selectedItems.value]
+    : !isListing.value && req.value
+      ? [req.value]
+      : [];
+}
 
-  const candidates =
-    isListing.value && selectedCount.value > 0
-      ? selectedItems.value
-      : !isListing.value && req.value
-        ? [req.value]
-        : [];
-  for (const item of candidates) {
+function checkRisk(onconfirm: () => void) {
+  for (const item of candidates()) {
     const risk = item.riskLevel ?? "low";
     if (risk === "high" || risk === "medium") {
-      buttons.done("delete");
       showHover({
         prompt: "risk-confirm",
         props: {
           riskLevel: risk,
           targetPath: item.path,
           actionType: "delete",
-          onconfirm: () => {
-            executeDelete();
-          },
+          onconfirm,
         },
       });
-      return;
+      return true;
     }
   }
+  return false;
+}
 
-  executeDelete();
+const submit = async () => {
+  buttons.loading("delete");
+  await executeDelete("trash");
 };
 
-const executeDelete = async () => {
+const submitPermanent = async () => {
+  buttons.loading("delete");
+  if (checkRisk(() => executeDelete("permanent"))) {
+    buttons.done("delete");
+    return;
+  }
+  await executeDelete("permanent");
+};
+
+const executeDelete = async (mode: "trash" | "permanent") => {
   try {
-    if (!isListing.value) {
-      const moved = await api.remove(route.path, "trash");
+    const items = candidates();
+    if (items.length === 0) return;
+    if (mode === "permanent") {
+      const task = await api.schedulePermanentDeletion(
+        items.map((item) => item.path)
+      );
       buttons.success("delete");
-
-      if (moved) showUndo([moved]);
-
+      closeHovers();
+      $showAction("永久删除将在 5 秒后执行", "撤回", async () => {
+        await taskApi.cancel(task.id);
+        $showSuccess("已撤回永久删除", { importance: "minor" });
+        reload.value = true;
+      });
+      reload.value = true;
+      return;
+    }
+    if (!isListing.value) {
+      await api.remove(route.path, "trash");
+      buttons.success("delete");
+      $showSuccess("已移入回收站", { importance: "minor" });
       layoutStore.currentPrompt?.confirm();
       closeHovers();
       return;
@@ -103,21 +134,24 @@ const executeDelete = async () => {
       return;
     }
 
-    const deletingItems = [...selectedItems.value];
-    const movedItems: TrashItem[] = [];
+    const deletingItems = items;
     const failures: unknown[] = [];
     for (const item of deletingItems) {
       try {
-        const moved = await api.remove(item.url, "trash");
-        if (moved) movedItems.push(moved);
+        await api.remove(item.url, "trash");
       } catch (error) {
         failures.push(error);
       }
     }
-    if (movedItems.length > 0) showUndo(movedItems);
     if (failures.length > 0) throw failures[0];
 
     buttons.success("delete");
+    $showSuccess(
+      deletingItems.length === 1
+        ? "已移入回收站"
+        : `${deletingItems.length} 项已移入回收站`,
+      { importance: "minor" }
+    );
 
     const firstSelectedIndex = Math.min(
       ...deletingItems.map((item) => item.index)
@@ -132,23 +166,5 @@ const executeDelete = async () => {
     $showError(e);
     if (isListing.value) reload.value = true;
   }
-};
-
-const showUndo = (items: TrashItem[]) => {
-  for (const item of items) trashStore.recordMoved(item);
-  const countLabel =
-    items.length === 1 ? `“${items[0].name}”` : `${items.length} 项`;
-  $showAction(`${countLabel}已移入回收站`, "撤销", async () => {
-    try {
-      await trashStore.restoreMany(items);
-      reload.value = true;
-      $showSuccess(
-        items.length === 1 ? "文件已恢复" : `${items.length} 项已恢复`
-      );
-    } catch (error) {
-      reload.value = true;
-      $showError(error as Error, false);
-    }
-  });
 };
 </script>

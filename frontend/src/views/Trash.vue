@@ -28,6 +28,7 @@
       <AppDialog
         v-if="showClearConfirm"
         title="永久删除全部项目？"
+        tone="danger"
         size="small"
         :close-disabled="clearing"
         @closed="showClearConfirm = false"
@@ -183,6 +184,7 @@
       v-if="permanentDeleteItem"
       title="永久删除项目？"
       description="删除后无法从回收站恢复。"
+      tone="danger"
       size="small"
       :close-disabled="busyIds.has(permanentDeleteItem.id)"
       @closed="confirmDeleteId = ''"
@@ -268,11 +270,11 @@ import {
   reactive,
   ref,
 } from "vue";
-import { useRouter } from "vue-router";
 import dayjs from "dayjs";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import type { TrashConflict, TrashItem, TrashStatus } from "@/api/trash";
-import { measureSize } from "@/api/trash";
+import { measureSize, schedulePermanentDeletion } from "@/api/trash";
+import * as taskApi from "@/api/tasks";
 import { subscribeSharedTaskCenterEvents } from "@/utils/taskCenterEvents";
 import type { TaskItem } from "@/api/tasks";
 import { StatusError } from "@/api/utils";
@@ -289,7 +291,6 @@ import { displayPath } from "@/utils/displayPath";
 const authStore = useAuthStore();
 const trashStore = useTrashStore();
 const tasksStore = useTasksStore();
-const router = useRouter();
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const $showAction = inject<IToastAction>("$showAction")!;
@@ -402,9 +403,14 @@ async function deletePermanent(item: TrashItem) {
   if (busyIds.has(item.id)) return;
   busyIds.add(item.id);
   try {
-    await trashStore.removePermanent(item.id);
+    const task = await schedulePermanentDeletion([item.id]);
+    tasksStore.record(task);
     confirmDeleteId.value = "";
-    $showSuccess("已永久删除");
+    $showAction("永久删除将在 5 秒后执行", "撤回", async () => {
+      await taskApi.cancel(task.id);
+      await trashStore.load();
+      $showSuccess("已撤回永久删除", { importance: "minor" });
+    });
   } catch (error) {
     $showError(error as Error, false);
   } finally {
@@ -418,8 +424,10 @@ async function clearTrash() {
     const task = await trashStore.clear();
     tasksStore.record(task);
     showClearConfirm.value = false;
-    $showAction("清空任务已提交", "查看任务", async () => {
-      await router.push("/tasks");
+    $showAction("回收站将在 5 秒后清空", "撤回", async () => {
+      await taskApi.cancel(task.id);
+      await trashStore.load();
+      $showSuccess("已撤回清空操作", { importance: "minor" });
     });
     void tasksStore
       .waitForTerminal(task.id)

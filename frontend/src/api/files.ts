@@ -8,6 +8,7 @@ import { upload as postTus, uploadTransferId, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import type { ApiMethod, ApiOpts, ApiContent, ChecksumAlg } from "@/types/api";
 import type { TrashItem } from "./trash";
+import type { TaskItem } from "./tasks";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
 import type {
   Resource,
@@ -159,6 +160,17 @@ export async function remove(
   useRecentStore().applyPathRemoval(removedPath);
   if (mode === "trash") return (await response.json()) as TrashItem;
   return null;
+}
+
+export async function schedulePermanentDeletion(
+  paths: string[]
+): Promise<TaskItem> {
+  const response = await fetchURL("/api/deletions/pending", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kind: "resources", paths }),
+  });
+  return (await response.json()) as TaskItem;
 }
 
 export async function put(url: string, content: ApiContent = "") {

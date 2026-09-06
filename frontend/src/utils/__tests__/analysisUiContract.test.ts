@@ -77,7 +77,7 @@ describe("analysis page UI contract", () => {
     ).toContain('@load-more="loadMoreRecent"');
     expect(
       readFileSync(resolve(process.cwd(), "src/views/Analysis.vue"), "utf8")
-    ).toContain("width: min(calc(100% - 32px), 1440px);");
+    ).toContain("max-width: 1440px;");
   });
 
   it("最近扫描使用紧凑的表格节奏，动作入口不抢夺报告内容", () => {

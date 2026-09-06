@@ -1,5 +1,10 @@
 <template>
-  <div v-show="active" @click="closeHovers" class="overlay"></div>
+  <div
+    v-show="active"
+    class="overlay sidebar-overlay"
+    aria-hidden="true"
+    @click="closeHovers"
+  ></div>
   <div
     ref="sidebarFrame"
     class="sidebar-frame"

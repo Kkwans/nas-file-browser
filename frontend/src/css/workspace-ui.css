@@ -2688,4 +2688,21 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   .app-header-bar > .header-trailing > .header-direct-actions {
     display: none;
   }
+
+  .app-header-bar > .header-trailing > #dropdown {
+    width: min(15rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+    right: 0.5rem;
+    left: auto;
+    text-align: start;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+  }
+
+  .app-header-bar > .header-trailing > #dropdown > div,
+  .app-header-bar > .header-trailing > #dropdown .action,
+  .app-header-bar > .header-trailing > #dropdown .dropdown-item {
+    justify-content: flex-start;
+    text-align: start;
+  }
 }

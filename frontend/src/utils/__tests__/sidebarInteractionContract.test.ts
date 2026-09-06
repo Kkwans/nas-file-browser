@@ -95,6 +95,17 @@ describe("侧边栏分组交互契约", () => {
     expect(cssSource).toContain(".sidebar-footer-actions");
   });
 
+  it("移动端侧栏和遮罩拥有独立的触摸命中与滚动边界", () => {
+    const sidebarSource = readSource("components/Sidebar.vue");
+    const cssSource = readSource("css/sidebar.css");
+
+    expect(sidebarSource).toContain('class="overlay sidebar-overlay"');
+    expect(cssSource).toContain(".sidebar-overlay");
+    expect(cssSource).toContain(".sidebar-frame > nav.sidebar");
+    expect(cssSource).toContain("touch-action: pan-y;");
+    expect(cssSource).toContain("overscroll-behavior: contain;");
+  });
+
   it("折叠态保留帮助入口并使用完整退出登录文案", () => {
     const sidebarSource = readSource("components/Sidebar.vue");
 

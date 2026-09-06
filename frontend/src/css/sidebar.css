@@ -78,6 +78,7 @@ nav.sidebar {
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
+  pointer-events: auto;
 }
 
 /* 侧栏工作台重构：分区与操作工具分离，所有状态不改变布局。 */
@@ -1090,6 +1091,29 @@ nav.sidebar::-webkit-scrollbar-thumb:hover {
 /* --- Sidebar Overlay (mobile) --- */
 .overlay {
   transition: 0.2s ease opacity;
+}
+
+@media (max-width: 899px) {
+  /* The frame is a non-interactive layout boundary so the resize line can
+   * span the page. The nav and its scrim must explicitly own touch input on
+   * phones; otherwise taps and vertical swipes fall through to the listing. */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: rgba(15, 23, 42, 0.28);
+    pointer-events: auto;
+  }
+
+  .sidebar-frame {
+    pointer-events: none;
+  }
+
+  .sidebar-frame > nav.sidebar {
+    pointer-events: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+  }
 }
 
 /* --- Navigation Buttons --- */

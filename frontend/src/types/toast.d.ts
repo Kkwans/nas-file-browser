@@ -4,10 +4,7 @@ type ToastFeedbackOptions = {
   timeout?: number;
   persistent?: boolean;
 };
-type IToastSuccess = (
-  message: string,
-  options?: ToastFeedbackOptions
-) => void;
+type IToastSuccess = (message: string, options?: ToastFeedbackOptions) => void;
 type IToastError = (
   error: Error | string,
   displayReport?: boolean,

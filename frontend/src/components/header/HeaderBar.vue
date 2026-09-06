@@ -186,7 +186,10 @@ const hasOverflowActions = computed(
 
 function onDropdownPointerdown(event: PointerEvent) {
   const target = event.target;
-  if (target instanceof Element && target.closest("button, a, [role='button']")) {
+  if (
+    target instanceof Element &&
+    target.closest("button, a, [role='button']")
+  ) {
     // Close the transient menu before a child opens a prompt or navigates.
     closeMore();
   }
@@ -266,5 +269,4 @@ onUnmounted(() => {
     }
   }
 });
-
 </script>

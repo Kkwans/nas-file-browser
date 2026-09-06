@@ -76,7 +76,11 @@ const toastConfig = {
 } satisfies ToastOptions;
 
 const timeoutFor = (
-  options?: { importance?: ToastImportance; timeout?: number; persistent?: boolean },
+  options?: {
+    importance?: ToastImportance;
+    timeout?: number;
+    persistent?: boolean;
+  },
   fallback = 2500
 ) => {
   if (options?.persistent) return 0;
@@ -89,16 +93,16 @@ const timeoutFor = (
 app.provide(
   "$showSuccess",
   (message: string, options?: ToastFeedbackOptions) => {
-  const $toast = useToast();
-  $toast.success(
-    {
-      component: CustomToast,
-      props: {
-        message: message,
+    const $toast = useToast();
+    $toast.success(
+      {
+        component: CustomToast,
+        props: {
+          message: message,
+        },
       },
-    },
-    { ...toastConfig, timeout: timeoutFor(options), rtl: false }
-  );
+      { ...toastConfig, timeout: timeoutFor(options), rtl: false }
+    );
   }
 );
 
@@ -112,9 +116,7 @@ app.provide(
   ) => {
     const $toast = useToast();
     const normalized =
-      typeof options === "number"
-        ? { timeout: options }
-        : options;
+      typeof options === "number" ? { timeout: options } : options;
     $toast.success(
       {
         component: CustomToast,
@@ -137,23 +139,23 @@ app.provide(
     displayReport = true,
     options?: ToastFeedbackOptions
   ) => {
-  const $toast = useToast();
-  $toast.error(
-    {
-      component: CustomToast,
-      props: {
-        message: (error as Error).message || error,
-        isReport: !disableExternal && displayReport,
-        // TODO: could you add this to the component itself?
-        reportText: "报告问题",
+    const $toast = useToast();
+    $toast.error(
+      {
+        component: CustomToast,
+        props: {
+          message: (error as Error).message || error,
+          isReport: !disableExternal && displayReport,
+          // TODO: could you add this to the component itself?
+          reportText: "报告问题",
+        },
       },
-    },
-    {
-      ...toastConfig,
-      timeout: timeoutFor(options, 5000),
-      rtl: false,
-    }
-  );
+      {
+        ...toastConfig,
+        timeout: timeoutFor(options, 5000),
+        rtl: false,
+      }
+    );
   }
 );
 

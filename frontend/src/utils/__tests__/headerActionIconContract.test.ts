@@ -40,10 +40,14 @@ describe("文件工具栏图标契约", () => {
     expect(listingSource).toContain('app-icon="file-new"');
     expect(listingSource).toContain('app-icon="folder-new"');
     expect(listingSource).toContain(':app-icon="viewAppIcon"');
-    expect(listingSource).toContain("window.innerWidth");
+    expect(listingSource).toContain('window.matchMedia("(max-width: 899px)")');
     expect(listingSource).toContain(
-      "waiting for ResizeObserver leaves desktop actions in the wrong slot"
+      "listing can be narrower than the viewport because of the sidebar"
     );
+    expect(listingSource).not.toContain(
+      "width.value = listing.value.clientWidth"
+    );
+    expect(listingSource).not.toContain("width.value = next.clientWidth");
     expect(listingSource).toContain(
       'class="view-mode-dropdown header-primary-control"'
     );

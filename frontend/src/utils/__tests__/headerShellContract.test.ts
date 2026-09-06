@@ -18,6 +18,10 @@ describe("桌面应用壳层布局契约", () => {
       ".app-header-bar:has(.header-instance) > .header-trailing"
     );
     expect(css).toContain("border-right: 1px solid var(--borderPrimary");
+    expect(css).toMatch(
+      /\.app-header-bar:has\(\.header-instance\)\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0 0 auto;/s
+    );
+    expect(css).not.toContain("header:has(.header-instance)");
   });
 
   it("搜索提示居中且任务中心返回文案保持简洁", () => {

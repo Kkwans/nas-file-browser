@@ -1065,13 +1065,19 @@ import {
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
 const dragCounter = ref<number>(0);
-// HeaderBar renders through this component's slots. Start with the viewport
-// width so the first render uses the same desktop/mobile branch as HeaderBar;
-// waiting for ResizeObserver leaves desktop actions in the wrong slot and
-// makes the More menu disappear until a later render.
-const width = ref<number>(
-  typeof window === "undefined" ? 0 : window.innerWidth
-);
+// HeaderBar renders through this component's slots. Use the same viewport
+// media query as HeaderBar instead of the listing container width: the
+// listing can be narrower than the viewport because of the sidebar, and a
+// ResizeObserver update would otherwise move desktop actions into the mobile
+// overflow slot (or vice versa) after the header has already rendered.
+const mobileMediaQuery =
+  typeof window !== "undefined"
+    ? window.matchMedia("(max-width: 899px)")
+    : undefined;
+const isMobile = ref(mobileMediaQuery?.matches ?? false);
+const updateMobileViewport = (event?: MediaQueryListEvent) => {
+  isMobile.value = event?.matches ?? mobileMediaQuery?.matches ?? false;
+};
 const itemWeight = ref<number>(0);
 const isContextMenuVisible = ref<boolean>(false);
 const contextMenuPos = ref<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -1358,10 +1364,6 @@ const headerButtons = computed(() => {
   };
 });
 
-const isMobile = computed(() => {
-  return width.value <= 899;
-});
-
 const shouldRenderMobileSelectionBar = computed(() =>
   shouldRenderMobileSelection(
     isMobile.value,
@@ -1416,6 +1418,11 @@ onMounted(() => {
   window.addEventListener("scroll", scrollEvent);
   document.addEventListener("click", handleOutsideClick);
   window.addEventListener("pagehide", saveDirectoryState);
+  if (mobileMediaQuery?.addEventListener) {
+    mobileMediaQuery.addEventListener("change", updateMobileViewport);
+  } else {
+    mobileMediaQuery?.addListener(updateMobileViewport);
+  }
   // Save the directory identity immediately; later snapshots capture its scroll.
   if (!returningState) saveDirectoryState();
 
@@ -1423,7 +1430,7 @@ onMounted(() => {
     listingResizeObserver = new ResizeObserver(resizeListing);
     if (listing.value) listingResizeObserver.observe(listing.value);
   } else if (listing.value) {
-    width.value = listing.value.clientWidth;
+    setItemWeight();
   }
 
   if (!authStore.user?.perm.create) return;
@@ -1440,6 +1447,11 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("scroll", scrollEvent);
   document.removeEventListener("click", handleOutsideClick);
+  if (mobileMediaQuery?.removeEventListener) {
+    mobileMediaQuery.removeEventListener("change", updateMobileViewport);
+  } else {
+    mobileMediaQuery?.removeListener(updateMobileViewport);
+  }
   listingResizeObserver?.disconnect();
   listingResizeObserver = null;
 
@@ -1453,7 +1465,6 @@ onBeforeUnmount(() => {
 watch(listing, (next, previous) => {
   if (previous) listingResizeObserver?.unobserve(previous);
   if (!next) return;
-  width.value = next.clientWidth;
   listingResizeObserver?.observe(next);
 });
 
@@ -1981,7 +1992,6 @@ const invertSelection = () => {
 const resizeListing = throttle((entries: ResizeObserverEntry[]) => {
   const entry = entries.at(-1);
   if (!entry || listing.value == null) return;
-  width.value = entry.contentRect.width;
 
   // How much every listing item affects the window height
   setItemWeight();

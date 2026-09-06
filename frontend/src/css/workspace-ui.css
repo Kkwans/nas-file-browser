@@ -1990,7 +1990,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
 /* Round 2 shell contract. These selectors are intentionally scoped to the
  * branded application shell (editor/media headers have their own contract),
  * so the search center is a real viewport column instead of a flex remainder. */
-header:has(.header-instance) {
+.app-header-bar:has(.header-instance) {
   display: grid;
   height: var(--app-header-height, 56px);
   min-height: var(--app-header-height, 56px);
@@ -2004,13 +2004,13 @@ header:has(.header-instance) {
   padding-inline: 0.75rem;
 }
 
-header:has(.header-instance) > .header-leading {
+.app-header-bar:has(.header-instance) > .header-leading {
   grid-area: leading;
   min-width: 0;
   justify-content: flex-start;
 }
 
-header:has(.header-instance) > .header-center {
+.app-header-bar:has(.header-instance) > .header-center {
   grid-area: center;
   width: 100% !important;
   min-width: 0;
@@ -2021,19 +2021,19 @@ header:has(.header-instance) > .header-center {
   transform: none !important;
 }
 
-header:has(.header-instance) > .header-center > .listing-search {
+.app-header-bar:has(.header-instance) > .header-center > .listing-search {
   width: 100%;
   max-width: 36rem;
 }
 
-header:has(.header-instance) > .header-trailing {
+.app-header-bar:has(.header-instance) > .header-trailing {
   grid-area: trailing;
   min-width: 0;
   justify-content: flex-end;
   margin-left: 0;
 }
 
-header:has(.header-instance) > .header-trailing > .header-primary-actions {
+.app-header-bar:has(.header-instance) > .header-trailing > .header-primary-actions {
   display: inline-flex !important;
   align-items: center;
   min-width: 0;
@@ -2067,7 +2067,7 @@ header:has(.header-instance) > .header-trailing > .header-primary-actions {
   transform-origin: top right;
 }
 
-header:has(.header-instance) > .header-trailing > #dropdown.active {
+.app-header-bar:has(.header-instance) > .header-trailing > #dropdown.active {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -2119,7 +2119,7 @@ header:has(.header-instance) > .header-trailing > #dropdown.active {
   font-weight: 500;
 }
 
-header:has(.header-instance) > .header-trailing > #more {
+.app-header-bar:has(.header-instance) > .header-trailing > #more {
   display: inline-flex !important;
   flex: 0 0 2.75rem;
   width: 2.75rem;
@@ -2128,18 +2128,18 @@ header:has(.header-instance) > .header-trailing > #more {
   justify-content: center;
 }
 
-header:has(.header-instance) > .header-trailing > .header-task-center {
+.app-header-bar:has(.header-instance) > .header-trailing > .header-task-center {
   flex-basis: 2.75rem;
   width: 2.75rem;
   height: 2.75rem;
 }
 
 @media (max-width: 899px) {
-  body:has(header .header-instance) {
+  body:has(.app-header-bar .header-instance) {
     padding-top: var(--app-mobile-header-height, 96px);
   }
 
-  header:has(.header-instance) {
+  .app-header-bar:has(.header-instance) {
     height: var(--app-mobile-header-height, 96px);
     min-height: var(--app-mobile-header-height, 96px);
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -2151,51 +2151,51 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     padding: 0 0.5rem;
   }
 
-  header:has(.header-instance) > .header-leading {
+  .app-header-bar:has(.header-instance) > .header-leading {
     min-height: 48px;
   }
 
-  header:has(.header-instance) > .header-center {
+  .app-header-bar:has(.header-instance) > .header-center {
     min-height: 48px;
     padding-inline: 0;
   }
 
-  header:has(.header-instance) > .header-center > .listing-search {
+  .app-header-bar:has(.header-instance) > .header-center > .listing-search {
     height: 2.5rem;
     min-width: 0;
   }
 
-  header:has(.header-instance) > .header-trailing {
+  .app-header-bar:has(.header-instance) > .header-trailing {
     min-height: 48px;
   }
 
-  header:has(.header-instance) > .header-trailing > .header-primary-actions {
+  .app-header-bar:has(.header-instance) > .header-trailing > .header-primary-actions {
     display: none !important;
   }
 
-  header:has(.header-instance) > .header-trailing > #dropdown {
+  .app-header-bar:has(.header-instance) > .header-trailing > #dropdown {
     top: 52px;
     right: 0.5rem;
     max-height: calc(100dvh - 4rem);
   }
 
-  header:has(.header-instance) > .header-leading > .menu-button,
-  header:has(.header-instance) .header-leading .menu-button {
+  .app-header-bar:has(.header-instance) > .header-leading > .menu-button,
+  .app-header-bar:has(.header-instance) .header-leading .menu-button {
     display: inline-flex !important;
     width: 2.75rem;
     height: 2.75rem;
     flex: 0 0 2.75rem;
   }
 
-  header:has(.header-instance) .header-instance {
+  .app-header-bar:has(.header-instance) .header-instance {
     max-width: min(10rem, 42vw);
   }
 
   /* Header menu rows are touch targets, even when their visual glyph is
    * compact. Keep the contract at 44px after the legacy 40px action rules. */
-  header:has(.header-instance) > .header-trailing > #dropdown .action,
-  header:has(.header-instance) > .header-trailing > #dropdown .dropdown-item,
-  header:has(.header-instance) > .header-trailing > #dropdown .dropdown-back {
+  .app-header-bar:has(.header-instance) > .header-trailing > #dropdown .action,
+  .app-header-bar:has(.header-instance) > .header-trailing > #dropdown .dropdown-item,
+  .app-header-bar:has(.header-instance) > .header-trailing > #dropdown .dropdown-back {
     min-height: 44px;
   }
 }
@@ -2204,11 +2204,11 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
  * resizable sidebar. This keeps the content edge and the header edge aligned
  * while giving the back control one consistent rounded hit area. */
 @media (min-width: 900px) {
-  header:has(.header-instance) {
+  .app-header-bar:has(.header-instance) {
     grid-template-columns: var(--sidebar-width, 288px) minmax(0, 1fr) auto;
   }
 
-  header:has(.header-instance) > .header-leading {
+  .app-header-bar:has(.header-instance) > .header-leading {
     width: var(--sidebar-width, 288px);
     min-width: var(--sidebar-width, 288px);
     flex: 0 0 var(--sidebar-width, 288px);
@@ -2217,12 +2217,12 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     padding-inline: 0.5rem 0.25rem;
   }
 
-  header:has(.header-instance) > .header-leading > .header-instance {
+  .app-header-bar:has(.header-instance) > .header-leading > .header-instance {
     min-width: 0;
     flex: 1 1 auto;
   }
 
-  header:has(.header-instance) .header-back {
+  .app-header-bar:has(.header-instance) .header-back {
     display: inline-flex;
     min-width: 44px;
     min-height: 44px;
@@ -2240,14 +2240,14 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
       border-color 140ms ease;
   }
 
-  header:has(.header-instance) .header-back:hover,
-  header:has(.header-instance) .header-back:focus-visible {
+  .app-header-bar:has(.header-instance) .header-back:hover,
+  .app-header-bar:has(.header-instance) .header-back:focus-visible {
     color: var(--blue, #1677ff);
     border-color: color-mix(in srgb, var(--blue, #1677ff) 18%, transparent);
     background: color-mix(in srgb, var(--blue, #1677ff) 8%, transparent);
   }
 
-  header:has(.header-instance) .header-back--leading {
+  .app-header-bar:has(.header-instance) .header-back--leading {
     width: auto;
     max-width: 11rem;
     flex-basis: auto;
@@ -2315,15 +2315,15 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     max-width: min(22rem, calc(100vw - 1rem));
   }
 
-  header:has(.header-instance) > .header-leading {
+  .app-header-bar:has(.header-instance) > .header-leading {
     overflow: visible;
   }
 
-  header:has(.header-instance) > .header-leading > .header-instance {
+  .app-header-bar:has(.header-instance) > .header-leading > .header-instance {
     overflow: hidden;
   }
 
-  header:has(.header-instance) .header-back {
+  .app-header-bar:has(.header-instance) .header-back {
     flex: 0 0 auto;
     overflow: visible;
     border-radius: 999px;
@@ -2358,7 +2358,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
  * center and trailing content share the main-region grid so the page title or
  * search stays centered even when the action cluster changes width. */
 @media (min-width: 900px) {
-  header:has(.header-instance) {
+  .app-header-bar:has(.header-instance) {
     grid-template-columns: var(--sidebar-width, 288px) minmax(0, 1fr);
     grid-template-areas: "leading main";
     column-gap: 0;
@@ -2367,7 +2367,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     box-shadow: none;
   }
 
-  header:has(.header-instance)::after {
+  .app-header-bar:has(.header-instance)::after {
     content: "";
     position: absolute;
     right: 0;
@@ -2378,7 +2378,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     pointer-events: none;
   }
 
-  header:has(.header-instance) > .header-leading {
+  .app-header-bar:has(.header-instance) > .header-leading {
     grid-area: leading;
     width: 100%;
     min-width: 0;
@@ -2389,29 +2389,29 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     box-shadow: 1px 0 8px rgba(15, 23, 42, 0.03);
   }
 
-  header:has(.header-instance) > .header-center,
-  header:has(.header-instance) > .header-trailing {
+  .app-header-bar:has(.header-instance) > .header-center,
+  .app-header-bar:has(.header-instance) > .header-trailing {
     grid-area: main;
   }
 
-  header:has(.header-instance) > .header-center {
+  .app-header-bar:has(.header-instance) > .header-center {
     z-index: 0;
     width: min(27rem, 36%) !important;
     justify-self: center;
   }
 
-  header:has(.header-instance) > .header-center > .listing-search {
+  .app-header-bar:has(.header-instance) > .header-center > .listing-search {
     width: 100%;
     max-width: none;
   }
 
-  header:has(.header-instance) > .header-trailing {
+  .app-header-bar:has(.header-instance) > .header-trailing {
     z-index: 1;
     justify-self: end;
     padding-inline-end: 0.75rem;
   }
 
-  header:has(.header-instance) .header-back--leading {
+  .app-header-bar:has(.header-instance) .header-back--leading {
     min-width: auto;
     min-height: 2.5rem;
     height: 2.5rem;
@@ -2424,14 +2424,14 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
     border-radius: 0.5rem;
   }
 
-  header:has(.header-instance) .header-back--leading:hover,
-  header:has(.header-instance) .header-back--leading:focus-visible {
+  .app-header-bar:has(.header-instance) .header-back--leading:hover,
+  .app-header-bar:has(.header-instance) .header-back--leading:focus-visible {
     color: var(--blue, #1677ff);
     border-color: transparent;
     background: color-mix(in srgb, var(--blue, #1677ff) 8%, transparent);
   }
 
-  header:has(.header-instance) .header-back-label {
+  .app-header-bar:has(.header-instance) .header-back-label {
     font-size: 0.8125rem;
     font-weight: 600;
   }
@@ -2647,7 +2647,9 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   /* The center is an overlay across the main region, so right-side controls
    * cannot pull a title or search field off the optical centre. */
   .app-header-bar:has(.header-instance) {
-    position: relative;
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
   }
 
   .app-header-bar:has(.header-instance) > .header-center {

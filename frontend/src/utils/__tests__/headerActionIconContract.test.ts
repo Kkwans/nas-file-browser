@@ -117,5 +117,6 @@ describe("文件工具栏图标契约", () => {
     );
     expect(workspaceCss).toContain("text-align: start;");
     expect(workspaceCss).toContain("touch-action: pan-y;");
+    expect(workspaceCss).toContain("width: min(10.5rem, calc(100vw - 1rem));");
   });
 });

@@ -2690,7 +2690,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   }
 
   .app-header-bar > .header-trailing > #dropdown {
-    width: min(12rem, calc(100vw - 1rem));
+    width: min(10.5rem, calc(100vw - 1rem));
     max-width: calc(100vw - 1rem);
     right: 0.5rem;
     left: auto;
@@ -2707,20 +2707,20 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   .app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions {
-    width: min(12rem, calc(100vw - 1rem));
+    width: min(10.5rem, calc(100vw - 1rem));
     max-width: calc(100vw - 1rem);
   }
 
   .app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions:has(.view-mode-dropdown.open) {
-    width: min(9rem, calc(100vw - 1rem));
+    width: min(8rem, calc(100vw - 1rem));
   }
 
   .app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions:has(.sort-dropdown.open) {
-    width: min(12rem, calc(100vw - 1rem));
+    width: min(10.5rem, calc(100vw - 1rem));
   }
 
   .app-header-bar > .header-trailing > #dropdown > div,

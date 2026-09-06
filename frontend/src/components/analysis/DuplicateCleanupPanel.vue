@@ -31,13 +31,16 @@
       <router-link v-else :to="cleanupTaskRoute">查看后台任务</router-link>
     </div>
 
-    <div class="duplicate-cleanup__notice" role="note">
-      <AppIcon name="circle-alert" :size="18" />
+    <details class="duplicate-cleanup__notice">
+      <summary>
+        <AppIcon name="circle-alert" :size="16" />
+        清理前须知
+      </summary>
       <p>
         移入回收站不会立即释放磁盘空间；相同内容也不代表这些路径具有相同用途。
         请确认保留项和完整路径后再继续。
       </p>
-    </div>
+    </details>
 
     <div
       v-if="report.schemaVersion !== 3"
@@ -95,7 +98,7 @@
       </details>
     </div>
 
-    <div class="duplicate-cleanup__summary">
+    <div class="duplicate-cleanup__summary" aria-live="polite">
       <span
         >已选 {{ selectedGroups.length }} / {{ report.groups.length }} 组</span
       >
@@ -105,7 +108,7 @@
 
     <div class="duplicate-cleanup__groups">
       <article
-        v-for="(group, index) in report.groups"
+        v-for="(group, index) in visibleGroups"
         :key="group.sha256"
         class="cleanup-group"
         :class="{
@@ -139,41 +142,54 @@
           </span>
         </div>
 
-        <div class="cleanup-group__files">
-          <div
-            v-for="file in group.files"
-            :key="file.path"
-            class="cleanup-file-row"
-            :class="{ 'is-keeper': selectionFor(group).keepPath === file.path }"
-          >
-            <label class="cleanup-file-choice">
-              <input
-                type="radio"
-                :name="`keeper-${group.sha256}`"
-                :value="file.path"
-                :checked="selectionFor(group).keepPath === file.path"
-                :disabled="
-                  Boolean(cleanupTask) || !selectionFor(group).included
-                "
-                :aria-label="`保留 ${file.path}`"
-                @change="setKeeper(group.sha256, file.path)"
-              />
-            </label>
-            <AppIcon :name="resourceIcon(file.path)" :size="18" />
-            <span>
-              <strong>{{ fileName(file.path) }}</strong>
-              <small :title="file.path">{{ file.path }}</small>
-            </span>
-            <time v-if="file.created" :datetime="file.created">
-              创建于 {{ formatCreated(file.created) }}
-            </time>
-            <em v-else>创建时间未知</em>
-            <router-link :to="fileRoute(file.path)" aria-label="打开文件">
-              <AppIcon name="external-link" :size="17" />
-            </router-link>
+        <details class="cleanup-group__details">
+          <summary>查看 {{ group.totalFiles }} 个文件与保留项</summary>
+          <div class="cleanup-group__files">
+            <div
+              v-for="file in group.files"
+              :key="file.path"
+              class="cleanup-file-row"
+              :class="{
+                'is-keeper': selectionFor(group).keepPath === file.path,
+              }"
+            >
+              <label class="cleanup-file-choice">
+                <input
+                  type="radio"
+                  :name="`keeper-${group.sha256}`"
+                  :value="file.path"
+                  :checked="selectionFor(group).keepPath === file.path"
+                  :disabled="
+                    Boolean(cleanupTask) || !selectionFor(group).included
+                  "
+                  :aria-label="`保留 ${file.path}`"
+                  @change="setKeeper(group.sha256, file.path)"
+                />
+              </label>
+              <AppIcon :name="resourceIcon(file.path)" :size="18" />
+              <span>
+                <strong>{{ fileName(file.path) }}</strong>
+                <small :title="file.path">{{ file.path }}</small>
+              </span>
+              <time v-if="file.created" :datetime="file.created">
+                创建于 {{ formatCreated(file.created) }}
+              </time>
+              <em v-else>创建时间未知</em>
+              <router-link :to="fileRoute(file.path)" aria-label="打开文件">
+                <AppIcon name="external-link" :size="17" />
+              </router-link>
+            </div>
           </div>
-        </div>
+        </details>
       </article>
+    </div>
+
+    <div v-if="hasMoreGroups" class="duplicate-cleanup__load-more">
+      <button type="button" @click="loadMoreGroups">加载更多重复组</button>
+      <small
+        >已显示 {{ visibleGroups.length }} /
+        {{ report.groups.length }} 组</small
+      >
     </div>
 
     <AppDialog
@@ -241,6 +257,7 @@ const selections = reactive<Record<string, DuplicateCleanupSelectionState>>({});
 const showConfirmation = ref(false);
 const submitting = ref(false);
 const canceling = ref(false);
+const visibleGroupCount = ref(10);
 const cleanupTask = ref<TaskItem | null>(null);
 const cleanupResult = ref<analysisApi.DuplicateCleanupResult | null>(null);
 let disposed = false;
@@ -249,6 +266,7 @@ let waitingTaskId = "";
 watch(
   () => [props.reportId, props.report] as const,
   () => {
+    visibleGroupCount.value = 10;
     for (const key of Object.keys(selections)) delete selections[key];
     for (const group of props.report.groups) {
       selections[group.sha256] = initialDuplicateCleanupSelection(
@@ -266,6 +284,12 @@ watch(
 
 const selectedGroups = computed(() =>
   props.report.groups.filter((group) => selectionFor(group).included)
+);
+const visibleGroups = computed(() =>
+  props.report.groups.slice(0, visibleGroupCount.value)
+);
+const hasMoreGroups = computed(
+  () => visibleGroups.value.length < props.report.groups.length
 );
 const selectedSummary = computed(() =>
   duplicateCleanupSummary(selectedGroups.value)
@@ -339,6 +363,10 @@ function toggleGroup(group: DuplicateGroup, event: Event) {
 
 function setKeeper(sha256: string, path: string) {
   if (selections[sha256]) selections[sha256].keepPath = path;
+}
+
+function loadMoreGroups() {
+  visibleGroupCount.value += 10;
 }
 
 async function submitCleanup() {
@@ -456,7 +484,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .duplicate-cleanup {
-  margin-top: 14px;
+  margin-top: 12px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
   border-radius: 12px;
@@ -465,7 +493,7 @@ onBeforeUnmount(() => {
 
 .duplicate-cleanup__header {
   display: flex;
-  min-height: 66px;
+  min-height: 58px;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -545,17 +573,28 @@ onBeforeUnmount(() => {
 }
 
 .duplicate-cleanup__notice {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 9px;
-  padding: 11px 14px;
+  margin: 10px 14px 0;
+  border: 1px solid
+    color-mix(in srgb, var(--icon-orange) 22%, var(--borderPrimary));
+  border-radius: 8px;
   color: var(--icon-orange);
-  background: color-mix(in srgb, var(--icon-orange) 6%, transparent);
+  background: color-mix(in srgb, var(--icon-orange) 4%, transparent);
+}
+
+.duplicate-cleanup__notice summary {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .duplicate-cleanup__notice p {
   margin: 0;
+  padding: 0 10px 9px 32px;
   color: var(--textSecondary);
   font-size: 12px;
   line-height: 1.55;
@@ -655,6 +694,41 @@ onBeforeUnmount(() => {
   gap: 10px;
   padding: 12px 14px 14px;
 }
+
+.duplicate-cleanup__load-more {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 0 14px 14px;
+}
+
+.duplicate-cleanup__load-more button {
+  min-height: 34px;
+  padding: 0 18px;
+  border: 1px solid color-mix(in srgb, var(--blue) 25%, var(--borderPrimary));
+  border-radius: 7px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.duplicate-cleanup__load-more button:hover,
+.duplicate-cleanup__load-more button:focus-visible {
+  outline: none;
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
+}
+
+.duplicate-cleanup__load-more button:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.duplicate-cleanup__load-more small {
+  color: var(--textPrimary);
+  font-size: 10px;
+}
 .cleanup-group {
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
@@ -710,6 +784,20 @@ onBeforeUnmount(() => {
 }
 .cleanup-group__files {
   display: grid;
+}
+
+.cleanup-group__details > summary {
+  min-height: 34px;
+  padding: 0 12px;
+  border-top: 1px solid var(--borderPrimary);
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 34px;
+}
+
+.cleanup-group__details[open] > summary {
+  background: color-mix(in srgb, var(--blue) 4%, transparent);
 }
 .cleanup-file-row {
   display: grid;

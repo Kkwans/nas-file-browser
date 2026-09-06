@@ -149,4 +149,34 @@ describe("analysis page UI contract", () => {
     expect(scopeSource).toContain("确认扫描整个可访问范围");
     expect(scopeSource).toContain(':disabled="!canStart"');
   });
+
+  it("分析报告使用紧凑指标带和独立的十条加载更多入口", () => {
+    const pageSource = readFileSync(
+      resolve(process.cwd(), "src/views/Analysis.vue"),
+      "utf8"
+    );
+    const cleanupSource = readFileSync(
+      resolve(
+        process.cwd(),
+        "src/components/analysis/DuplicateCleanupPanel.vue"
+      ),
+      "utf8"
+    );
+
+    expect(pageSource).toContain('class="analysis-metric-strip"');
+    expect(pageSource).not.toContain("analysis-summary-grid");
+    expect(pageSource).toContain("storageDirectoriesVisibleCount = ref(10)");
+    expect(pageSource).toContain("storageFilesVisibleCount = ref(10)");
+    expect(pageSource).toContain("加载更多目录");
+    expect(pageSource).toContain("加载更多文件");
+    expect(pageSource).toMatch(
+      /\.storage-rank-row--directory\s*\{[\s\S]*?grid-template-columns:\s*24px\s+19px\s+minmax\(0, 1fr\)\s+68px\s+84px/
+    );
+    expect(pageSource).toMatch(
+      /\.storage-rank-row--file\s*\{[\s\S]*?grid-template-columns:\s*24px\s+19px\s+minmax\(0, 1fr\)\s+84px\s+112px/
+    );
+    expect(cleanupSource).toContain("visibleGroupCount = ref(10)");
+    expect(cleanupSource).toContain("加载更多重复组");
+    expect(cleanupSource).toContain('class="cleanup-group__details"');
+  });
 });

@@ -142,7 +142,7 @@
           </span>
         </section>
 
-        <section class="analysis-summary-grid" aria-label="重复文件分析摘要">
+        <section class="analysis-metric-strip" aria-label="重复文件分析摘要">
           <article>
             <small>已扫描文件</small>
             <strong>{{ report.scannedFiles.toLocaleString() }}</strong>
@@ -160,12 +160,17 @@
           </article>
         </section>
 
-        <section v-if="report.truncated" class="analysis-warning" role="status">
-          <AppIcon name="circle-alert" :size="19" />
-          结果文件超过
-          {{ report.resultFileLimit.toLocaleString() }}
-          项，当前仅展示前一部分；顶部统计仍为完整扫描结果。
-        </section>
+        <details v-if="report.truncated" class="analysis-report-note">
+          <summary>
+            <AppIcon name="circle-alert" :size="16" />
+            结果已截断
+          </summary>
+          <p>
+            结果文件超过
+            {{ report.resultFileLimit.toLocaleString() }}
+            项，当前仅展示前一部分；顶部统计仍为完整扫描结果。
+          </p>
+        </details>
 
         <DuplicateCleanupPanel
           v-if="report.groups.length && currentTask"
@@ -225,7 +230,7 @@
           </span>
         </section>
 
-        <section class="analysis-summary-grid" aria-label="存储空间分析摘要">
+        <section class="analysis-metric-strip" aria-label="存储空间分析摘要">
           <article>
             <small>已扫描文件</small>
             <strong>{{ storageReport.scannedFiles.toLocaleString() }}</strong>
@@ -265,32 +270,42 @@
           </article>
         </section>
 
-        <section
-          v-if="storageReport.truncated"
-          class="analysis-warning"
-          role="status"
-        >
-          <AppIcon name="circle-alert" :size="19" />
-          排行榜各最多展示
-          {{ storageReport.resultLimit.toLocaleString() }}
-          项；顶部总量仍为完整扫描结果。
-        </section>
+        <details v-if="storageReport.truncated" class="analysis-report-note">
+          <summary>
+            <AppIcon name="circle-alert" :size="16" />
+            排行榜已截断
+          </summary>
+          <p>
+            排行榜各最多展示
+            {{ storageReport.resultLimit.toLocaleString() }}
+            项；顶部总量仍为完整扫描结果。
+          </p>
+        </details>
 
         <section class="storage-rankings" aria-label="存储占用排行">
           <article>
             <div class="storage-ranking-header" role="heading" aria-level="3">
-              <span>目录大小</span>
-              <small>包含全部后代文件</small>
+              <div>
+                <span>目录占用</span>
+                <small>包含全部后代文件</small>
+              </div>
+              <div class="storage-ranking-columns" aria-hidden="true">
+                <span>文件数</span>
+                <span>占用空间</span>
+              </div>
             </div>
             <div v-if="storageReport.largestDirectories.length">
               <router-link
-                v-for="(directory, index) in storageReport.largestDirectories"
+                v-for="(directory, index) in visibleLargestDirectories"
                 :key="directory.path"
+                class="storage-rank-row storage-rank-row--directory"
                 :to="fileRoute(directory.path, true)"
               >
-                <b>{{ String(index + 1).padStart(2, "0") }}</b>
+                <b class="storage-rank-index">{{
+                  String(index + 1).padStart(2, "0")
+                }}</b>
                 <AppIcon name="folder" :size="19" />
-                <span>
+                <span class="storage-rank-main">
                   <strong>{{ fileName(directory.path) }}</strong>
                   <small :title="directory.path">{{ directory.path }}</small>
                   <em>
@@ -304,29 +319,51 @@
                     ></i>
                   </em>
                 </span>
-                <span class="storage-rank-value">
-                  <strong>{{ formatBytes(directory.bytes) }}</strong>
-                  <small>{{ directory.files.toLocaleString() }} 个文件</small>
-                </span>
+                <span class="storage-rank-count">{{
+                  directory.files.toLocaleString()
+                }}</span>
+                <strong class="storage-rank-size">{{
+                  formatBytes(directory.bytes)
+                }}</strong>
               </router-link>
             </div>
             <p v-else class="storage-rank-empty">所选范围内没有目录。</p>
+            <button
+              v-if="
+                visibleLargestDirectories.length <
+                storageReport.largestDirectories.length
+              "
+              type="button"
+              class="storage-rank-more"
+              @click="loadMoreStorageDirectories"
+            >
+              加载更多目录
+            </button>
           </article>
 
           <article>
             <div class="storage-ranking-header" role="heading" aria-level="3">
-              <span>大文件</span>
-              <small>按实际文件大小排序</small>
+              <div>
+                <span>大文件</span>
+                <small>按实际文件大小排序</small>
+              </div>
+              <div class="storage-ranking-columns" aria-hidden="true">
+                <span>文件大小</span>
+                <span>修改时间</span>
+              </div>
             </div>
             <div v-if="storageReport.largestFiles.length">
               <router-link
-                v-for="(file, index) in storageReport.largestFiles"
+                v-for="(file, index) in visibleLargestFiles"
                 :key="file.path"
+                class="storage-rank-row storage-rank-row--file"
                 :to="fileRoute(file.path, false)"
               >
-                <b>{{ String(index + 1).padStart(2, "0") }}</b>
+                <b class="storage-rank-index">{{
+                  String(index + 1).padStart(2, "0")
+                }}</b>
                 <AppIcon :name="resourceIcon(file.path)" :size="19" />
-                <span>
+                <span class="storage-rank-main">
                   <strong>{{ fileName(file.path) }}</strong>
                   <small :title="file.path">{{ file.path }}</small>
                   <em>
@@ -337,13 +374,27 @@
                     ></i>
                   </em>
                 </span>
-                <span class="storage-rank-value">
-                  <strong>{{ formatBytes(file.size) }}</strong>
-                  <small>{{ formatModified(file.modified) }}</small>
-                </span>
+                <strong class="storage-rank-size">{{
+                  formatBytes(file.size)
+                }}</strong>
+                <time
+                  class="storage-rank-time"
+                  :datetime="String(file.modified)"
+                  >{{ formatModified(file.modified) }}</time
+                >
               </router-link>
             </div>
             <p v-else class="storage-rank-empty">所选范围内没有普通文件。</p>
+            <button
+              v-if="
+                visibleLargestFiles.length < storageReport.largestFiles.length
+              "
+              type="button"
+              class="storage-rank-more"
+              @click="loadMoreStorageFiles"
+            >
+              加载更多文件
+            </button>
           </article>
         </section>
 
@@ -424,6 +475,8 @@ const canceling = ref(false);
 const currentTask = ref<TaskItem | null>(null);
 const report = ref<DuplicateReport | null>(null);
 const storageReport = ref<StorageReport | null>(null);
+const storageDirectoriesVisibleCount = ref(10);
+const storageFilesVisibleCount = ref(10);
 const showRunPanel = ref(false);
 const showScopePicker = ref(false);
 const loadError = ref("");
@@ -488,6 +541,20 @@ const maxDirectoryBytes = computed(
 const maxFileBytes = computed(
   () => storageReport.value?.largestFiles[0]?.size ?? 0
 );
+const visibleLargestDirectories = computed(
+  () =>
+    storageReport.value?.largestDirectories.slice(
+      0,
+      storageDirectoriesVisibleCount.value
+    ) ?? []
+);
+const visibleLargestFiles = computed(
+  () =>
+    storageReport.value?.largestFiles.slice(
+      0,
+      storageFilesVisibleCount.value
+    ) ?? []
+);
 
 watch(includesRoot, (value) => {
   if (!value) rootConfirmed.value = false;
@@ -506,6 +573,7 @@ watch(
     currentTask.value = null;
     report.value = null;
     storageReport.value = null;
+    resetReportPaging();
     loadError.value = "";
     activeTool.value = toolFromRoute();
     scopes.value = analysisScopesFromQuery(route.query.paths);
@@ -521,6 +589,7 @@ function selectTool(tool: AnalysisTool) {
   currentTask.value = null;
   report.value = null;
   storageReport.value = null;
+  resetReportPaging();
   showRunPanel.value = false;
   loadError.value = "";
   void router.push({
@@ -558,6 +627,7 @@ async function startScan() {
   loadError.value = "";
   report.value = null;
   storageReport.value = null;
+  resetReportPaging();
   showRunPanel.value = false;
   try {
     const task =
@@ -634,6 +704,7 @@ async function pollTask() {
 async function loadReport(taskId: string) {
   const taskType = currentTask.value?.type;
   try {
+    resetReportPaging();
     if (taskType === "analysis.storage") {
       const next = await analysisApi.getStorageReport(taskId);
       if (disposed || currentTask.value?.id !== taskId) return;
@@ -661,6 +732,7 @@ async function loadTask(taskId: string) {
   currentTask.value = null;
   report.value = null;
   storageReport.value = null;
+  resetReportPaging();
   loadError.value = "";
 
   try {
@@ -833,6 +905,19 @@ function formatModified(value: number) {
 function storageBarWidth(value: number, maximum: number) {
   if (value <= 0 || maximum <= 0) return "0%";
   return `${Math.max(4, Math.round((value / maximum) * 100))}%`;
+}
+
+function resetReportPaging() {
+  storageDirectoriesVisibleCount.value = 10;
+  storageFilesVisibleCount.value = 10;
+}
+
+function loadMoreStorageDirectories() {
+  storageDirectoriesVisibleCount.value += 10;
+}
+
+function loadMoreStorageFiles() {
+  storageFilesVisibleCount.value += 10;
 }
 
 onMounted(loadInitial);
@@ -1152,8 +1237,7 @@ onBeforeUnmount(() => {
   text-decoration: none;
 }
 
-.analysis-error,
-.analysis-warning {
+.analysis-error {
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -1175,8 +1259,8 @@ onBeforeUnmount(() => {
 }
 
 .analysis-results-heading {
-  margin-top: 28px;
-  padding: 0 2px 12px;
+  margin-top: 20px;
+  padding: 0 2px 10px;
   border-bottom: 1px solid var(--borderPrimary);
 }
 
@@ -1185,52 +1269,52 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   align-items: center;
   gap: 6px;
-  padding: 8px 11px;
+  padding: 5px 8px;
   border: 1px solid color-mix(in srgb, #16845d 22%, var(--borderPrimary));
   border-radius: 8px;
 }
 
-.analysis-summary-grid {
+.analysis-metric-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  margin-top: 14px;
+  margin-top: 10px;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surfacePrimary) 72%, transparent);
+  border-radius: 9px;
+  background: var(--surfacePrimary);
 }
 
-.analysis-summary-grid article {
+.analysis-metric-strip article {
   display: grid;
-  gap: 6px;
+  gap: 3px;
   min-width: 0;
-  padding: 15px 17px 16px;
+  padding: 10px 13px 11px;
   border-right: 1px solid var(--borderPrimary);
 }
 
-.analysis-summary-grid article:last-child {
+.analysis-metric-strip article:last-child {
   border-right: 0;
 }
 
-.analysis-summary-grid small,
-.analysis-summary-grid span {
+.analysis-metric-strip small,
+.analysis-metric-strip span {
   color: var(--textPrimary);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.analysis-summary-grid strong {
+.analysis-metric-strip strong {
   color: var(--textSecondary);
-  font-size: 27px;
+  font-size: 20px;
   letter-spacing: -0.03em;
 }
 
-.analysis-summary-grid .analysis-summary-time {
-  font-size: 18px;
+.analysis-metric-strip .analysis-summary-time {
+  font-size: 14px;
   letter-spacing: 0;
 }
 
-.analysis-summary-grid .analysis-summary-highlight {
+.analysis-metric-strip .analysis-summary-highlight {
   border-right-color: color-mix(in srgb, #1ea672 18%, var(--borderPrimary));
   background: color-mix(in srgb, #1ea672 5%, var(--surfacePrimary));
 }
@@ -1239,15 +1323,31 @@ onBeforeUnmount(() => {
   color: #16845d;
 }
 
-.analysis-warning {
-  margin-top: 10px;
+.analysis-report-note {
+  margin-top: 9px;
   border: 1px solid
-    color-mix(in srgb, var(--icon-orange) 26%, var(--borderPrimary));
-  border-radius: 10px;
+    color-mix(in srgb, var(--icon-orange) 24%, var(--borderPrimary));
+  border-radius: 8px;
   color: var(--textSecondary);
-  background: color-mix(in srgb, var(--icon-orange) 6%, transparent);
-  font-size: 12px;
-  line-height: 1.5;
+  background: color-mix(in srgb, var(--icon-orange) 5%, transparent);
+  font-size: 11px;
+}
+
+.analysis-report-note summary {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  color: var(--icon-orange);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.analysis-report-note p {
+  margin: 0;
+  padding: 0 10px 9px 31px;
+  line-height: 1.45;
 }
 
 .storage-scope-grid {
@@ -1300,15 +1400,15 @@ onBeforeUnmount(() => {
 .storage-rankings {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .storage-rankings > article {
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
-  border-radius: 10px;
+  border-radius: 9px;
   background: var(--surfacePrimary);
 }
 
@@ -1317,8 +1417,8 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 54px;
-  padding: 0 16px;
+  min-height: 52px;
+  padding: 0 13px;
   border-bottom: 1px solid var(--borderPrimary);
   background: color-mix(
     in srgb,
@@ -1327,84 +1427,108 @@ onBeforeUnmount(() => {
   );
 }
 
-.storage-rankings > article > .storage-ranking-header > span {
-  color: var(--textSecondary);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.storage-rankings > article > .storage-ranking-header > small {
-  color: var(--textPrimary);
-  font-size: 11px;
-}
-
-.storage-rankings > article > div {
-  max-height: 560px;
-  overflow: auto;
-}
-
-.storage-rankings a {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  min-height: 76px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--borderPrimary);
-  color: var(--textSecondary);
-  text-decoration: none;
-}
-
-.storage-rankings a:last-child {
-  border-bottom: 0;
-}
-
-.storage-rankings a:hover,
-.storage-rankings a:focus-visible {
-  outline: none;
-  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
-}
-
-.storage-rankings a:focus-visible {
-  box-shadow: inset 3px 0 var(--focus-ring);
-}
-
-.storage-rankings a > b {
-  color: var(--textPrimary);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-.storage-rankings a > .app-icon {
-  width: 19px;
-  height: 19px;
-  color: var(--textPrimary);
-}
-
-.storage-rankings a > span:not(.storage-rank-value) {
+.storage-ranking-header > div:first-child {
   display: grid;
   min-width: 0;
   gap: 2px;
 }
 
-.storage-rankings a strong,
-.storage-rankings a small {
+.storage-ranking-header > div:first-child > span {
+  color: var(--textSecondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.storage-ranking-header > div:first-child > small {
+  color: var(--textPrimary);
+  font-size: 11px;
+}
+
+.storage-ranking-columns {
+  display: grid;
+  grid-template-columns: 68px 84px;
+  gap: 10px;
+  color: var(--textPrimary);
+  font-size: 10px;
+  text-align: right;
+}
+
+.storage-rankings > article > div:not(.storage-ranking-header) {
+  max-height: 480px;
+  overflow: auto;
+}
+
+.storage-rank-row {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 64px;
+  padding: 7px 13px;
+  border-bottom: 1px solid var(--borderPrimary);
+  color: var(--textSecondary);
+  text-decoration: none;
+}
+
+.storage-rank-row--directory {
+  grid-template-columns: 24px 19px minmax(0, 1fr) 68px 84px;
+}
+
+.storage-rank-row--file {
+  grid-template-columns: 24px 19px minmax(0, 1fr) 84px 112px;
+}
+
+.storage-rank-row:last-child {
+  border-bottom: 0;
+}
+
+.storage-rank-row:hover,
+.storage-rank-row:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+}
+
+.storage-rank-row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+.storage-rank-index {
+  color: var(--textPrimary);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.storage-rank-row > .app-icon {
+  width: 19px;
+  height: 19px;
+  color: var(--textPrimary);
+}
+
+.storage-rank-main {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.storage-rank-row strong,
+.storage-rank-row small,
+.storage-rank-row time {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.storage-rankings a strong {
+.storage-rank-row strong {
   font-size: 12px;
 }
 
-.storage-rankings a small {
+.storage-rank-row small,
+.storage-rank-row time {
   color: var(--textPrimary);
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.storage-rankings em {
+.storage-rank-row em {
   display: block;
   height: 3px;
   margin-top: 3px;
@@ -1413,7 +1537,7 @@ onBeforeUnmount(() => {
   background: var(--surfaceSecondary);
 }
 
-.storage-rankings em > i {
+.storage-rank-row em > i {
   display: block;
   height: 100%;
   border-radius: inherit;
@@ -1421,11 +1545,48 @@ onBeforeUnmount(() => {
   transition: width 180ms ease;
 }
 
-.storage-rank-value {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
+.storage-rank-count,
+.storage-rank-size,
+.storage-rank-time {
+  min-width: 0;
   text-align: right;
+  white-space: nowrap;
+}
+
+.storage-rank-count,
+.storage-rank-time {
+  color: var(--textPrimary);
+  font-size: 10px;
+}
+
+.storage-rank-size {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.storage-rank-more {
+  display: block;
+  width: calc(100% - 26px);
+  min-height: 34px;
+  margin: 9px 13px 11px;
+  border: 1px solid color-mix(in srgb, var(--blue) 25%, var(--borderPrimary));
+  border-radius: 7px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 4%, var(--surfacePrimary));
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.storage-rank-more:hover,
+.storage-rank-more:focus-visible {
+  outline: none;
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 9%, var(--surfacePrimary));
+}
+
+.storage-rank-more:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .storage-rank-empty {
@@ -1544,21 +1705,35 @@ onBeforeUnmount(() => {
     min-height: 54px;
   }
 
-  .analysis-summary-grid {
+  .analysis-metric-strip {
     grid-template-columns: 1fr;
   }
 
-  .analysis-summary-grid article {
+  .analysis-metric-strip article {
     border-right: 0;
     border-bottom: 1px solid var(--borderPrimary);
   }
 
-  .analysis-summary-grid article:last-child {
+  .analysis-metric-strip article:last-child {
     border-bottom: 0;
   }
 
   .storage-rankings {
     grid-template-columns: 1fr;
+  }
+
+  .storage-ranking-columns {
+    display: none;
+  }
+
+  .storage-rank-row--directory,
+  .storage-rank-row--file {
+    grid-template-columns: 24px 19px minmax(0, 1fr) auto;
+  }
+
+  .storage-rank-count,
+  .storage-rank-time {
+    display: none;
   }
 
   .analysis-task-card {

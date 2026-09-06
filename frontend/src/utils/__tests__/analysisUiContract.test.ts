@@ -60,6 +60,7 @@ describe("analysis page UI contract", () => {
     expect(scopeSource).toContain('class="analysis-run-panel__heading"');
     expect(scopeSource).toContain('class="analysis-run-panel__selection"');
     expect(scopeSource).toContain('class="analysis-run-panel__summary"');
+    expect(scopeSource).toContain('class="analysis-run-panel__empty-action"');
     expect(recentSource).toContain('class="analysis-recent__side"');
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain("<span>完成与操作</span>");
@@ -74,6 +75,9 @@ describe("analysis page UI contract", () => {
     expect(
       readFileSync(resolve(process.cwd(), "src/views/Analysis.vue"), "utf8")
     ).toContain('@load-more="loadMoreRecent"');
+    expect(
+      readFileSync(resolve(process.cwd(), "src/views/Analysis.vue"), "utf8")
+    ).toContain("width: min(calc(100% - 32px), 1440px);");
   });
 
   it("最近扫描使用紧凑的表格节奏，动作入口不抢夺报告内容", () => {

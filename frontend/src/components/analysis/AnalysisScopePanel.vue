@@ -45,7 +45,18 @@
             </button>
           </span>
         </div>
-        <p v-else class="analysis-run-panel__empty">尚未选择范围</p>
+        <div v-else class="analysis-run-panel__empty">
+          <AppIcon name="folder" :size="19" aria-hidden="true" />
+          <span>尚未选择范围</span>
+          <button
+            type="button"
+            class="analysis-run-panel__empty-action"
+            :disabled="scopes.length >= 32"
+            @click="$emit('browse')"
+          >
+            选择目录
+          </button>
+        </div>
       </section>
 
       <aside class="analysis-run-panel__summary" aria-label="本次扫描摘要">
@@ -163,7 +174,8 @@ function updateRootConfirmed(event: Event) {
 }
 .analysis-run-panel__body {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(250px, 0.65fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  align-items: start;
   gap: 16px;
 }
 .analysis-run-panel__selection,
@@ -243,8 +255,41 @@ function updateRootConfirmed(event: Event) {
   background: var(--hover);
 }
 .analysis-run-panel__empty {
-  padding: 16px 0 4px;
+  display: flex;
+  min-height: 84px;
+  align-items: center;
+  gap: 9px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px dashed color-mix(in srgb, var(--borderPrimary) 86%, var(--blue));
+  border-radius: 8px;
   color: var(--textSecondary);
+  background: color-mix(in srgb, var(--surfacePrimary) 68%, transparent);
+}
+.analysis-run-panel__empty > .app-icon {
+  flex: 0 0 auto;
+  color: var(--blue);
+}
+.analysis-run-panel__empty-action {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: auto;
+  padding: 0 11px;
+  border: 1px solid color-mix(in srgb, var(--blue) 26%, var(--borderPrimary));
+  border-radius: 7px;
+  color: var(--blue);
+  background: var(--surfacePrimary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+.analysis-run-panel__empty-action:hover,
+.analysis-run-panel__empty-action:focus-visible {
+  border-color: color-mix(in srgb, var(--blue) 45%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 7%, var(--surfacePrimary));
 }
 .analysis-run-panel__summary {
   display: grid;
@@ -313,7 +358,7 @@ function updateRootConfirmed(event: Event) {
   color: var(--textSecondary);
 }
 .analysis-run-panel__footer {
-  align-items: flex-end;
+  align-items: center;
   padding-top: 4px;
 }
 .analysis-run-panel__footer > span {

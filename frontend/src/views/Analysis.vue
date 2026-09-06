@@ -960,7 +960,7 @@ onBeforeUnmount(() => {
 
 .analysis-workspace {
   box-sizing: border-box;
-  width: calc(100% - 32px);
+  width: min(calc(100% - 32px), 1440px);
   margin: 0 auto;
   padding: 18px 0 56px;
 }

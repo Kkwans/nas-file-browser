@@ -131,6 +131,11 @@ export interface AnalysisRecentItem {
   metrics?: AnalysisRecentMetrics;
 }
 
+export interface AnalysisRecentPage {
+  items: AnalysisRecentItem[];
+  nextCursor?: string;
+}
+
 export async function startDuplicateScan(paths: string[]) {
   const response = await fetchURL("/api/analysis/duplicates", {
     method: "POST",
@@ -193,7 +198,12 @@ export function getStorageReport(taskId: string) {
   );
 }
 
-export function listRecentScans(tool: AnalysisRecentItem["tool"], limit = 5) {
+export function listRecentScans(
+  tool: AnalysisRecentItem["tool"],
+  cursor?: string,
+  limit = 6
+) {
   const query = new URLSearchParams({ tool, limit: String(limit) });
-  return fetchJSON<AnalysisRecentItem[]>(`/api/analysis/recent?${query}`);
+  if (cursor) query.set("cursor", cursor);
+  return fetchJSON<AnalysisRecentPage>(`/api/analysis/recent?${query}`);
 }

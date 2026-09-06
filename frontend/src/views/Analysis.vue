@@ -365,8 +365,13 @@
         :tool="activeTool"
         :items="recentScans"
         :loading="recentLoading"
+        :loading-more="recentLoadingMore"
+        :has-more="recentHasMore"
+        :clearing="recentClearing"
         :error="recentError"
         @retry="loadRecent(activeTool)"
+        @load-more="loadMoreRecent"
+        @clear="clearRecent"
       />
     </main>
   </div>
@@ -390,7 +395,8 @@ import type {
   DuplicateReport,
   StorageReport,
 } from "@/api/analysis";
-import type { TaskItem, TaskStatus } from "@/api/tasks";
+import type { TaskItem, TaskListFilter, TaskStatus } from "@/api/tasks";
+import { useAuthStore } from "@/stores/auth";
 import { useTasksStore } from "@/stores/tasks";
 import {
   addAnalysisScope,
@@ -405,6 +411,7 @@ import { getResourceIconName } from "@/utils/fileIcons";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const tasksStore = useTasksStore();
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
@@ -422,6 +429,10 @@ const showScopePicker = ref(false);
 const loadError = ref("");
 const recentScans = ref<AnalysisRecentItem[]>([]);
 const recentLoading = ref(false);
+const recentLoadingMore = ref(false);
+const recentHasMore = ref(false);
+const recentCursor = ref("");
+const recentClearing = ref(false);
 const recentError = ref("");
 let pollTimer: number | undefined;
 let disposed = false;
@@ -695,12 +706,17 @@ async function loadInitial() {
 async function loadRecent(tool: AnalysisTool) {
   const sequence = ++recentLoadSequence;
   recentLoading.value = true;
+  recentLoadingMore.value = false;
+  recentHasMore.value = false;
+  recentCursor.value = "";
   recentError.value = "";
   recentScans.value = [];
   try {
-    const items = await analysisApi.listRecentScans(tool);
+    const page = await analysisApi.listRecentScans(tool, undefined, 6);
     if (sequence !== recentLoadSequence || disposed) return;
-    recentScans.value = items;
+    recentScans.value = page.items;
+    recentCursor.value = page.nextCursor || "";
+    recentHasMore.value = Boolean(page.nextCursor);
   } catch (error) {
     if (sequence !== recentLoadSequence || disposed) return;
     recentError.value = error instanceof Error ? error.message : String(error);
@@ -708,6 +724,68 @@ async function loadRecent(tool: AnalysisTool) {
     if (sequence === recentLoadSequence && !disposed) {
       recentLoading.value = false;
     }
+  }
+}
+
+async function loadMoreRecent() {
+  if (
+    !recentHasMore.value ||
+    !recentCursor.value ||
+    recentLoading.value ||
+    recentLoadingMore.value
+  ) {
+    return;
+  }
+  const sequence = recentLoadSequence;
+  recentLoadingMore.value = true;
+  try {
+    const page = await analysisApi.listRecentScans(
+      activeTool.value,
+      recentCursor.value,
+      6
+    );
+    if (sequence !== recentLoadSequence || disposed) return;
+    recentScans.value = [...recentScans.value, ...page.items];
+    recentCursor.value = page.nextCursor || "";
+    recentHasMore.value = Boolean(page.nextCursor);
+  } catch (error) {
+    if (sequence !== recentLoadSequence || disposed) return;
+    recentError.value = error instanceof Error ? error.message : String(error);
+  } finally {
+    if (sequence === recentLoadSequence && !disposed) {
+      recentLoadingMore.value = false;
+    }
+  }
+}
+
+async function clearRecent() {
+  if (recentClearing.value) return;
+  const user = authStore.user;
+  if (!user) {
+    $showError(new Error("用户信息尚未加载"));
+    return;
+  }
+  recentClearing.value = true;
+  try {
+    const filter: TaskListFilter = {
+      user: String(user.id),
+      type:
+        activeTool.value === "storage"
+          ? "analysis.storage"
+          : "analysis.duplicates",
+      statuses: ["completed", "failed", "canceled", "interrupted"],
+      archived: false,
+    };
+    const matching = await taskApi.list({ ...filter, limit: 1 });
+    if (matching.total > 0) {
+      await taskApi.batch("archive", filter, matching.total);
+    }
+    $showSuccess("最近扫描记录已清空");
+    await loadRecent(activeTool.value);
+  } catch (error) {
+    $showError(error instanceof Error ? error : String(error));
+  } finally {
+    recentClearing.value = false;
   }
 }
 

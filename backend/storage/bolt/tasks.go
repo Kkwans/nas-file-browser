@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/asdine/storm/v3"
+	"github.com/asdine/storm/v3/q"
 
 	"github.com/Kkwans/nas-file-browser/backend/tasks"
 )
@@ -59,6 +60,40 @@ func (backend taskBackend) GetByID(id string) (*tasks.Task, error) {
 		return nil, err
 	}
 	return record.task(), nil
+}
+
+// ListRecent uses a keyset query instead of loading the complete task table.
+// Storm applies the newest-first ordering after filtering by owner, type and
+// archive state; the cursor predicate is the strict lexicographic successor
+// for (CreatedAt DESC, ID DESC).
+func (backend taskBackend) ListRecent(userID uint, taskType tasks.Type, limit int, after *tasks.RecentCursor) ([]*tasks.Task, error) {
+	if limit < 1 {
+		return []*tasks.Task{}, nil
+	}
+	matchers := []q.Matcher{
+		q.Eq("UserID", userID),
+		q.Eq("Type", taskType),
+		q.Eq("ArchivedAt", int64(0)),
+	}
+	if after != nil {
+		matchers = append(matchers, q.Or(
+			q.Lt("CreatedAt", after.CreatedAt),
+			q.And(q.Eq("CreatedAt", after.CreatedAt), q.Lt("ID", after.ID)),
+		))
+	}
+	var records []*taskRecord
+	err := backend.db.Select(matchers...).OrderBy("CreatedAt", "ID").Reverse().Limit(limit).Find(&records)
+	if errors.Is(err, storm.ErrNotFound) {
+		return []*tasks.Task{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*tasks.Task, len(records))
+	for index, record := range records {
+		result[index] = record.task()
+	}
+	return result, nil
 }
 
 func (backend taskBackend) Save(task *tasks.Task) error {

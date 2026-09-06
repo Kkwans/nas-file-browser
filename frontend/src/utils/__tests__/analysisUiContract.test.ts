@@ -69,6 +69,11 @@ describe("analysis page UI contract", () => {
     expect(recentSource).toMatch(
       /\.analysis-recent__side\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:/
     );
+    expect(recentSource).toContain('class="analysis-recent__load-more"');
+    expect(recentSource).toContain('class="analysis-recent__clear"');
+    expect(
+      readFileSync(resolve(process.cwd(), "src/views/Analysis.vue"), "utf8")
+    ).toContain('@load-more="loadMoreRecent"');
   });
 
   it("最近扫描使用紧凑的表格节奏，动作入口不抢夺报告内容", () => {

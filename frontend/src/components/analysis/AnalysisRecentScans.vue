@@ -7,7 +7,23 @@
       <div>
         <h2 id="analysis-recent-title">最近扫描</h2>
       </div>
-      <button v-if="error" type="button" @click="$emit('retry')">
+      <button
+        v-if="items.length"
+        type="button"
+        class="analysis-recent__clear"
+        :disabled="clearing"
+        title="清空当前工具的已完成记录"
+        aria-label="清空当前工具的已完成记录"
+        @click="$emit('clear')"
+      >
+        <AppIcon name="trash" :size="17" />
+      </button>
+      <button
+        v-if="error"
+        type="button"
+        class="analysis-recent__retry"
+        @click="$emit('retry')"
+      >
         重新加载
       </button>
     </div>
@@ -105,6 +121,16 @@
         </div>
       </li>
     </ul>
+
+    <div
+      v-if="!loading && !error && items.length && hasMore"
+      class="analysis-recent__load-more"
+    >
+      <button type="button" :disabled="loadingMore" @click="$emit('load-more')">
+        <AppIcon v-if="loadingMore" name="loader" :size="16" />
+        {{ loadingMore ? "正在加载…" : "加载更多" }}
+      </button>
+    </div>
   </section>
 </template>
 
@@ -120,10 +146,13 @@ const props = defineProps<{
   tool: AnalysisTool;
   items: AnalysisRecentItem[];
   loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
+  clearing: boolean;
   error: string;
 }>();
 
-defineEmits<{ retry: [] }>();
+defineEmits<{ retry: []; "load-more": []; clear: [] }>();
 
 const toolLabel = computed(() =>
   props.tool === "storage" ? "空间分析" : "重复文件扫描"
@@ -226,6 +255,31 @@ function formatClock(value: number) {
   color: var(--blue);
   background: transparent;
   cursor: pointer;
+}
+.analysis-recent__header .analysis-recent__clear {
+  display: inline-grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  margin-inline-start: auto;
+  place-items: center;
+  color: var(--textPrimary);
+  border-radius: 7px;
+}
+.analysis-recent__header .analysis-recent__clear + .analysis-recent__retry {
+  margin-inline-start: 0;
+}
+.analysis-recent__header .analysis-recent__clear:hover,
+.analysis-recent__header .analysis-recent__clear:focus-visible {
+  color: var(--icon-red);
+  background: var(--hover);
+}
+.analysis-recent__header .analysis-recent__clear:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.analysis-recent__header .analysis-recent__retry {
+  margin-inline-start: auto;
 }
 .analysis-recent__state {
   display: flex;
@@ -378,6 +432,36 @@ function formatClock(value: number) {
 }
 .analysis-recent__action:hover {
   text-decoration: underline;
+}
+.analysis-recent__load-more {
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--borderPrimary);
+}
+.analysis-recent__load-more button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 7px;
+  color: var(--blue);
+  background: var(--surfacePrimary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.analysis-recent__load-more button:hover,
+.analysis-recent__load-more button:focus-visible {
+  border-color: color-mix(in srgb, var(--blue) 35%, var(--borderPrimary));
+  background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
+}
+.analysis-recent__load-more button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 .analysis-recent__action:focus-visible,
 .analysis-recent__scope:focus-visible,

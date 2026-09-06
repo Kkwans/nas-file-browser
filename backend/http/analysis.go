@@ -20,7 +20,7 @@ import (
 
 const maxAnalysisScopes = 32
 const (
-	defaultRecentAnalysisLimit = 5
+	defaultRecentAnalysisLimit = 6
 	maxRecentAnalysisLimit     = 10
 )
 
@@ -55,6 +55,11 @@ type analysisRecentItem struct {
 	Error          string                 `json:"error,omitempty"`
 	ResultReady    bool                   `json:"resultReady"`
 	Metrics        *analysisRecentMetrics `json:"metrics,omitempty"`
+}
+
+type analysisRecentResponse struct {
+	Items      []analysisRecentItem `json:"items"`
+	NextCursor string               `json:"nextCursor,omitempty"`
 }
 
 func duplicateAnalysisStartHandler(runtime *tasks.Runtime) handleFunc {
@@ -171,23 +176,37 @@ var analysisRecentHandler = withUser(func(w http.ResponseWriter, r *http.Request
 		}
 		limit = parsed
 	}
+	var cursor *taskCursor
+	if raw := strings.TrimSpace(r.URL.Query().Get("cursor")); raw != "" {
+		decoded, err := decodeTaskCursor(raw)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("cursor 无效")
+		}
+		cursor = decoded
+	}
 	// 分析报告始终只属于发起用户。管理员需要查看其他用户任务时使用任务中心，
 	// 此处不能因为管理员权限而混入无法从当前工作区打开的其他用户报告。
-	all, err := d.store.Tasks.List(d.user.ID, false)
+	var taskCursorValue *tasks.RecentCursor
+	if cursor != nil {
+		taskCursorValue = &tasks.RecentCursor{CreatedAt: cursor.CreatedAt, ID: cursor.ID}
+	}
+	loaded, err := d.store.Tasks.ListRecent(d.user.ID, taskType, limit+1, taskCursorValue)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	items := make([]analysisRecentItem, 0, limit)
-	for _, task := range all {
-		if task.Type != taskType {
-			continue
-		}
+	for _, task := range loaded {
 		items = append(items, summarizeAnalysisTask(task))
-		if len(items) == limit {
-			break
-		}
 	}
-	return renderJSON(w, r, items)
+	response := analysisRecentResponse{Items: items}
+	if len(items) > limit {
+		response.Items = items[:limit]
+		response.NextCursor = encodeTaskCursor(loaded[limit-1])
+	}
+	if response.Items == nil {
+		response.Items = []analysisRecentItem{}
+	}
+	return renderJSON(w, r, response)
 })
 
 func summarizeAnalysisTask(task *tasks.Task) analysisRecentItem {

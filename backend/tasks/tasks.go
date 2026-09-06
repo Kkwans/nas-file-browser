@@ -109,6 +109,21 @@ type StorageBackend interface {
 	Update(task *Task) error
 }
 
+// RecentCursor is the stable keyset position used by history-like task lists.
+// CreatedAt and ID together keep ordering deterministic when tasks share a
+// millisecond timestamp.
+type RecentCursor struct {
+	CreatedAt int64
+	ID        string
+}
+
+// RecentTaskBackend lets persistent stores answer a bounded, user-scoped
+// query without loading the complete task table into memory. The fallback in
+// Storage.ListRecent keeps lightweight test backends compatible.
+type RecentTaskBackend interface {
+	ListRecent(userID uint, taskType Type, limit int, after *RecentCursor) ([]*Task, error)
+}
+
 type Storage struct {
 	back StorageBackend
 }
@@ -180,6 +195,37 @@ func (storage *Storage) List(userID uint, admin bool) ([]*Task, error) {
 		return visible[left].CreatedAt > visible[right].CreatedAt
 	})
 	return visible, nil
+}
+
+// ListRecent returns active (non-archived) tasks in stable newest-first order.
+// Persistent backends should implement RecentTaskBackend so limit+1 rows can
+// be fetched directly for cursor pagination; the fallback is intentionally
+// only for small in-memory/test stores.
+func (storage *Storage) ListRecent(userID uint, taskType Type, limit int, after *RecentCursor) ([]*Task, error) {
+	if limit < 1 {
+		return []*Task{}, nil
+	}
+	if backend, ok := storage.back.(RecentTaskBackend); ok {
+		return backend.ListRecent(userID, taskType, limit, after)
+	}
+	all, err := storage.List(userID, false)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*Task, 0, limit)
+	for _, task := range all {
+		if task.Type != taskType || task.ArchivedAt != 0 {
+			continue
+		}
+		if after != nil && (task.CreatedAt > after.CreatedAt || task.CreatedAt == after.CreatedAt && task.ID >= after.ID) {
+			continue
+		}
+		result = append(result, task)
+		if len(result) == limit {
+			break
+		}
+	}
+	return result, nil
 }
 
 // InterruptActive is called once during process startup. Tasks are never

@@ -266,7 +266,14 @@ func TestAnalysisRecentSummariesStayPrivateAndDoNotExposeRawResults(t *testing.T
 
 	otherTask := createCompleted(other, "/other-private", 200)
 	adminTask := createCompleted(admin, "/photos", 100)
-	response := h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?tool=duplicates&limit=5", nil, nil)
+	secondAdminTask := createCompleted(admin, "/photos/second", 90)
+	thirdAdminTask := createCompleted(admin, "/photos/third", 80)
+	archivedAdminTask := createCompleted(admin, "/photos/archived", 70)
+	archivedAdminTask.ArchivedAt = 1000
+	if err := h.storage.Tasks.Update(archivedAdminTask); err != nil {
+		t.Fatal(err)
+	}
+	response := h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?tool=duplicates&limit=2", nil, nil)
 	if response.Code != http.StatusOK {
 		t.Fatalf("recent analysis status = %d body=%s", response.Code, response.Body.String())
 	}
@@ -276,15 +283,27 @@ func TestAnalysisRecentSummariesStayPrivateAndDoNotExposeRawResults(t *testing.T
 	if strings.Contains(response.Body.String(), "internal-result-must-not-leak") || strings.Contains(response.Body.String(), "args") {
 		t.Fatalf("recent analysis leaked raw task data: %s", response.Body.String())
 	}
-	var items []analysisRecentItem
-	if err := json.Unmarshal(response.Body.Bytes(), &items); err != nil {
+	var page analysisRecentResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &page); err != nil {
 		t.Fatal(err)
 	}
-	if len(items) != 1 || items[0].ID != adminTask.ID || len(items[0].Scopes) != 1 || items[0].Scopes[0] != "/photos" {
-		t.Fatalf("recent analysis items = %#v", items)
+	if len(page.Items) != 2 || page.Items[0].ID != adminTask.ID || page.Items[1].ID != secondAdminTask.ID || page.NextCursor == "" {
+		t.Fatalf("recent analysis first page = %#v", page)
 	}
-	if !items[0].ResultReady || items[0].Metrics == nil || items[0].Metrics.DuplicateGroups != 2 || items[0].Metrics.ReclaimableBytes != 512 {
-		t.Fatalf("recent analysis metrics = %#v", items[0])
+	if !page.Items[0].ResultReady || page.Items[0].Metrics == nil || page.Items[0].Metrics.DuplicateGroups != 2 || page.Items[0].Metrics.ReclaimableBytes != 512 {
+		t.Fatalf("recent analysis metrics = %#v", page.Items[0])
+	}
+
+	response = h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?tool=duplicates&limit=2&cursor="+page.NextCursor, nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("recent analysis next page status = %d body=%s", response.Code, response.Body.String())
+	}
+	var nextPage analysisRecentResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &nextPage); err != nil {
+		t.Fatal(err)
+	}
+	if len(nextPage.Items) != 1 || nextPage.Items[0].ID != thirdAdminTask.ID || nextPage.NextCursor != "" {
+		t.Fatalf("recent analysis next page = %#v", nextPage)
 	}
 
 	response = h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?tool=invalid", nil, nil)
@@ -294,5 +313,9 @@ func TestAnalysisRecentSummariesStayPrivateAndDoNotExposeRawResults(t *testing.T
 	response = h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?limit=11", nil, nil)
 	if response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid limit status = %d body=%s", response.Code, response.Body.String())
+	}
+	response = h.request(t, admin.ID, analysisRecentHandler, http.MethodGet, "/analysis/recent?cursor=invalid", nil, nil)
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("invalid cursor status = %d body=%s", response.Code, response.Body.String())
 	}
 }

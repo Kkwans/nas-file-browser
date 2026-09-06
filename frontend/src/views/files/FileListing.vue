@@ -1065,7 +1065,13 @@ import {
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
 const dragCounter = ref<number>(0);
-const width = ref<number>(0);
+// HeaderBar renders through this component's slots. Start with the viewport
+// width so the first render uses the same desktop/mobile branch as HeaderBar;
+// waiting for ResizeObserver leaves desktop actions in the wrong slot and
+// makes the More menu disappear until a later render.
+const width = ref<number>(
+  typeof window === "undefined" ? 0 : window.innerWidth
+);
 const itemWeight = ref<number>(0);
 const isContextMenuVisible = ref<boolean>(false);
 const contextMenuPos = ref<{ x: number; y: number }>({ x: 0, y: 0 });

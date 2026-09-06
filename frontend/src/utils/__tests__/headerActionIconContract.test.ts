@@ -40,6 +40,10 @@ describe("文件工具栏图标契约", () => {
     expect(listingSource).toContain('app-icon="file-new"');
     expect(listingSource).toContain('app-icon="folder-new"');
     expect(listingSource).toContain(':app-icon="viewAppIcon"');
+    expect(listingSource).toContain("window.innerWidth");
+    expect(listingSource).toContain(
+      "waiting for ResizeObserver leaves desktop actions in the wrong slot"
+    );
     expect(listingSource).toContain(
       'class="view-mode-dropdown header-primary-control"'
     );

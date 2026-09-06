@@ -5,6 +5,8 @@
         <button
           type="button"
           class="trash-header-action"
+          aria-label="刷新"
+          title="刷新"
           :disabled="trashStore.loading"
           @click="load"
         >
@@ -15,6 +17,8 @@
           v-if="trashStore.items.length > 0"
           type="button"
           class="trash-header-action trash-header-action--danger"
+          aria-label="清空回收站"
+          title="清空回收站"
           :disabled="clearing || clearTaskActive"
           @click="showClearConfirm = true"
         >

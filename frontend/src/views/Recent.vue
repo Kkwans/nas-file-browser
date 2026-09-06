@@ -5,6 +5,8 @@
         <button
           type="button"
           class="activity-header-action"
+          aria-label="刷新"
+          title="刷新"
           :disabled="recentStore.loading"
           @click="load"
         >

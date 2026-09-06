@@ -97,8 +97,9 @@ describe("文件工具栏图标契约", () => {
       /#dropdown\.has-primary-actions\s+\.dropdown-item/
     );
     expect(workspaceCss).toContain("white-space: nowrap;");
-    expect(headerSource).toContain('@pointerdown="onDropdownPointerdown"');
-    expect(headerSource).toContain("@click.stop");
+    expect(headerSource).toContain('@click.stop="onDropdownClick"');
+    expect(headerSource).toContain("hasDirectActions");
+    expect(headerSource).toContain("hasPrimaryActions.value && hasActions.value");
     expect(headerSource).toContain(
       'document.addEventListener("pointerdown", onOutsideInteraction);'
     );
@@ -107,7 +108,7 @@ describe("文件工具栏图标契约", () => {
     );
     expect(headerSource).not.toContain('addEventListener("focusout"');
     expect(headerSource).not.toContain("onMenuFocusout");
-    expect(headerSource).toContain("Close the transient menu before");
+    expect(headerSource).toContain("View/sort controls own a nested menu");
     expect(workspaceCss).toMatch(
       /\.view-mode-dropdown \.dropdown-item\[aria-pressed="true"\]\s*\{[^}]*color:\s*var\(--blue/s
     );

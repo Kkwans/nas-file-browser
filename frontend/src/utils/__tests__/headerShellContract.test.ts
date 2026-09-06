@@ -12,14 +12,10 @@ describe("桌面应用壳层布局契约", () => {
 
     expect(css).toContain('grid-template-areas: "leading main";');
     expect(css).toMatch(
-      /header:has\(\.header-instance\) > \.header-center,\s*header:has\(\.header-instance\) > \.header-trailing\s*\{\s*grid-area: main;/s
+      /\.app-header-bar:has\(\.header-instance\) > \.header-center\s*\{[^}]*position: absolute !important;[^}]*inset: 0 0 0 var\(--sidebar-width, 288px\);/s
     );
-    expect(css).toMatch(
-      /header:has\(\.header-instance\) > \.header-center\s*\{[^}]*justify-self: center;/s
-    );
-    expect(css).toMatch(
-      /header:has\(\.header-instance\) > \.header-leading\s*\{[^}]*height: 100%;[^}]*border-right:/s
-    );
+    expect(css).toContain('.app-header-bar:has(.header-instance) > .header-trailing');
+    expect(css).toContain("border-right: 1px solid var(--borderPrimary");
   });
 
   it("搜索提示居中且任务中心返回文案保持简洁", () => {

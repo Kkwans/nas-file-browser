@@ -49,7 +49,10 @@
       <div v-if="hasPrimaryActions" class="header-primary-actions">
         <slot name="primary-actions" />
       </div>
-      <div class="header-mobile-actions">
+      <div v-if="hasDirectActions" class="header-direct-actions">
+        <slot name="actions" />
+      </div>
+      <div v-if="hasMobileActions" class="header-mobile-actions">
         <slot name="mobile-actions" />
       </div>
       <router-link
@@ -68,16 +71,16 @@
         >
       </router-link>
       <div
+        v-if="hasOverflowActions"
         id="dropdown"
         ref="dropdownElement"
-        @pointerdown="onDropdownPointerdown"
-        @click.stop
+        @click.stop="onDropdownClick"
         :class="{
           active: layoutStore.currentPromptName === 'more',
           'has-primary-actions': hasPrimaryActions,
         }"
       >
-        <slot name="actions" />
+        <slot name="actions" v-if="hasPrimaryActions || isMobileViewport" />
       </div>
 
       <Action
@@ -114,7 +117,18 @@ import PageTitle from "./PageTitle.vue";
 import IconButton from "@/components/ui/IconButton.vue";
 import { useNavigationStore } from "@/stores/navigation";
 import type { AppIconName } from "@/components/ui/iconRegistry";
-import { computed, onMounted, onUnmounted, ref, useSlots, watch } from "vue";
+import {
+  Comment,
+  Fragment,
+  Text,
+  computed,
+  onMounted,
+  onUnmounted,
+  ref,
+  useSlots,
+  watch,
+  type VNode,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 withDefaults(
   defineProps<{
@@ -162,15 +176,25 @@ const headerElement = ref<HTMLElement | null>(null);
 const dropdownElement = ref<HTMLElement | null>(null);
 const closeMore = () => layoutStore.closeTransient("more");
 
-/** Empty slot functions are common when pages compose a shared header. Only
- * render the overflow control when the slot produces an actual VNode. */
+/** Empty slot functions are common when pages compose a shared header. Vue
+ * wraps conditional templates in fragments, so inspect descendants instead
+ * of treating the fragment symbol itself as rendered content. */
 const slotHasContent = (
   name: "actions" | "mobile-actions" | "primary-actions"
 ) => {
   const slot = slots[name];
   if (!slot) return false;
+  const hasVNodeContent = (node: VNode): boolean => {
+    if (node.type === Comment || node.type === Text) return false;
+    if (node.type === Fragment) {
+      return (node.children as VNode[]).some(
+        (child) => typeof child !== "string" && hasVNodeContent(child)
+      );
+    }
+    return true;
+  };
   try {
-    return slot().some((node) => typeof node.type !== "symbol");
+    return slot().some(hasVNodeContent);
   } catch {
     return false;
   }
@@ -180,20 +204,29 @@ const hasPrimaryActions = computed(() => slotHasContent("primary-actions"));
 const hasActions = computed(() => slotHasContent("actions"));
 const hasMobileActions = computed(() => slotHasContent("mobile-actions"));
 
-const hasOverflowActions = computed(
-  () => hasActions.value || (isMobileViewport.value && hasMobileActions.value)
+// A page with only ordinary actions keeps them visible on desktop. File
+// listings provide a primary group as well, so their secondary actions stay
+// behind the More control. Mobile always uses the overflow surface.
+const hasDirectActions = computed(
+  () => hasActions.value && !hasPrimaryActions.value && !isMobileViewport.value
 );
 
-function onDropdownPointerdown(event: PointerEvent) {
+const hasOverflowActions = computed(
+  () =>
+    (hasPrimaryActions.value && hasActions.value) ||
+    (isMobileViewport.value && (hasActions.value || hasMobileActions.value))
+);
+
+function onDropdownClick(event: MouseEvent) {
   const target = event.target;
+  // View/sort controls own a nested menu. Do not close More before their
+  // toggle receives the click; option buttons use stopPropagation themselves.
   if (
     target instanceof Element &&
-    target.closest("button, a, [role='button']")
-  ) {
-    // Close the transient menu before a child opens a prompt or navigates.
-    closeMore();
-  }
-  event.stopPropagation();
+    target.closest(".view-mode-dropdown > .action, .sort-dropdown > .action")
+  )
+    return;
+  closeMore();
 }
 
 const moreButton = () =>

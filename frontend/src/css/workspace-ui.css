@@ -2607,3 +2607,85 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
   );
   box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
 }
+
+/* Shared header action routing ----------------------------------------
+ * A slot containing only ordinary page actions should remain visible on
+ * desktop. The overflow card is reserved for pages that also have a primary
+ * action group (the file listing) or for the mobile header. */
+.app-header-bar > .header-trailing > .header-direct-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.app-header-bar > .header-trailing > .header-direct-actions > .action,
+.app-header-bar > .header-trailing > .header-direct-actions > button,
+.app-header-bar > .header-trailing > .header-direct-actions > a {
+  display: inline-grid;
+  width: 2.5rem;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  min-height: 2.5rem;
+  place-items: center;
+  padding: 0;
+}
+
+.app-header-bar > .header-trailing > .header-direct-actions .action-label,
+.app-header-bar > .header-trailing > .header-direct-actions > button,
+.app-header-bar > .header-trailing > .header-direct-actions > a {
+  font-size: 0;
+  line-height: 1;
+}
+
+.app-header-bar > .header-trailing > .header-direct-actions .action-label {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  /* The center is an overlay across the main region, so right-side controls
+   * cannot pull a title or search field off the optical centre. */
+  .app-header-bar:has(.header-instance) {
+    position: relative;
+  }
+
+  .app-header-bar:has(.header-instance) > .header-center {
+    position: absolute !important;
+    inset: 0 0 0 var(--sidebar-width, 288px);
+    z-index: 0;
+    display: flex;
+    width: auto !important;
+    max-width: none;
+    min-width: 0;
+    flex: none !important;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 1rem;
+    transform: none !important;
+  }
+
+  .app-header-bar:has(.header-instance)
+    > .header-center
+    > .listing-search {
+    width: min(27rem, 75%);
+    max-width: none;
+  }
+
+  .app-header-bar:has(.header-instance) > .header-trailing {
+    position: relative;
+    z-index: 1;
+  }
+
+  .app-header-bar:has(.header-instance) > .header-leading,
+  .app-header-bar:has(.header-instance) > .header-center,
+  .app-header-bar:has(.header-instance) > .header-trailing {
+    grid-area: auto;
+  }
+}
+
+@media (max-width: 899px) {
+  .app-header-bar > .header-trailing > .header-direct-actions {
+    display: none;
+  }
+}

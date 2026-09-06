@@ -10,6 +10,8 @@
         <router-link
           v-if="archivePath"
           class="archive-header-action"
+          aria-label="打开所在目录"
+          title="打开所在目录"
           :to="parentRoute"
         >
           <AppIcon name="arrow-left" :size="18" />

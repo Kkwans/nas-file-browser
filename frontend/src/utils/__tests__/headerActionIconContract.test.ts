@@ -99,7 +99,9 @@ describe("文件工具栏图标契约", () => {
     expect(workspaceCss).toContain("white-space: nowrap;");
     expect(headerSource).toContain('@click.stop="onDropdownClick"');
     expect(headerSource).toContain("hasDirectActions");
-    expect(headerSource).toContain("hasPrimaryActions.value && hasActions.value");
+    expect(headerSource).toContain(
+      "hasPrimaryActions.value && hasActions.value"
+    );
     expect(headerSource).toContain(
       'document.addEventListener("pointerdown", onOutsideInteraction);'
     );

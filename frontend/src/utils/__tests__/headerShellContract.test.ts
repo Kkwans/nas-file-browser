@@ -14,7 +14,9 @@ describe("桌面应用壳层布局契约", () => {
     expect(css).toMatch(
       /\.app-header-bar:has\(\.header-instance\) > \.header-center\s*\{[^}]*position: absolute !important;[^}]*inset: 0 0 0 var\(--sidebar-width, 288px\);/s
     );
-    expect(css).toContain('.app-header-bar:has(.header-instance) > .header-trailing');
+    expect(css).toContain(
+      ".app-header-bar:has(.header-instance) > .header-trailing"
+    );
     expect(css).toContain("border-right: 1px solid var(--borderPrimary");
   });
 

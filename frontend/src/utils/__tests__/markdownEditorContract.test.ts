@@ -181,10 +181,10 @@ describe("Markdown 编辑器交互契约", () => {
 
   it("移动端编辑器顶部操作保持 44px 触控目标", () => {
     expect(workspaceStyles).toMatch(
-      /@media \(max-width: 899px\)[\s\S]*?#editor-container > header > \.header-leading,[\s\S]*?#editor-container > header > \.header-trailing\s*\{[\s\S]*flex-basis:\s*44px;/
+      /@media \(max-width: 899px\)[\s\S]*?#editor-container > \.app-header-bar > \.header-leading,[\s\S]*?#editor-container > \.app-header-bar > \.header-trailing\s*\{[\s\S]*flex-basis:\s*44px;/
     );
     expect(workspaceStyles).toMatch(
-      /#editor-container\s*>\s*header\s*>\s*\.header-center\s*>\s*\.action,[\s\S]*?#editor-container\s*>\s*header\s*>\s*\.header-trailing\s+\.header-mobile-actions\s*>\s*\.action\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/
+      /#editor-container\s*>\s*\.app-header-bar\s*>\s*\.header-center\s*>\s*\.action,[\s\S]*?#editor-container\s*>\s*\.app-header-bar\s*>\s*\.header-trailing\s+\.header-mobile-actions\s*>\s*\.action\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/
     );
   });
 

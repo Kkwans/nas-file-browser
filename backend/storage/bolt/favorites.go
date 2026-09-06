@@ -229,6 +229,51 @@ func (f favoritesBackend) DeleteGroup(id string) error {
 	return f.db.DeleteStruct(&FavoriteGroup{ID: id})
 }
 
+// DeleteGroupAndUngroup performs the metadata reassignment and group removal
+// in one Bolt transaction so a failed delete cannot leave a half-ungrouped
+// sidebar state.
+func (f favoritesBackend) DeleteGroupAndUngroup(userID uint, id string) error {
+	tx, err := f.db.Begin(true)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var group FavoriteGroup
+	if err := tx.One("ID", id, &group); err != nil {
+		if errors.Is(err, storm.ErrNotFound) {
+			return favorites.ErrNotExist
+		}
+		return err
+	}
+	if group.UserID != userID {
+		if group.UserID != 0 {
+			return favorites.ErrNotExist
+		}
+		group.UserID = userID
+		if err := tx.Update(&group); err != nil {
+			return err
+		}
+	}
+
+	var records []*Favorite
+	if err := tx.Find("UserID", userID, &records); err != nil && !errors.Is(err, storm.ErrNotFound) {
+		return err
+	}
+	for _, record := range records {
+		if record.GroupID != id {
+			continue
+		}
+		if err := tx.UpdateField(&Favorite{ID: record.ID}, "GroupID", ""); err != nil {
+			return err
+		}
+	}
+	if err := tx.DeleteStruct(&FavoriteGroup{ID: id}); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 func (f favoritesBackend) DeleteByPath(path string) error {
 	var records []*Favorite
 	if err := f.db.All(&records); err != nil && !errors.Is(err, storm.ErrNotFound) {

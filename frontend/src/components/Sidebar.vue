@@ -538,9 +538,6 @@
                   icon="inventory_2"
                   app-icon="collection"
                   :label="group.name"
-                  :count="
-                    (favoritesStore.favoritesByGroup[group.id] || []).length
-                  "
                   :expanded="!collapsedGroups[group.id]"
                   :color="group.color || 'var(--blue)'"
                   draggable="true"
@@ -1713,8 +1710,8 @@ const createGroup = async () => {
 
 const deleteGroup = async (id: string) => {
   const result = await favoritesStore.deleteGroup(id);
-  if (result.conflict) {
-    $showError(new Error("Cannot delete group with favorites"));
+  if (!result.ok) {
+    $showError(new Error("删除收藏夹分组失败"));
   }
 };
 

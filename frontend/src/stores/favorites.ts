@@ -174,7 +174,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function apiDeleteGroup(
     id: string
-  ): Promise<{ ok: boolean; conflict?: boolean; status?: number }> {
+  ): Promise<{ ok: boolean; status?: number }> {
     try {
       const res = await fetchURL(`${GROUPS_API_BASE}/${id}`, {
         method: "DELETE",
@@ -182,7 +182,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
       return { ok: res.ok };
     } catch (error) {
       const status = error instanceof StatusError ? error.status : undefined;
-      return { ok: false, conflict: status === 409, status };
+      return { ok: false, status };
     }
   }
 
@@ -268,20 +268,24 @@ export const useFavoritesStore = defineStore("favorites", () => {
    * 兼容旧版本留下的临时 ID：变更接口返回 404 时重新读取当前用户的
    * 服务端记录；若服务端暂时为空，则把本地缓存重新同步并取得真实 ID。
    */
-  async function refreshAfterMutation() {
+  async function refreshAfterMutation(preferRemote = false) {
     const [remoteGroups, remoteFavorites] = await Promise.all([
       apiGetGroups(),
       apiGet(),
     ]);
     if (remoteGroups === null || remoteFavorites === null) return;
 
-    if (remoteGroups.length === 0 && groups.value.length > 0) {
+    if (!preferRemote && remoteGroups.length === 0 && groups.value.length > 0) {
       await syncGroups();
     } else {
       groups.value = remoteGroups;
     }
 
-    if (remoteFavorites.length === 0 && favorites.value.length > 0) {
+    if (
+      !preferRemote &&
+      remoteFavorites.length === 0 &&
+      favorites.value.length > 0
+    ) {
       await syncFavorites();
     } else {
       favorites.value = remoteFavorites;
@@ -529,16 +533,16 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function deleteGroup(
     id: string
-  ): Promise<{ ok: boolean; conflict?: boolean }> {
+  ): Promise<{ ok: boolean; status?: number }> {
     const result = await apiDeleteGroup(id);
     if (result.ok) {
       groups.value = groups.value.filter((g) => g.id !== id);
-      // Move favorites from deleted group to ungrouped
       favorites.value.forEach((f) => {
         if (f.groupId === id) f.groupId = "";
       });
       saveGroupsToLocalStorage();
       saveToLocalStorage();
+      await refreshAfterMutation(true);
     }
     if (!result.ok && result.status === 404) await refreshAfterMutation();
     return result;

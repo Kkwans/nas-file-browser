@@ -13,7 +13,6 @@ var (
 	ErrExist      = errors.New("favorite already exists")
 	ErrNotExist   = errors.New("favorite not found")
 	ErrGroupExist = errors.New("group already exists")
-	ErrGroupInUse = errors.New("group still contains favorites")
 )
 
 // FavoriteGroup represents a virtual directory for organizing favorites.
@@ -59,6 +58,13 @@ type StorageBackend interface {
 	Delete(id string) error
 	DeleteByPath(path string) error
 	GroupStorageBackend
+}
+
+// AtomicGroupDeletionBackend lets a persistent backend perform the group
+// reassignment and group removal in one transaction. The fallback in
+// Storage.DeleteGroup keeps lightweight test/backfill backends compatible.
+type AtomicGroupDeletionBackend interface {
+	DeleteGroupAndUngroup(userID uint, id string) error
 }
 
 // PathMutation records the exact metadata rows changed by a filesystem path
@@ -352,22 +358,42 @@ func (s *Storage) UpdateGroupFields(userID uint, id string, name *string, color 
 	return group, nil
 }
 
-// DeleteGroup removes a favorite group. Returns error if group still has favorites.
+// DeleteGroup moves the group's favorites to the ungrouped bucket and removes
+// the group as one logical operation. Persistent backends may provide a real
+// transaction through AtomicGroupDeletionBackend; the fallback compensates
+// partial updates before returning an error.
 func (s *Storage) DeleteGroup(userID uint, id string) error {
-	// Check if any favorites belong to this group
+	if atomic, ok := s.back.(AtomicGroupDeletionBackend); ok {
+		return atomic.DeleteGroupAndUngroup(userID, id)
+	}
+
+	if _, err := s.back.GetGroupByID(userID, id); err != nil {
+		return err
+	}
 	allFavs, err := s.back.GetAll(userID)
 	if err != nil {
 		return err
 	}
+	updated := make([]*Favorite, 0)
 	for _, fav := range allFavs {
-		if fav.GroupID == id {
-			return ErrGroupInUse
+		if fav.GroupID != id {
+			continue
 		}
+		if err := s.back.UpdateGroupID(fav.ID, ""); err != nil {
+			for _, previous := range updated {
+				_ = s.back.UpdateGroupID(previous.ID, id)
+			}
+			return err
+		}
+		updated = append(updated, fav)
 	}
-	if _, err := s.back.GetGroupByID(userID, id); err != nil {
+	if err := s.back.DeleteGroup(id); err != nil {
+		for _, previous := range updated {
+			_ = s.back.UpdateGroupID(previous.ID, id)
+		}
 		return err
 	}
-	return s.back.DeleteGroup(id)
+	return nil
 }
 
 // ReorderGroups replaces the entire order of groups.

@@ -15,7 +15,6 @@
       :style="{ color }"
     />
     <span class="group-name">{{ label }}</span>
-    <span v-if="count !== undefined" class="category-count">{{ count }}</span>
     <span class="sidebar-group-actions">
       <slot name="actions"></slot>
     </span>
@@ -39,7 +38,6 @@ withDefaults(
     icon: string;
     appIcon?: AppIconName;
     label: string;
-    count?: number;
     expanded: boolean;
     color?: string;
   }>(),

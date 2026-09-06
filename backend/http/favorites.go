@@ -207,9 +207,6 @@ var favoriteGroupDeleteHandler = withUser(func(w http.ResponseWriter, r *http.Re
 		if errors.Is(err, favorites.ErrNotExist) {
 			return http.StatusNotFound, fberrors.ErrNotExist
 		}
-		if errors.Is(err, favorites.ErrGroupInUse) {
-			return http.StatusConflict, err
-		}
 		return http.StatusInternalServerError, err
 	}
 

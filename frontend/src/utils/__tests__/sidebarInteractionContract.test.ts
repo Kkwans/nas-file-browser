@@ -42,15 +42,17 @@ describe("侧边栏分组交互契约", () => {
     expect(headerSource).toContain("@click=\"$emit('toggle')\"");
   });
 
-  it("收藏夹分组保留计数列，目录分类释放计数空间", () => {
+  it("收藏夹分组移除数量徽标并保留操作命中区", () => {
     const headerSource = readSource(
       "components/sidebar/SidebarGroupHeader.vue"
     );
     const refinementCssSource = readSidebarFinalCss();
 
     expect(headerSource).toContain('class="sidebar-group-actions"');
+    expect(headerSource).not.toContain("category-count");
+    expect(headerSource).not.toContain(":count=");
     expect(refinementCssSource).toMatch(
-      /\.sidebar-group-header\.sidebar-level-two\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) auto 34px 24px;/s
+      /\.sidebar-group-header\.sidebar-level-two\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) 34px 24px;/s
     );
     expect(refinementCssSource).not.toContain(".sidebar-group-primary");
     expect(refinementCssSource).not.toContain(".sidebar-group-tools");

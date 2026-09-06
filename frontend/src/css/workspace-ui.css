@@ -4,7 +4,7 @@
  */
 
 /* Header search --------------------------------------------------------- */
-header > .header-center {
+.app-header-bar > .header-center {
   justify-content: center;
   padding-inline: 12px;
 }
@@ -1195,25 +1195,25 @@ nav.sidebar .favorite-item.drag-over-bottom {
 
 /* Mobile --------------------------------------------------------------- */
 @media (max-width: 899px) {
-  header {
+  .app-header-bar {
     height: 48px;
     padding: 0 6px;
   }
 
-  header > .header-leading,
-  header > .header-trailing {
+  .app-header-bar > .header-leading,
+  .app-header-bar > .header-trailing {
     flex: 0 0 40px;
   }
 
   /* 编辑器顶部关闭/保存操作也必须保持完整触控目标，避免移动端只有 40px。 */
-  #editor-container > header > .header-leading,
-  #editor-container > header > .header-trailing {
+  #editor-container > .app-header-bar > .header-leading,
+  #editor-container > .app-header-bar > .header-trailing {
     flex-basis: 44px;
   }
 
-  #editor-container > header > .header-center > .action,
+  #editor-container > .app-header-bar > .header-center > .action,
   #editor-container
-    > header
+    > .app-header-bar
     > .header-trailing
     .header-mobile-actions
     > .action {
@@ -1224,15 +1224,15 @@ nav.sidebar .favorite-item.drag-over-bottom {
     flex: 0 0 44px;
   }
 
-  header > .header-leading {
+  .app-header-bar > .header-leading {
     justify-content: flex-start;
   }
 
-  header > .header-trailing {
+  .app-header-bar > .header-trailing {
     justify-content: flex-end;
   }
 
-  header > .header-trailing > #more {
+  .app-header-bar > .header-trailing > #more {
     display: inline-grid;
     flex: 0 0 40px;
     width: 40px;
@@ -1240,7 +1240,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
     place-items: center;
   }
 
-  header > .header-center {
+  .app-header-bar > .header-center {
     justify-content: center;
     padding: 0 4px;
   }
@@ -1299,7 +1299,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
     justify-content: center;
   }
 
-  header > .header-trailing #dropdown {
+  .app-header-bar > .header-trailing #dropdown {
     position: fixed;
     display: block;
     top: 54px;
@@ -1319,7 +1319,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
     transform: translateY(-8px) scale(0.98);
   }
 
-  header > .header-trailing #dropdown.active {
+  .app-header-bar > .header-trailing #dropdown.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
@@ -1332,12 +1332,12 @@ nav.sidebar .favorite-item.drag-over-bottom {
     width: 100%;
   }
 
-  header > .header-trailing #dropdown > div {
+  .app-header-bar > .header-trailing #dropdown > div {
     display: block;
     width: 100%;
   }
 
-  header > .header-trailing #dropdown .action {
+  .app-header-bar > .header-trailing #dropdown .action {
     display: flex;
     width: 100%;
     height: auto;
@@ -1679,7 +1679,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
 }
 
 @media (max-width: 899px) {
-  header > .header-trailing > #more {
+  .app-header-bar > .header-trailing > #more {
     flex-basis: 44px;
     width: 44px;
     height: 44px;
@@ -1805,19 +1805,19 @@ nav.sidebar .favorite-item.drag-over-bottom {
  * Keep the desktop header predictable even when legacy page rules are
  * loaded after header.css. The hamburger is a mobile-only transient control;
  * desktop navigation must never reserve or paint that overlay trigger. */
-header > .header-leading > .menu-button,
-header .header-leading .menu-button {
+.app-header-bar > .header-leading > .menu-button,
+.app-header-bar .header-leading .menu-button {
   display: none !important;
 }
 
-header .action,
-header .icon-button {
+.app-header-bar .action,
+.app-header-bar .icon-button {
   box-sizing: border-box;
   overflow: visible;
 }
 
-header .action > .app-icon,
-header .icon-button > .app-icon {
+.app-header-bar .action > .app-icon,
+.app-header-bar .icon-button > .app-icon {
   width: 1.25rem !important;
   height: 1.25rem !important;
   flex: 0 0 1.25rem;
@@ -1827,24 +1827,24 @@ header .icon-button > .app-icon {
   border-radius: 0;
 }
 
-header .action:active,
-header .icon-button:active {
+.app-header-bar .action:active,
+.app-header-bar .icon-button:active {
   padding: 0;
   border: 1px solid transparent;
   border-radius: 0.5rem;
 }
 
-header > .header-trailing {
+.app-header-bar > .header-trailing {
   min-width: 0;
   gap: 0.125rem;
 }
 
-header > .header-trailing > #dropdown {
+.app-header-bar > .header-trailing > #dropdown {
   min-width: 0;
   gap: 0.125rem;
 }
 
-header > .header-trailing > .header-primary-actions {
+.app-header-bar > .header-trailing > .header-primary-actions {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -1855,7 +1855,7 @@ header > .header-trailing > .header-primary-actions {
 }
 
 @media (min-width: 900px) {
-  header > .header-center {
+  .app-header-bar > .header-center {
     position: static !important;
     left: auto !important;
     width: auto !important;
@@ -1864,14 +1864,14 @@ header > .header-trailing > .header-primary-actions {
     transform: none !important;
   }
 
-  header > .header-center > .listing-search {
+  .app-header-bar > .header-center > .listing-search {
     width: min(36rem, 100%);
   }
 
   /* FileListing supplies a primary group (create/upload) and keeps the
    * remaining commands in a real More menu. This avoids rendering a desktop
    * action wall while preserving every operation and its existing handler. */
-  header > .header-trailing > #dropdown.has-primary-actions {
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
@@ -1896,27 +1896,27 @@ header > .header-trailing > .header-primary-actions {
       visibility 140ms ease;
   }
 
-  header > .header-trailing > #dropdown.has-primary-actions.active {
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: translateY(0);
   }
 
-  header > .header-trailing > #dropdown.has-primary-actions > .action,
-  header > .header-trailing > #dropdown.has-primary-actions > div,
-  header > .header-trailing > #dropdown.has-primary-actions .view-mode-dropdown,
-  header > .header-trailing > #dropdown.has-primary-actions .sort-dropdown {
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions > .action,
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions > div,
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions .view-mode-dropdown,
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions .sort-dropdown {
     width: 100%;
   }
 
-  header > .header-trailing > #dropdown.has-primary-actions > .action,
-  header
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions > .action,
+  .app-header-bar
     > .header-trailing
     > #dropdown.has-primary-actions
     .view-mode-dropdown
     > .action,
-  header
+  .app-header-bar
     > .header-trailing
     > #dropdown.has-primary-actions
     .sort-dropdown
@@ -1930,7 +1930,7 @@ header > .header-trailing > .header-primary-actions {
     border-radius: 7px;
   }
 
-  header
+  .app-header-bar
     > .header-trailing
     > #dropdown.has-primary-actions
     .action
@@ -1942,7 +1942,7 @@ header > .header-trailing > .header-primary-actions {
     font-weight: 500;
   }
 
-  header > .header-trailing > #dropdown.has-primary-actions .dropdown-menu {
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions .dropdown-menu {
     position: static;
     width: 100%;
     min-width: 0;
@@ -1954,7 +1954,7 @@ header > .header-trailing > .header-primary-actions {
     box-shadow: none;
   }
 
-  header > .header-trailing > #more {
+  .app-header-bar > .header-trailing > #more {
     display: inline-flex !important;
     flex: 0 0 2.5rem;
     width: 2.5rem;
@@ -1965,24 +1965,24 @@ header > .header-trailing > .header-primary-actions {
 }
 
 @media (max-width: 899px) {
-  header > .header-leading > .menu-button,
-  header .header-leading .menu-button {
+  .app-header-bar > .header-leading > .menu-button,
+  .app-header-bar .header-leading .menu-button {
     display: inline-flex !important;
   }
 
-  header > .header-center > .listing-search {
+  .app-header-bar > .header-center > .listing-search {
     width: 100%;
   }
 }
 
 @media (max-width: 899px) {
-  header > .header-trailing > .header-primary-actions {
+  .app-header-bar > .header-trailing > .header-primary-actions {
     display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  header > .header-trailing > #dropdown.has-primary-actions {
+  .app-header-bar > .header-trailing > #dropdown.has-primary-actions {
     transition: none;
   }
 }
@@ -2041,7 +2041,7 @@ header:has(.header-instance) > .header-trailing > .header-primary-actions {
   border-right: 1px solid var(--divider, #e5e7eb);
 }
 
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions {
   position: absolute;
@@ -2074,29 +2074,29 @@ header:has(.header-instance) > .header-trailing > #dropdown.active {
   transform: translateY(0) scale(1);
 }
 
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions
   > div,
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions
   > .action {
   width: 100%;
 }
 
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions
   .action,
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions
   .dropdown-item {
   white-space: nowrap;
 }
 
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions
   .action {
@@ -2108,7 +2108,7 @@ header:has(.header-instance)
   border-radius: 0.5rem;
 }
 
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions
   .action-label {
@@ -2260,21 +2260,21 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 /* In the collapsed desktop rail the hostname is hidden. Keep the product
  * mark when the page has no back action so the shell never starts blank. */
 #app:has(.sidebar-frame.is-rail)
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-leading
   > .header-instance {
   display: none;
 }
 
 #app:has(.sidebar-frame.is-rail)
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-leading:has(.header-back--leading)
   > img {
   display: none;
 }
 
 #app:has(.sidebar-frame.is-rail)
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-leading:not(:has(.header-back--leading))
   > img {
   display: block;
@@ -2282,14 +2282,14 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 }
 
 #app:has(.sidebar-frame.is-rail)
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-leading {
   justify-content: center;
   padding-inline: 0.25rem;
 }
 
 #app:has(.sidebar-frame.is-rail)
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   .header-back--leading {
   width: 44px;
   max-width: 44px;
@@ -2299,7 +2299,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 }
 
 #app:has(.sidebar-frame.is-rail)
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   .header-back-label {
   display: none;
 }
@@ -2308,7 +2308,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
  * View/sort controls are the only nested menus that may intentionally shrink;
  * changing their width must not change the outer action menu's width. */
 @media (min-width: 900px) {
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions {
     width: 272px;
@@ -2331,7 +2331,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 }
 
 @media (max-width: 899px) {
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions {
     width: min(17rem, calc(100vw - 1rem));
@@ -2340,13 +2340,13 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 
   /* The outer More card is intentionally wide. When a nested view/sort menu
    * is open, only that card adopts the compact content width. */
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions:has(.view-mode-dropdown.open) {
     width: min(11rem, calc(100vw - 1rem));
   }
 
-  header:has(.header-instance)
+.app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions:has(.sort-dropdown.open) {
     width: min(15rem, calc(100vw - 1rem));
@@ -2444,7 +2444,7 @@ header:has(.header-instance) > .header-trailing > .header-task-center {
 /* Balanced menu sizing and an explicit theme-color selection state. The More
  * card and the view chooser are separate surfaces and therefore keep separate
  * width contracts. */
-header:has(.header-instance)
+.app-header-bar:has(.header-instance)
   > .header-trailing
   > #dropdown.has-primary-actions {
   width: min(14rem, calc(100vw - 1rem));

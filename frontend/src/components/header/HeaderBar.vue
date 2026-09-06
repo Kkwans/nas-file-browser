@@ -1,5 +1,5 @@
 <template>
-  <header ref="headerElement">
+  <header ref="headerElement" class="app-header-bar">
     <div class="header-leading">
       <img v-if="showLogo" :src="logoURL" :alt="name" />
       <Action
@@ -46,7 +46,7 @@
     </div>
 
     <div class="header-trailing">
-      <div v-if="slots['primary-actions']" class="header-primary-actions">
+      <div v-if="hasPrimaryActions" class="header-primary-actions">
         <slot name="primary-actions" />
       </div>
       <div class="header-mobile-actions">
@@ -70,18 +70,18 @@
       <div
         id="dropdown"
         ref="dropdownElement"
-        @pointerdown.stop
+        @pointerdown="onDropdownPointerdown"
         @click.stop
         :class="{
           active: layoutStore.currentPromptName === 'more',
-          'has-primary-actions': Boolean(slots['primary-actions']),
+          'has-primary-actions': hasPrimaryActions,
         }"
       >
         <slot name="actions" />
       </div>
 
       <Action
-        v-if="ifActionsSlot"
+        v-if="hasOverflowActions"
         id="more"
         app-icon="more"
         :icon-size="22"
@@ -127,8 +127,8 @@ withDefaults(
     backLabel?: string;
   }>(),
   {
-    backPlacement: "center",
-    backLabel: "返回上一页",
+    backPlacement: "leading",
+    backLabel: "返回",
   }
 );
 
@@ -161,6 +161,38 @@ function goBack() {
 const headerElement = ref<HTMLElement | null>(null);
 const dropdownElement = ref<HTMLElement | null>(null);
 const closeMore = () => layoutStore.closeTransient("more");
+
+/** Empty slot functions are common when pages compose a shared header. Only
+ * render the overflow control when the slot produces an actual VNode. */
+const slotHasContent = (
+  name: "actions" | "mobile-actions" | "primary-actions"
+) => {
+  const slot = slots[name];
+  if (!slot) return false;
+  try {
+    return slot().some((node) => typeof node.type !== "symbol");
+  } catch {
+    return false;
+  }
+};
+
+const hasPrimaryActions = computed(() => slotHasContent("primary-actions"));
+const hasActions = computed(() => slotHasContent("actions"));
+const hasMobileActions = computed(() => slotHasContent("mobile-actions"));
+
+const hasOverflowActions = computed(
+  () => hasActions.value || (isMobileViewport.value && hasMobileActions.value)
+);
+
+function onDropdownPointerdown(event: PointerEvent) {
+  const target = event.target;
+  if (target instanceof Element && target.closest("button, a, [role='button']")) {
+    // Close the transient menu before a child opens a prompt or navigates.
+    closeMore();
+  }
+  event.stopPropagation();
+}
+
 const moreButton = () =>
   headerElement.value?.querySelector<HTMLElement>("#more");
 
@@ -235,7 +267,4 @@ onUnmounted(() => {
   }
 });
 
-const ifActionsSlot = computed(() =>
-  Boolean(slots.actions || slots["mobile-actions"] || slots["primary-actions"])
-);
 </script>

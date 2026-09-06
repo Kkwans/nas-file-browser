@@ -6,6 +6,7 @@
   bottom: 0;
   width: var(--sidebar-width, 288px);
   z-index: 999;
+  pointer-events: none;
 }
 .sidebar-frame > .sidebar-resize-handle {
   position: absolute;
@@ -17,6 +18,7 @@
   cursor: col-resize;
   touch-action: none;
   outline: none;
+  pointer-events: auto;
 }
 .sidebar-frame > .sidebar-resize-handle::after {
   content: "";
@@ -3891,6 +3893,10 @@ nav.sidebar .sidebar-footer-actions > #logout:focus-visible {
 
   .sidebar-frame > .sidebar-resize-handle {
     z-index: 2;
+  }
+
+  nav.sidebar {
+    pointer-events: auto;
   }
 
   nav.sidebar {

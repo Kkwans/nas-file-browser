@@ -1,13 +1,6 @@
 <template>
   <div id="analysis-page" class="analysis-page">
-    <header-bar show-menu show-logo title="存储工具" title-icon="chart-storage">
-      <template #actions>
-        <router-link class="analysis-header-action" :to="taskReturnRoute">
-          <AppIcon :name="taskReturnId ? 'arrow-left' : 'tasks'" :size="19" />
-          {{ taskReturnId ? "查看关联任务" : "任务中心" }}
-        </router-link>
-      </template>
-    </header-bar>
+    <header-bar show-menu show-logo title="存储工具" title-icon="chart-storage" />
 
     <main class="analysis-workspace">
       <div class="analysis-workspace__topline">
@@ -431,16 +424,6 @@ let pollTimer: number | undefined;
 let disposed = false;
 let taskLoadSequence = 0;
 let recentLoadSequence = 0;
-
-const taskReturnId = computed(() =>
-  route.query.from === "tasks" && typeof route.query.returnTask === "string"
-    ? route.query.returnTask
-    : ""
-);
-const taskReturnRoute = computed(() => ({
-  path: "/tasks",
-  query: taskReturnId.value ? { returnTask: taskReturnId.value } : undefined,
-}));
 
 const includesRoot = computed(() => scopes.value.includes("/"));
 const isTaskActive = computed(

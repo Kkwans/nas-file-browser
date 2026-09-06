@@ -55,14 +55,14 @@ describe("文件工具栏图标契约", () => {
     const headerSource = readSource("components/header/HeaderBar.vue");
 
     expect(headerCss).toMatch(
-      /header \.action\s*\{[^}]*width:\s*2\.5rem;[^}]*height:\s*2\.5rem;/s
+      /\.app-header-bar \.action\s*\{[^}]*width:\s*2\.5rem;[^}]*height:\s*2\.5rem;/s
     );
     expect(headerCss).toMatch(
-      /header \.action > \.app-icon\s*\{[^}]*width:\s*1\.25rem;[^}]*height:\s*1\.25rem;/s
+      /\.app-header-bar \.action > \.app-icon\s*\{[^}]*width:\s*1\.25rem;[^}]*height:\s*1\.25rem;/s
     );
     expect(headerCss).not.toContain("transform: scale(1.06)");
     expect(headerCss).not.toMatch(
-      /header \.action:hover\s*\{[^}]*box-shadow:/s
+      /\.app-header-bar \.action:hover\s*\{[^}]*box-shadow:/s
     );
     expect(contextCss).toContain(".context-menu .action > .app-icon");
     expect(contextCss).toContain("position: fixed;");
@@ -71,25 +71,25 @@ describe("文件工具栏图标契约", () => {
       /\.context-menu \.action > \.app-icon\s*\{[^}]*width:\s*18px;[^}]*height:\s*18px;/s
     );
     expect(workspaceCss).toMatch(
-      /@media \(max-width: 899px\)[\s\S]*header > \.header-trailing > #more\s*\{[^}]*display:\s*inline-grid;[^}]*width:\s*40px;/
+      /@media \(max-width: 899px\)[\s\S]*\.app-header-bar > \.header-trailing > #more\s*\{[^}]*display:\s*inline-grid;[^}]*width:\s*40px;/
     );
     expect(workspaceCss).toContain(
-      "header > .header-trailing #dropdown.active"
+      ".app-header-bar > .header-trailing #dropdown.active"
     );
     expect(workspaceCss).toMatch(
-      /header > \.header-trailing #dropdown\s*\{[^}]*position:\s*fixed;[^}]*display:\s*block;/s
+      /\.app-header-bar > \.header-trailing #dropdown\s*\{[^}]*position:\s*fixed;[^}]*display:\s*block;/s
     );
     expect(workspaceCss).toMatch(
-      /header > \.header-trailing #dropdown > div\s*\{[^}]*display:\s*block;[^}]*width:\s*100%;/s
+      /\.app-header-bar > \.header-trailing #dropdown > div\s*\{[^}]*display:\s*block;[^}]*width:\s*100%;/s
     );
     expect(workspaceCss).toMatch(
-      /header > \.header-trailing #dropdown \.action\s*\{[^}]*display:\s*flex;[^}]*width:\s*100%;[^}]*min-height:\s*42px;/s
+      /\.app-header-bar > \.header-trailing #dropdown \.action\s*\{[^}]*display:\s*flex;[^}]*width:\s*100%;[^}]*min-height:\s*42px;/s
     );
     expect(workspaceCss).toMatch(
-      /@media \(max-width: 899px\)[\s\S]*header > \.header-trailing > #more\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/
+      /@media \(max-width: 899px\)[\s\S]*\.app-header-bar > \.header-trailing > #more\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/
     );
     expect(workspaceCss).toMatch(
-      /header:has\(\.header-instance\)\s*>\s*\.header-trailing\s*>\s*#dropdown\.has-primary-actions\s*\{/s
+      /(?:\.app-header-bar:has\(\.header-instance\)|header:has\(\.header-instance\))\s*>\s*\.header-trailing\s*>\s*#dropdown\.has-primary-actions\s*\{/s
     );
     expect(workspaceCss).toContain("width: min(14rem, calc(100vw - 1rem));");
     expect(workspaceCss).toContain("width: 10rem;");
@@ -97,7 +97,7 @@ describe("文件工具栏图标契约", () => {
       /#dropdown\.has-primary-actions\s+\.dropdown-item/
     );
     expect(workspaceCss).toContain("white-space: nowrap;");
-    expect(headerSource).toContain("@pointerdown.stop");
+    expect(headerSource).toContain('@pointerdown="onDropdownPointerdown"');
     expect(headerSource).toContain("@click.stop");
     expect(headerSource).toContain(
       'document.addEventListener("pointerdown", onOutsideInteraction);'
@@ -107,9 +107,7 @@ describe("文件工具栏图标契约", () => {
     );
     expect(headerSource).not.toContain('addEventListener("focusout"');
     expect(headerSource).not.toContain("onMenuFocusout");
-    expect(headerSource).not.toContain(
-      "Opening a dialog from More must not leave a hidden menu"
-    );
+    expect(headerSource).toContain("Close the transient menu before");
     expect(workspaceCss).toMatch(
       /\.view-mode-dropdown \.dropdown-item\[aria-pressed="true"\]\s*\{[^}]*color:\s*var\(--blue/s
     );

@@ -15,10 +15,6 @@
           <AppIcon name="arrow-left" :size="18" />
           打开所在目录
         </router-link>
-        <router-link class="archive-header-action" :to="taskReturnRoute">
-          <AppIcon :name="taskReturnId ? 'arrow-left' : 'tasks'" :size="18" />
-          {{ taskReturnId ? "查看关联任务" : "任务中心" }}
-        </router-link>
       </template>
     </header-bar>
 
@@ -388,15 +384,6 @@ const currentTask = ref<TaskItem | null>(null);
 const extractReport = ref<ArchiveExtractReport | null>(null);
 let pollTimer: number | undefined;
 
-const taskReturnId = computed(() =>
-  route.query.from === "tasks" && typeof route.query.returnTask === "string"
-    ? route.query.returnTask
-    : ""
-);
-const taskReturnRoute = computed(() => ({
-  path: "/tasks",
-  query: taskReturnId.value ? { returnTask: taskReturnId.value } : undefined,
-}));
 let disposed = false;
 let routeLoadSequence = 0;
 let listingLoadSequence = 0;

@@ -4,7 +4,7 @@
  *  smooth interactions, and clean visual hierarchy     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-header {
+.app-header-bar {
   z-index: 1000;
   background: var(--surfacePrimary);
   border-bottom: 1px solid var(--divider);
@@ -22,19 +22,19 @@ header {
   transition: background-color 0.3s ease;
 }
 
-header > * {
+.app-header-bar > * {
   flex: 0 0 auto;
 }
 
-header > .header-leading,
-header > .header-center,
-header > .header-trailing {
+.app-header-bar > .header-leading,
+.app-header-bar > .header-center,
+.app-header-bar > .header-trailing {
   display: flex;
   align-items: center;
   min-width: 0;
 }
 
-header > .header-leading {
+.app-header-bar > .header-leading {
   flex: 0 0 auto;
   gap: 0.375em;
 }
@@ -69,20 +69,20 @@ header > .header-leading {
   font-variant-numeric: tabular-nums;
 }
 
-header > .header-center {
+.app-header-bar > .header-center {
   flex: 1 1 auto;
   min-width: 0;
   height: 100%;
   gap: 8px;
 }
 
-header .header-back {
+.app-header-bar .header-back {
   flex: 0 0 44px;
   width: 44px;
   height: 44px;
 }
 
-header .header-back--leading {
+.app-header-bar .header-back--leading {
   display: inline-flex;
   width: auto;
   max-width: 9rem;
@@ -95,7 +95,7 @@ header .header-back--leading {
   color: var(--textSecondary);
 }
 
-header .header-back-label {
+.app-header-bar .header-back-label {
   overflow: hidden;
   font-size: 0.75rem;
   font-weight: 600;
@@ -103,11 +103,11 @@ header .header-back-label {
   white-space: nowrap;
 }
 
-header > .header-center.header-center--page {
+.app-header-bar > .header-center.header-center--page {
   justify-content: flex-start;
 }
 
-header > .header-trailing {
+.app-header-bar > .header-trailing {
   flex: 0 0 auto;
   gap: 0.25em;
   margin-left: auto;
@@ -166,7 +166,7 @@ header > .header-trailing {
 }
 
 /* Logo */
-header img {
+.app-header-bar img {
   height: 2.25em;
   margin-right: 0.625em;
   border-radius: 0.5em;
@@ -175,7 +175,7 @@ header img {
 }
 
 /* Title */
-header .header-title {
+.app-header-bar .header-title {
   display: block;
   flex: 1 1 auto;
   padding: 0 0.75em;
@@ -189,46 +189,46 @@ header .header-title {
   line-height: 1.4;
 }
 
-#editor-container header .header-title {
+#editor-container .app-header-bar .header-title {
   overflow: hidden;
 }
 
 /* Overlay for dropdown */
-header .overlay {
+.app-header-bar .overlay {
   width: 0;
   height: 0;
 }
 
 /* Links */
-header a,
-header a:hover {
+.app-header-bar a,
+.app-header-bar a:hover {
   color: inherit;
   text-decoration: none;
 }
 
-header > .header-leading > .action {
+.app-header-bar > .header-leading > .action {
   margin-right: 0.25em;
 }
 
-header > div div {
+.app-header-bar > div div {
   vertical-align: middle;
   position: relative;
 }
 
 /* Header actions are icon-first; keep their accessible label in aria/title
  * while leaving the counter visible. */
-header .action-label {
+.app-header-bar .action-label {
   display: none;
 }
 
 /* Menu button (hidden on desktop, shown on mobile) */
-header .menu-button {
+.app-header-bar .menu-button {
   display: none;
 }
 
 /* === ACTION BUTTONS === */
 
-header .action {
+.app-header-bar .action {
   display: inline-grid;
   width: 2.5rem;
   height: 2.5rem;
@@ -239,8 +239,8 @@ header .action {
   position: relative;
 }
 
-header .action i,
-header .action > .app-icon {
+.app-header-bar .action i,
+.app-header-bar .action > .app-icon {
   padding: 0.45em;
   border-radius: 0.5em;
   font-size: 1.25em;
@@ -250,51 +250,51 @@ header .action > .app-icon {
     color 0.15s ease;
 }
 
-header .action > .app-icon {
+.app-header-bar .action > .app-icon {
   box-sizing: border-box;
   width: 1.25rem;
   height: 1.25rem;
   padding: 0;
 }
 
-header .action:hover {
+.app-header-bar .action:hover {
   background-color: var(--hover);
 }
 
-header .action:hover i,
-header .action:hover > .app-icon {
+.app-header-bar .action:hover i,
+.app-header-bar .action:hover > .app-icon {
   color: var(--blue);
 }
 
-header .action:active {
+.app-header-bar .action:active {
   transform: scale(0.94);
   transition-duration: 0.06s;
   box-shadow: none;
 }
 
-header .action:focus-visible {
+.app-header-bar .action:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 1px;
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12);
 }
 
-header .action:disabled {
+.app-header-bar .action:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
-header .action:disabled:hover,
-header .action:disabled:active {
+.app-header-bar .action:disabled:hover,
+.app-header-bar .action:disabled:active {
   background: transparent;
 }
 
 /* Active state for mode-switch buttons (Vditor) */
-header .action.active {
+.app-header-bar .action.active {
   background-color: rgba(33, 150, 243, 0.1);
 }
 
-header .action.active i,
-header .action.active > .app-icon {
+.app-header-bar .action.active i,
+.app-header-bar .action.active > .app-icon {
   color: var(--blue);
 }
 
@@ -355,7 +355,7 @@ header .action.active > .app-icon {
 
 /* Desktop workspace toolbar: keep FileBrowser's primary actions visible. */
 @media (min-width: 900px) {
-  header > .header-center {
+  .app-header-bar > .header-center {
     position: static;
     width: 18rem;
     flex: 0 1 18rem;
@@ -363,7 +363,7 @@ header .action.active > .app-icon {
     transform: none;
   }
 
-  header > .header-trailing #dropdown {
+  .app-header-bar > .header-trailing #dropdown {
     position: static;
     display: flex;
     align-items: center;
@@ -381,19 +381,19 @@ header .action.active > .app-icon {
     transform: none;
   }
 
-  header > .header-trailing #dropdown > div {
+  .app-header-bar > .header-trailing #dropdown > div {
     display: inline-flex;
     align-items: center;
   }
 
-  header > .header-trailing #dropdown .action {
+  .app-header-bar > .header-trailing #dropdown .action {
     width: 2.5rem;
     height: 2.5rem;
     padding: 0;
   }
 
-  header > .header-trailing #dropdown .action i,
-  header > .header-trailing #dropdown .action > .app-icon {
+  .app-header-bar > .header-trailing #dropdown .action i,
+  .app-header-bar > .header-trailing #dropdown .action > .app-icon {
     margin-right: 0;
   }
 }
@@ -674,7 +674,7 @@ html[dir="rtl"] #search .boxes h3 {
 
 /* === BREADCRUMBS (in header context) === */
 
-header .breadcrumbs {
+.app-header-bar .breadcrumbs {
   display: flex;
   align-items: center;
   flex: 1 1 auto;
@@ -683,8 +683,8 @@ header .breadcrumbs {
   gap: 0.25em;
 }
 
-header .breadcrumbs a,
-header .breadcrumbs span:not(.chevron) {
+.app-header-bar .breadcrumbs a,
+.app-header-bar .breadcrumbs span:not(.chevron) {
   font-size: 0.875em;
   color: var(--textPrimary);
   padding: 0.3em 0.6em;
@@ -698,47 +698,47 @@ header .breadcrumbs span:not(.chevron) {
   max-width: 12em;
 }
 
-header .breadcrumbs a:hover {
+.app-header-bar .breadcrumbs a:hover {
   background-color: var(--hover);
   color: var(--textSecondary);
 }
 
-header .breadcrumbs .chevron {
+.app-header-bar .breadcrumbs .chevron {
   display: flex;
   align-items: center;
   color: var(--iconTertiary);
   font-size: 0.75em;
 }
 
-header .breadcrumbs .chevron .app-icon {
+.app-header-bar .breadcrumbs .chevron .app-icon {
   font-size: 1.125em;
 }
 
 /* Home icon in breadcrumbs */
-header .breadcrumbs > a:first-child,
-header .breadcrumbs > span:first-child {
+.app-header-bar .breadcrumbs > a:first-child,
+.app-header-bar .breadcrumbs > span:first-child {
   display: flex;
   align-items: center;
   padding: 0.375em;
   border-radius: 0.5em;
 }
 
-header .breadcrumbs > a:first-child .app-icon,
-header .breadcrumbs > span:first-child .app-icon {
+.app-header-bar .breadcrumbs > a:first-child .app-icon,
+.app-header-bar .breadcrumbs > span:first-child .app-icon {
   font-size: 1.25em;
 }
 
 /* === DARK MODE === */
 
-:root.dark header,
-html.dark header {
+:root.dark .app-header-bar,
+html.dark .app-header-bar {
   background: var(--surfacePrimary);
   border-bottom-color: var(--divider);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-:root.dark header .action.active,
-html.dark header .action.active {
+:root.dark .app-header-bar .action.active,
+html.dark .app-header-bar .action.active {
   background-color: rgba(33, 150, 243, 0.15);
 }
 
@@ -761,27 +761,27 @@ html.dark #search .boxes {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-:root.dark header .breadcrumbs a:hover,
-html.dark header .breadcrumbs a:hover {
+:root.dark .app-header-bar .breadcrumbs a:hover,
+html.dark .app-header-bar .breadcrumbs a:hover {
   background-color: rgba(255, 255, 255, 0.06);
 }
 
 /* === MOBILE === */
 
 @media (max-width: 899px) {
-  header {
+  .app-header-bar {
     height: 3em;
     padding: 0 0.5em 0 0.75em;
     gap: 0.375em;
   }
 
-  header .search-button,
-  header .menu-button {
+  .app-header-bar .search-button,
+  .app-header-bar .menu-button {
     display: inherit;
   }
 
-  header .menu-button,
-  header > .header-trailing > #more {
+  .app-header-bar .menu-button,
+  .app-header-bar > .header-trailing > #more {
     width: 44px;
     height: 44px;
     flex: 0 0 44px;
@@ -789,32 +789,32 @@ html.dark header .breadcrumbs a:hover {
     padding: 0;
   }
 
-  header .menu-button i,
-  header > .header-trailing > #more i {
+  .app-header-bar .menu-button i,
+  .app-header-bar > .header-trailing > #more i {
     display: block;
     padding: 0;
     line-height: 1;
   }
 
-  header > .header-trailing {
+  .app-header-bar > .header-trailing {
     gap: 0.375em;
   }
 
-  header > .header-trailing .header-mobile-actions {
+  .app-header-bar > .header-trailing .header-mobile-actions {
     display: flex;
   }
 
-  header > .header-center {
+  .app-header-bar > .header-center {
     justify-content: center;
     flex: 1 1 auto;
     min-width: 0;
   }
 
-  header .menu-button i {
+  .app-header-bar .menu-button i {
     font-size: 1.375em;
   }
 
-  header img {
+  .app-header-bar img {
     display: none;
   }
 
@@ -826,7 +826,7 @@ html.dark header .breadcrumbs a:hover {
     display: none;
   }
 
-  header .header-back--leading {
+  .app-header-bar .header-back--leading {
     width: 44px;
     max-width: 44px;
     flex-basis: 44px;
@@ -836,7 +836,7 @@ html.dark header .breadcrumbs a:hover {
     border-radius: 0.5rem;
   }
 
-  header .header-back-label {
+  .app-header-bar .header-back-label {
     display: none;
   }
 
@@ -846,15 +846,15 @@ html.dark header .breadcrumbs a:hover {
     flex-basis: 44px;
   }
 
-  header .header-title {
+  .app-header-bar .header-title {
     font-size: 0.9375em;
   }
 
-  #editor-container header > .header-center {
+  #editor-container .app-header-bar > .header-center {
     justify-content: flex-start;
   }
 
-  #editor-container header > .header-trailing #dropdown .editor-save-desktop {
+  #editor-container .app-header-bar > .header-trailing #dropdown .editor-save-desktop {
     display: none;
   }
 
@@ -870,7 +870,7 @@ html.dark header .breadcrumbs a:hover {
     display: inherit;
   }
 
-  header .overlay {
+  .app-header-bar .overlay {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.3);
@@ -879,7 +879,7 @@ html.dark header .breadcrumbs a:hover {
     transition: opacity 0.2s ease;
   }
 
-  header > .header-trailing #dropdown {
+  .app-header-bar > .header-trailing #dropdown {
     position: fixed;
     top: 3.25rem;
     right: 0.75rem;
@@ -892,7 +892,7 @@ html.dark header .breadcrumbs a:hover {
     background: var(--surfacePrimary, #fff);
   }
 
-  header > .header-trailing #dropdown.active {
+  .app-header-bar > .header-trailing #dropdown.active {
     transform: translateY(0) scale(1);
   }
 
@@ -929,20 +929,20 @@ html.dark header .breadcrumbs a:hover {
     left: 2.25em;
   }
 
-  header .breadcrumbs a,
-  header .breadcrumbs span:not(.chevron) {
+  .app-header-bar .breadcrumbs a,
+  .app-header-bar .breadcrumbs span:not(.chevron) {
     max-width: 6em;
     font-size: 0.8125em;
   }
 
-  header .breadcrumbs .chevron i {
+  .app-header-bar .breadcrumbs .chevron i {
     font-size: 1em;
   }
 }
 
 @media (max-width: 450px) {
-  header .breadcrumbs a,
-  header .breadcrumbs span:not(.chevron) {
+  .app-header-bar .breadcrumbs a,
+  .app-header-bar .breadcrumbs span:not(.chevron) {
     max-width: 4em;
   }
 }

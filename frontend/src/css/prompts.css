@@ -166,6 +166,78 @@
   background: rgba(68, 166, 245, 0.08);
 }
 
+/* Destructive file actions use AppDialog rather than the legacy floating
+ * card. Keep the common move-to-trash action on the right and preserve a
+ * red semantic hover state for the permanent action. */
+.delete-dialog-copy,
+.delete-dialog-note {
+  margin: 0;
+  color: var(--textPrimary, #1f2937);
+  line-height: 1.6;
+}
+
+.delete-dialog-note {
+  margin-top: 8px;
+  color: var(--textSecondary, #64748b);
+  font-size: 13px;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.delete-dialog-actions button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--borderPrimary, #dbe3ec);
+  border-radius: 9px;
+  color: var(--textSecondary, #475569);
+  background: var(--surfacePrimary, #fff);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.delete-dialog-actions button:hover:not(:disabled),
+.delete-dialog-actions button:focus-visible {
+  border-color: var(--borderSecondary, #c6d0dc);
+  background: var(--surfaceSecondary, #f6f8fb);
+}
+
+.delete-dialog-actions__permanent {
+  border-color: color-mix(in srgb, var(--icon-red, #dc3545) 42%, #fff) !important;
+  color: #fff !important;
+  background: var(--icon-red, #dc3545) !important;
+}
+
+.delete-dialog-actions__permanent:hover:not(:disabled),
+.delete-dialog-actions__permanent:focus-visible {
+  border-color: color-mix(in srgb, var(--icon-red, #dc3545) 88%, #7f1d1d) !important;
+  color: #fff !important;
+  background: color-mix(in srgb, var(--icon-red, #dc3545) 84%, #7f1d1d) !important;
+}
+
+.delete-dialog-actions__trash {
+  border-color: color-mix(in srgb, var(--blue, #1677ff) 34%, #fff) !important;
+  color: #fff !important;
+  background: var(--blue, #1677ff) !important;
+}
+
+.delete-dialog-actions__trash:hover:not(:disabled),
+.delete-dialog-actions__trash:focus-visible {
+  border-color: color-mix(in srgb, var(--blue, #1677ff) 88%, #0f4c9c) !important;
+  color: #fff !important;
+  background: color-mix(in srgb, var(--blue, #1677ff) 86%, #0f4c9c) !important;
+}
+
+.delete-dialog-actions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 /* 左侧操作按钮（如新建文件夹） */
 .card .card-action .button--flat:first-child {
   margin-right: auto;

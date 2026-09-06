@@ -63,7 +63,7 @@ app.directive("focus", {
 
 const toastConfig = {
   position: POSITION.BOTTOM_CENTER,
-  timeout: 2500,
+  timeout: 2000,
   closeOnClick: true,
   pauseOnFocusLoss: true,
   pauseOnHover: true,
@@ -81,7 +81,7 @@ const timeoutFor = (
     timeout?: number;
     persistent?: boolean;
   },
-  fallback = 2500
+  fallback = 2000
 ) => {
   if (options?.persistent) return 0;
   if (typeof options?.timeout === "number") return options.timeout;
@@ -124,7 +124,7 @@ app.provide(
       },
       {
         ...toastConfig,
-        timeout: timeoutFor(normalized, 5000),
+        timeout: timeoutFor(normalized, 3000),
         closeOnClick: false,
         rtl: false,
       }

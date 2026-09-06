@@ -12,7 +12,7 @@ import (
 
 // pendingDeletionHandler is the single UI entry point for destructive work.
 // It validates access before queuing and the task runner repeats the checks at
-// execution time after the five-second undo window.
+// execution time after the three-second undo window.
 func pendingDeletionHandler(runtime *tasks.Runtime) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Delete {

@@ -34,6 +34,8 @@ type deletionResult struct {
 	Error  string `json:"error,omitempty"`
 }
 
+const pendingDeletionUndoWindow = 3 * time.Second
+
 var taskGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	task, err := d.store.Tasks.Get(d.user.ID, mux.Vars(r)["id"], d.user.Perm.Admin)
 	if err != nil {
@@ -173,7 +175,7 @@ func enqueuePendingDeletionTask(runtime *tasks.Runtime, d *data, args pendingDel
 	if err != nil {
 		return nil, err
 	}
-	task.UndoUntil = time.Now().Add(5 * time.Second).UnixMilli()
+	task.UndoUntil = time.Now().Add(pendingDeletionUndoWindow).UnixMilli()
 	if err := d.store.Tasks.Update(task); err != nil {
 		return nil, err
 	}

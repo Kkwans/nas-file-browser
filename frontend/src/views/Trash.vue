@@ -410,7 +410,7 @@ async function deletePermanent(item: TrashItem) {
     const task = await schedulePermanentDeletion([item.id]);
     tasksStore.record(task);
     confirmDeleteId.value = "";
-    $showAction("永久删除将在 5 秒后执行", "撤回", async () => {
+    $showAction("永久删除将在 3 秒后执行", "撤回", async () => {
       await taskApi.cancel(task.id);
       await trashStore.load();
       $showSuccess("已撤回永久删除", { importance: "minor" });
@@ -428,7 +428,7 @@ async function clearTrash() {
     const task = await trashStore.clear();
     tasksStore.record(task);
     showClearConfirm.value = false;
-    $showAction("回收站将在 5 秒后清空", "撤回", async () => {
+    $showAction("回收站将在 3 秒后清空", "撤回", async () => {
       await taskApi.cancel(task.id);
       await trashStore.load();
       $showSuccess("已撤回清空操作", { importance: "minor" });

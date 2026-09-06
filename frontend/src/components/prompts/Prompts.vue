@@ -84,6 +84,7 @@ const modal = computed(() => {
 
 const directModal = computed(
   () =>
+    currentPromptName.value === "delete" ||
     currentPromptName.value === "copy" ||
     currentPromptName.value === "move" ||
     (currentPromptName.value === "result-action" &&

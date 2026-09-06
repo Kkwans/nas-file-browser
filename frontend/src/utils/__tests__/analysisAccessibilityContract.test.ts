@@ -39,13 +39,16 @@ describe("存储工具无障碍契约", () => {
     );
   });
 
-  it("路径选择器作为主入口，粘贴路径保留在高级区域", () => {
+  it("路径选择器作为主入口，扫描范围不预选根目录", () => {
     expect(analysisSource).toContain("<AnalysisToolSwitcher");
     expect(analysisSource).toContain("<AnalysisScopePanel");
     expect(analysisSource).toContain('mode="both"');
     expect(analysisSource).toContain("multiple");
-    expect(scopePanelSource).toContain("analysis-run-panel__advanced");
-    expect(scopePanelSource).toContain("高级：粘贴路径");
+    expect(analysisSource).toContain('interaction-mode="analysis"');
+    expect(analysisSource).toContain(':model-value="[]"');
+    expect(scopePanelSource).toContain("analysis-run-panel__summary");
+    expect(scopePanelSource).not.toContain("analysis-run-panel__advanced");
+    expect(scopePanelSource).not.toContain("粘贴路径");
     expect(scopePanelSource).not.toContain("步骤 1");
     expect(scopePanelSource).not.toContain("步骤 2");
     expect(analysisSource).toContain('class="analysis-results-heading__icon"');
@@ -86,6 +89,21 @@ describe("存储工具无障碍契约", () => {
     expect(scopePanelSource).not.toContain("border-left:");
     expect(scopePanelSource).not.toContain("准备就绪后开始一次扫描。");
     expect(scopePanelSource).toContain("扫描只读，不会删除文件。");
+  });
+
+  it("分析模式单击选择、双击进入，并提供键盘与当前目录入口", () => {
+    const pickerSource = readFileSync(
+      fileURLToPath(
+        new URL("../../components/prompts/PathPicker.vue", import.meta.url)
+      ),
+      "utf8"
+    );
+
+    expect(pickerSource).toContain('interactionMode?: "default" | "analysis"');
+    expect(pickerSource).toContain("handleEntryDoubleClick");
+    expect(pickerSource).toContain("@keydown.space.prevent");
+    expect(pickerSource).toContain("选择当前目录");
+    expect(pickerSource).toContain("path-picker__entry-enter");
   });
 
   it("最近扫描同时呈现范围、指标、状态、时间和可达结果入口", () => {

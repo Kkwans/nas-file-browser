@@ -58,7 +58,8 @@ describe("analysis page UI contract", () => {
     );
 
     expect(scopeSource).toContain('class="analysis-run-panel__heading"');
-    expect(scopeSource).toContain('class="analysis-run-panel__controls"');
+    expect(scopeSource).toContain('class="analysis-run-panel__selection"');
+    expect(scopeSource).toContain('class="analysis-run-panel__summary"');
     expect(recentSource).toContain('class="analysis-recent__side"');
     expect(recentSource).toContain('class="analysis-recent__time"');
     expect(recentSource).toContain("<span>完成与操作</span>");
@@ -100,7 +101,7 @@ describe("analysis page UI contract", () => {
     expect(recentSource).not.toContain("analysis-recent__header p");
   });
 
-  it("存储工具使用安静的分段导航，不把工具切换做成厚重胶囊", () => {
+  it("存储工具使用紧凑的蓝色分段导航", () => {
     const switcherSource = readFileSync(
       resolve(
         process.cwd(),
@@ -110,10 +111,10 @@ describe("analysis page UI contract", () => {
     );
 
     expect(switcherSource).toMatch(
-      /\.analysis-tool-switcher\s*\{[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent;/
+      /\.analysis-tool-switcher\s*\{[\s\S]*?border:\s*1px solid var\(--borderPrimary\);[\s\S]*?background:\s*var\(--surfaceSecondary\);/
     );
     expect(switcherSource).toMatch(
-      /\.analysis-tool-switcher button\.is-active\s*\{[\s\S]*?border-bottom:\s*2px solid/
+      /\.analysis-tool-switcher button\.is-active\s*\{[\s\S]*?color:\s*var\(--blue\);[\s\S]*?background:/
     );
   });
 

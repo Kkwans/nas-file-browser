@@ -1,6 +1,11 @@
 <template>
   <div id="analysis-page" class="analysis-page">
-    <header-bar show-menu show-logo title="存储工具" title-icon="chart-storage" />
+    <header-bar
+      show-menu
+      show-logo
+      title="存储工具"
+      title-icon="chart-storage"
+    />
 
     <main class="analysis-workspace">
       <div class="analysis-workspace__topline">
@@ -34,14 +39,12 @@
 
         <AnalysisScopePanel
           v-if="!hasReport || showRunPanel"
-          v-model:scope-input="scopeInput"
           v-model:root-confirmed="rootConfirmed"
           :tool="activeTool"
           :scopes="scopes"
           :includes-root="includesRoot"
           :can-start="canStart"
           :starting="starting"
-          @add="addScope"
           @remove="removeScope"
           @start="startScan"
           @browse="showScopePicker = true"
@@ -53,7 +56,8 @@
         title="选择分析范围"
         mode="both"
         multiple
-        :model-value="scopes.length ? scopes : ['/']"
+        interaction-mode="analysis"
+        :model-value="[]"
         @select="addScopeValue"
         @close="showScopePicker = false"
       />
@@ -405,7 +409,6 @@ const tasksStore = useTasksStore();
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 
-const scopeInput = ref("");
 const scopes = ref(analysisScopesFromQuery(route.query.paths));
 const activeTool = ref<AnalysisTool>(toolFromRoute());
 const rootConfirmed = ref(false);
@@ -515,17 +518,15 @@ function selectTool(tool: AnalysisTool) {
   });
 }
 
-function addScope(value = scopeInput.value) {
+function addScope(value: string) {
   const next = addAnalysisScope(scopes.value, value);
   if (
     next.length === scopes.value.length &&
     next.every((item, index) => item === scopes.value[index])
   ) {
-    scopeInput.value = "";
     return;
   }
   scopes.value = next;
-  scopeInput.value = "";
 }
 
 function addScopeValue(value: string | string[]) {

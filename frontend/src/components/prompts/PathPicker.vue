@@ -64,13 +64,17 @@
             class="path-picker__entry"
             :class="{
               selected: !item.isParent && selectedPaths.includes(item.path),
+              'has-enter':
+                interactionMode === 'analysis' && item.isDir && !item.isParent,
             }"
           >
             <button
               type="button"
               class="path-picker__entry-main"
-              @click="item.isDir ? open(item.path) : select(item.path)"
-              @keydown.enter="item.isDir ? open(item.path) : select(item.path)"
+              @click="handleEntryClick(item)"
+              @dblclick="handleEntryDoubleClick(item)"
+              @keydown.enter.prevent="handleEntryEnter(item)"
+              @keydown.space.prevent="toggleEntrySelection(item)"
             >
               <AppIcon
                 :name="
@@ -79,6 +83,17 @@
                 :size="19"
               />
               <span>{{ item.name }}</span>
+            </button>
+            <button
+              v-if="
+                interactionMode === 'analysis' && item.isDir && !item.isParent
+              "
+              type="button"
+              class="path-picker__entry-enter"
+              :aria-label="`进入 ${item.name}`"
+              @click.stop="open(item.path)"
+            >
+              <AppIcon name="chevron-right" :size="17" />
             </button>
             <label class="path-picker__entry-action" @click.stop>
               <input
@@ -102,13 +117,26 @@
       </ul>
 
       <footer class="path-picker__footer">
-        <p>单击目录进入；使用右侧选择控件选中路径。</p>
+        <p v-if="interactionMode === 'analysis'">
+          单击选择，双击进入目录；按 Space 切换选择。
+        </p>
+        <p v-else>单击目录进入；使用右侧选择控件选中路径。</p>
         <div>
+          <button
+            v-if="interactionMode === 'analysis'"
+            type="button"
+            @click="selectCurrentDirectory"
+          >
+            选择当前目录
+          </button>
           <button type="button" @click="close">取消</button>
           <button
             type="button"
             class="primary"
-            :disabled="selectedPaths.length === 0 && mode === 'file'"
+            :disabled="
+              selectedPaths.length === 0 &&
+              (mode === 'file' || interactionMode === 'analysis')
+            "
             @click="confirm"
           >
             <AppIcon name="circle-check" :size="17" />
@@ -138,6 +166,7 @@ const props = withDefaults(
     title?: string;
     mode?: "directory" | "file" | "both";
     multiple?: boolean;
+    interactionMode?: "default" | "analysis";
     exclude?: string[];
     shortcuts?: Array<{ label: string; path: string }>;
   }>(),
@@ -146,6 +175,7 @@ const props = withDefaults(
     title: "选择目录",
     mode: "directory",
     multiple: false,
+    interactionMode: "default",
     exclude: () => [],
     shortcuts: () => [{ label: "根目录", path: "/" }],
   }
@@ -248,6 +278,37 @@ function open(path: string) {
   void load(path);
 }
 
+function handleEntryClick(item: (typeof entries.value)[number]) {
+  if (item.isParent || !item.isDir || props.interactionMode !== "analysis") {
+    if (item.isDir) open(item.path);
+    else select(item.path);
+    return;
+  }
+  if (entryClickTimer !== undefined) window.clearTimeout(entryClickTimer);
+  entryClickTimer = window.setTimeout(() => {
+    select(item.path);
+    entryClickTimer = undefined;
+  }, 220);
+}
+
+function handleEntryDoubleClick(item: (typeof entries.value)[number]) {
+  if (!item.isDir || item.isParent) return;
+  if (entryClickTimer !== undefined) {
+    window.clearTimeout(entryClickTimer);
+    entryClickTimer = undefined;
+  }
+  open(item.path);
+}
+
+function handleEntryEnter(item: (typeof entries.value)[number]) {
+  if (item.isDir) open(item.path);
+  else select(item.path);
+}
+
+function toggleEntrySelection(item: (typeof entries.value)[number]) {
+  if (!item.isParent) select(item.path);
+}
+
 function select(path: string) {
   if (!props.multiple) {
     selectedPaths.value = [path];
@@ -256,6 +317,17 @@ function select(path: string) {
   selectedPaths.value = selectedPaths.value.includes(path)
     ? selectedPaths.value.filter((value) => value !== path)
     : [...selectedPaths.value, path];
+}
+
+function selectCurrentDirectory() {
+  const path = normalizePath(currentPath.value, true);
+  if (!props.multiple) {
+    selectedPaths.value = [path];
+    return;
+  }
+  if (!selectedPaths.value.includes(path)) {
+    selectedPaths.value = [...selectedPaths.value, path];
+  }
 }
 
 function confirm() {
@@ -275,6 +347,7 @@ const focusableSelector =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 let previouslyFocused: HTMLElement | null = null;
 let previousBodyOverflow = "";
+let entryClickTimer: number | undefined;
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === "Escape") {
@@ -329,6 +402,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  if (entryClickTimer !== undefined) window.clearTimeout(entryClickTimer);
   document.removeEventListener("keydown", handleKeydown);
   document.body.style.overflow = previousBodyOverflow;
   if (previouslyFocused && document.contains(previouslyFocused)) {
@@ -488,6 +562,9 @@ onBeforeUnmount(() => {
   color: var(--textSecondary);
   background: transparent;
 }
+.path-picker__entry.has-enter {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
 .path-picker__entry:hover,
 .path-picker__entry:focus-within,
 .path-picker__entry.selected {
@@ -514,6 +591,23 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.path-picker__entry-enter {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  color: var(--textPrimary);
+  background: transparent;
+  cursor: pointer;
+}
+.path-picker__entry-enter:hover,
+.path-picker__entry-enter:focus-visible {
+  color: var(--blue);
+  background: var(--hover);
 }
 .path-picker__entry-action {
   display: grid;

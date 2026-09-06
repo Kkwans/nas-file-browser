@@ -228,7 +228,7 @@
               class="dropdown-item"
               :class="{ active: currentViewMode === mode.value }"
               :aria-pressed="currentViewMode === mode.value"
-              @click="selectViewMode(mode.value)"
+              @click.stop="selectViewMode(mode.value)"
             >
               <AppIcon :name="mode.icon" :size="19" />
               <span>{{ mode.label }}</span>
@@ -243,7 +243,7 @@
                 :class="{ active: compactGridSize === size.value }"
                 type="button"
                 :aria-pressed="compactGridSize === size.value"
-                @click="selectCompactGridSize(size.value)"
+                @click.stop="selectCompactGridSize(size.value)"
               >
                 <AppIcon :name="size.icon" :size="19" />
                 <span>{{ size.label }}</span>
@@ -274,7 +274,7 @@
               class="dropdown-item"
               :class="{ active: sortIsOverridden && currentSortBy === opt.by }"
               :aria-pressed="sortIsOverridden && currentSortBy === opt.by"
-              @click="cycleSort(opt.by)"
+              @click.stop="cycleSort(opt.by)"
             >
               <AppIcon :name="opt.icon" :size="19" />
               <span>{{ opt.label }}</span>
@@ -294,7 +294,7 @@
               class="dropdown-item"
               type="button"
               :disabled="!sortIsOverridden"
-              @click="resetSortOverride"
+              @click.stop="resetSortOverride"
             >
               <AppIcon name="undo" :size="19" />
               <span>恢复账号默认排序</span>

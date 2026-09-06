@@ -18,6 +18,7 @@
         'is-resizing': isResizing,
         'is-scrolling': sidebarScrolling,
       }"
+      @pointerdown.stop
       @scroll.passive="onSidebarScroll"
       @keydown.esc="closeRailPanel(true)"
     >

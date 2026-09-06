@@ -98,6 +98,7 @@ describe("文件工具栏图标契约", () => {
     );
     expect(workspaceCss).toContain("white-space: nowrap;");
     expect(headerSource).toContain('@click.stop="onDropdownClick"');
+    expect(headerSource).toContain("@pointerdown.stop");
     expect(headerSource).toContain("hasDirectActions");
     expect(headerSource).toContain(
       "hasPrimaryActions.value && hasActions.value"
@@ -114,5 +115,7 @@ describe("文件工具栏图标契约", () => {
     expect(workspaceCss).toMatch(
       /\.view-mode-dropdown \.dropdown-item\[aria-pressed="true"\]\s*\{[^}]*color:\s*var\(--blue/s
     );
+    expect(workspaceCss).toContain("text-align: start;");
+    expect(workspaceCss).toContain("touch-action: pan-y;");
   });
 });

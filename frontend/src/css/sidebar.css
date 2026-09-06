@@ -1094,9 +1094,10 @@ nav.sidebar::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 899px) {
-  /* The frame is a non-interactive layout boundary so the resize line can
-   * span the page. The nav and its scrim must explicitly own touch input on
-   * phones; otherwise taps and vertical swipes fall through to the listing. */
+  /* The mobile drawer owns the full interactive surface. The desktop frame
+   * remains a pointer-transparent layout boundary, but on phones the frame
+   * itself must capture taps and vertical swipes instead of passing them to
+   * the listing underneath. */
   .sidebar-overlay {
     position: fixed;
     inset: 0;
@@ -1106,7 +1107,10 @@ nav.sidebar::-webkit-scrollbar-thumb:hover {
   }
 
   .sidebar-frame {
-    pointer-events: none;
+    /* The mobile drawer is an interactive surface. The desktop frame remains
+     * pointer-transparent, but the phone frame must capture taps and swipes
+     * instead of passing them to the listing underneath. */
+    pointer-events: auto;
   }
 
   .sidebar-frame > nav.sidebar {

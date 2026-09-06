@@ -74,6 +74,7 @@
         v-if="hasOverflowActions"
         id="dropdown"
         ref="dropdownElement"
+        @pointerdown.stop
         @click.stop="onDropdownClick"
         :class="{
           active: layoutStore.currentPromptName === 'more',
@@ -96,9 +97,10 @@
     </div>
 
     <div
-      class="overlay"
+      class="overlay header-more-overlay"
+      aria-hidden="true"
       v-show="layoutStore.currentPromptName == 'more'"
-      @click="closeMore"
+      @click.self="closeMore"
     />
   </header>
 </template>

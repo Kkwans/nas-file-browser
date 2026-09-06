@@ -100,8 +100,10 @@ describe("侧边栏分组交互契约", () => {
     const cssSource = readSource("css/sidebar.css");
 
     expect(sidebarSource).toContain('class="overlay sidebar-overlay"');
+    expect(sidebarSource).toContain("@pointerdown.stop");
     expect(cssSource).toContain(".sidebar-overlay");
     expect(cssSource).toContain(".sidebar-frame > nav.sidebar");
+    expect(cssSource).toContain("pointer-events: auto;");
     expect(cssSource).toContain("touch-action: pan-y;");
     expect(cssSource).toContain("overscroll-behavior: contain;");
   });

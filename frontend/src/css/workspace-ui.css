@@ -2774,7 +2774,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
 
   .app-header-bar.app-header-bar--branded > .header-center {
     position: absolute !important;
-    inset: 0 0 0 var(--sidebar-width, 288px);
+    inset: 0 0 0 var(--sidebar-width, 288px) !important;
     z-index: 0;
     display: flex;
     width: auto !important;
@@ -2783,6 +2783,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
     flex: none !important;
     align-items: center;
     justify-content: center;
+    justify-self: stretch;
     padding-inline: 1rem;
     transform: none !important;
   }

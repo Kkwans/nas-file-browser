@@ -3,6 +3,7 @@
     <section
       ref="dialog"
       class="path-picker"
+      :class="{ 'has-shortcuts': visibleShortcuts.length > 0 }"
       role="dialog"
       aria-modal="true"
       aria-labelledby="path-picker-title"
@@ -21,14 +22,17 @@
       <div class="path-picker__location" aria-live="polite">
         <AppIcon name="folder" :size="18" />
         <nav aria-label="当前位置">
-          <button
-            v-for="crumb in breadcrumbs"
-            :key="crumb.path"
-            type="button"
-            @click="load(crumb.path)"
-          >
-            {{ crumb.name }}
-          </button>
+          <template v-for="(crumb, index) in breadcrumbs" :key="crumb.path">
+            <span
+              v-if="index > 0"
+              class="path-picker__location-separator"
+              aria-hidden="true"
+              >/</span
+            >
+            <button type="button" @click="load(crumb.path)">
+              {{ crumb.name }}
+            </button>
+          </template>
         </nav>
       </div>
 
@@ -434,16 +438,19 @@ onBeforeUnmount(() => {
   height: min(720px, calc(100dvh - 36px));
   max-height: min(720px, calc(100dvh - 36px));
   min-height: 0;
-  /* Keep the optional shortcut row in the grid even when it is hidden. The
-   * previous four-row template assigned the flexible list row to shortcuts,
-   * producing a huge root tile and leaving the directory list unscrollable. */
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  /* Analysis hides the generic shortcut row, so the list must own the
+   * flexible track directly. The default picker adds the shortcut track via
+   * .has-shortcuts below. */
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   overflow: hidden;
   border: 1px solid var(--borderPrimary);
   border-radius: 16px;
   background: var(--surfacePrimary);
   color: var(--textSecondary);
   box-shadow: 0 22px 64px rgb(15 23 42 / 22%);
+}
+.path-picker.has-shortcuts {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
 }
 .path-picker__header {
   display: flex;
@@ -499,6 +506,12 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 4px;
   overflow: auto;
+}
+.path-picker__location-separator {
+  flex: 0 0 auto;
+  color: var(--textSecondary);
+  font-size: 12px;
+  user-select: none;
 }
 .path-picker__location button {
   min-height: 32px;

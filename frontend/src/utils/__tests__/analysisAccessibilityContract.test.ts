@@ -115,11 +115,18 @@ describe("存储工具无障碍契约", () => {
     );
 
     expect(pickerSource).toContain("visibleShortcuts");
+    expect(pickerSource).toContain(
+      ":class=\"{ 'has-shortcuts': visibleShortcuts.length > 0 }\""
+    );
+    expect(pickerSource).toContain("path-picker__location-separator");
     expect(pickerSource).toMatch(
       /height:\s*min\(720px, calc\(100dvh - 36px\)\);/
     );
     expect(pickerSource).toMatch(
-      /grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/
+      /grid-template-rows:\s*auto auto minmax\(0, 1fr\) auto;/
+    );
+    expect(pickerSource).toMatch(
+      /\.path-picker\.has-shortcuts\s*\{[\s\S]*?grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/
     );
     expect(pickerSource).toMatch(
       /\.path-picker__list\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?overflow-y:\s*auto;/

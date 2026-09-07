@@ -49,16 +49,37 @@ export interface DownloadTransferResponse {
 
 export function list(
   kind?: TransferKind,
+  signal?: AbortSignal
+): Promise<TransferListResponse>;
+export function list(
+  kind?: TransferKind,
   cursor?: string,
-  limit = 10,
+  limit?: number,
+  signal?: AbortSignal
+): Promise<TransferListResponse>;
+export function list(
+  kind?: TransferKind,
+  cursorOrSignal?: string | AbortSignal,
+  limitOrSignal: number | AbortSignal = 10,
   signal?: AbortSignal
 ): Promise<TransferListResponse> {
+  const cursor =
+    typeof cursorOrSignal === "string" ? cursorOrSignal : undefined;
+  const requestSignal =
+    typeof cursorOrSignal === "string"
+      ? typeof limitOrSignal === "number"
+        ? signal
+        : limitOrSignal
+      : cursorOrSignal;
+  const limit = typeof limitOrSignal === "number" ? limitOrSignal : 10;
   const params = new URLSearchParams();
   if (kind) params.set("kind", kind);
   params.set("limit", String(limit));
   if (cursor) params.set("cursor", cursor);
   const query = `?${params.toString()}`;
-  return fetchJSON<TransferListResponse>(`/api/transfers${query}`, { signal });
+  return fetchJSON<TransferListResponse>(`/api/transfers${query}`, {
+    signal: requestSignal,
+  });
 }
 
 export async function createDownload(

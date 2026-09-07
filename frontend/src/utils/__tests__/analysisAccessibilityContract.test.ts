@@ -52,7 +52,7 @@ describe("存储工具无障碍契约", () => {
     expect(scopePanelSource).not.toContain("步骤 1");
     expect(scopePanelSource).not.toContain("步骤 2");
     expect(analysisSource).toContain('class="analysis-results-heading__icon"');
-    expect(analysisSource).toContain('name="analysis-duplicates"');
+    expect(analysisSource).toContain('name="scan" :size="20"');
     expect(analysisSource).not.toContain('class="analysis-hero"');
   });
 
@@ -168,14 +168,15 @@ describe("存储工具无障碍契约", () => {
     expect(recentScansSource).toContain("metricsLabel(item)");
     expect(recentScansSource).toContain("statusLabel(item)");
     expect(recentScansSource).toContain("扫描范围");
-    expect(recentScansSource).toContain("状态与指标");
+    expect(recentScansSource).toContain(">状态</span>");
     expect(recentScansSource).toContain("扫描时间");
     expect(recentScansSource).toContain("操作");
     expect(recentScansSource).not.toContain("完成与操作");
     expect(recentScansSource).toContain(": 'scan'");
     expect(recentScansSource).toContain("formatTime(recordTime(item))");
     expect(recentScansSource).toContain("item.finishedAt || item.createdAt");
-    expect(recentScansSource).toContain('aria-label="完整扫描范围"');
+    expect(recentScansSource).toContain('class="analysis-recent__scope"');
+    expect(recentScansSource).not.toContain('class="analysis-recent__paths"');
     expect(recentScansSource).toMatch(
       /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*44px;/
     );

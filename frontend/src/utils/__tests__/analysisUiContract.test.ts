@@ -68,7 +68,7 @@ describe("analysis page UI contract", () => {
       '<span class="analysis-recent__column-scope">扫描范围</span>'
     );
     expect(recentSource).toContain(
-      '<span class="analysis-recent__column-status">状态与指标</span>'
+      '<span class="analysis-recent__column-status">状态</span>'
     );
     expect(recentSource).toContain(
       '<span class="analysis-recent__column-time">扫描时间</span>'
@@ -140,14 +140,30 @@ describe("analysis page UI contract", () => {
     );
   });
 
-  it("最近扫描提供完整路径展开，窄面板根据实际容器宽度换行", () => {
+  it("最近扫描以单行范围摘要呈现，详情通过结果入口打开", () => {
     const recentSource = readFileSync(
       resolve(process.cwd(), "src/components/analysis/AnalysisRecentScans.vue"),
       "utf8"
     );
-    expect(recentSource).toContain('<details class="analysis-recent__paths">');
+    expect(recentSource).toContain('class="analysis-recent__scope"');
+    expect(recentSource).toContain('class="analysis-recent__metrics"');
+    expect(recentSource).toContain("item.scopes.join('、')");
+    expect(recentSource).not.toContain('class="analysis-recent__paths"');
     expect(recentSource).toContain("@container (max-width: 720px)");
     expect(recentSource).not.toContain("translateY");
+  });
+
+  it("结果详情使用扫描语义图标并提供返回分析入口", () => {
+    const analysisSource = readFileSync(
+      resolve(process.cwd(), "src/views/Analysis.vue"),
+      "utf8"
+    );
+    expect(analysisSource).toContain("is-result-detail");
+    expect(analysisSource).toContain(
+      'class="analysis-detail-action analysis-detail-action--back"'
+    );
+    expect(analysisSource).toContain('name="scan" :size="20"');
+    expect(analysisSource).toContain('v-if="!isResultDetail"');
   });
 
   it("扫描入口保留风险告知，移除重复介绍和侧栏布局", () => {

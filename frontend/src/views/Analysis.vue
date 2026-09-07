@@ -3,18 +3,21 @@
     <header-bar
       show-menu
       show-logo
-      title="存储工具"
+      :title="isResultDetail ? '扫描结果' : '存储工具'"
       title-icon="chart-storage"
     />
 
-    <main class="analysis-workspace">
-      <div class="analysis-workspace__topline">
+    <main
+      class="analysis-workspace"
+      :class="{ 'is-result-detail': isResultDetail }"
+    >
+      <div v-if="!isResultDetail" class="analysis-workspace__topline">
         <AnalysisToolSwitcher :active-tool="activeTool" @select="selectTool" />
       </div>
 
       <div class="analysis-run-shell" :class="{ 'has-report': hasReport }">
         <button
-          v-if="hasReport"
+          v-if="hasReport && !isResultDetail"
           type="button"
           class="analysis-run-toggle"
           :aria-expanded="showRunPanel"
@@ -120,7 +123,7 @@
         <section class="analysis-results-heading">
           <div class="analysis-results-heading__main">
             <span class="analysis-results-heading__icon" aria-hidden="true">
-              <AppIcon name="analysis-duplicates" :size="20" />
+              <AppIcon name="scan" :size="20" />
             </span>
             <div class="analysis-results-heading__copy">
               <span class="analysis-results-heading__eyebrow"
@@ -136,10 +139,29 @@
               </p>
             </div>
           </div>
-          <span class="analysis-readonly-chip">
-            <AppIcon name="shield-check" :size="14" />
-            只读报告
-          </span>
+          <div class="analysis-results-heading__actions">
+            <router-link
+              v-if="isResultDetail"
+              class="analysis-detail-action analysis-detail-action--back"
+              :to="analysisHomeRoute"
+            >
+              <AppIcon name="arrow-left" :size="17" />
+              <span>返回分析</span>
+            </router-link>
+            <button
+              v-if="isResultDetail"
+              type="button"
+              class="analysis-detail-action"
+              @click="showRunPanel = !showRunPanel"
+            >
+              <AppIcon name="scan" :size="17" />
+              <span>{{ showRunPanel ? "收起扫描" : "再次扫描" }}</span>
+            </button>
+            <span class="analysis-readonly-chip">
+              <AppIcon name="shield-check" :size="14" />
+              只读报告
+            </span>
+          </div>
         </section>
 
         <section class="analysis-metric-strip" aria-label="重复文件分析摘要">
@@ -224,10 +246,29 @@
               </p>
             </div>
           </div>
-          <span class="analysis-readonly-chip">
-            <AppIcon name="shield-check" :size="14" />
-            实时只读报告
-          </span>
+          <div class="analysis-results-heading__actions">
+            <router-link
+              v-if="isResultDetail"
+              class="analysis-detail-action analysis-detail-action--back"
+              :to="analysisHomeRoute"
+            >
+              <AppIcon name="arrow-left" :size="17" />
+              <span>返回分析</span>
+            </router-link>
+            <button
+              v-if="isResultDetail"
+              type="button"
+              class="analysis-detail-action"
+              @click="showRunPanel = !showRunPanel"
+            >
+              <AppIcon name="scan" :size="17" />
+              <span>{{ showRunPanel ? "收起扫描" : "再次扫描" }}</span>
+            </button>
+            <span class="analysis-readonly-chip">
+              <AppIcon name="shield-check" :size="14" />
+              实时只读报告
+            </span>
+          </div>
         </section>
 
         <section class="analysis-metric-strip" aria-label="存储空间分析摘要">
@@ -413,6 +454,7 @@
       </template>
 
       <AnalysisRecentScans
+        v-if="!isResultDetail"
         :tool="activeTool"
         :items="recentScans"
         :loading="recentLoading"
@@ -492,6 +534,10 @@ let disposed = false;
 let taskLoadSequence = 0;
 let recentLoadSequence = 0;
 
+const isResultDetail = computed(
+  () =>
+    typeof route.query.task === "string" && route.query.task.trim().length > 0
+);
 const includesRoot = computed(() => scopes.value.includes("/"));
 const isTaskActive = computed(
   () =>
@@ -555,6 +601,10 @@ const visibleLargestFiles = computed(
       storageFilesVisibleCount.value
     ) ?? []
 );
+const analysisHomeRoute = computed(() => ({
+  path: "/analysis",
+  query: { tool: activeTool.value, paths: scopes.value },
+}));
 
 watch(includesRoot, (value) => {
   if (!value) rootConfirmed.value = false;
@@ -749,7 +799,7 @@ async function loadTask(taskId: string) {
       task.type === "analysis.storage" ? "storage" : "duplicates";
     if (activeTool.value !== taskTool) {
       activeTool.value = taskTool;
-      void loadRecent(taskTool);
+      if (!isResultDetail.value) void loadRecent(taskTool);
     }
     currentTask.value = task;
     tasksStore.record(task);
@@ -766,7 +816,7 @@ async function loadTask(taskId: string) {
 async function loadInitial() {
   try {
     activeTool.value = toolFromRoute();
-    await loadRecent(activeTool.value);
+    if (!isResultDetail.value) await loadRecent(activeTool.value);
     const taskId = typeof route.query.task === "string" ? route.query.task : "";
     if (!taskId) return;
     await loadTask(taskId);
@@ -966,6 +1016,11 @@ onBeforeUnmount(() => {
   padding: 18px 0 56px;
 }
 
+.analysis-workspace.is-result-detail {
+  max-width: 1120px;
+  padding-top: 24px;
+}
+
 .analysis-workspace__topline {
   display: flex;
   align-items: center;
@@ -1070,7 +1125,13 @@ onBeforeUnmount(() => {
   background: var(--surfacePrimary);
 }
 
-.analysis-results-heading,
+.analysis-results-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
 .analysis-results-heading > div {
   display: flex;
   align-items: center;
@@ -1081,6 +1142,10 @@ onBeforeUnmount(() => {
 .analysis-results-heading__main {
   justify-content: flex-start;
   min-width: 0;
+}
+
+.analysis-results-heading > .analysis-results-heading__main {
+  justify-content: flex-start;
 }
 
 .analysis-results-heading__icon {
@@ -1099,6 +1164,49 @@ onBeforeUnmount(() => {
   display: grid;
   min-width: 0;
   gap: 2px;
+}
+
+.analysis-results-heading__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.analysis-results-heading > .analysis-results-heading__actions {
+  justify-content: flex-end;
+}
+
+.analysis-detail-action {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 8px;
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.analysis-detail-action:hover,
+.analysis-detail-action:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--borderPrimary));
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 5%, var(--surfacePrimary));
+}
+
+.analysis-detail-action--back {
+  color: var(--blue);
 }
 
 .analysis-results-heading__eyebrow {
@@ -1262,8 +1370,10 @@ onBeforeUnmount(() => {
 
 .analysis-results-heading {
   margin-top: 20px;
-  padding: 0 2px 10px;
-  border-bottom: 1px solid var(--borderPrimary);
+  padding: 14px 16px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 12px;
+  background: var(--surfacePrimary);
 }
 
 .analysis-readonly-chip {
@@ -1279,24 +1389,19 @@ onBeforeUnmount(() => {
 .analysis-metric-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  margin-top: 10px;
-  overflow: hidden;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 9px;
-  background: var(--surfacePrimary);
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .analysis-metric-strip article {
   display: grid;
   gap: 3px;
   min-width: 0;
-  padding: 10px 13px 11px;
-  border-right: 1px solid var(--borderPrimary);
-}
-
-.analysis-metric-strip article:last-child {
-  border-right: 0;
+  min-height: 76px;
+  padding: 12px 14px;
+  border: 1px solid var(--borderPrimary);
+  border-radius: 10px;
+  background: var(--surfacePrimary);
 }
 
 .analysis-metric-strip small,
@@ -1317,7 +1422,7 @@ onBeforeUnmount(() => {
 }
 
 .analysis-metric-strip .analysis-summary-highlight {
-  border-right-color: color-mix(in srgb, #1ea672 18%, var(--borderPrimary));
+  border-color: color-mix(in srgb, #1ea672 24%, var(--borderPrimary));
   background: color-mix(in srgb, #1ea672 5%, var(--surfacePrimary));
 }
 
@@ -1712,12 +1817,7 @@ onBeforeUnmount(() => {
   }
 
   .analysis-metric-strip article {
-    border-right: 0;
-    border-bottom: 1px solid var(--borderPrimary);
-  }
-
-  .analysis-metric-strip article:last-child {
-    border-bottom: 0;
+    border: 1px solid var(--borderPrimary);
   }
 
   .storage-rankings {
@@ -1758,8 +1858,8 @@ onBeforeUnmount(() => {
   }
 
   .analysis-results-heading {
-    align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
   .analysis-results-heading__main {
@@ -1771,7 +1871,15 @@ onBeforeUnmount(() => {
   }
 
   .analysis-readonly-chip {
-    align-self: flex-end;
+    margin-inline-start: auto;
+  }
+
+  .analysis-results-heading__actions {
+    justify-content: flex-start;
+  }
+
+  .analysis-results-heading > .analysis-results-heading__actions {
+    justify-content: flex-start;
   }
 }
 

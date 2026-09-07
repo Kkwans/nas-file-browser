@@ -47,7 +47,7 @@
       aria-hidden="true"
     >
       <span class="analysis-recent__column-scope">扫描范围</span>
-      <span class="analysis-recent__column-status">状态与指标</span>
+      <span class="analysis-recent__column-status">状态</span>
       <span class="analysis-recent__column-time">扫描时间</span>
       <span class="analysis-recent__column-actions">操作</span>
     </div>
@@ -67,18 +67,10 @@
           />
         </span>
         <div class="analysis-recent__content">
-          <details class="analysis-recent__paths">
-            <summary
-              class="analysis-recent__scope"
-              :title="item.scopes.join('、')"
-            >
-              <b>{{ scopeLabel(item) }}</b
-              ><AppIcon name="chevron-down" :size="14" />
-            </summary>
-            <ul aria-label="完整扫描范围">
-              <li v-for="scope in item.scopes" :key="scope">{{ scope }}</li>
-            </ul>
-          </details>
+          <div class="analysis-recent__scope" :title="item.scopes.join('、')">
+            <b>{{ scopeLabel(item) }}</b>
+          </div>
+          <p class="analysis-recent__metrics">{{ metricsLabel(item) }}</p>
         </div>
         <div class="analysis-recent__status">
           <span
@@ -91,7 +83,6 @@
             ]"
             >{{ statusLabel(item) }}</span
           >
-          <p class="analysis-recent__metrics">{{ metricsLabel(item) }}</p>
         </div>
         <div class="analysis-recent__time-block">
           <time
@@ -344,14 +335,9 @@ function formatClock(value: number) {
 .analysis-recent__scope {
   display: flex;
   align-items: center;
-  gap: 6px;
   min-height: 28px;
   color: var(--textSecondary);
-  cursor: pointer;
-  list-style: none;
-}
-.analysis-recent__scope::-webkit-details-marker {
-  display: none;
+  cursor: default;
 }
 .analysis-recent__scope b {
   overflow: hidden;
@@ -360,33 +346,13 @@ function formatClock(value: number) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.analysis-recent__scope .app-icon {
-  flex: 0 0 auto;
-  color: var(--textPrimary);
-}
-.analysis-recent__paths[open] .analysis-recent__scope .app-icon {
-  transform: rotate(180deg);
-}
-.analysis-recent__paths ul {
-  margin: 4px 0 8px;
-  padding: 8px 12px;
-  list-style: none;
-  border-radius: 6px;
-  background: var(--surfaceSecondary);
-}
-.analysis-recent__paths li {
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  line-height: 1.5;
-}
 .analysis-recent__status {
   display: grid;
   min-width: 0;
-  align-items: center;
-  gap: 2px;
+  min-height: 44px;
+  place-items: center;
 }
 .analysis-recent__status > span {
-  justify-self: center;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
@@ -425,16 +391,21 @@ function formatClock(value: number) {
   font-weight: 400;
 }
 .analysis-recent__action {
+  position: relative;
   display: inline-flex;
+  width: 92px;
   min-height: 44px;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 4px;
+  padding: 0 20px 0 4px;
   color: var(--blue);
   font-size: 12px;
   text-decoration: none;
   white-space: nowrap;
+}
+.analysis-recent__action > .app-icon {
+  position: absolute;
+  right: 2px;
 }
 .analysis-recent__action:hover {
   text-decoration: underline;
@@ -494,12 +465,10 @@ function formatClock(value: number) {
   }
   .analysis-recent__status {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 2px 8px;
+    align-items: center;
+    justify-content: flex-start;
   }
   .analysis-recent__status > span {
-    justify-self: auto;
     text-align: left;
   }
   .analysis-recent__time-block {

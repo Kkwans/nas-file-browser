@@ -969,6 +969,7 @@ onBeforeUnmount(() => {
 .analysis-workspace__topline {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   margin-bottom: 12px;
 }

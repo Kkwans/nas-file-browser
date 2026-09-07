@@ -175,12 +175,14 @@ function updateRootConfirmed(event: Event) {
 .analysis-run-panel__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
-  align-items: start;
+  align-items: stretch;
   gap: 16px;
 }
 .analysis-run-panel__selection,
 .analysis-run-panel__summary {
   min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
   padding: 12px;
   border: 1px solid var(--borderPrimary);
   border-radius: 9px;

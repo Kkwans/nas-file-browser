@@ -91,6 +91,29 @@ describe("存储工具无障碍契约", () => {
     expect(scopePanelSource).toContain("扫描只读，不会删除文件。");
   });
 
+  it("扫描范围双栏卡片共享同一行高，工具切换器保持紧凑居中", () => {
+    const toolSwitcherSource = readFileSync(
+      fileURLToPath(
+        new URL(
+          "../../components/analysis/AnalysisToolSwitcher.vue",
+          import.meta.url
+        )
+      ),
+      "utf8"
+    );
+
+    expect(scopePanelSource).toMatch(
+      /\.analysis-run-panel__body\s*\{[\s\S]*?align-items:\s*stretch;/
+    );
+    expect(scopePanelSource).toMatch(
+      /\.analysis-run-panel__selection,[\s\S]*?\.analysis-run-panel__summary\s*\{[\s\S]*?height:\s*100%;/
+    );
+    expect(analysisSource).toMatch(
+      /\.analysis-workspace__topline\s*\{[\s\S]*?justify-content:\s*center;/
+    );
+    expect(toolSwitcherSource).toContain("margin-inline: auto;");
+  });
+
   it("分析模式单击选择、双击进入，并提供键盘与当前目录入口", () => {
     const pickerSource = readFileSync(
       fileURLToPath(

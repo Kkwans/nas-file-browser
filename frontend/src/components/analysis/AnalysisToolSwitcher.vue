@@ -40,6 +40,7 @@ const tools = (Object.keys(analysisToolContent) as AnalysisTool[]).map(
 .analysis-tool-switcher {
   display: grid;
   width: fit-content;
+  margin-inline: auto;
   max-width: 100%;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2px;

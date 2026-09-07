@@ -72,6 +72,9 @@ describe("文件工具栏图标契约", () => {
     expect(headerCss).not.toMatch(
       /\.app-header-bar \.action:hover\s*\{[^}]*box-shadow:/s
     );
+    expect(headerCss).not.toMatch(
+      /\.app-header-bar > div div\s*\{[^}]*position:\s*relative;/s
+    );
     expect(contextCss).toContain(".context-menu .action > .app-icon");
     expect(contextCss).toContain("position: fixed;");
     expect(contextCss).not.toContain("backdrop-filter");

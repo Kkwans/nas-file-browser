@@ -212,7 +212,6 @@
 
 .app-header-bar > div div {
   vertical-align: middle;
-  position: relative;
 }
 
 /* Header actions are icon-first; keep their accessible label in aria/title

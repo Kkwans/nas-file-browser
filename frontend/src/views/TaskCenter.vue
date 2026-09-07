@@ -123,11 +123,20 @@
                 v-if="isTaskActive(task) && taskProgress(task).mode === 'bytes'"
                 class="task-center-progress"
               >
-                <progress
-                  :value="taskProgress(task).value"
-                  :max="taskProgress(task).max"
+                <div
+                  class="task-center-progress-track task-center-task-progress-track"
+                  role="progressbar"
                   :aria-label="`${task.title}进度`"
-                ></progress>
+                  aria-valuemin="0"
+                  :aria-valuemax="taskProgress(task).max"
+                  :aria-valuenow="taskProgress(task).value"
+                >
+                  <span
+                    :style="{
+                      width: `${taskProgressPercent(taskProgress(task))}%`,
+                    }"
+                  ></span>
+                </div>
                 <span>{{
                   byteProgress(
                     taskProgress(task).value ?? 0,
@@ -141,11 +150,20 @@
                 "
                 class="task-center-progress"
               >
-                <progress
-                  :value="taskProgress(task).value"
-                  :max="taskProgress(task).max"
+                <div
+                  class="task-center-progress-track task-center-task-progress-track"
+                  role="progressbar"
                   :aria-label="`${task.title}进度`"
-                ></progress>
+                  aria-valuemin="0"
+                  :aria-valuemax="taskProgress(task).max"
+                  :aria-valuenow="taskProgress(task).value"
+                >
+                  <span
+                    :style="{
+                      width: `${taskProgressPercent(taskProgress(task))}%`,
+                    }"
+                  ></span>
+                </div>
                 <span
                   >{{ taskProgress(task).value }} /
                   {{ taskProgress(task).max }}</span
@@ -157,7 +175,13 @@
                 role="status"
                 aria-live="polite"
               >
-                <span>{{ task.title }}正在处理</span>
+                <span
+                  class="task-center-progress-indeterminate-track"
+                  aria-hidden="true"
+                ></span>
+                <span class="task-center-progress-indeterminate-label">
+                  {{ task.title }}正在处理
+                </span>
               </div>
               <p v-else-if="task.error" class="task-center-error">
                 {{ task.error }}
@@ -752,6 +776,14 @@ function transferEta(item: DisplayTransfer) {
 
 function taskProgress(task: TaskItem): TaskProgress {
   return getTaskProgress(task);
+}
+
+function taskProgressPercent(progress: TaskProgress) {
+  if (!progress.max || progress.max <= 0) return 0;
+  return Math.min(
+    100,
+    Math.max(0, Math.round(((progress.value ?? 0) / progress.max) * 1000) / 10)
+  );
 }
 
 watch(

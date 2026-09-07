@@ -39,7 +39,22 @@ describe("activity page UI contract", () => {
     expect(source).toContain("taskProgress(task).mode === 'bytes'");
     expect(source).toContain("taskProgress(task).mode === 'items'");
     expect(source).toContain("task-center-progress--indeterminate");
+    expect(source).toContain("task-center-progress-indeterminate-track");
+    expect(source).toContain("taskProgressPercent(taskProgress(task))");
     expect(source).toContain("item.bytesTransferred");
+  });
+
+  it("uses an animated running indicator with a reduced-motion fallback", () => {
+    expect(taskCenterCss).toMatch(
+      /\.task-center-item-icon\.is-running > \.app-icon\s*\{[\s\S]*?animation:\s*task-center-icon-spin/
+    );
+    expect(taskCenterCss).toContain("@keyframes task-center-icon-spin");
+    expect(taskCenterCss).toContain(
+      ".task-center-progress-indeterminate-track::after"
+    );
+    expect(taskCenterCss).toMatch(
+      /prefers-reduced-motion: reduce[\s\S]*?task-center-progress-indeterminate-track::after[\s\S]*?animation:\s*none;/
+    );
   });
 
   it("merges the current browser upload queue into live transfer rows", () => {

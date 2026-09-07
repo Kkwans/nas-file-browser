@@ -157,6 +157,10 @@
   background: color-mix(in srgb, var(--color-danger) 11%, transparent);
 }
 
+.task-center-item-icon.is-running > .app-icon {
+  animation: task-center-icon-spin 1.15s linear infinite;
+}
+
 .task-center-item-main {
   min-width: 0;
 }
@@ -213,12 +217,6 @@
   margin-top: 9px;
 }
 
-.task-center-progress progress {
-  width: min(280px, 100%);
-  height: 6px;
-  accent-color: var(--color-accent);
-}
-
 .task-center-progress span {
   color: var(--color-text-muted);
   font-size: 10px;
@@ -263,37 +261,73 @@
   transition: width 220ms ease;
 }
 
+.task-center-task-progress-track {
+  width: min(280px, 100%);
+  flex: 0 1 280px;
+}
+
 .task-center-progress-metrics {
   justify-content: flex-start;
   gap: 1rem;
 }
 
 .task-center-progress--indeterminate {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
   min-height: 12px;
 }
 
-.task-center-progress--indeterminate::before {
+.task-center-progress-indeterminate-track {
+  position: relative;
   display: block;
-  width: min(280px, 100%);
+  grid-column: 1;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+}
+
+.task-center-progress-indeterminate-track::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 38%;
   height: 6px;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, var(--color-accent) 65%, transparent),
-    transparent
+    color-mix(in srgb, var(--color-accent) 68%, transparent) 45%,
+    color-mix(in srgb, var(--color-accent) 22%, transparent)
   );
-  background-size: 180px 100%;
   content: "";
   animation: task-center-progress-sweep 1.35s ease-in-out infinite;
+  transform: translate(-120%, -50%);
+}
+
+.task-center-progress--indeterminate > .task-center-progress-indeterminate-label {
+  grid-column: 2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @keyframes task-center-progress-sweep {
   from {
-    background-position: -180px 0;
+    transform: translate(-120%, -50%);
   }
   to {
-    background-position: 280px 0;
+    transform: translate(310%, -50%);
+  }
+}
+
+@keyframes task-center-icon-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -505,6 +539,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .task-center-skeletons span {
+    animation: none;
+  }
+
+  .task-center-item-icon.is-running > .app-icon,
+  .task-center-progress-indeterminate-track::after {
     animation: none;
   }
 }

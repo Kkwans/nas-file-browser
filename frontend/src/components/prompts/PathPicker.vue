@@ -181,7 +181,10 @@ const props = withDefaults(
     multiple: false,
     interactionMode: "default",
     exclude: () => [],
-    shortcuts: () => [{ label: "根目录", path: "/" }],
+    // The current location breadcrumb already provides a root entry. Keep
+    // the optional shortcut rail opt-in so copy/move dialogs do not render a
+    // duplicate standalone “根目录” button.
+    shortcuts: () => [],
   }
 );
 

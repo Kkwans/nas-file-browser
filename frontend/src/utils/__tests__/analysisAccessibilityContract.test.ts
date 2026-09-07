@@ -115,6 +115,7 @@ describe("存储工具无障碍契约", () => {
     );
 
     expect(pickerSource).toContain("visibleShortcuts");
+    expect(pickerSource).toContain("shortcuts: () => [],");
     expect(pickerSource).toContain(
       ":class=\"{ 'has-shortcuts': visibleShortcuts.length > 0 }\""
     );

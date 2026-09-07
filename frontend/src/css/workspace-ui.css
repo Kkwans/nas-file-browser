@@ -2452,8 +2452,13 @@ nav.sidebar .favorite-item.drag-over-bottom {
 }
 
 .header-primary-actions .view-mode-dropdown > .dropdown-menu {
-  width: 7rem;
-  min-width: 7rem;
+  width: 8.4rem;
+  min-width: 8.4rem;
+}
+
+.view-mode-dropdown .dropdown-item,
+.view-mode-dropdown .dropdown-item > span {
+  white-space: nowrap;
 }
 
 .header-primary-actions .sort-dropdown > .dropdown-menu {
@@ -2546,7 +2551,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
   .app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions:has(.view-mode-dropdown.open) {
-    width: min(7rem, calc(100vw - 1rem));
+    width: min(8.4rem, calc(100vw - 1rem));
   }
 
   .app-header-bar:has(.header-instance)
@@ -2560,8 +2565,8 @@ nav.sidebar .favorite-item.drag-over-bottom {
     > #dropdown.has-primary-actions
     .view-mode-dropdown
     > .dropdown-menu {
-    width: 7rem;
-    min-width: 7rem;
+    width: 8.4rem;
+    min-width: 8.4rem;
   }
 
   .app-header-bar:has(.header-instance)
@@ -2716,7 +2721,7 @@ nav.sidebar .favorite-item.drag-over-bottom {
   .app-header-bar:has(.header-instance)
     > .header-trailing
     > #dropdown.has-primary-actions:has(.view-mode-dropdown.open) {
-    width: min(8rem, calc(100vw - 1rem));
+    width: min(8.4rem, calc(100vw - 1rem));
   }
 
   .app-header-bar:has(.header-instance)

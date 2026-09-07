@@ -6,8 +6,8 @@
     tabindex="-1"
     v-show="show"
     :style="{
-      top: `${top}px`,
-      left: `${left}px`,
+      top: `${position.top}px`,
+      left: `${position.left}px`,
     }"
   >
     <slot />
@@ -15,26 +15,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onUnmounted } from "vue";
+import { nextTick, onUnmounted, ref, watch } from "vue";
 
 const emit = defineEmits(["hide"]);
 const props = defineProps<{ show: boolean; pos: { x: number; y: number } }>();
 const contextMenu = ref<HTMLElement | null>(null);
+const position = ref({ top: props.pos.y, left: props.pos.x });
 let previouslyFocused: HTMLElement | null = null;
 
-const left = computed(() => {
-  const menuWidth = contextMenu.value?.clientWidth ?? 0;
-  const x = Math.min(props.pos.x, window.innerWidth - menuWidth - 8);
-  return Math.max(8, x);
-});
+const updatePosition = () => {
+  const menu = contextMenu.value;
+  if (!menu) return;
 
-const top = computed(() => {
-  const menuHeight = contextMenu.value?.clientHeight ?? 0;
-  // The menu is viewport anchored. Adding scrollY here makes it drift down
-  // on a scrolled listing and can push it below the visible viewport.
-  const maxY = window.innerHeight - menuHeight - 8;
-  return Math.max(8, Math.min(props.pos.y, maxY));
-});
+  const viewportPadding = 8;
+  const menuWidth = menu.offsetWidth;
+  const menuHeight = menu.offsetHeight;
+  const maxLeft = Math.max(
+    viewportPadding,
+    window.innerWidth - menuWidth - viewportPadding
+  );
+  const maxTop = Math.max(
+    viewportPadding,
+    window.innerHeight - menuHeight - viewportPadding
+  );
+
+  // The menu is viewport anchored. Clamp against its measured dimensions so
+  // a context click near the bottom/right edge never renders off-screen.
+  position.value = {
+    left: Math.max(viewportPadding, Math.min(props.pos.x, maxLeft)),
+    top: Math.max(viewportPadding, Math.min(props.pos.y, maxTop)),
+  };
+};
 
 const hideContextMenu = () => {
   emit("hide");
@@ -75,6 +86,19 @@ const handleKeydown = (e: KeyboardEvent) => {
 };
 
 watch(
+  () => [props.show, props.pos.x, props.pos.y],
+  ([show]) => {
+    if (show) {
+      // v-show applies display after the component update. Wait for that
+      // update before measuring the menu, otherwise clientHeight is zero and
+      // the initial position can still be clipped by the viewport edge.
+      void nextTick(updatePosition);
+    }
+  },
+  { immediate: true }
+);
+
+watch(
   () => props.show,
   (val) => {
     if (val) {
@@ -88,10 +112,14 @@ watch(
         (items[0] ?? contextMenu.value)?.focus();
         document.addEventListener("click", hideContextMenu);
         document.addEventListener("keydown", handleKeydown);
+        window.addEventListener("resize", updatePosition);
+        window.addEventListener("scroll", updatePosition, true);
       }, 0);
     } else {
       document.removeEventListener("click", hideContextMenu);
       document.removeEventListener("keydown", handleKeydown);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
       if (previouslyFocused && document.contains(previouslyFocused)) {
         previouslyFocused.focus({ preventScroll: true });
       }
@@ -103,5 +131,7 @@ watch(
 onUnmounted(() => {
   document.removeEventListener("click", hideContextMenu);
   document.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener("resize", updatePosition);
+  window.removeEventListener("scroll", updatePosition, true);
 });
 </script>

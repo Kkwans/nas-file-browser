@@ -133,7 +133,7 @@
                 @click.stop="resetSortOverride"
               >
                 <AppIcon name="undo" :size="19" />
-                <span>恢复账号默认排序</span>
+                <span>恢复默认</span>
               </button>
             </div>
           </div>
@@ -297,7 +297,7 @@
               @click.stop="resetSortOverride"
             >
               <AppIcon name="undo" :size="19" />
-              <span>恢复账号默认排序</span>
+              <span>恢复默认</span>
             </button>
           </div>
         </div>

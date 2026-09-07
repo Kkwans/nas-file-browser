@@ -10,7 +10,9 @@
   min-width: 208px;
   max-width: min(280px, calc(100vw - 16px));
   padding: 6px;
-  overflow: hidden;
+  max-height: calc(100dvh - 16px);
+  overflow-x: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
   color: var(--textPrimary, #1f2937);
   border: 1px solid var(--borderPrimary, #dbe3ec);

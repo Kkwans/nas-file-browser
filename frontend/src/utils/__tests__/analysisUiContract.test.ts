@@ -61,14 +61,27 @@ describe("analysis page UI contract", () => {
     expect(scopeSource).toContain('class="analysis-run-panel__selection"');
     expect(scopeSource).toContain('class="analysis-run-panel__summary"');
     expect(scopeSource).toContain('class="analysis-run-panel__empty-action"');
-    expect(recentSource).toContain('class="analysis-recent__side"');
+    expect(recentSource).toContain('class="analysis-recent__status"');
+    expect(recentSource).toContain('class="analysis-recent__time-block"');
     expect(recentSource).toContain('class="analysis-recent__time"');
-    expect(recentSource).toContain("<span>完成与操作</span>");
+    expect(recentSource).toContain(
+      '<span class="analysis-recent__column-scope">扫描范围</span>'
+    );
+    expect(recentSource).toContain(
+      '<span class="analysis-recent__column-status">状态与指标</span>'
+    );
+    expect(recentSource).toContain(
+      '<span class="analysis-recent__column-time">扫描时间</span>'
+    );
+    expect(recentSource).toContain(
+      '<span class="analysis-recent__column-actions">操作</span>'
+    );
+    expect(recentSource).not.toContain("完成与操作");
     expect(recentSource).toMatch(
-      /grid-template-columns:\s*24px\s+minmax\(0, 1fr\)\s+auto/
+      /grid-template-columns:\s*24px\s+minmax\(0, 1\.4fr\)\s+minmax\(220px, 0\.8fr\)/
     );
     expect(recentSource).toMatch(
-      /\.analysis-recent__side\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:/
+      /\.analysis-recent__time\s*\{[\s\S]*?justify-items:\s*center;/
     );
     expect(recentSource).toContain('class="analysis-recent__load-more"');
     expect(recentSource).toContain('class="analysis-recent__clear"');

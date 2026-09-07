@@ -230,6 +230,17 @@
             <h2>{{ activeTab === "upload" ? "上传记录" : "下载记录" }}</h2>
             <p>上传和下载进度会在传输期间实时更新。</p>
           </div>
+          <div class="task-center-panel-actions">
+            <button
+              type="button"
+              class="task-center-clear-action"
+              :disabled="transfersStore.loading || clearingTransfers"
+              @click="clearTransferRecords"
+            >
+              <app-icon name="trash" :size="17" />
+              <span>{{ clearingTransfers ? "清理中…" : "清空记录" }}</span>
+            </button>
+          </div>
         </div>
         <div
           v-if="transfersStore.error"
@@ -269,19 +280,33 @@
           >
             <span class="task-center-item-icon" :class="`is-${item.status}`">
               <app-icon
-                :name="activeTab === 'upload' ? 'upload' : 'download'"
+                :name="
+                  item.isFolderUpload
+                    ? 'folder'
+                    : activeTab === 'upload'
+                      ? 'upload'
+                      : 'download'
+                "
                 :size="19"
               />
             </span>
             <div class="task-center-item-main">
               <div class="task-center-item-title">
-                <strong :title="item.name">{{ item.name }}</strong>
+                <strong :title="transferTitle(item)">{{
+                  transferTitle(item)
+                }}</strong>
+                <span
+                  v-if="item.groupedCount && item.groupedCount > 1"
+                  class="task-center-transfer-count"
+                >
+                  {{ item.groupedCount }} 个文件
+                </span>
                 <span class="task-center-status" :class="`is-${item.status}`">{{
                   transferStatusLabel(item.status)
                 }}</span>
               </div>
               <p :title="item.target">
-                {{ item.target }} · {{ taskTime(item.createdAt) }}
+                {{ transferTarget(item) }} · {{ taskTime(item.createdAt) }}
               </p>
               <div
                 v-if="isTransferActive(item) && item.bytesTotal"
@@ -296,7 +321,7 @@
                 <div
                   class="task-center-progress-track"
                   role="progressbar"
-                  :aria-label="`${item.name}进度`"
+                  :aria-label="`${transferTitle(item)}进度`"
                   aria-valuemin="0"
                   aria-valuemax="100"
                   :aria-valuenow="transferPercent(item)"
@@ -319,15 +344,34 @@
               <button
                 v-if="isTransferActive(item)"
                 type="button"
-                @click="cancelTransfer(item.id)"
+                @click="cancelTransferGroup(item)"
               >
                 取消
               </button>
-              <button type="button" @click="removeTransfer(item.id)">
+              <button type="button" @click="removeTransferGroup(item)">
                 删除记录
               </button>
             </div>
           </article>
+        </div>
+        <div
+          v-if="
+            activeTransfers.length &&
+            transfersStore.hasMore(activeTab as TransferKind)
+          "
+          class="task-center-load-more"
+        >
+          <button
+            type="button"
+            :disabled="transfersStore.isLoadingMore(activeTab as TransferKind)"
+            @click="loadMoreTransfers"
+          >
+            {{
+              transfersStore.isLoadingMore(activeTab as TransferKind)
+                ? "加载中…"
+                : "加载更多"
+            }}
+          </button>
         </div>
       </section>
 
@@ -421,6 +465,8 @@ type TaskFilter = "all" | "active" | "attention" | "completed";
 type DisplayTransfer = TransferItem & {
   speedBytesPerSecond?: number;
   etaSeconds?: number;
+  groupedIds?: string[];
+  groupedCount?: number;
 };
 
 const route = useRoute();
@@ -432,6 +478,7 @@ const uploadStore = useUploadStore();
 const activeTab = ref<TaskCenterTab>(parseTab(route.query.tab));
 const taskFilter = ref<TaskFilter>(parseTaskFilter(route.query.status));
 const busyIds = reactive(new Set<string>());
+const clearingTransfers = ref(false);
 
 const tabs = computed(() => [
   {
@@ -489,6 +536,11 @@ const activeTransfers = computed<DisplayTransfer[]>(() => {
       status: "running",
       bytesTotal: local.totalBytes,
       bytesTransferred: local.sentBytes,
+      batchId: local.batchId,
+      batchName: local.batchName,
+      batchItems: local.batchItems,
+      batchBytes: local.batchBytes,
+      isFolderUpload: local.isFolderUpload,
       speedBytesPerSecond: local.speedBytesPerSecond,
       etaSeconds:
         local.speedBytesPerSecond > 0
@@ -508,6 +560,11 @@ const activeTransfers = computed<DisplayTransfer[]>(() => {
       bytesTotal: upload.totalBytes,
       bytesTransferred: upload.sentBytes,
       createdAt: upload.createdAt,
+      batchId: upload.batchId,
+      batchName: upload.batchName,
+      batchItems: upload.batchItems,
+      batchBytes: upload.batchBytes,
+      isFolderUpload: upload.isFolderUpload,
       speedBytesPerSecond: upload.speedBytesPerSecond,
       etaSeconds:
         upload.speedBytesPerSecond > 0
@@ -517,7 +574,7 @@ const activeTransfers = computed<DisplayTransfer[]>(() => {
     });
   }
 
-  return merged.sort((left, right) => right.createdAt - left.createdAt);
+  return groupUploadTransfers(merged);
 });
 const loadingCurrent = computed(() => {
   if (activeTab.value === "file" || activeTab.value === "background") {
@@ -526,6 +583,53 @@ const loadingCurrent = computed(() => {
   if (activeTab.value === "history") return historyStore.loading;
   return transfersStore.loading;
 });
+
+function groupUploadTransfers(items: DisplayTransfer[]): DisplayTransfer[] {
+  const groups = new Map<string, DisplayTransfer>();
+  for (const item of items) {
+    const key = item.batchId || item.id;
+    const existing = groups.get(key);
+    if (!existing) {
+      groups.set(key, {
+        ...item,
+        groupedIds: [item.id],
+        groupedCount: item.batchId ? Math.max(1, item.batchItems || 1) : 1,
+        bytesTotal: item.batchId
+          ? item.batchBytes || item.bytesTotal
+          : item.bytesTotal,
+      });
+      continue;
+    }
+    existing.groupedIds = [...(existing.groupedIds || []), item.id];
+    existing.groupedCount = Math.max(
+      existing.groupedCount || 1,
+      item.batchItems || 1
+    );
+    existing.bytesTransferred += item.bytesTransferred;
+    if (!existing.batchBytes) {
+      existing.bytesTotal = (existing.bytesTotal || 0) + (item.bytesTotal || 0);
+    }
+    if (isTransferActive(item)) {
+      existing.status = "running";
+    } else if (!isTransferActive(existing) && item.status === "failed") {
+      existing.status = "failed";
+    }
+  }
+  return [...groups.values()].sort(
+    (left, right) =>
+      right.createdAt - left.createdAt || right.id.localeCompare(left.id)
+  );
+}
+
+function transferTitle(item: DisplayTransfer) {
+  return item.batchName || item.name;
+}
+
+function transferTarget(item: DisplayTransfer) {
+  return item.groupedCount && item.groupedCount > 1
+    ? `${item.target} · 文件夹上传`
+    : item.target;
+}
 
 function parseTab(value: unknown): TaskCenterTab {
   return value === "upload" ||
@@ -599,6 +703,33 @@ async function loadCurrent() {
   }
 }
 
+async function loadMoreTransfers() {
+  if (activeTab.value !== "upload" && activeTab.value !== "download") return;
+  try {
+    await transfersStore.loadMore(activeTab.value as TransferKind);
+  } catch {
+    // The panel exposes the store error and keeps the current page intact.
+  }
+}
+
+async function clearTransferRecords() {
+  if (clearingTransfers.value) return;
+  const kind = activeTab.value as TransferKind;
+  if (
+    !window.confirm(`确定清空全部${kind === "upload" ? "上传" : "下载"}记录？`)
+  ) {
+    return;
+  }
+  clearingTransfers.value = true;
+  try {
+    await transfersStore.removeAll(kind);
+  } catch {
+    // The panel exposes the store error and retry action.
+  } finally {
+    clearingTransfers.value = false;
+  }
+}
+
 async function withBusy(id: string, action: () => Promise<void>) {
   if (busyIds.has(id)) return;
   busyIds.add(id);
@@ -628,15 +759,19 @@ function archiveTask(id: string) {
   });
 }
 
-function cancelTransfer(id: string) {
-  return withBusy(id, async () => {
-    await transfersStore.cancel(id);
+function cancelTransferGroup(item: DisplayTransfer) {
+  return withBusy(item.id, async () => {
+    await Promise.allSettled(
+      (item.groupedIds || [item.id]).map((id) => transfersStore.cancel(id))
+    );
   });
 }
 
-function removeTransfer(id: string) {
-  return withBusy(id, async () => {
-    await transfersStore.remove(id);
+function removeTransferGroup(item: DisplayTransfer) {
+  return withBusy(item.id, async () => {
+    await Promise.allSettled(
+      (item.groupedIds || [item.id]).map((id) => transfersStore.remove(id))
+    );
   });
 }
 

@@ -104,6 +104,7 @@ func NewHandler(
 	api.Handle("/tasks/{id}/unarchive", monkey(taskArchiveHandler(false), "")).Methods("POST")
 	api.Handle("/task-center/events", monkey(taskCenterEventsHandler, "")).Methods("GET")
 	api.Handle("/transfers", monkey(transferListHandler, "")).Methods("GET")
+	api.Handle("/transfers", monkey(transferDeleteAllHandler, "")).Methods("DELETE")
 	api.Handle("/transfers/downloads", monkey(transferDownloadCreateHandler, "")).Methods("POST")
 	api.Handle("/transfers/{id}", monkey(transferGetHandler, "")).Methods("GET")
 	api.Handle("/transfers/{id}/cancel", monkey(transferCancelHandler, "")).Methods("POST")

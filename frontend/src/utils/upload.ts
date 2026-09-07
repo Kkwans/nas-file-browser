@@ -277,6 +277,19 @@ export function processFileInput(
 
   const folder_upload = !!files[0].webkitRelativePath;
 
+  const batchMetadata = folder_upload
+    ? {
+        batchId: createUploadBatchId(),
+        batchName: folderName(files),
+        batchItems: files.length,
+        batchBytes: Array.from(files).reduce(
+          (total, file) => total + file.size,
+          0
+        ),
+        isFolderUpload: true,
+      }
+    : undefined;
+
   const uploadFiles: UploadList = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -287,6 +300,8 @@ export function processFileInput(
       size: file.size,
       isDir: false,
       fullPath,
+      ...(batchMetadata ?? {}),
+      ...(fullPath ? { relativePath: fullPath } : {}),
     });
   }
 
@@ -357,7 +372,28 @@ export function handleFiles(
       file.name,
       file.file ?? null,
       file.overwrite || overwrite,
-      type
+      type,
+      {
+        batchId: file.batchId,
+        batchName: file.batchName,
+        batchItems: file.batchItems,
+        batchBytes: file.batchBytes,
+        relativePath: file.relativePath,
+        isFolderUpload: file.isFolderUpload,
+      }
     );
   }
+}
+
+function createUploadBatchId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `folder-${crypto.randomUUID()}`;
+  }
+  return `folder-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function folderName(files: FileList) {
+  const relativePath =
+    files[0]?.webkitRelativePath || files[0]?.name || "文件夹";
+  return relativePath.split("/")[0] || "文件夹";
 }

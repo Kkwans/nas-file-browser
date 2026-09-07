@@ -4,7 +4,12 @@ import { useLayoutStore } from "@/stores/layout";
 import { useTagsStore } from "@/stores/tags";
 import { useRecentStore } from "@/stores/recent";
 import { baseURL } from "@/utils/constants";
-import { upload as postTus, uploadTransferId, useTus } from "./tus";
+import {
+  upload as postTus,
+  uploadBatchHeaders,
+  uploadTransferId,
+  useTus,
+} from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import type { ApiMethod, ApiOpts, ApiContent, ChecksumAlg } from "@/types/api";
 import type { TrashItem } from "./trash";
@@ -259,7 +264,16 @@ export async function post(
   url: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: (progress: { loaded: number }) => void = () => {}
+  onupload: (progress: { loaded: number }) => void = () => {},
+  metadata?: Pick<
+    Upload,
+    | "batchId"
+    | "batchName"
+    | "batchItems"
+    | "batchBytes"
+    | "relativePath"
+    | "isFolderUpload"
+  >
 ) {
   // Use the pre-existing API if:
   const useResourcesApi =
@@ -271,15 +285,24 @@ export async function post(
     // Tus is disabled / not applicable
     !(await useTus(content));
   return useResourcesApi
-    ? postResources(url, content, overwrite, onupload)
-    : postTus(url, content, overwrite, onupload);
+    ? postResources(url, content, overwrite, onupload, metadata)
+    : postTus(url, content, overwrite, onupload, metadata);
 }
 
 async function postResources(
   url: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: (progress: { loaded: number }) => void = () => {}
+  onupload: (progress: { loaded: number }) => void = () => {},
+  metadata?: Pick<
+    Upload,
+    | "batchId"
+    | "batchName"
+    | "batchItems"
+    | "batchBytes"
+    | "relativePath"
+    | "isFolderUpload"
+  >
 ) {
   url = removePrefix(url);
 
@@ -302,6 +325,11 @@ async function postResources(
     request.setRequestHeader("X-Auth", authStore.jwt);
     if (content instanceof Blob) {
       request.setRequestHeader("X-Transfer-ID", uploadTransferId(url, content));
+      for (const [name, value] of Object.entries(
+        uploadBatchHeaders(metadata)
+      )) {
+        request.setRequestHeader(name, value);
+      }
     }
 
     if (typeof onupload === "function") {

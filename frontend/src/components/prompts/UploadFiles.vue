@@ -67,29 +67,27 @@
       <div class="card-content file-icons">
         <div
           class="file"
-          v-for="upload in uploadStore.activeUploads"
-          :key="upload.path"
-          :data-dir="upload.type === 'dir'"
-          :data-type="upload.type"
-          :aria-label="upload.name"
+          v-for="group in groupedUploads"
+          :key="group.key"
+          :data-dir="group.isFolderUpload"
+          :aria-label="group.ariaLabel"
         >
           <div class="file-name">
             <AppIcon
               class="file-type-icon"
-              :name="getUploadIcon(upload)"
+              :name="group.icon"
               :size="20"
               :stroke-width="1.9"
             />
-            <span class="file-name-text" :title="upload.name">{{
-              upload.name
+            <span class="file-name-text" :title="group.name">{{
+              group.name
             }}</span>
+            <span v-if="group.isFolderUpload" class="file-group-count">
+              {{ group.count }} 个文件
+            </span>
           </div>
           <div class="file-progress">
-            <div
-              v-bind:style="{
-                width: (upload.sentBytes / upload.totalBytes) * 100 + '%',
-              }"
-            ></div>
+            <div :style="{ width: `${group.percent}%` }"></div>
           </div>
         </div>
       </div>
@@ -110,8 +108,58 @@ const open = ref<boolean>(false);
 const fileStore = useFileStore();
 const uploadStore = useUploadStore();
 
-const getUploadIcon = (upload: Upload) =>
-  getResourceIconName(upload.name, upload.type, upload.type === "dir");
+type UploadGroup = {
+  key: string;
+  name: string;
+  icon: ReturnType<typeof getResourceIconName>;
+  count: number;
+  totalBytes: number;
+  sentBytes: number;
+  percent: number;
+  isFolderUpload: boolean;
+  ariaLabel: string;
+};
+
+const groupedUploads = computed<UploadGroup[]>(() => {
+  const groups = new Map<string, UploadGroup>();
+  for (const upload of uploadStore.allUploads) {
+    const key = upload.batchId || upload.transferId;
+    const isFolderUpload = Boolean(upload.isFolderUpload && upload.batchId);
+    const existing = groups.get(key);
+    if (!existing) {
+      const totalBytes = upload.batchBytes || upload.totalBytes;
+      const count = isFolderUpload ? upload.batchItems || 1 : 1;
+      groups.set(key, {
+        key,
+        name: isFolderUpload ? upload.batchName || "文件夹" : upload.name,
+        icon: isFolderUpload
+          ? "folder"
+          : getResourceIconName(
+              upload.name,
+              upload.type,
+              upload.type === "dir"
+            ),
+        count,
+        totalBytes,
+        sentBytes: upload.sentBytes,
+        percent: totalBytes > 0 ? (upload.sentBytes / totalBytes) * 100 : 0,
+        isFolderUpload,
+        ariaLabel: isFolderUpload
+          ? `${upload.batchName || "文件夹"}，${count} 个文件`
+          : upload.name,
+      });
+      continue;
+    }
+    existing.sentBytes += upload.sentBytes;
+    existing.totalBytes =
+      upload.batchBytes || existing.totalBytes + upload.totalBytes;
+    existing.percent =
+      existing.totalBytes > 0
+        ? (existing.sentBytes / existing.totalBytes) * 100
+        : 0;
+  }
+  return [...groups.values()];
+});
 
 const sentPercent = computed(() =>
   uploadStore.totalBytes > 0

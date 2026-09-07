@@ -13,6 +13,13 @@ type Upload = {
     sentBytes: number;
     sampledAt: number;
   };
+  /** Browser-side grouping metadata for folder uploads. */
+  batchId?: string;
+  batchName?: string;
+  batchItems?: number;
+  batchBytes?: number;
+  relativePath?: string;
+  isFolderUpload?: boolean;
 };
 
 interface UploadEntry {
@@ -23,6 +30,12 @@ interface UploadEntry {
   to?: string;
   file?: File;
   overwrite?: boolean;
+  batchId?: string;
+  batchName?: string;
+  batchItems?: number;
+  batchBytes?: number;
+  relativePath?: string;
+  isFolderUpload?: boolean;
 }
 
 type UploadList = UploadEntry[];

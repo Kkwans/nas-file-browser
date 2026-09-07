@@ -1,9 +1,11 @@
 package fbhttp
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -13,13 +15,23 @@ import (
 )
 
 const (
-	defaultTransferPageSize = 500
-	maxTransferPageSize     = transfers.MaxEntriesPerUser
+	defaultTransferPageSize = 10
+	maxTransferPageSize     = 100
 )
 
 type transferListResponse struct {
-	Items []*transfers.Item `json:"items"`
-	Total int               `json:"total"`
+	Items      []*transfers.Item `json:"items"`
+	NextCursor string            `json:"nextCursor,omitempty"`
+	Total      int               `json:"total"`
+}
+
+type transferCursor struct {
+	CreatedAt int64  `json:"createdAt"`
+	ID        string `json:"id"`
+}
+
+type transferDeleteAllResponse struct {
+	Deleted int `json:"deleted"`
 }
 
 type downloadTransferRequest struct {
@@ -46,15 +58,36 @@ var transferListHandler = withUser(func(w http.ResponseWriter, r *http.Request, 
 	}
 	limit := defaultTransferPageSize
 	if raw := strings.TrimSpace(r.URL.Query().Get("limit")); raw != "" {
-		if _, scanErr := fmt.Sscanf(raw, "%d", &limit); scanErr != nil || limit < 1 || limit > maxTransferPageSize {
+		parsed, scanErr := strconv.Atoi(raw)
+		if scanErr != nil || parsed < 1 || parsed > maxTransferPageSize {
 			return http.StatusBadRequest, fmt.Errorf("limit 必须在 1 到 %d 之间", maxTransferPageSize)
 		}
+		limit = parsed
 	}
-	items, err := d.store.Transfers.List(d.user.ID, kind, limit)
+	var cursor *transfers.RecentCursor
+	if raw := strings.TrimSpace(r.URL.Query().Get("cursor")); raw != "" {
+		cursor, err = decodeTransferCursor(raw)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("cursor 无效")
+		}
+	}
+	items, err := d.store.Transfers.ListPage(d.user.ID, kind, limit+1, cursor)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return renderJSON(w, r, transferListResponse{Items: items, Total: len(items)})
+	total, err := d.store.Transfers.Count(d.user.ID, kind)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	response := transferListResponse{Items: items, Total: total}
+	if len(items) > limit {
+		response.Items = items[:limit]
+		response.NextCursor = encodeTransferCursor(response.Items[len(response.Items)-1])
+	}
+	if response.Items == nil {
+		response.Items = []*transfers.Item{}
+	}
+	return renderJSON(w, r, response)
 })
 
 var transferGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -126,6 +159,24 @@ var transferDeleteHandler = withUser(func(_ http.ResponseWriter, r *http.Request
 	return http.StatusNoContent, nil
 })
 
+var transferDeleteAllHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	if d.store.Transfers == nil {
+		return http.StatusServiceUnavailable, fmt.Errorf("传输记录服务不可用")
+	}
+	kind, err := parseTransferKind(r.URL.Query().Get("kind"))
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	if kind == "" {
+		return http.StatusBadRequest, fmt.Errorf("清空传输记录必须指定 kind")
+	}
+	deleted, err := d.store.Transfers.DeleteAll(d.user.ID, kind, d.user.Perm.Admin)
+	if err != nil {
+		return transferErrorStatus(err), err
+	}
+	return renderJSON(w, r, transferDeleteAllResponse{Deleted: deleted})
+})
+
 func publishTransfer(item *transfers.Item) {
 	if item != nil {
 		events.Default.PublishForUser(item.UserID, "transfer.changed", item)
@@ -143,6 +194,23 @@ func parseTransferKind(raw string) (transfers.Kind, error) {
 	default:
 		return "", fmt.Errorf("未知传输类型 %q", raw)
 	}
+}
+
+func encodeTransferCursor(item *transfers.Item) string {
+	encoded, _ := json.Marshal(transferCursor{CreatedAt: item.CreatedAt, ID: item.ID})
+	return base64.RawURLEncoding.EncodeToString(encoded)
+}
+
+func decodeTransferCursor(raw string) (*transfers.RecentCursor, error) {
+	decoded, err := base64.RawURLEncoding.DecodeString(raw)
+	if err != nil {
+		return nil, err
+	}
+	var cursor transferCursor
+	if err := json.Unmarshal(decoded, &cursor); err != nil || cursor.CreatedAt <= 0 || cursor.ID == "" {
+		return nil, fmt.Errorf("invalid cursor")
+	}
+	return &transfers.RecentCursor{CreatedAt: cursor.CreatedAt, ID: cursor.ID}, nil
 }
 
 func transferErrorStatus(err error) int {

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/asdine/storm/v3"
+	"github.com/asdine/storm/v3/q"
 
 	"github.com/Kkwans/nas-file-browser/backend/transfers"
 )
@@ -21,6 +22,11 @@ type transferRecord struct {
 	CreatedAt        int64 `storm:"index"`
 	StartedAt        int64
 	FinishedAt       int64
+	BatchID          string `storm:"index"`
+	BatchName        string
+	BatchItems       int
+	BatchBytes       int64
+	IsFolderUpload   bool
 }
 
 type transferBackend struct {
@@ -53,6 +59,50 @@ func (backend transferBackend) GetByID(id string) (*transfers.Item, error) {
 	return record.item(), nil
 }
 
+func (backend transferBackend) ListRecent(userID uint, kind transfers.Kind, limit int, after *transfers.RecentCursor) ([]*transfers.Item, error) {
+	if limit < 1 {
+		return []*transfers.Item{}, nil
+	}
+	matchers := []q.Matcher{q.Eq("UserID", userID)}
+	if kind != "" {
+		matchers = append(matchers, q.Eq("Kind", kind))
+	}
+	if after != nil {
+		matchers = append(matchers, q.Or(
+			q.Lt("CreatedAt", after.CreatedAt),
+			q.And(q.Eq("CreatedAt", after.CreatedAt), q.Lt("ID", after.ID)),
+		))
+	}
+	var records []*transferRecord
+	err := backend.db.Select(matchers...).OrderBy("CreatedAt", "ID").Reverse().Limit(limit).Find(&records)
+	if errors.Is(err, storm.ErrNotFound) {
+		return []*transfers.Item{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*transfers.Item, len(records))
+	for index, record := range records {
+		items[index] = record.item()
+	}
+	return items, nil
+}
+
+func (backend transferBackend) Count(userID uint, kind transfers.Kind) (int, error) {
+	matchers := []q.Matcher{q.Eq("UserID", userID)}
+	if kind != "" {
+		matchers = append(matchers, q.Eq("Kind", kind))
+	}
+	count, err := backend.db.Select(matchers...).Count(&transferRecord{})
+	if errors.Is(err, storm.ErrNotFound) {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (backend transferBackend) Save(item *transfers.Item) error {
 	return backend.db.Save(newTransferRecord(item))
 }
@@ -67,7 +117,9 @@ func (backend transferBackend) Update(item *transfers.Item) error {
 	for field, value := range map[string]interface{}{
 		"BytesTotal": item.BytesTotal, "BytesTransferred": item.BytesTransferred,
 		"StartedAt": item.StartedAt, "FinishedAt": item.FinishedAt,
-		"Error": item.Error,
+		"Error": item.Error, "BatchID": item.BatchID, "BatchName": item.BatchName,
+		"BatchItems": item.BatchItems, "BatchBytes": item.BatchBytes,
+		"IsFolderUpload": item.IsFolderUpload,
 	} {
 		if err := backend.db.UpdateField(&transferRecord{ID: item.ID}, field, value); err != nil {
 			return err
@@ -92,6 +144,8 @@ func newTransferRecord(item *transfers.Item) *transferRecord {
 		Name: item.Name, Target: item.Target, BytesTotal: item.BytesTotal,
 		BytesTransferred: item.BytesTransferred, Error: item.Error,
 		CreatedAt: item.CreatedAt, StartedAt: item.StartedAt, FinishedAt: item.FinishedAt,
+		BatchID: item.BatchID, BatchName: item.BatchName, BatchItems: item.BatchItems,
+		BatchBytes: item.BatchBytes, IsFolderUpload: item.IsFolderUpload,
 	}
 }
 
@@ -101,5 +155,7 @@ func (record *transferRecord) item() *transfers.Item {
 		Name: record.Name, Target: record.Target, BytesTotal: record.BytesTotal,
 		BytesTransferred: record.BytesTransferred, Error: record.Error,
 		CreatedAt: record.CreatedAt, StartedAt: record.StartedAt, FinishedAt: record.FinishedAt,
+		BatchID: record.BatchID, BatchName: record.BatchName, BatchItems: record.BatchItems,
+		BatchBytes: record.BatchBytes, IsFolderUpload: record.IsFolderUpload,
 	}
 }

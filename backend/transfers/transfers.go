@@ -54,6 +54,11 @@ type Item struct {
 	CreatedAt        int64  `json:"createdAt" storm:"index"`
 	StartedAt        int64  `json:"startedAt,omitempty"`
 	FinishedAt       int64  `json:"finishedAt,omitempty"`
+	BatchID          string `json:"batchId,omitempty"`
+	BatchName        string `json:"batchName,omitempty"`
+	BatchItems       int    `json:"batchItems,omitempty"`
+	BatchBytes       int64  `json:"batchBytes,omitempty"`
+	IsFolderUpload   bool   `json:"isFolderUpload,omitempty"`
 }
 
 func (item *Item) Clone() *Item {
@@ -70,6 +75,21 @@ type StorageBackend interface {
 	Save(item *Item) error
 	Update(item *Item) error
 	Delete(id string) error
+}
+
+// RecentCursor is the stable keyset position used by transfer history.
+// CreatedAt and ID together keep ordering deterministic when records share a
+// millisecond timestamp.
+type RecentCursor struct {
+	CreatedAt int64
+	ID        string
+}
+
+// RecentTransferBackend lets persistent stores answer a bounded,
+// user-scoped query without loading the complete transfer table.
+type RecentTransferBackend interface {
+	ListRecent(userID uint, kind Kind, limit int, after *RecentCursor) ([]*Item, error)
+	Count(userID uint, kind Kind) (int, error)
 }
 
 type Storage struct {
@@ -200,6 +220,52 @@ func (storage *Storage) List(userID uint, kind Kind, limit int) ([]*Item, error)
 	return result, nil
 }
 
+// ListPage returns a bounded newest-first page. Persistent backends use a
+// keyset query; the in-memory fallback keeps the same cursor semantics for
+// tests and lightweight integrations.
+func (storage *Storage) ListPage(userID uint, kind Kind, limit int, after *RecentCursor) ([]*Item, error) {
+	if limit < 1 {
+		return []*Item{}, nil
+	}
+	if backend, ok := storage.back.(RecentTransferBackend); ok {
+		return backend.ListRecent(userID, kind, limit, after)
+	}
+	all, err := storage.List(userID, kind, MaxEntriesPerUser)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*Item, 0, limit)
+	for _, item := range all {
+		if after != nil && (item.CreatedAt > after.CreatedAt || item.CreatedAt == after.CreatedAt && item.ID >= after.ID) {
+			continue
+		}
+		result = append(result, item)
+		if len(result) == limit {
+			break
+		}
+	}
+	return result, nil
+}
+
+// Count returns the number of records visible to a user for the requested
+// transfer kind. Persistent backends answer this without loading records.
+func (storage *Storage) Count(userID uint, kind Kind) (int, error) {
+	if backend, ok := storage.back.(RecentTransferBackend); ok {
+		return backend.Count(userID, kind)
+	}
+	all, err := storage.back.GetAll()
+	if err != nil {
+		return 0, err
+	}
+	count := 0
+	for _, item := range all {
+		if item.UserID == userID && (kind == "" || item.Kind == kind) {
+			count++
+		}
+	}
+	return count, nil
+}
+
 func (storage *Storage) Update(item *Item) error {
 	if item == nil || item.ID == "" {
 		return ErrInvalid
@@ -281,6 +347,32 @@ func (storage *Storage) Delete(userID uint, id string, admin bool) error {
 		return ErrNotExist
 	}
 	return storage.back.Delete(id)
+}
+
+// DeleteAll removes only the authenticated user's records for one kind. The
+// kind is intentionally explicit so the UI cannot accidentally clear uploads
+// and downloads together; administrator access does not widen this action.
+func (storage *Storage) DeleteAll(userID uint, kind Kind, _ bool) (int, error) {
+	if kind != KindUpload && kind != KindDownload {
+		return 0, ErrInvalid
+	}
+	storage.mu.Lock()
+	defer storage.mu.Unlock()
+	all, err := storage.back.GetAll()
+	if err != nil {
+		return 0, err
+	}
+	removed := 0
+	for _, item := range all {
+		if item.Kind != kind || item.UserID != userID {
+			continue
+		}
+		if err := storage.back.Delete(item.ID); err != nil {
+			return removed, err
+		}
+		removed++
+	}
+	return removed, nil
 }
 
 func (storage *Storage) pruneLocked(userID uint, kind Kind) error {

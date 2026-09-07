@@ -12,7 +12,16 @@ export async function upload(
   filePath: string,
   content: ApiContent = "",
   overwrite = false,
-  onupload: (progress: { loaded: number }) => void
+  onupload: (progress: { loaded: number }) => void,
+  metadata?: Pick<
+    Upload,
+    | "batchId"
+    | "batchName"
+    | "batchItems"
+    | "batchBytes"
+    | "relativePath"
+    | "isFolderUpload"
+  >
 ) {
   if (!tusSettings) {
     // Shouldn't happen as we check for tus support before calling this function
@@ -42,6 +51,7 @@ export async function upload(
       headers: {
         "X-Auth": authStore.jwt,
         "X-Transfer-ID": transferId,
+        ...uploadBatchHeaders(metadata),
       },
       // Keep tus' fingerprint in localStorage so a reload can resume the
       // server-side offset instead of silently starting a second upload.
@@ -123,6 +133,27 @@ export async function upload(
       reject(error instanceof Error ? error : new Error(String(error)));
     });
   });
+}
+
+export function uploadBatchHeaders(
+  metadata?: Pick<
+    Upload,
+    | "batchId"
+    | "batchName"
+    | "batchItems"
+    | "batchBytes"
+    | "relativePath"
+    | "isFolderUpload"
+  >
+): Record<string, string> {
+  if (!metadata?.batchId) return {};
+  return {
+    "X-Upload-Batch-ID": metadata.batchId,
+    "X-Upload-Batch-Name": encodeURIComponent(metadata.batchName || "文件夹"),
+    "X-Upload-Batch-Items": String(metadata.batchItems || 0),
+    "X-Upload-Batch-Bytes": String(metadata.batchBytes || 0),
+    "X-Upload-Folder": metadata.isFolderUpload ? "true" : "false",
+  };
 }
 
 async function removePreviousFingerprint(

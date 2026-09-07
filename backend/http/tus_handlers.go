@@ -115,7 +115,9 @@ func tusPostHandler(cache UploadCache) handleFunc {
 		// Enables the user to utilize the PATCH endpoint for uploading file data
 		cache.Register(file.RealPath(), uploadLength)
 		if transferID := transferIDFromRequest(r); transferID != "" && d.store.Transfers != nil {
-			_, _ = d.store.Transfers.Ensure(d.user.ID, transferID, transfers.KindUpload, file.Name, r.URL.Path, uploadLength)
+			if item, ensureErr := d.store.Transfers.Ensure(d.user.ID, transferID, transfers.KindUpload, file.Name, r.URL.Path, uploadLength); ensureErr == nil && applyUploadBatchMetadata(item, r) {
+				_ = d.store.Transfers.Update(item)
+			}
 		}
 
 		basePath := "/" + strings.Trim(strings.TrimSpace(d.server.BaseURL), "/")

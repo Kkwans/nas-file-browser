@@ -21,10 +21,16 @@ export interface TransferItem {
   createdAt: number;
   startedAt?: number;
   finishedAt?: number;
+  batchId?: string;
+  batchName?: string;
+  batchItems?: number;
+  batchBytes?: number;
+  isFolderUpload?: boolean;
 }
 
 export interface TransferListResponse {
   items: TransferItem[];
+  nextCursor?: string;
   total: number;
 }
 
@@ -43,9 +49,15 @@ export interface DownloadTransferResponse {
 
 export function list(
   kind?: TransferKind,
+  cursor?: string,
+  limit = 10,
   signal?: AbortSignal
 ): Promise<TransferListResponse> {
-  const query = kind ? `?kind=${encodeURIComponent(kind)}` : "";
+  const params = new URLSearchParams();
+  if (kind) params.set("kind", kind);
+  params.set("limit", String(limit));
+  if (cursor) params.set("cursor", cursor);
+  const query = `?${params.toString()}`;
   return fetchJSON<TransferListResponse>(`/api/transfers${query}`, { signal });
 }
 
@@ -73,4 +85,13 @@ export async function remove(id: string): Promise<void> {
   await fetchURL(`/api/transfers/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
+}
+
+export async function removeAll(kind: TransferKind): Promise<number> {
+  const response = await fetchURL(
+    `/api/transfers?kind=${encodeURIComponent(kind)}`,
+    { method: "DELETE" }
+  );
+  const result = (await response.json()) as { deleted?: number };
+  return result.deleted ?? 0;
 }

@@ -3,7 +3,9 @@ package fbhttp
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,7 +46,34 @@ func newUploadTracker(r *http.Request, d *data) *uploadTracker {
 	if err != nil {
 		return nil
 	}
+	if applyUploadBatchMetadata(item, r) {
+		_ = d.store.Transfers.Update(item)
+	}
 	return &uploadTracker{request: r, data: d, item: item}
+}
+
+func applyUploadBatchMetadata(item *transfers.Item, r *http.Request) bool {
+	if item == nil || r == nil {
+		return false
+	}
+	batchID := strings.TrimSpace(r.Header.Get("X-Upload-Batch-ID"))
+	if batchID == "" {
+		return false
+	}
+	batchName := strings.TrimSpace(r.Header.Get("X-Upload-Batch-Name"))
+	if decoded, err := url.QueryUnescape(batchName); err == nil {
+		batchName = decoded
+	}
+	batchItems, _ := strconv.Atoi(strings.TrimSpace(r.Header.Get("X-Upload-Batch-Items")))
+	batchBytes, _ := strconv.ParseInt(strings.TrimSpace(r.Header.Get("X-Upload-Batch-Bytes")), 10, 64)
+	isFolder := strings.EqualFold(strings.TrimSpace(r.Header.Get("X-Upload-Folder")), "true")
+	changed := item.BatchID != batchID || item.BatchName != batchName || item.BatchItems != batchItems || item.BatchBytes != batchBytes || item.IsFolderUpload != isFolder
+	item.BatchID = batchID
+	item.BatchName = batchName
+	item.BatchItems = batchItems
+	item.BatchBytes = batchBytes
+	item.IsFolderUpload = isFolder
+	return changed
 }
 
 func (tracker *uploadTracker) Reader(reader io.Reader) io.Reader {

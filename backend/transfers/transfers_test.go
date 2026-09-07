@@ -133,3 +133,48 @@ func TestStorageEnsuresCallerIDAndPrunesPerKind(t *testing.T) {
 		t.Fatal("items are not sorted newest first")
 	}
 }
+
+func TestStorageListPageUsesStableCursorAndScopedBatchDelete(t *testing.T) {
+	backend := newMemoryBackend()
+	storage := NewStorage(backend)
+	for _, item := range []*Item{
+		{ID: "new", UserID: 1, Kind: KindUpload, Name: "new", CreatedAt: 30},
+		{ID: "same-z", UserID: 1, Kind: KindUpload, Name: "same-z", CreatedAt: 20},
+		{ID: "same-a", UserID: 1, Kind: KindUpload, Name: "same-a", CreatedAt: 20},
+		{ID: "other-user", UserID: 2, Kind: KindUpload, Name: "other-user", CreatedAt: 40},
+		{ID: "other-kind", UserID: 1, Kind: KindDownload, Name: "other-kind", CreatedAt: 50},
+	} {
+		if err := backend.Update(item); err != nil {
+			if err := backend.Save(item); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+
+	first, err := storage.ListPage(1, KindUpload, 2, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(first) != 2 || first[0].Name != "new" {
+		t.Fatalf("first page = %#v", first)
+	}
+	next, err := storage.ListPage(1, KindUpload, 2, &RecentCursor{CreatedAt: first[1].CreatedAt, ID: first[1].ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(next) != 1 || next[0].Name != "same-a" {
+		t.Fatalf("next page = %#v", next)
+	}
+	if count, err := storage.Count(1, KindUpload); err != nil || count != 3 {
+		t.Fatalf("count = %d, err=%v", count, err)
+	}
+	if deleted, err := storage.DeleteAll(1, KindUpload, false); err != nil || deleted != 3 {
+		t.Fatalf("deleted = %d, err=%v", deleted, err)
+	}
+	if count, err := storage.Count(2, KindUpload); err != nil || count != 1 {
+		t.Fatalf("other user count = %d, err=%v", count, err)
+	}
+	if count, err := storage.Count(1, KindDownload); err != nil || count != 1 {
+		t.Fatalf("other kind count = %d, err=%v", count, err)
+	}
+}

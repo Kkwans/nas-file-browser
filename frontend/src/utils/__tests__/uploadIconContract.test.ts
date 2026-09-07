@@ -27,5 +27,12 @@ describe("上传 UI 图标契约", () => {
     expect(uploadList).toContain('name="x"');
     expect(uploadList).toContain("chevron-down");
     expect(uploadList).toContain("chevron-up");
+    expect(uploadPrompt).not.toContain("选择上传方式");
+    expect(uploadPrompt).toContain("upload-choice");
+    expect(uploadPrompt).toContain('type="button"');
+    expect(uploadPrompt).toContain("upload-choice-icon-frame");
+    expect(uploadPrompt).toContain("white-space: nowrap");
+    expect(uploadList).toContain("groupedUploads");
+    expect(uploadList).toContain("uploadStore.allUploads");
   });
 });

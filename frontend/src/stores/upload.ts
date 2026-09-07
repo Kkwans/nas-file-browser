@@ -40,7 +40,16 @@ export const useUploadStore = defineStore("upload", () => {
     name: string,
     file: File | null,
     overwrite: boolean,
-    type: ResourceType
+    type: ResourceType,
+    metadata: Pick<
+      Upload,
+      | "batchId"
+      | "batchName"
+      | "batchItems"
+      | "batchBytes"
+      | "relativePath"
+      | "isFolderUpload"
+    > = {}
   ) => {
     if (!hasActiveUploads() && !hasPendingUploads()) {
       window.addEventListener("beforeunload", beforeUnload);
@@ -61,6 +70,7 @@ export const useUploadStore = defineStore("upload", () => {
       sentBytes: 0,
       createdAt: Date.now(),
       speedBytesPerSecond: 0,
+      ...metadata,
       // Stores rapidly changing sent bytes value without causing component re-renders
       rawProgress: markRaw({
         sentBytes: 0,
@@ -127,7 +137,7 @@ export const useUploadStore = defineStore("upload", () => {
         };
 
         await api
-          .post(upload.path, upload.file!, upload.overwrite, onUpload)
+          .post(upload.path, upload.file!, upload.overwrite, onUpload, upload)
           .catch((err) => err.message !== "Upload aborted" && $showError(err));
       }
 
@@ -203,6 +213,7 @@ export const useUploadStore = defineStore("upload", () => {
 
   return {
     // STATE
+    allUploads,
     activeUploads,
     totalBytes,
     sentBytes,

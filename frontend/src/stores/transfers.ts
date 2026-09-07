@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
 import * as api from "@/api/transfers";
 
+const TRANSFER_PAGE_SIZE = 10;
+
 function upsertPendingEvent(
   events: api.TransferItem[],
   item: api.TransferItem
@@ -18,6 +20,8 @@ export const useTransfersStore = defineStore("transfers", {
     error: string;
     requestGeneration: Record<string, number>;
     loadingKeys: Record<string, boolean>;
+    nextCursor: Record<string, string>;
+    loadingMoreKeys: Record<string, boolean>;
     pendingEvents: api.TransferItem[];
     eventRevision: number;
   } => ({
@@ -27,6 +31,8 @@ export const useTransfersStore = defineStore("transfers", {
     error: "",
     requestGeneration: {},
     loadingKeys: {},
+    nextCursor: {},
+    loadingMoreKeys: {},
     pendingEvents: [],
     eventRevision: 0,
   }),
@@ -38,6 +44,10 @@ export const useTransfersStore = defineStore("transfers", {
       state.items.filter(
         (item) => item.status === "queued" || item.status === "running"
       ),
+    hasMore: (state) => (kind?: api.TransferKind) =>
+      Boolean(state.nextCursor[kind || "all"]),
+    isLoadingMore: (state) => (kind?: api.TransferKind) =>
+      Boolean(state.loadingMoreKeys[kind || "all"]),
   },
   actions: {
     async load(kind?: api.TransferKind) {
@@ -48,14 +58,13 @@ export const useTransfersStore = defineStore("transfers", {
       this.loading = true;
       this.error = "";
       try {
-        const response = await api.list(kind);
+        const response = await api.list(kind, undefined, TRANSFER_PAGE_SIZE);
         if (generation !== this.requestGeneration[key]) return;
         const existing = kind
           ? this.items.filter((item) => item.kind !== kind)
           : [];
-        this.items = [...existing, ...response.items].sort(
-          (left, right) => right.createdAt - left.createdAt
-        );
+        this.items = mergeItems(existing, response.items);
+        this.nextCursor[key] = response.nextCursor ?? "";
         this.loaded = true;
       } catch (error) {
         this.error = error instanceof Error ? error.message : String(error);
@@ -63,7 +72,37 @@ export const useTransfersStore = defineStore("transfers", {
       } finally {
         if (generation === this.requestGeneration[key]) {
           this.loadingKeys[key] = false;
-          this.loading = Object.values(this.loadingKeys).some(Boolean);
+          this.loading =
+            Object.values(this.loadingKeys).some(Boolean) ||
+            Object.values(this.loadingMoreKeys).some(Boolean);
+          this.flushPendingEvents();
+        }
+      }
+    },
+    async loadMore(kind: api.TransferKind) {
+      const key = kind || "all";
+      const cursor = this.nextCursor[key];
+      if (!cursor || this.loadingMoreKeys[key]) return;
+      const generation = (this.requestGeneration[key] || 0) + 1;
+      this.requestGeneration[key] = generation;
+      this.loadingMoreKeys[key] = true;
+      this.loading = true;
+      this.error = "";
+      try {
+        const response = await api.list(kind, cursor, TRANSFER_PAGE_SIZE);
+        if (generation !== this.requestGeneration[key]) return;
+        this.items = mergeItems(this.items, response.items);
+        this.nextCursor[key] = response.nextCursor ?? "";
+        this.loaded = true;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : String(error);
+        throw error;
+      } finally {
+        if (generation === this.requestGeneration[key]) {
+          this.loadingMoreKeys[key] = false;
+          this.loading =
+            Object.values(this.loadingKeys).some(Boolean) ||
+            Object.values(this.loadingMoreKeys).some(Boolean);
           this.flushPendingEvents();
         }
       }
@@ -95,8 +134,25 @@ export const useTransfersStore = defineStore("transfers", {
       await api.remove(id);
       this.items = this.items.filter((item) => item.id !== id);
     },
+    async removeAll(kind: api.TransferKind) {
+      await api.removeAll(kind);
+      this.items = this.items.filter((item) => item.kind !== kind);
+      this.nextCursor[kind] = "";
+    },
     resetForUser() {
       this.$reset();
     },
   },
 });
+
+function mergeItems(
+  current: api.TransferItem[],
+  incoming: api.TransferItem[]
+): api.TransferItem[] {
+  const byId = new Map(current.map((item) => [item.id, item]));
+  for (const item of incoming) byId.set(item.id, item);
+  return [...byId.values()].sort(
+    (left, right) =>
+      right.createdAt - left.createdAt || right.id.localeCompare(left.id)
+  );
+}

@@ -63,6 +63,9 @@ describe("activity page UI contract", () => {
     expect(source).toContain("speedBytesPerSecond: local.speedBytesPerSecond");
     expect(source).toContain("task-center-progress-track");
     expect(source).not.toContain('completed: "服务端已完成"');
+    expect(source).toContain("groupUploadTransfers");
+    expect(source).toContain("清空记录");
+    expect(source).toContain("loadMoreTransfers");
   });
 
   it("keeps the task title centered and moves back navigation into the leading group", () => {

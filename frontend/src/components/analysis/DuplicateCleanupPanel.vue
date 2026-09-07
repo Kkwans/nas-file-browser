@@ -619,6 +619,11 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--surfaceSecondary) 28%, transparent);
+  margin-inline: 0;
 }
 .duplicate-cleanup__task > span:nth-child(2) {
   display: grid;
@@ -641,6 +646,11 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px 14px;
   font-size: 12px;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: var(--surfacePrimary);
+  margin-inline: 0;
 }
 .duplicate-cleanup__result details {
   flex-basis: 100%;
@@ -680,9 +690,12 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
-  border: 0;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
   background: var(--surfaceSecondary);
   font-size: 12px;
+  margin-inline: 0;
 }
 .duplicate-cleanup__summary strong {
   margin-left: auto;

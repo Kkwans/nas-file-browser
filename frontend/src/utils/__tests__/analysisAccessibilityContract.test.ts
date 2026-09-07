@@ -167,11 +167,26 @@ describe("存储工具无障碍契约", () => {
     expect(recentScansSource).toContain("item.scopes.join");
     expect(recentScansSource).toContain("metricsLabel(item)");
     expect(recentScansSource).toContain("statusLabel(item)");
+    expect(recentScansSource).toContain("扫描范围");
+    expect(recentScansSource).toContain("状态与指标");
+    expect(recentScansSource).toContain("扫描时间");
+    expect(recentScansSource).toContain("操作");
+    expect(recentScansSource).not.toContain("完成与操作");
+    expect(recentScansSource).toContain(": 'scan'");
     expect(recentScansSource).toContain("formatTime(recordTime(item))");
     expect(recentScansSource).toContain("item.finishedAt || item.createdAt");
     expect(recentScansSource).toContain('aria-label="完整扫描范围"');
     expect(recentScansSource).toMatch(
       /\.analysis-recent__action\s*\{[\s\S]*?min-height:\s*44px;/
+    );
+    expect(recentScansSource).toMatch(
+      /grid-template-columns:\s*24px minmax\(0, 1\.4fr\) minmax\(220px, 0\.8fr\)/
+    );
+    expect(recentScansSource).toMatch(
+      /\.analysis-recent__column-scope\s*\{[\s\S]*?grid-column:\s*1 \/ span 2;[\s\S]*?text-align:\s*start;/
+    );
+    expect(recentScansSource).toMatch(
+      /\.analysis-recent__column-status,[\s\S]*?\.analysis-recent__column-actions\s*\{[\s\S]*?text-align:\s*center;/
     );
     expect(recentScansSource).not.toContain(
       '<header class="analysis-recent__header">'

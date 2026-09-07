@@ -46,9 +46,10 @@
       class="analysis-recent__columns"
       aria-hidden="true"
     >
-      <span></span>
-      <span>扫描记录</span>
-      <span>完成与操作</span>
+      <span class="analysis-recent__column-scope">扫描范围</span>
+      <span class="analysis-recent__column-status">状态与指标</span>
+      <span class="analysis-recent__column-time">扫描时间</span>
+      <span class="analysis-recent__column-actions">操作</span>
     </div>
 
     <ul v-if="!loading && !error && items.length" class="analysis-recent__list">
@@ -61,11 +62,7 @@
           aria-hidden="true"
         >
           <AppIcon
-            :name="
-              item.tool === 'storage'
-                ? 'analysis-storage'
-                : 'analysis-duplicates'
-            "
+            :name="item.tool === 'storage' ? 'analysis-storage' : 'scan'"
             :size="19"
           />
         </span>
@@ -82,43 +79,41 @@
               <li v-for="scope in item.scopes" :key="scope">{{ scope }}</li>
             </ul>
           </details>
-          <div class="analysis-recent__headline">
-            <span
-              :class="[
-                `is-${item.status}`,
-                {
-                  'is-result-unavailable':
-                    item.status === 'completed' && !item.resultReady,
-                },
-              ]"
-              >{{ statusLabel(item) }}</span
-            >
-            <p class="analysis-recent__metrics">{{ metricsLabel(item) }}</p>
-          </div>
         </div>
-        <div class="analysis-recent__side">
-          <div class="analysis-recent__time-block">
-            <time
-              class="analysis-recent__time"
-              :datetime="new Date(recordTime(item)).toISOString()"
-              :aria-label="`${item.finishedAt ? '结束时间' : '提交时间'} ${formatTime(recordTime(item))}`"
-            >
-              <span>{{ formatDate(recordTime(item)) }}</span>
-              <b>{{ formatClock(recordTime(item)) }}</b>
-            </time>
-          </div>
-          <router-link
-            class="analysis-recent__action"
-            :to="{
-              path: '/analysis',
-              query: { tool: item.tool, task: item.id },
-            }"
-            :aria-label="`${itemToolLabel(item)}：${actionLabel(item)}`"
+        <div class="analysis-recent__status">
+          <span
+            :class="[
+              `is-${item.status}`,
+              {
+                'is-result-unavailable':
+                  item.status === 'completed' && !item.resultReady,
+              },
+            ]"
+            >{{ statusLabel(item) }}</span
           >
-            <span>{{ actionLabel(item) }}</span>
-            <AppIcon name="arrow-right" :size="16" />
-          </router-link>
+          <p class="analysis-recent__metrics">{{ metricsLabel(item) }}</p>
         </div>
+        <div class="analysis-recent__time-block">
+          <time
+            class="analysis-recent__time"
+            :datetime="new Date(recordTime(item)).toISOString()"
+            :aria-label="`${item.finishedAt ? '结束时间' : '提交时间'} ${formatTime(recordTime(item))}`"
+          >
+            <span>{{ formatDate(recordTime(item)) }}</span>
+            <b>{{ formatClock(recordTime(item)) }}</b>
+          </time>
+        </div>
+        <router-link
+          class="analysis-recent__action"
+          :to="{
+            path: '/analysis',
+            query: { tool: item.tool, task: item.id },
+          }"
+          :aria-label="`${itemToolLabel(item)}：${actionLabel(item)}`"
+        >
+          <span>{{ actionLabel(item) }}</span>
+          <AppIcon name="arrow-right" :size="16" />
+        </router-link>
       </li>
     </ul>
 
@@ -297,7 +292,9 @@ function formatClock(value: number) {
 .analysis-recent__columns,
 .analysis-recent__list > li {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-columns:
+    24px minmax(0, 1.4fr) minmax(220px, 0.8fr) minmax(132px, auto)
+    minmax(88px, auto);
   align-items: center;
   gap: 12px;
   padding-inline: 16px;
@@ -308,8 +305,14 @@ function formatClock(value: number) {
   color: var(--textPrimary);
   font-size: 11px;
 }
-.analysis-recent__columns span:last-child {
-  text-align: end;
+.analysis-recent__column-scope {
+  grid-column: 1 / span 2;
+  text-align: start;
+}
+.analysis-recent__column-status,
+.analysis-recent__column-time,
+.analysis-recent__column-actions {
+  text-align: center;
 }
 .analysis-recent__list {
   margin: 0;
@@ -376,39 +379,42 @@ function formatClock(value: number) {
   font-size: 12px;
   line-height: 1.5;
 }
-.analysis-recent__headline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
-  color: var(--textPrimary);
+.analysis-recent__status {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 2px;
+}
+.analysis-recent__status > span {
+  justify-self: center;
   font-size: 12px;
-  line-height: 1.5;
+  font-weight: 600;
+  text-align: center;
 }
-.analysis-recent__headline > span {
-  flex: 0 0 auto;
-}
-.analysis-recent__headline .is-completed {
+.analysis-recent__status .is-completed {
   color: var(--icon-green);
 }
-.analysis-recent__headline .is-failed,
-.analysis-recent__headline .is-interrupted,
-.analysis-recent__headline .is-result-unavailable {
+.analysis-recent__status .is-failed,
+.analysis-recent__status .is-interrupted,
+.analysis-recent__status .is-result-unavailable {
   color: var(--red);
 }
 .analysis-recent__metrics {
   margin: 0;
   overflow-wrap: anywhere;
+  color: var(--textPrimary);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
 }
-.analysis-recent__side {
-  display: grid;
-  grid-template-columns: auto auto;
+.analysis-recent__time-block {
+  display: flex;
   min-width: 0;
-  align-items: center;
-  gap: 16px;
+  justify-content: center;
 }
 .analysis-recent__time {
-  display: flex;
+  display: grid;
+  justify-items: center;
   gap: 6px;
   color: var(--textPrimary);
   font-size: 12px;
@@ -422,7 +428,7 @@ function formatClock(value: number) {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 6px;
   padding: 0 4px;
   color: var(--blue);
@@ -481,12 +487,31 @@ function formatClock(value: number) {
   .analysis-recent__scope {
     min-height: 44px;
   }
-  .analysis-recent__side {
+  .analysis-recent__status,
+  .analysis-recent__time-block,
+  .analysis-recent__action {
     grid-column: 2;
+  }
+  .analysis-recent__status {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0 12px;
+    align-items: baseline;
+    gap: 2px 8px;
+  }
+  .analysis-recent__status > span {
+    justify-self: auto;
+    text-align: left;
+  }
+  .analysis-recent__time-block {
+    justify-content: flex-start;
+  }
+  .analysis-recent__time {
+    display: flex;
+    gap: 6px;
+    justify-items: initial;
+  }
+  .analysis-recent__action {
+    justify-self: start;
   }
 }
 </style>

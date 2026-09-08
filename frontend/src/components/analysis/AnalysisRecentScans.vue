@@ -190,7 +190,9 @@ function metricsLabel(item: AnalysisRecentItem) {
 }
 
 function actionLabel(item: AnalysisRecentItem) {
-  return item.resultReady ? "查看结果" : "查看详情";
+  return item.status === "completed" && item.resultReady
+    ? "查看结果"
+    : "查看详情";
 }
 
 function recordTime(item: AnalysisRecentItem) {
@@ -198,7 +200,7 @@ function recordTime(item: AnalysisRecentItem) {
 }
 
 function formatTime(value: number) {
-  return dayjs(value).format("YYYY-MM-DD HH:mm");
+  return dayjs(value).format("YYYY-MM-DD HH:mm:ss");
 }
 
 function formatDate(value: number) {
@@ -206,7 +208,7 @@ function formatDate(value: number) {
 }
 
 function formatClock(value: number) {
-  return dayjs(value).format("HH:mm");
+  return dayjs(value).format("HH:mm:ss");
 }
 </script>
 
@@ -285,7 +287,7 @@ function formatClock(value: number) {
   display: grid;
   grid-template-columns:
     24px minmax(0, 1.4fr) minmax(220px, 0.8fr) minmax(132px, auto)
-    minmax(88px, auto);
+    92px;
   align-items: center;
   gap: 12px;
   padding-inline: 16px;
@@ -300,9 +302,19 @@ function formatClock(value: number) {
   grid-column: 1 / span 2;
   text-align: start;
 }
-.analysis-recent__column-status,
-.analysis-recent__column-time,
+.analysis-recent__column-status {
+  grid-column: 3;
+  justify-self: center;
+  text-align: center;
+}
+.analysis-recent__column-time {
+  grid-column: 4;
+  justify-self: center;
+  text-align: center;
+}
 .analysis-recent__column-actions {
+  grid-column: 5;
+  justify-self: center;
   text-align: center;
 }
 .analysis-recent__list {

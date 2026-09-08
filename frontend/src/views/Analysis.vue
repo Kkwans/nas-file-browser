@@ -3,7 +3,8 @@
     <header-bar
       show-menu
       show-logo
-      :title="isResultDetail ? '扫描结果' : '存储工具'"
+      :show-task-center="false"
+      :title="analysisHeaderTitle"
       title-icon="chart-storage"
     />
 
@@ -41,7 +42,7 @@
         </button>
 
         <AnalysisScopePanel
-          v-if="!hasReport || showRunPanel"
+          v-if="!isResultDetail && (!hasReport || showRunPanel)"
           v-model:root-confirmed="rootConfirmed"
           :tool="activeTool"
           :scopes="scopes"
@@ -106,6 +107,13 @@
         >
           {{ canceling ? "提交中…" : "取消扫描" }}
         </button>
+        <router-link
+          v-else-if="isResultDetail"
+          class="analysis-task-back"
+          :to="analysisHomeRoute"
+        >
+          返回分析
+        </router-link>
         <router-link v-else-if="currentTask.status !== 'completed'" to="/tasks">
           查看任务
         </router-link>
@@ -552,6 +560,13 @@ const canStart = computed(
     !isTaskActive.value
 );
 const hasReport = computed(() => Boolean(report.value || storageReport.value));
+const analysisHeaderTitle = computed(() =>
+  isResultDetail.value
+    ? hasReport.value
+      ? "扫描结果"
+      : "扫描任务"
+    : "存储工具"
+);
 const taskProgress = computed(() => {
   const task = currentTask.value;
   if (!task || task.totalItems <= 0) return 0;

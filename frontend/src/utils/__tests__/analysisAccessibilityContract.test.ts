@@ -59,7 +59,11 @@ describe("存储工具无障碍契约", () => {
   it("报告页把再次扫描收纳为可展开入口", () => {
     expect(analysisSource).toContain('class="analysis-run-toggle"');
     expect(analysisSource).toContain(':aria-expanded="showRunPanel"');
-    expect(analysisSource).toContain('v-if="!hasReport || showRunPanel"');
+    expect(analysisSource).toContain(
+      'v-if="!isResultDetail && (!hasReport || showRunPanel)"'
+    );
+    expect(analysisSource).toContain('class="analysis-task-back"');
+    expect(analysisSource).toContain('v-else-if="isResultDetail"');
   });
 
   it("分析报告卡片不复用会继承全局定位规则的原生 header", () => {
@@ -186,9 +190,13 @@ describe("存储工具无障碍契约", () => {
     expect(recentScansSource).toMatch(
       /\.analysis-recent__column-scope\s*\{[\s\S]*?grid-column:\s*1 \/ span 2;[\s\S]*?text-align:\s*start;/
     );
-    expect(recentScansSource).toMatch(
-      /\.analysis-recent__column-status,[\s\S]*?\.analysis-recent__column-actions\s*\{[\s\S]*?text-align:\s*center;/
-    );
+    for (const column of ["status", "time", "actions"]) {
+      expect(recentScansSource).toMatch(
+        new RegExp(
+          `\\.analysis-recent__column-${column}\\s*\\{[\\s\\S]*?text-align:\\s*center;`
+        )
+      );
+    }
     expect(recentScansSource).not.toContain(
       '<header class="analysis-recent__header">'
     );

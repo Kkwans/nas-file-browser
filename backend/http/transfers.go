@@ -64,6 +64,10 @@ var transferListHandler = withUser(func(w http.ResponseWriter, r *http.Request, 
 		}
 		limit = parsed
 	}
+	statuses, err := parseTransferStatuses(r.URL.Query().Get("status"))
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 	var cursor *transfers.RecentCursor
 	if raw := strings.TrimSpace(r.URL.Query().Get("cursor")); raw != "" {
 		cursor, err = decodeTransferCursor(raw)
@@ -71,11 +75,11 @@ var transferListHandler = withUser(func(w http.ResponseWriter, r *http.Request, 
 			return http.StatusBadRequest, fmt.Errorf("cursor 无效")
 		}
 	}
-	items, err := d.store.Transfers.ListPage(d.user.ID, kind, limit+1, cursor)
+	items, err := d.store.Transfers.ListPageFiltered(d.user.ID, kind, statuses, limit+1, cursor)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	total, err := d.store.Transfers.Count(d.user.ID, kind)
+	total, err := d.store.Transfers.CountFiltered(d.user.ID, kind, statuses)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -194,6 +198,35 @@ func parseTransferKind(raw string) (transfers.Kind, error) {
 	default:
 		return "", fmt.Errorf("未知传输类型 %q", raw)
 	}
+}
+
+func parseTransferStatuses(raw string) ([]transfers.Status, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, nil
+	}
+	valid := map[transfers.Status]struct{}{
+		transfers.StatusQueued: {}, transfers.StatusRunning: {},
+		transfers.StatusCompleted: {}, transfers.StatusFailed: {},
+		transfers.StatusCanceled: {}, transfers.StatusInterrupted: {},
+	}
+	seen := make(map[transfers.Status]struct{})
+	statuses := make([]transfers.Status, 0)
+	for _, value := range strings.Split(raw, ",") {
+		status := transfers.Status(strings.TrimSpace(value))
+		if status == "" {
+			continue
+		}
+		if _, ok := valid[status]; !ok {
+			return nil, fmt.Errorf("未知传输状态 %q", status)
+		}
+		if _, ok := seen[status]; ok {
+			continue
+		}
+		seen[status] = struct{}{}
+		statuses = append(statuses, status)
+	}
+	return statuses, nil
 }
 
 func encodeTransferCursor(item *transfers.Item) string {

@@ -99,6 +99,41 @@ func TestHistoryHTTPFiltersAndPaginates(t *testing.T) {
 	}
 }
 
+func TestHistoryHTTPDeleteAllIsUserScoped(t *testing.T) {
+	h := newTrashHTTPHarness(t,
+		users.User{Username: "owner"},
+		users.User{Username: "other"},
+	)
+	owner := trashHTTPUserByName(t, h, "owner")
+	other := trashHTTPUserByName(t, h, "other")
+	if _, err := h.storage.History.Record(owner.ID, "file.rename", "/owner", "", history.StatusSuccess); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.storage.History.Record(other.ID, "file.rename", "/other", "", history.StatusSuccess); err != nil {
+		t.Fatal(err)
+	}
+
+	response := h.request(t, owner.ID, historyDeleteAllHandler, http.MethodDelete, "/history", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("delete history status = %d body=%s", response.Code, response.Body.String())
+	}
+	var deleted historyDeleteAllResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &deleted); err != nil {
+		t.Fatal(err)
+	}
+	if deleted.Deleted != 1 {
+		t.Fatalf("deleted = %#v", deleted)
+	}
+	ownerEntries, err := h.storage.History.List(owner.ID, 10)
+	if err != nil || len(ownerEntries) != 0 {
+		t.Fatalf("owner history = %#v err=%v", ownerEntries, err)
+	}
+	otherEntries, err := h.storage.History.List(other.ID, 10)
+	if err != nil || len(otherEntries) != 1 {
+		t.Fatalf("other history = %#v err=%v", otherEntries, err)
+	}
+}
+
 func TestTrashOperationsAreRecordedInHistory(t *testing.T) {
 	h := newTrashHTTPHarness(t, users.User{
 		Username: "member",

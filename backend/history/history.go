@@ -102,6 +102,27 @@ func (storage *Storage) List(userID uint, limit int) ([]*Entry, error) {
 	return result, nil
 }
 
+// DeleteAll removes the current user's history entries. The operation is
+// intentionally scoped by user here rather than relying on the HTTP layer so
+// callers cannot accidentally clear another user's activity timeline.
+func (storage *Storage) DeleteAll(userID uint) (int, error) {
+	storage.mu.Lock()
+	defer storage.mu.Unlock()
+
+	entries, err := storage.back.GetByUser(userID)
+	if err != nil {
+		return 0, err
+	}
+	deleted := 0
+	for _, entry := range entries {
+		if err := storage.back.Delete(entry.ID); err != nil {
+			return deleted, err
+		}
+		deleted++
+	}
+	return deleted, nil
+}
+
 func (storage *Storage) prune(userID uint) error {
 	entries, err := storage.back.GetByUser(userID)
 	if err != nil {

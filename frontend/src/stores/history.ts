@@ -102,6 +102,22 @@ export const useHistoryStore = defineStore("history", {
         }
       }
     },
+    async clear() {
+      this.loading = true;
+      this.error = "";
+      try {
+        await api.removeAll();
+        this.items = [];
+        this.total = 0;
+        this.nextCursor = "";
+        this.loaded = true;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : String(error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
     resetForUser() {
       this.$reset();
     },

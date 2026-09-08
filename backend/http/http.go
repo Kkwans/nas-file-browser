@@ -96,6 +96,7 @@ func NewHandler(
 	api.Handle("/trash/{id}", monkey(trashDeleteHandler, "")).Methods("DELETE")
 
 	api.Handle("/tasks", monkey(taskListHandler, "")).Methods("GET")
+	api.Handle("/tasks", monkey(taskDeleteRecordsHandler, "")).Methods("DELETE")
 	api.Handle("/tasks/batch", monkey(taskBatchHandler(taskRuntime, hlsService), "")).Methods("POST")
 	api.Handle("/tasks/{id}", monkey(taskGetHandler, "")).Methods("GET")
 	api.Handle("/tasks/{id}/cancel", monkey(taskCancelHandler(taskRuntime), "")).Methods("POST")
@@ -121,6 +122,7 @@ func NewHandler(
 	api.Handle("/archives/extractions", monkey(archiveExtractStartHandler(taskRuntime), "")).Methods("POST")
 	api.Handle("/archives/extractions/{id}", monkey(archiveExtractResultHandler, "")).Methods("GET")
 	api.Handle("/history", monkey(historyListHandler, "")).Methods("GET")
+	api.Handle("/history", monkey(historyDeleteAllHandler, "")).Methods("DELETE")
 	api.Handle("/recent", monkey(recentListHandler, "")).Methods("GET")
 	api.Handle("/recent", monkey(recentRecordHandler, "")).Methods("POST")
 	api.Handle("/media/playback", monkey(playbackGetHandler, "")).Methods("GET")

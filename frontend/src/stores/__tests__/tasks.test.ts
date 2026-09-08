@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   archive: vi.fn(),
   unarchive: vi.fn(),
   batch: vi.fn(),
+  removeAllRecords: vi.fn(),
 }));
 
 vi.mock("@/api/tasks", () => mocks);
@@ -117,5 +118,20 @@ describe("tasks store", () => {
 
     expect(mocks.retry).toHaveBeenCalledWith("failed");
     expect(store.items[0].id).toBe("retry");
+  });
+
+  it("clears terminal records for one task category", async () => {
+    mocks.removeAllRecords.mockResolvedValue(1);
+    const store = useTasksStore();
+    store.items = [
+      task("file", "completed"),
+      { ...task("running", "running"), type: "file.copy" },
+    ];
+    store.items[0].type = "file.copy";
+
+    await store.clearRecords("file");
+
+    expect(mocks.removeAllRecords).toHaveBeenCalledWith("file");
+    expect(store.items.map((item) => item.id)).toEqual(["running"]);
   });
 });

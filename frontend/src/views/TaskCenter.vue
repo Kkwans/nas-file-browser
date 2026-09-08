@@ -60,15 +60,28 @@
               }}
             </p>
           </div>
-          <label class="task-center-filter">
-            <span>状态</span>
-            <select v-model="taskFilter" @change="changeTaskFilter">
-              <option value="all">全部</option>
-              <option value="active">进行中</option>
-              <option value="attention">需处理</option>
-              <option value="completed">已完成</option>
-            </select>
-          </label>
+          <div class="task-center-panel-actions">
+            <label class="task-center-filter">
+              <span>状态</span>
+              <select v-model="taskFilter" @change="changeTaskFilter">
+                <option value="all">全部</option>
+                <option value="active">进行中</option>
+                <option value="attention">需处理</option>
+                <option value="canceled">已取消</option>
+                <option value="completed">已完成</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              class="task-center-clear-action"
+              :disabled="tasksStore.loading || clearingTasks"
+              title="清空当前分类的已结束任务记录"
+              @click="clearTaskRecords"
+            >
+              <app-icon name="trash" :size="17" />
+              <span>{{ clearingTasks ? "清理中…" : "清空记录" }}</span>
+            </button>
+          </div>
         </div>
         <div
           v-if="tasksStore.error"
@@ -100,121 +113,155 @@
             }}
           </p>
         </div>
-        <div v-else class="task-center-list">
-          <article
-            v-for="task in tasksStore.items"
-            :key="task.id"
-            class="task-center-item"
+        <div v-else>
+          <div class="task-center-list-head" aria-hidden="true">
+            <span>任务</span>
+            <span>时间</span>
+            <span>耗时</span>
+            <span>操作</span>
+          </div>
+          <div class="task-center-list">
+            <article
+              v-for="task in tasksStore.items"
+              :key="task.id"
+              class="task-center-item"
+            >
+              <span class="task-center-item-icon" :class="`is-${task.status}`">
+                <app-icon :name="taskIcon(task.status)" :size="19" />
+              </span>
+              <div class="task-center-item-main">
+                <div class="task-center-item-title">
+                  <strong>{{ task.title }}</strong>
+                  <span
+                    class="task-center-status"
+                    :class="`is-${task.status}`"
+                    >{{ statusLabel(task.status) }}</span
+                  >
+                </div>
+                <p>
+                  {{ taskTypeLabel(task.type) }}
+                </p>
+                <div
+                  v-if="
+                    isTaskActive(task) && taskProgress(task).mode === 'bytes'
+                  "
+                  class="task-center-progress"
+                >
+                  <div
+                    class="task-center-progress-track task-center-task-progress-track"
+                    role="progressbar"
+                    :aria-label="`${task.title}进度`"
+                    aria-valuemin="0"
+                    :aria-valuemax="taskProgress(task).max"
+                    :aria-valuenow="taskProgress(task).value"
+                  >
+                    <span
+                      :style="{
+                        width: `${taskProgressPercent(taskProgress(task))}%`,
+                      }"
+                    ></span>
+                  </div>
+                  <span>{{
+                    byteProgress(
+                      taskProgress(task).value ?? 0,
+                      taskProgress(task).max
+                    )
+                  }}</span>
+                </div>
+                <div
+                  v-else-if="
+                    isTaskActive(task) && taskProgress(task).mode === 'items'
+                  "
+                  class="task-center-progress"
+                >
+                  <div
+                    class="task-center-progress-track task-center-task-progress-track"
+                    role="progressbar"
+                    :aria-label="`${task.title}进度`"
+                    aria-valuemin="0"
+                    :aria-valuemax="taskProgress(task).max"
+                    :aria-valuenow="taskProgress(task).value"
+                  >
+                    <span
+                      :style="{
+                        width: `${taskProgressPercent(taskProgress(task))}%`,
+                      }"
+                    ></span>
+                  </div>
+                  <span
+                    >{{ taskProgress(task).value }} /
+                    {{ taskProgress(task).max }}</span
+                  >
+                </div>
+                <div
+                  v-else-if="isTaskActive(task)"
+                  class="task-center-progress task-center-progress--indeterminate"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span
+                    class="task-center-progress-indeterminate-track"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="task-center-progress-indeterminate-label">
+                    {{ task.title }}正在处理
+                  </span>
+                </div>
+                <p v-else-if="task.error" class="task-center-error">
+                  {{ task.error }}
+                </p>
+              </div>
+              <time
+                class="task-center-item-time"
+                :datetime="new Date(task.createdAt).toISOString()"
+              >
+                <span>{{ taskTimeParts(task.createdAt).date }}</span>
+                <span>{{ taskTimeParts(task.createdAt).clock }}</span>
+              </time>
+              <span class="task-center-item-duration">{{
+                taskDuration(task)
+              }}</span>
+              <div class="task-center-item-actions">
+                <button
+                  v-if="isTaskActive(task)"
+                  type="button"
+                  :disabled="busyIds.has(task.id)"
+                  @click="cancelTask(task.id)"
+                >
+                  取消
+                </button>
+                <button
+                  v-else-if="canRetry(task)"
+                  type="button"
+                  class="primary"
+                  :disabled="busyIds.has(task.id)"
+                  @click="retryTask(task.id)"
+                >
+                  重试
+                </button>
+                <button
+                  v-if="canArchive(task)"
+                  type="button"
+                  :disabled="busyIds.has(task.id)"
+                  @click="archiveTask(task.id)"
+                >
+                  删除记录
+                </button>
+              </div>
+            </article>
+          </div>
+          <div
+            v-if="tasksStore.items.length && tasksStore.nextCursor"
+            class="task-center-load-more"
           >
-            <span class="task-center-item-icon" :class="`is-${task.status}`">
-              <app-icon :name="taskIcon(task.status)" :size="19" />
-            </span>
-            <div class="task-center-item-main">
-              <div class="task-center-item-title">
-                <strong>{{ task.title }}</strong>
-                <span class="task-center-status" :class="`is-${task.status}`">{{
-                  statusLabel(task.status)
-                }}</span>
-              </div>
-              <p>
-                {{ taskTypeLabel(task.type) }} · {{ taskTime(task.createdAt) }}
-              </p>
-              <div
-                v-if="isTaskActive(task) && taskProgress(task).mode === 'bytes'"
-                class="task-center-progress"
-              >
-                <div
-                  class="task-center-progress-track task-center-task-progress-track"
-                  role="progressbar"
-                  :aria-label="`${task.title}进度`"
-                  aria-valuemin="0"
-                  :aria-valuemax="taskProgress(task).max"
-                  :aria-valuenow="taskProgress(task).value"
-                >
-                  <span
-                    :style="{
-                      width: `${taskProgressPercent(taskProgress(task))}%`,
-                    }"
-                  ></span>
-                </div>
-                <span>{{
-                  byteProgress(
-                    taskProgress(task).value ?? 0,
-                    taskProgress(task).max
-                  )
-                }}</span>
-              </div>
-              <div
-                v-else-if="
-                  isTaskActive(task) && taskProgress(task).mode === 'items'
-                "
-                class="task-center-progress"
-              >
-                <div
-                  class="task-center-progress-track task-center-task-progress-track"
-                  role="progressbar"
-                  :aria-label="`${task.title}进度`"
-                  aria-valuemin="0"
-                  :aria-valuemax="taskProgress(task).max"
-                  :aria-valuenow="taskProgress(task).value"
-                >
-                  <span
-                    :style="{
-                      width: `${taskProgressPercent(taskProgress(task))}%`,
-                    }"
-                  ></span>
-                </div>
-                <span
-                  >{{ taskProgress(task).value }} /
-                  {{ taskProgress(task).max }}</span
-                >
-              </div>
-              <div
-                v-else-if="isTaskActive(task)"
-                class="task-center-progress task-center-progress--indeterminate"
-                role="status"
-                aria-live="polite"
-              >
-                <span
-                  class="task-center-progress-indeterminate-track"
-                  aria-hidden="true"
-                ></span>
-                <span class="task-center-progress-indeterminate-label">
-                  {{ task.title }}正在处理
-                </span>
-              </div>
-              <p v-else-if="task.error" class="task-center-error">
-                {{ task.error }}
-              </p>
-            </div>
-            <div class="task-center-item-actions">
-              <button
-                v-if="isTaskActive(task)"
-                type="button"
-                :disabled="busyIds.has(task.id)"
-                @click="cancelTask(task.id)"
-              >
-                取消
-              </button>
-              <button
-                v-else-if="canRetry(task)"
-                type="button"
-                class="primary"
-                :disabled="busyIds.has(task.id)"
-                @click="retryTask(task.id)"
-              >
-                重试
-              </button>
-              <button
-                v-if="canArchive(task)"
-                type="button"
-                :disabled="busyIds.has(task.id)"
-                @click="archiveTask(task.id)"
-              >
-                归档
-              </button>
-            </div>
-          </article>
+            <button
+              type="button"
+              :disabled="tasksStore.loading"
+              @click="loadMoreTasks"
+            >
+              {{ tasksStore.loading ? "加载中…" : "加载更多" }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -231,6 +278,16 @@
             <p>上传和下载进度会在传输期间实时更新。</p>
           </div>
           <div class="task-center-panel-actions">
+            <label class="task-center-filter">
+              <span>状态</span>
+              <select v-model="taskFilter" @change="changeTaskFilter">
+                <option value="all">全部</option>
+                <option value="active">进行中</option>
+                <option value="attention">需处理</option>
+                <option value="canceled">已取消</option>
+                <option value="completed">已完成</option>
+              </select>
+            </label>
             <button
               type="button"
               class="task-center-clear-action"
@@ -272,87 +329,109 @@
             }}
           </p>
         </div>
-        <div v-else class="task-center-list">
-          <article
-            v-for="item in activeTransfers"
-            :key="item.id"
-            class="task-center-item"
-          >
-            <span class="task-center-item-icon" :class="`is-${item.status}`">
-              <app-icon
-                :name="
-                  item.isFolderUpload
-                    ? 'folder'
-                    : activeTab === 'upload'
-                      ? 'upload'
-                      : 'download'
-                "
-                :size="19"
-              />
-            </span>
-            <div class="task-center-item-main">
-              <div class="task-center-item-title">
-                <strong :title="transferTitle(item)">{{
-                  transferTitle(item)
-                }}</strong>
-                <span
-                  v-if="item.groupedCount && item.groupedCount > 1"
-                  class="task-center-transfer-count"
-                >
-                  {{ item.groupedCount }} 个文件
-                </span>
-                <span class="task-center-status" :class="`is-${item.status}`">{{
-                  transferStatusLabel(item.status)
-                }}</span>
-              </div>
-              <p :title="item.target">
-                {{ transferTarget(item) }} · {{ taskTime(item.createdAt) }}
-              </p>
-              <div
-                v-if="isTransferActive(item) && item.bytesTotal"
-                class="task-center-transfer-progress"
-              >
-                <div class="task-center-progress-summary">
-                  <span>{{
-                    byteProgress(item.bytesTransferred, item.bytesTotal)
-                  }}</span>
-                  <strong>{{ transferPercent(item) }}%</strong>
+        <div v-else>
+          <div class="task-center-list-head" aria-hidden="true">
+            <span>记录</span>
+            <span>时间</span>
+            <span>耗时</span>
+            <span>操作</span>
+          </div>
+          <div class="task-center-list">
+            <article
+              v-for="item in activeTransfers"
+              :key="item.id"
+              class="task-center-item"
+            >
+              <span class="task-center-item-icon" :class="`is-${item.status}`">
+                <app-icon
+                  :name="
+                    item.isFolderUpload
+                      ? 'folder'
+                      : activeTab === 'upload'
+                        ? 'upload'
+                        : 'download'
+                  "
+                  :size="19"
+                />
+              </span>
+              <div class="task-center-item-main">
+                <div class="task-center-item-title">
+                  <strong :title="transferTitle(item)">{{
+                    transferTitle(item)
+                  }}</strong>
+                  <span
+                    v-if="item.groupedCount && item.groupedCount > 1"
+                    class="task-center-transfer-count"
+                  >
+                    {{ item.groupedCount }} 个文件
+                  </span>
+                  <span
+                    class="task-center-status"
+                    :class="`is-${item.status}`"
+                    >{{ transferStatusLabel(item.status) }}</span
+                  >
                 </div>
+                <p :title="item.target">
+                  {{ transferTarget(item) }}
+                </p>
                 <div
-                  class="task-center-progress-track"
-                  role="progressbar"
-                  :aria-label="`${transferTitle(item)}进度`"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                  :aria-valuenow="transferPercent(item)"
+                  v-if="isTransferActive(item) && item.bytesTotal"
+                  class="task-center-transfer-progress"
                 >
-                  <span :style="{ width: `${transferPercent(item)}%` }"></span>
+                  <div class="task-center-progress-summary">
+                    <span>{{
+                      byteProgress(item.bytesTransferred, item.bytesTotal)
+                    }}</span>
+                    <strong>{{ transferPercent(item) }}%</strong>
+                  </div>
+                  <div
+                    class="task-center-progress-track"
+                    role="progressbar"
+                    :aria-label="`${transferTitle(item)}进度`"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    :aria-valuenow="transferPercent(item)"
+                  >
+                    <span
+                      :style="{ width: `${transferPercent(item)}%` }"
+                    ></span>
+                  </div>
+                  <div
+                    v-if="item.speedBytesPerSecond !== undefined"
+                    class="task-center-progress-metrics"
+                  >
+                    <span>速度 {{ transferSpeed(item) }}</span>
+                    <span>预计剩余 {{ transferEta(item) }}</span>
+                  </div>
                 </div>
-                <div
-                  v-if="item.speedBytesPerSecond !== undefined"
-                  class="task-center-progress-metrics"
-                >
-                  <span>速度 {{ transferSpeed(item) }}</span>
-                  <span>预计剩余 {{ transferEta(item) }}</span>
-                </div>
+                <p v-else-if="item.error" class="task-center-error">
+                  {{ item.error }}
+                </p>
               </div>
-              <p v-else-if="item.error" class="task-center-error">
-                {{ item.error }}
-              </p>
-            </div>
-            <div class="task-center-item-actions">
-              <button
-                v-if="isTransferActive(item)"
-                type="button"
-                @click="cancelTransferGroup(item)"
+              <time
+                class="task-center-item-time"
+                :datetime="new Date(item.createdAt).toISOString()"
               >
-                取消
-              </button>
-              <button type="button" @click="removeTransferGroup(item)">
-                删除记录
-              </button>
-            </div>
-          </article>
+                <span>{{ taskTimeParts(item.createdAt).date }}</span>
+                <span>{{ taskTimeParts(item.createdAt).clock }}</span>
+              </time>
+              <span class="task-center-item-duration">{{
+                taskDuration(item)
+              }}</span>
+              <div class="task-center-item-actions">
+                <button
+                  v-if="isTransferActive(item)"
+                  type="button"
+                  @click="cancelTransferGroup(item)"
+                >
+                  取消
+                </button>
+                <button type="button" @click="removeTransferGroup(item)">
+                  删除记录
+                </button>
+              </div>
+            </article>
+          </div>
         </div>
         <div
           v-if="
@@ -387,6 +466,18 @@
             <h2>操作历史</h2>
             <p>文件操作和任务动作的时间线，按用户隔离保存。</p>
           </div>
+          <div class="task-center-panel-actions">
+            <button
+              type="button"
+              class="task-center-clear-action"
+              :disabled="historyStore.loading || clearingHistory"
+              title="清空当前用户的操作历史"
+              @click="clearHistoryRecords"
+            >
+              <app-icon name="trash" :size="17" />
+              <span>{{ clearingHistory ? "清理中…" : "清空记录" }}</span>
+            </button>
+          </div>
         </div>
         <div
           v-if="historyStore.error"
@@ -412,25 +503,47 @@
           <h3>还没有操作记录</h3>
           <p>重命名、移动、上传和任务操作会记录在这里。</p>
         </div>
-        <div v-else class="task-center-history-list">
-          <article
-            v-for="entry in historyStore.items"
-            :key="entry.id"
-            class="task-center-history-item"
+        <div v-else>
+          <div class="task-center-history-list-head" aria-hidden="true">
+            <span>操作</span>
+            <span>时间</span>
+          </div>
+          <div class="task-center-history-list">
+            <article
+              v-for="entry in historyStore.items"
+              :key="entry.id"
+              class="task-center-history-item"
+            >
+              <span
+                class="task-center-history-dot"
+                :class="`is-${entry.status}`"
+              ></span>
+              <div>
+                <strong>{{ historyActionLabel(entry.action) }}</strong>
+                <p :title="entry.target">{{ entry.target }}</p>
+                <small v-if="entry.detail">{{ entry.detail }}</small>
+              </div>
+              <time
+                class="task-center-item-time"
+                :datetime="new Date(entry.createdAt).toISOString()"
+              >
+                <span>{{ taskTimeParts(entry.createdAt).date }}</span>
+                <span>{{ taskTimeParts(entry.createdAt).clock }}</span>
+              </time>
+            </article>
+          </div>
+          <div
+            v-if="historyStore.items.length && historyStore.nextCursor"
+            class="task-center-load-more"
           >
-            <span
-              class="task-center-history-dot"
-              :class="`is-${entry.status}`"
-            ></span>
-            <div>
-              <strong>{{ historyActionLabel(entry.action) }}</strong>
-              <p :title="entry.target">{{ entry.target }}</p>
-              <small v-if="entry.detail">{{ entry.detail }}</small>
-            </div>
-            <time :datetime="new Date(entry.createdAt).toISOString()">{{
-              taskTime(entry.createdAt)
-            }}</time>
-          </article>
+            <button
+              type="button"
+              :disabled="historyStore.loading"
+              @click="loadMoreHistory"
+            >
+              {{ historyStore.loading ? "加载中…" : "加载更多" }}
+            </button>
+          </div>
         </div>
       </section>
     </main>
@@ -438,7 +551,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
@@ -461,7 +581,7 @@ import {
 } from "@/utils/taskProgress";
 
 type TaskCenterTab = "download" | "upload" | "file" | "background" | "history";
-type TaskFilter = "all" | "active" | "attention" | "completed";
+type TaskFilter = "all" | "active" | "attention" | "canceled" | "completed";
 type DisplayTransfer = TransferItem & {
   speedBytesPerSecond?: number;
   etaSeconds?: number;
@@ -479,6 +599,10 @@ const activeTab = ref<TaskCenterTab>(parseTab(route.query.tab));
 const taskFilter = ref<TaskFilter>(parseTaskFilter(route.query.status));
 const busyIds = reactive(new Set<string>());
 const clearingTransfers = ref(false);
+const clearingTasks = ref(false);
+const clearingHistory = ref(false);
+const now = ref(Date.now());
+let clockTimer: number | undefined;
 
 const tabs = computed(() => [
   {
@@ -519,7 +643,9 @@ const tabs = computed(() => [
 ]);
 
 const activeTransfers = computed<DisplayTransfer[]>(() => {
-  if (activeTab.value !== "upload") return transfersStore.downloads;
+  if (activeTab.value !== "upload") {
+    return transfersStore.downloads.filter(matchesTransferFilter);
+  }
 
   const localUploads = new Map(
     Array.from(uploadStore.activeUploads).map((upload) => [
@@ -551,6 +677,7 @@ const activeTransfers = computed<DisplayTransfer[]>(() => {
   });
 
   for (const upload of localUploads.values()) {
+    if (!matchesTransferFilter({ status: "running" })) continue;
     merged.unshift({
       id: upload.transferId,
       kind: "upload",
@@ -574,7 +701,7 @@ const activeTransfers = computed<DisplayTransfer[]>(() => {
     });
   }
 
-  return groupUploadTransfers(merged);
+  return groupUploadTransfers(merged.filter(matchesTransferFilter));
 });
 const loadingCurrent = computed(() => {
   if (activeTab.value === "file" || activeTab.value === "background") {
@@ -597,6 +724,8 @@ function groupUploadTransfers(items: DisplayTransfer[]): DisplayTransfer[] {
         bytesTotal: item.batchId
           ? item.batchBytes || item.bytesTotal
           : item.bytesTotal,
+        startedAt: item.startedAt,
+        finishedAt: item.finishedAt,
       });
       continue;
     }
@@ -606,6 +735,18 @@ function groupUploadTransfers(items: DisplayTransfer[]): DisplayTransfer[] {
       item.batchItems || 1
     );
     existing.bytesTransferred += item.bytesTransferred;
+    if (
+      item.startedAt &&
+      (!existing.startedAt || item.startedAt < existing.startedAt)
+    ) {
+      existing.startedAt = item.startedAt;
+    }
+    if (
+      item.finishedAt &&
+      (!existing.finishedAt || item.finishedAt > existing.finishedAt)
+    ) {
+      existing.finishedAt = item.finishedAt;
+    }
     if (!existing.batchBytes) {
       existing.bytesTotal = (existing.bytesTotal || 0) + (item.bytesTotal || 0);
     }
@@ -642,7 +783,10 @@ function parseTab(value: unknown): TaskCenterTab {
 }
 
 function parseTaskFilter(value: unknown): TaskFilter {
-  return value === "active" || value === "attention" || value === "completed"
+  return value === "active" ||
+    value === "attention" ||
+    value === "canceled" ||
+    value === "completed"
     ? value
     : "all";
 }
@@ -681,8 +825,22 @@ function taskFilterQuery(): { statuses?: TaskStatus[] } {
   if (taskFilter.value === "active") return { statuses: ["queued", "running"] };
   if (taskFilter.value === "attention")
     return { statuses: ["failed", "interrupted"] };
+  if (taskFilter.value === "canceled") return { statuses: ["canceled"] };
   if (taskFilter.value === "completed") return { statuses: ["completed"] };
   return {};
+}
+
+function transferStatusFilter(): TransferStatus[] {
+  if (taskFilter.value === "active") return ["queued", "running"];
+  if (taskFilter.value === "attention") return ["failed", "interrupted"];
+  if (taskFilter.value === "canceled") return ["canceled"];
+  if (taskFilter.value === "completed") return ["completed"];
+  return [];
+}
+
+function matchesTransferFilter(item: Pick<TransferItem, "status">) {
+  const statuses = transferStatusFilter();
+  return statuses.length === 0 || statuses.includes(item.status);
 }
 
 async function loadCurrent() {
@@ -691,12 +849,15 @@ async function loadCurrent() {
       await tasksStore.load({
         ...taskFilterQuery(),
         category: activeTab.value,
-        limit: 30,
+        limit: 10,
       });
     } else if (activeTab.value === "history") {
-      await historyStore.load({ limit: 30 });
+      await historyStore.load({ limit: 10 });
     } else {
-      await transfersStore.load(activeTab.value as TransferKind);
+      await transfersStore.load(
+        activeTab.value as TransferKind,
+        transferStatusFilter()
+      );
     }
   } catch {
     // Each store exposes its own error state and retry button.
@@ -707,6 +868,24 @@ async function loadMoreTransfers() {
   if (activeTab.value !== "upload" && activeTab.value !== "download") return;
   try {
     await transfersStore.loadMore(activeTab.value as TransferKind);
+  } catch {
+    // The panel exposes the store error and keeps the current page intact.
+  }
+}
+
+async function loadMoreTasks() {
+  if (activeTab.value !== "file" && activeTab.value !== "background") return;
+  try {
+    await tasksStore.loadMore();
+  } catch {
+    // The panel exposes the store error and keeps the current page intact.
+  }
+}
+
+async function loadMoreHistory() {
+  if (activeTab.value !== "history") return;
+  try {
+    await historyStore.loadMore();
   } catch {
     // The panel exposes the store error and keeps the current page intact.
   }
@@ -727,6 +906,35 @@ async function clearTransferRecords() {
     // The panel exposes the store error and retry action.
   } finally {
     clearingTransfers.value = false;
+  }
+}
+
+async function clearTaskRecords() {
+  if (clearingTasks.value) return;
+  const category = activeTab.value as "file" | "background";
+  const label = category === "file" ? "文件任务" : "后台任务";
+  if (!window.confirm(`确定清空全部${label}的已结束记录？`)) return;
+  clearingTasks.value = true;
+  try {
+    await tasksStore.clearRecords(category);
+    await loadCurrent();
+  } catch {
+    // The panel exposes the store error and retry action.
+  } finally {
+    clearingTasks.value = false;
+  }
+}
+
+async function clearHistoryRecords() {
+  if (clearingHistory.value) return;
+  if (!window.confirm("确定清空全部操作历史记录？")) return;
+  clearingHistory.value = true;
+  try {
+    await historyStore.clear();
+  } catch {
+    // The panel exposes the store error and retry action.
+  } finally {
+    clearingHistory.value = false;
   }
 }
 
@@ -865,16 +1073,41 @@ function historyActionLabel(action: string) {
         "trash.restore": "恢复文件",
         "task.cancel": "取消任务",
         "task.retry": "重试任务",
+        "task.archive": "删除记录",
+        "task.batch.archive": "删除记录",
       } as Record<string, string>
     )[action] ?? action
   );
 }
 
-function taskTime(timestamp: number) {
-  return new Intl.DateTimeFormat("zh-CN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(timestamp);
+function taskTimeParts(timestamp: number) {
+  const date = new Date(timestamp);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return {
+    date: `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`,
+    clock: `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+      date.getSeconds()
+    )}`,
+  };
+}
+
+function taskDuration(
+  item: Pick<
+    TaskItem | TransferItem,
+    "createdAt" | "startedAt" | "finishedAt" | "status"
+  >
+) {
+  const start = item.startedAt || item.createdAt;
+  if (!start) return "—";
+  const active = item.status === "queued" || item.status === "running";
+  const end = item.finishedAt || (active ? now.value : start);
+  const seconds = Math.max(0, Math.floor((end - start) / 1000));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return [hours, minutes, remainder]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
 }
 
 function byteProgress(value: number, total?: number) {
@@ -935,6 +1168,13 @@ watch(
 );
 
 onMounted(async () => {
+  clockTimer = window.setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
   await loadCurrent();
+});
+
+onBeforeUnmount(() => {
+  if (clockTimer !== undefined) window.clearInterval(clockTimer);
 });
 </script>

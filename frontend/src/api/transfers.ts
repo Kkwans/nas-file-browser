@@ -34,6 +34,14 @@ export interface TransferListResponse {
   total: number;
 }
 
+export interface TransferListFilter {
+  kind?: TransferKind;
+  statuses?: TransferStatus[];
+  cursor?: string;
+  limit?: number;
+  signal?: AbortSignal;
+}
+
 export interface DownloadTransferInput {
   id: string;
   name: string;
@@ -57,23 +65,35 @@ export function list(
   limit?: number,
   signal?: AbortSignal
 ): Promise<TransferListResponse>;
+export function list(filter: TransferListFilter): Promise<TransferListResponse>;
 export function list(
-  kind?: TransferKind,
+  kindOrFilter?: TransferKind | TransferListFilter,
   cursorOrSignal?: string | AbortSignal,
   limitOrSignal: number | AbortSignal = 10,
   signal?: AbortSignal
 ): Promise<TransferListResponse> {
+  const filter =
+    typeof kindOrFilter === "object" && kindOrFilter !== null
+      ? kindOrFilter
+      : undefined;
+  const kind =
+    filter?.kind ??
+    (typeof kindOrFilter === "string" ? kindOrFilter : undefined);
   const cursor =
-    typeof cursorOrSignal === "string" ? cursorOrSignal : undefined;
+    filter?.cursor ??
+    (typeof cursorOrSignal === "string" ? cursorOrSignal : undefined);
   const requestSignal =
-    typeof cursorOrSignal === "string"
+    filter?.signal ??
+    (typeof cursorOrSignal === "string"
       ? typeof limitOrSignal === "number"
         ? signal
         : limitOrSignal
-      : cursorOrSignal;
-  const limit = typeof limitOrSignal === "number" ? limitOrSignal : 10;
+      : cursorOrSignal);
+  const limit =
+    filter?.limit ?? (typeof limitOrSignal === "number" ? limitOrSignal : 10);
   const params = new URLSearchParams();
   if (kind) params.set("kind", kind);
+  if (filter?.statuses?.length) params.set("status", filter.statuses.join(","));
   params.set("limit", String(limit));
   if (cursor) params.set("cursor", cursor);
   const query = `?${params.toString()}`;

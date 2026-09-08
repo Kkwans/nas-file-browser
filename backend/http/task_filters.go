@@ -76,6 +76,10 @@ type taskBatchResponse struct {
 	Failures  []taskBatchFailure `json:"failures,omitempty"`
 }
 
+type taskDeleteRecordsResponse struct {
+	Deleted int `json:"deleted"`
+}
+
 var taskListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	filter, limit, cursor, err := taskFilterFromQuery(r)
 	if err != nil {
@@ -121,6 +125,45 @@ var taskListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 	}
 	return renderJSON(w, r, response)
 })
+
+// taskDeleteRecordsHandler clears a category's terminal records for the
+// authenticated user. "Delete" here follows the existing task-center archive
+// semantics: records leave the active list but remain recoverable in the
+// archived task history. Active work is never touched by this endpoint.
+var taskDeleteRecordsHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	category := strings.TrimSpace(r.URL.Query().Get("category"))
+	if category != "file" && category != "background" {
+		return http.StatusBadRequest, fmt.Errorf("清空任务记录必须指定 category=file 或 category=background")
+	}
+	all, err := d.store.Tasks.List(d.user.ID, false)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	now := time.Now().UnixMilli()
+	deleted := 0
+	for _, task := range all {
+		if task.ArchivedAt != 0 || !taskCategoryMatches(task, category) || !task.CanArchive() {
+			continue
+		}
+		task.ArchivedAt = now
+		if err := d.store.Tasks.Update(task); err != nil {
+			return http.StatusInternalServerError, err
+		}
+		deleted++
+	}
+	if deleted > 0 {
+		recordHistory(d, "task.batch.archive", fmt.Sprintf("%s任务记录", category), fmt.Sprintf("%d 条", deleted), history.StatusSuccess)
+	}
+	return renderJSON(w, r, taskDeleteRecordsResponse{Deleted: deleted})
+})
+
+func taskCategoryMatches(task *tasks.Task, category string) bool {
+	if task == nil {
+		return false
+	}
+	fileTask := task.Type == tasks.TypeFileCopy || task.Type == tasks.TypeFileMove
+	return category == "file" && fileTask || category == "background" && !fileTask
+}
 
 func taskArchiveHandler(archive bool) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {

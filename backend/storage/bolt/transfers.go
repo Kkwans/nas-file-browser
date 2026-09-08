@@ -60,12 +60,23 @@ func (backend transferBackend) GetByID(id string) (*transfers.Item, error) {
 }
 
 func (backend transferBackend) ListRecent(userID uint, kind transfers.Kind, limit int, after *transfers.RecentCursor) ([]*transfers.Item, error) {
+	return backend.ListRecentFiltered(userID, kind, nil, limit, after)
+}
+
+func (backend transferBackend) ListRecentFiltered(userID uint, kind transfers.Kind, statuses []transfers.Status, limit int, after *transfers.RecentCursor) ([]*transfers.Item, error) {
 	if limit < 1 {
 		return []*transfers.Item{}, nil
 	}
 	matchers := []q.Matcher{q.Eq("UserID", userID)}
 	if kind != "" {
 		matchers = append(matchers, q.Eq("Kind", kind))
+	}
+	if len(statuses) > 0 {
+		statusMatchers := make([]q.Matcher, 0, len(statuses))
+		for _, status := range statuses {
+			statusMatchers = append(statusMatchers, q.Eq("Status", status))
+		}
+		matchers = append(matchers, q.Or(statusMatchers...))
 	}
 	if after != nil {
 		matchers = append(matchers, q.Or(
@@ -89,9 +100,20 @@ func (backend transferBackend) ListRecent(userID uint, kind transfers.Kind, limi
 }
 
 func (backend transferBackend) Count(userID uint, kind transfers.Kind) (int, error) {
+	return backend.CountFiltered(userID, kind, nil)
+}
+
+func (backend transferBackend) CountFiltered(userID uint, kind transfers.Kind, statuses []transfers.Status) (int, error) {
 	matchers := []q.Matcher{q.Eq("UserID", userID)}
 	if kind != "" {
 		matchers = append(matchers, q.Eq("Kind", kind))
+	}
+	if len(statuses) > 0 {
+		statusMatchers := make([]q.Matcher, 0, len(statuses))
+		for _, status := range statuses {
+			statusMatchers = append(statusMatchers, q.Eq("Status", status))
+		}
+		matchers = append(matchers, q.Or(statusMatchers...))
 	}
 	count, err := backend.db.Select(matchers...).Count(&transferRecord{})
 	if errors.Is(err, storm.ErrNotFound) {

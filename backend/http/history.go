@@ -29,6 +29,10 @@ type historyCursor struct {
 	ID        string `json:"id"`
 }
 
+type historyDeleteAllResponse struct {
+	Deleted int `json:"deleted"`
+}
+
 var historyListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	query := r.URL.Query()
 	limit := defaultHistoryPageSize
@@ -76,6 +80,17 @@ var historyListHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		response.Items = []*history.Entry{}
 	}
 	return renderJSON(w, r, response)
+})
+
+var historyDeleteAllHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	if d.store.History == nil {
+		return http.StatusServiceUnavailable, fmt.Errorf("操作历史服务不可用")
+	}
+	deleted, err := d.store.History.DeleteAll(d.user.ID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, historyDeleteAllResponse{Deleted: deleted})
 })
 
 func filterHistoryEntries(entries []*history.Entry, text, action string, status history.Status, from, to int64) []*history.Entry {

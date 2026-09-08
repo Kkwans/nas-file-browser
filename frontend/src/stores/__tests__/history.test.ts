@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useHistoryStore } from "../history";
 
-const mocks = vi.hoisted(() => ({ list: vi.fn() }));
+const mocks = vi.hoisted(() => ({ list: vi.fn(), removeAll: vi.fn() }));
 
 vi.mock("@/api/history", () => mocks);
 
@@ -11,6 +11,7 @@ describe("history store", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     mocks.list.mockReset();
+    mocks.removeAll.mockReset();
   });
 
   it("loads the authenticated user's private history", async () => {
@@ -82,5 +83,28 @@ describe("history store", () => {
       limit: 30,
       cursor: "cursor",
     });
+  });
+
+  it("clears only the authenticated user's history view", async () => {
+    mocks.removeAll.mockResolvedValue(2);
+    const store = useHistoryStore();
+    store.items = [
+      {
+        id: "entry",
+        action: "file.rename",
+        target: "/entry",
+        status: "success",
+        createdAt: 1,
+      },
+    ];
+    store.total = 1;
+    store.nextCursor = "next";
+
+    await store.clear();
+
+    expect(mocks.removeAll).toHaveBeenCalledOnce();
+    expect(store.items).toEqual([]);
+    expect(store.total).toBe(0);
+    expect(store.nextCursor).toBe("");
   });
 });

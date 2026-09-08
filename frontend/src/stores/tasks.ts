@@ -179,6 +179,29 @@ export const useTasksStore = defineStore("tasks", {
         }
       }
     },
+    async clearRecords(category: "file" | "background") {
+      this.loading = true;
+      this.error = "";
+      try {
+        await api.removeAllRecords(category);
+        this.items = this.items.filter(
+          (item) =>
+            !(
+              ((category === "file" && isFileTask(item)) ||
+                (category === "background" && !isFileTask(item))) &&
+              !item.archivedAt &&
+              !activeStatuses.has(item.status)
+            )
+        );
+        this.nextCursor = "";
+        this.loaded = true;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : String(error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
     flushPendingEvents() {
       if (
         this.loading ||

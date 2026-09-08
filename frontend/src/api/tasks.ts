@@ -85,6 +85,17 @@ export interface TaskBatchResponse {
   failures?: Array<{ id: string; error: string }>;
 }
 
+export async function removeAllRecords(
+  category: "file" | "background"
+): Promise<number> {
+  const response = await fetchURL(
+    `/api/tasks?category=${encodeURIComponent(category)}`,
+    { method: "DELETE" }
+  );
+  const result = (await response.json()) as { deleted?: number };
+  return result.deleted ?? 0;
+}
+
 function queryString(filter: TaskListFilter) {
   const query = new URLSearchParams();
   if (filter.statuses?.length) query.set("status", filter.statuses.join(","));

@@ -242,6 +242,53 @@ func TestTaskListIncludesCompleteCategoryCounts(t *testing.T) {
 	}
 }
 
+func TestTaskDeleteRecordsArchivesOnlyTerminalCategoryTasks(t *testing.T) {
+	h := newTrashHTTPHarness(t, users.User{Username: "owner"})
+	owner := firstTrashHTTPUser(h)
+	completed, err := h.storage.Tasks.New(owner.ID, owner.Username, tasks.TypeFileCopy, "完成复制", json.RawMessage(`{}`), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	completed.Status = tasks.StatusCompleted
+	completed.FinishedAt = time.Now().UnixMilli()
+	if err := h.storage.Tasks.Update(completed); err != nil {
+		t.Fatal(err)
+	}
+	active, err := h.storage.Tasks.New(owner.ID, owner.Username, tasks.TypeFileMove, "正在移动", json.RawMessage(`{}`), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	background, err := h.storage.Tasks.New(owner.ID, owner.Username, tasks.TypeTrashClear, "后台任务", json.RawMessage(`{}`), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	background.Status = tasks.StatusCompleted
+	background.FinishedAt = time.Now().UnixMilli()
+	if err := h.storage.Tasks.Update(background); err != nil {
+		t.Fatal(err)
+	}
+
+	response := h.request(t, owner.ID, taskDeleteRecordsHandler, http.MethodDelete, "/tasks?category=file", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("clear file records status = %d body=%s", response.Code, response.Body.String())
+	}
+	var deleted taskDeleteRecordsResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &deleted); err != nil {
+		t.Fatal(err)
+	}
+	if deleted.Deleted != 1 {
+		t.Fatalf("deleted = %#v", deleted)
+	}
+	stored, err := h.storage.Tasks.Get(owner.ID, completed.ID, false)
+	if err != nil || stored.ArchivedAt == 0 {
+		t.Fatalf("completed task = %#v err=%v", stored, err)
+	}
+	activeStored, err := h.storage.Tasks.Get(owner.ID, active.ID, false)
+	if err != nil || activeStored.ArchivedAt != 0 {
+		t.Fatalf("active task = %#v err=%v", activeStored, err)
+	}
+}
+
 func TestTrashClearRunsAsTrackedTaskAndScopesNormalUser(t *testing.T) {
 	h := newTrashHTTPHarness(t,
 		users.User{Username: "first", Perm: users.Permissions{Delete: true, Modify: true, Download: true}},

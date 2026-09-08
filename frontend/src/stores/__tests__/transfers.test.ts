@@ -66,4 +66,31 @@ describe("transfer store paging", () => {
     expect(mocks.removeAll).toHaveBeenCalledWith("upload");
     expect(store.items.map((saved) => saved.id)).toEqual(["download"]);
   });
+
+  it("keeps the selected status filter while loading the next cursor page", async () => {
+    mocks.list
+      .mockResolvedValueOnce({
+        items: [item("running", 2)],
+        total: 2,
+        nextCursor: "next",
+      })
+      .mockResolvedValueOnce({ items: [item("completed", 1)], total: 2 });
+
+    const { useTransfersStore } = await import("../transfers");
+    const store = useTransfersStore();
+    await store.load("upload", ["completed"]);
+    expect(mocks.list).toHaveBeenLastCalledWith({
+      kind: "upload",
+      statuses: ["completed"],
+      limit: 10,
+    });
+
+    await store.loadMore("upload");
+    expect(mocks.list).toHaveBeenLastCalledWith({
+      kind: "upload",
+      statuses: ["completed"],
+      cursor: "next",
+      limit: 10,
+    });
+  });
 });

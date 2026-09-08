@@ -22,6 +22,7 @@ export const useTransfersStore = defineStore("transfers", {
     loadingKeys: Record<string, boolean>;
     nextCursor: Record<string, string>;
     loadingMoreKeys: Record<string, boolean>;
+    currentStatuses: Record<string, api.TransferStatus[]>;
     pendingEvents: api.TransferItem[];
     eventRevision: number;
   } => ({
@@ -33,6 +34,7 @@ export const useTransfersStore = defineStore("transfers", {
     loadingKeys: {},
     nextCursor: {},
     loadingMoreKeys: {},
+    currentStatuses: {},
     pendingEvents: [],
     eventRevision: 0,
   }),
@@ -50,15 +52,18 @@ export const useTransfersStore = defineStore("transfers", {
       Boolean(state.loadingMoreKeys[kind || "all"]),
   },
   actions: {
-    async load(kind?: api.TransferKind) {
+    async load(kind?: api.TransferKind, statuses: api.TransferStatus[] = []) {
       const key = kind || "all";
       const generation = (this.requestGeneration[key] || 0) + 1;
       this.requestGeneration[key] = generation;
       this.loadingKeys[key] = true;
       this.loading = true;
       this.error = "";
+      this.currentStatuses[key] = [...statuses];
       try {
-        const response = await api.list(kind, undefined, TRANSFER_PAGE_SIZE);
+        const response = statuses.length
+          ? await api.list({ kind, statuses, limit: TRANSFER_PAGE_SIZE })
+          : await api.list(kind, undefined, TRANSFER_PAGE_SIZE);
         if (generation !== this.requestGeneration[key]) return;
         const existing = kind
           ? this.items.filter((item) => item.kind !== kind)
@@ -89,7 +94,15 @@ export const useTransfersStore = defineStore("transfers", {
       this.loading = true;
       this.error = "";
       try {
-        const response = await api.list(kind, cursor, TRANSFER_PAGE_SIZE);
+        const statuses = this.currentStatuses[key] || [];
+        const response = statuses.length
+          ? await api.list({
+              kind,
+              statuses,
+              cursor,
+              limit: TRANSFER_PAGE_SIZE,
+            })
+          : await api.list(kind, cursor, TRANSFER_PAGE_SIZE);
         if (generation !== this.requestGeneration[key]) return;
         this.items = mergeItems(this.items, response.items);
         this.nextCursor[key] = response.nextCursor ?? "";
@@ -138,6 +151,7 @@ export const useTransfersStore = defineStore("transfers", {
       await api.removeAll(kind);
       this.items = this.items.filter((item) => item.kind !== kind);
       this.nextCursor[kind] = "";
+      this.currentStatuses[kind] = [];
     },
     resetForUser() {
       this.$reset();

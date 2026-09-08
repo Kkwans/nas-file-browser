@@ -116,7 +116,11 @@
 
 .task-center-clear-action:hover,
 .task-center-clear-action:focus-visible {
-  border-color: color-mix(in srgb, var(--color-danger) 42%, var(--color-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-danger) 42%,
+    var(--color-border)
+  );
   color: var(--color-danger);
   outline: none;
   background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
@@ -153,12 +157,48 @@
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 0 0 12px 12px;
+}
+
+.task-center-list-head,
+.task-center-history-list-head {
+  display: grid;
+  align-items: center;
+  min-height: 34px;
+  padding-inline: 15px;
+  border: 1px solid var(--color-border);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  font-size: 11px;
+}
+
+.task-center-list-head {
+  grid-template-columns: 36px minmax(0, 1fr) minmax(132px, auto) minmax(
+      86px,
+      auto
+    ) auto;
+  gap: 13px;
+}
+
+.task-center-list-head > span:first-child,
+.task-center-history-list-head > span:first-child {
+  grid-column: 1 / span 2;
+  text-align: start;
+}
+
+.task-center-list-head > span:not(:first-child),
+.task-center-history-list-head > span:not(:first-child) {
+  text-align: center;
 }
 
 .task-center-item {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) minmax(132px, auto) minmax(
+      86px,
+      auto
+    ) auto;
   align-items: center;
   gap: 13px;
   min-height: 76px;
@@ -198,6 +238,28 @@
 
 .task-center-item-main {
   min-width: 0;
+}
+
+.task-center-item-time {
+  display: grid;
+  min-width: 112px;
+  justify-items: center;
+  gap: 2px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.task-center-item-duration {
+  min-width: 76px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .task-center-item-title {
@@ -352,7 +414,8 @@
   transform: translate(-120%, -50%);
 }
 
-.task-center-progress--indeterminate > .task-center-progress-indeterminate-label {
+.task-center-progress--indeterminate
+  > .task-center-progress-indeterminate-label {
   grid-column: 2;
   min-width: 0;
   overflow: hidden;
@@ -509,6 +572,11 @@
   border-radius: 12px;
 }
 
+.task-center-history-list-head {
+  grid-template-columns: 10px minmax(0, 1fr) 112px;
+  gap: 13px;
+}
+
 .task-center-history-item {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) auto;
@@ -600,6 +668,31 @@
     grid-template-columns: 34px minmax(0, 1fr);
     align-items: start;
     padding: 12px;
+  }
+  .task-center-list-head,
+  .task-center-history-list-head {
+    display: none;
+  }
+  .task-center-list {
+    border-radius: 12px;
+  }
+  .task-center-item-time,
+  .task-center-item-duration,
+  .task-center-item-actions {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .task-center-item-time {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 6px;
+    text-align: left;
+  }
+  .task-center-item-duration {
+    min-width: 0;
+    text-align: left;
   }
   .task-center-item-actions {
     grid-column: 2;

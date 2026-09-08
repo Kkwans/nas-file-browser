@@ -1,4 +1,4 @@
-import { fetchJSON } from "./utils";
+import { fetchJSON, fetchURL } from "./utils";
 
 export type HistoryStatus = "success" | "failed" | "submitted";
 
@@ -40,4 +40,10 @@ export function list(
   if (filter.limit) query.set("limit", String(filter.limit));
   const suffix = query.size ? `?${query.toString()}` : "";
   return fetchJSON<HistoryListResponse>(`/api/history${suffix}`);
+}
+
+export async function removeAll(): Promise<number> {
+  const response = await fetchURL("/api/history", { method: "DELETE" });
+  const result = (await response.json()) as { deleted?: number };
+  return result.deleted ?? 0;
 }

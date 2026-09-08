@@ -92,6 +92,14 @@ type RecentTransferBackend interface {
 	Count(userID uint, kind Kind) (int, error)
 }
 
+// FilteredRecentTransferBackend is the optional persistent implementation for
+// the task-center status filter. The original RecentTransferBackend remains in
+// place so lightweight integrations and older callers keep compiling.
+type FilteredRecentTransferBackend interface {
+	ListRecentFiltered(userID uint, kind Kind, statuses []Status, limit int, after *RecentCursor) ([]*Item, error)
+	CountFiltered(userID uint, kind Kind, statuses []Status) (int, error)
+}
+
 type Storage struct {
 	back          StorageBackend
 	mu            sync.Mutex
@@ -224,11 +232,23 @@ func (storage *Storage) List(userID uint, kind Kind, limit int) ([]*Item, error)
 // keyset query; the in-memory fallback keeps the same cursor semantics for
 // tests and lightweight integrations.
 func (storage *Storage) ListPage(userID uint, kind Kind, limit int, after *RecentCursor) ([]*Item, error) {
+	return storage.ListPageFiltered(userID, kind, nil, limit, after)
+}
+
+// ListPageFiltered returns a bounded page while applying optional status
+// filters in the persistent query. It is used by the upload/download history
+// tabs; callers that do not need filtering can continue using ListPage.
+func (storage *Storage) ListPageFiltered(userID uint, kind Kind, statuses []Status, limit int, after *RecentCursor) ([]*Item, error) {
 	if limit < 1 {
 		return []*Item{}, nil
 	}
-	if backend, ok := storage.back.(RecentTransferBackend); ok {
-		return backend.ListRecent(userID, kind, limit, after)
+	if backend, ok := storage.back.(FilteredRecentTransferBackend); ok {
+		return backend.ListRecentFiltered(userID, kind, statuses, limit, after)
+	}
+	if len(statuses) == 0 {
+		if backend, ok := storage.back.(RecentTransferBackend); ok {
+			return backend.ListRecent(userID, kind, limit, after)
+		}
 	}
 	all, err := storage.List(userID, kind, MaxEntriesPerUser)
 	if err != nil {
@@ -236,6 +256,9 @@ func (storage *Storage) ListPage(userID uint, kind Kind, limit int, after *Recen
 	}
 	result := make([]*Item, 0, limit)
 	for _, item := range all {
+		if len(statuses) > 0 && !containsStatus(statuses, item.Status) {
+			continue
+		}
 		if after != nil && (item.CreatedAt > after.CreatedAt || item.CreatedAt == after.CreatedAt && item.ID >= after.ID) {
 			continue
 		}
@@ -250,8 +273,20 @@ func (storage *Storage) ListPage(userID uint, kind Kind, limit int, after *Recen
 // Count returns the number of records visible to a user for the requested
 // transfer kind. Persistent backends answer this without loading records.
 func (storage *Storage) Count(userID uint, kind Kind) (int, error) {
+	return storage.CountFiltered(userID, kind, nil)
+}
+
+func (storage *Storage) CountFiltered(userID uint, kind Kind, statuses []Status) (int, error) {
+	if backend, ok := storage.back.(FilteredRecentTransferBackend); ok {
+		return backend.CountFiltered(userID, kind, statuses)
+	}
 	if backend, ok := storage.back.(RecentTransferBackend); ok {
-		return backend.Count(userID, kind)
+		count, err := backend.Count(userID, kind)
+		if err != nil || len(statuses) == 0 {
+			return count, err
+		}
+		// Older persistent backends do not understand status filters. Fall
+		// through to the portable scan below so the result remains correct.
 	}
 	all, err := storage.back.GetAll()
 	if err != nil {
@@ -259,11 +294,21 @@ func (storage *Storage) Count(userID uint, kind Kind) (int, error) {
 	}
 	count := 0
 	for _, item := range all {
-		if item.UserID == userID && (kind == "" || item.Kind == kind) {
+		if item.UserID == userID && (kind == "" || item.Kind == kind) &&
+			(len(statuses) == 0 || containsStatus(statuses, item.Status)) {
 			count++
 		}
 	}
 	return count, nil
+}
+
+func containsStatus(statuses []Status, status Status) bool {
+	for _, candidate := range statuses {
+		if candidate == status {
+			return true
+		}
+	}
+	return false
 }
 
 func (storage *Storage) Update(item *Item) error {

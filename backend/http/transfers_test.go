@@ -78,6 +78,38 @@ func TestTransferListCursorAndScopedDeleteAll(t *testing.T) {
 	}
 }
 
+func TestTransferListStatusFilter(t *testing.T) {
+	h := newTrashHTTPHarness(t, users.User{ID: 1, Username: "owner"})
+	owner := h.users[1]
+	completed, err := h.storage.Transfers.New(owner.ID, transfers.KindUpload, "completed", "/completed", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.storage.Transfers.SetStatus(completed.ID, owner.ID, transfers.StatusCompleted, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.storage.Transfers.New(owner.ID, transfers.KindUpload, "queued", "/queued", 1); err != nil {
+		t.Fatal(err)
+	}
+
+	response := h.request(t, owner.ID, transferListHandler, http.MethodGet, "/transfers?kind=upload&status=completed", nil, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("filtered list status = %d body=%s", response.Code, response.Body.String())
+	}
+	var page transferListResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &page); err != nil {
+		t.Fatal(err)
+	}
+	if page.Total != 1 || len(page.Items) != 1 || page.Items[0].ID != completed.ID {
+		t.Fatalf("filtered page = %#v", page)
+	}
+
+	response = h.request(t, owner.ID, transferListHandler, http.MethodGet, "/transfers?status=not-a-status", nil, nil)
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("invalid status filter = %d body=%s", response.Code, response.Body.String())
+	}
+}
+
 func TestUploadBatchMetadataIsStored(t *testing.T) {
 	h := newTrashHTTPHarness(t, users.User{ID: 1, Username: "owner"})
 	owner := h.users[1]

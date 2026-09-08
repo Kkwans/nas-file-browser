@@ -66,6 +66,14 @@ describe("activity page UI contract", () => {
     expect(source).toContain("groupUploadTransfers");
     expect(source).toContain("清空记录");
     expect(source).toContain("loadMoreTransfers");
+    expect(source).toContain("loadMoreTasks");
+    expect(source).toContain("loadMoreHistory");
+    expect(source).toContain(
+      'type TaskFilter = "all" | "active" | "attention" | "canceled" | "completed"'
+    );
+    expect(source).toContain("task-center-item-duration");
+    expect(source).toContain("taskTimeParts");
+    expect(source).toContain("删除记录");
   });
 
   it("keeps the task title centered and moves back navigation into the leading group", () => {

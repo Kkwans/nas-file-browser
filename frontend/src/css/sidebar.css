@@ -3877,6 +3877,74 @@ nav.sidebar .category-group-header.sidebar-level-two {
   }
 }
 
+/* 收藏分组与一级收藏夹标题共享同一条右侧操作轨道。分组以前额外
+ * 缩进了一个 gutter，导致删除和展开图标都比“收藏夹”标题偏左；这里
+ * 让分组占满模块内容宽度，并复用标题工具栏的 2px 间距。按钮负责
+ * 触摸命中区，SVG 只保留 18px 视觉尺寸，避免箭头看起来比标题图标大。 */
+nav.sidebar .sidebar-module .favorite-group-header,
+nav.sidebar .sidebar-module .favorite-group-header:hover,
+nav.sidebar .sidebar-module .favorite-group-header:focus-visible,
+nav.sidebar .sidebar-module .category-group-header,
+nav.sidebar .sidebar-module .category-group-header:hover,
+nav.sidebar .sidebar-module .category-group-header:focus-visible {
+  width: 100% !important;
+  margin-inline: 0 !important;
+  column-gap: 2px;
+  padding-right: 4px;
+}
+
+nav.sidebar .sidebar-module .sidebar-group-actions {
+  align-self: center;
+  justify-self: center;
+  place-self: center;
+  line-height: 0;
+}
+
+nav.sidebar .sidebar-module .sidebar-group-actions > .section-action-btn {
+  display: inline-grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  align-self: center;
+  justify-self: center;
+  place-items: center;
+  margin: 0 !important;
+  padding: 0;
+  line-height: 0;
+}
+
+nav.sidebar
+  .sidebar-module
+  .sidebar-group-actions
+  > .section-action-btn
+  > .app-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+nav.sidebar .sidebar-module .sidebar-group-header > .category-arrow {
+  display: block;
+  width: 18px !important;
+  min-width: 18px;
+  height: 18px !important;
+  min-height: 18px;
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+}
+
+@media (max-width: 899px) {
+  nav.sidebar .sidebar-module .sidebar-group-actions > .section-action-btn {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+}
+
 nav.sidebar .category-group-header .group-name {
   min-width: 0;
   overflow: hidden;

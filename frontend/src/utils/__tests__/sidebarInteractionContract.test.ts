@@ -219,6 +219,9 @@ describe("侧边栏分组交互契约", () => {
     expect(cssSource).toMatch(
       /\.sidebar-module \.favorites-ungrouped-drop-zone > \.favorite-item,[\s\S]*\.sidebar-module \.favorite-group-header,[\s\S]*\.sidebar-module \.category-group-header\s*\{[^}]*width:\s*calc\(100% - 1rem\)\s*!important;[^}]*margin-inline:\s*0\.5rem\s*!important;/s
     );
+    expect(readSidebarFinalCss()).toMatch(
+      /\.sidebar-module \.favorite-group-header,[\s\S]*\.sidebar-module \.category-group-header:focus-visible\s*\{[^}]*width:\s*100%\s*!important;[^}]*margin-inline:\s*0\s*!important;[^}]*column-gap:\s*2px;[^}]*padding-right:\s*4px;/s
+    );
     expect(cssSource).not.toMatch(
       /\.sidebar-sortable-item\[draggable="true"\]:hover\s*\{[^}]*transform:/s
     );
@@ -268,7 +271,16 @@ describe("侧边栏分组交互契约", () => {
       /nav\.sidebar \.sidebar-group-actions\s*\{[\s\S]*?width:\s*40px;[\s\S]*?height:\s*40px;[\s\S]*?place-items:\s*center;/
     );
     expect(cssSource).toMatch(
+      /\.sidebar-group-actions\s*>\s*\.section-action-btn\s*>\s*\.app-icon\s*\{[\s\S]*?width:\s*16px;[\s\S]*?height:\s*16px;/
+    );
+    expect(cssSource).toMatch(
+      /\.sidebar-group-header\s*>\s*\.category-arrow\s*\{[\s\S]*?width:\s*18px !important;[\s\S]*?height:\s*18px !important;/
+    );
+    expect(cssSource).toMatch(
       /@media \(max-width: 899px\)[\s\S]*?\.sidebar-group-header\.sidebar-level-two,[\s\S]*?grid-template-columns: 26px minmax\(0, 1fr\) 44px 44px;/
+    );
+    expect(cssSource).toMatch(
+      /@media \(max-width: 899px\)[\s\S]*?\.sidebar-group-actions > \.section-action-btn\s*\{[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/
     );
   });
 

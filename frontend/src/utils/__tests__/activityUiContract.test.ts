@@ -90,6 +90,18 @@ describe("activity page UI contract", () => {
     );
   });
 
+  it("uses fixed centered columns for task time, duration, and actions", () => {
+    expect(taskCenterCss).toContain(
+      "grid-template-columns: 36px minmax(0, 1fr) 132px 88px 120px;"
+    );
+    expect(taskCenterCss).toMatch(
+      /\.task-center-list-head > span:not\(:first-child\),[\s\S]*text-align:\s*center;/
+    );
+    expect(taskCenterCss).toMatch(
+      /\.task-center-item-time\s*\{[\s\S]*font-size:\s*12px;[\s\S]*font-variant-numeric:\s*tabular-nums;/
+    );
+  });
+
   it("does not retain the removed TaskCenter hero or summary panel", () => {
     expect(taskCenterCss).not.toContain(".task-center-intro");
     expect(taskCenterCss).not.toContain(".task-center-summary");

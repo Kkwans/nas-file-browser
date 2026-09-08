@@ -52,12 +52,12 @@ describe("侧边栏分组交互契约", () => {
     expect(headerSource).not.toContain("category-count");
     expect(headerSource).not.toContain(":count=");
     expect(refinementCssSource).toMatch(
-      /\.sidebar-group-header\.sidebar-level-two\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) 34px 24px;/s
+      /\.sidebar-group-header\.sidebar-level-two\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) 40px 40px;/s
     );
     expect(refinementCssSource).not.toContain(".sidebar-group-primary");
     expect(refinementCssSource).not.toContain(".sidebar-group-tools");
     expect(refinementCssSource).toMatch(
-      /\.category-group-header\.sidebar-level-two\s*\{[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) 34px 24px;/s
+      /\.category-group-header\.sidebar-level-two\s*\{[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) 40px 40px;/s
     );
   });
 
@@ -256,6 +256,19 @@ describe("侧边栏分组交互契约", () => {
     );
     expect(cssSource).toMatch(
       /@media \(max-width: 899px\)[\s\S]*?nav\.sidebar \.favorite-item\s*\{[^}]*min-height:\s*44px;[\s\S]*?nav\.sidebar \.favorite-item > \.favorite-remove\s*\{[^}]*height:\s*44px;/
+    );
+  });
+
+  it("收藏分组操作和展开图标共享固定的右侧轨道并垂直居中", () => {
+    const cssSource = readSource("css/sidebar.css");
+    expect(cssSource).toContain(
+      "grid-template-columns: 26px minmax(0, 1fr) 40px 40px;"
+    );
+    expect(cssSource).toMatch(
+      /nav\.sidebar \.sidebar-group-actions\s*\{[\s\S]*?width:\s*40px;[\s\S]*?height:\s*40px;[\s\S]*?place-items:\s*center;/
+    );
+    expect(cssSource).toMatch(
+      /@media \(max-width: 899px\)[\s\S]*?\.sidebar-group-header\.sidebar-level-two,[\s\S]*?grid-template-columns: 26px minmax\(0, 1fr\) 44px 44px;/
     );
   });
 

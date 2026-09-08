@@ -132,7 +132,7 @@
 }
 
 .task-center-panel-heading h2 {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .task-center-filter {
@@ -175,10 +175,7 @@
 }
 
 .task-center-list-head {
-  grid-template-columns: 36px minmax(0, 1fr) minmax(132px, auto) minmax(
-      86px,
-      auto
-    ) auto;
+  grid-template-columns: 36px minmax(0, 1fr) 132px 88px 120px;
   gap: 13px;
 }
 
@@ -195,10 +192,7 @@
 
 .task-center-item {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) minmax(132px, auto) minmax(
-      86px,
-      auto
-    ) auto;
+  grid-template-columns: 36px minmax(0, 1fr) 132px 88px 120px;
   align-items: center;
   gap: 13px;
   min-height: 76px;
@@ -242,11 +236,11 @@
 
 .task-center-item-time {
   display: grid;
-  min-width: 112px;
+  min-width: 0;
   justify-items: center;
   gap: 2px;
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   line-height: 1.25;
   text-align: center;
@@ -254,9 +248,9 @@
 }
 
 .task-center-item-duration {
-  min-width: 76px;
+  min-width: 0;
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: center;
   white-space: nowrap;
@@ -278,13 +272,13 @@
 
 .task-center-item-title strong {
   color: var(--color-text);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .task-center-item-main > p {
   margin: 5px 0 0;
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .task-center-status {
@@ -293,7 +287,7 @@
   border-radius: 99px;
   color: var(--color-text-muted);
   background: var(--color-surface-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -444,7 +438,7 @@
 .task-center-item-actions {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -620,7 +614,8 @@
 }
 .task-center-history-item time {
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 12px;
+  text-align: center;
   white-space: nowrap;
 }
 

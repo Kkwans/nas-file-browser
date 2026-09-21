@@ -87,3 +87,12 @@
 - 文件模式保留目录导航，但禁止选择目录；扩展名筛选大小写不敏感。
 - 验证：前端 typecheck、lint、settingsUiContract/copyMoveUiContract/analysisAccessibilityContract/fileListIconContract；结果随门禁更新。
 - 部署：尚未部署；真实浏览器及最终发布验收待完成。
+
+### 2. 账户设置与播放器偏好
+
+- 切片 1：`2566a093`，已 push master；typecheck/lint 通过，4 个测试文件 17 项通过。
+- 账户页复用 Windows 分区布局；账号偏好串行保存，失败保留输入，账号切换隔离延迟响应。
+- PlayerPreferences 在用户存储层合并局部更新，保留旧账号默认；会话上限暂不变。
+- 聚焦门禁：accountPreferences/settingsUiContract；Go users/http；typecheck/lint/diff-check。
+- 尚未部署，回滚候选仍为 v14；浏览器验收待最终发布。
+- 结果：前端 2 文件 6 测试、typecheck、lint、Go users/http 通过。`CGO_ENABLED=1 go test -race ./users` 因 gcc 缺失无法执行；不安装系统编译器，竞态检测标为未验证。

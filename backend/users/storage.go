@@ -1,6 +1,7 @@
 package users
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -29,9 +30,10 @@ type Store interface {
 
 // Storage is a users storage.
 type Storage struct {
-	back    StorageBackend
-	updated map[uint]int64
-	mux     sync.RWMutex
+	back      StorageBackend
+	updated   map[uint]int64
+	mux       sync.RWMutex
+	updateMux sync.Mutex
 }
 
 // NewStorage creates a users storage from a backend.
@@ -74,6 +76,19 @@ func (s *Storage) Gets(baseScope string) ([]*User, error) {
 
 // Update updates a user in the database.
 func (s *Storage) Update(user *User, fields ...string) error {
+	s.updateMux.Lock()
+	defer s.updateMux.Unlock()
+	for i, field := range fields {
+		if strings.EqualFold(field, "PlayerPreferences") {
+			fields[i] = "PlayerPreferences"
+			current, err := s.back.GetBy(user.ID)
+			if err != nil {
+				return err
+			}
+			user.PlayerPreferences = current.PlayerPreferences.Merge(user.PlayerPreferences)
+		}
+	}
+
 	err := user.Clean("", fields...)
 	if err != nil {
 		return err

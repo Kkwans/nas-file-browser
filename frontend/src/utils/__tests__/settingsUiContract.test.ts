@@ -55,13 +55,13 @@ describe("settings UI contract", () => {
 
     expect(profile).toContain('class="row profile-settings-grid"');
     expect(profile).toMatch(
-      /\.profile-settings-grid\s*\{[\s\S]*?align-items:\s*flex-start;/
+      /\.profile-settings-grid\s*\{[\s\S]*?align-items:\s*start;/
     );
     expect(profile).toMatch(
       /\.profile-settings-grid\s*>\s*\.column\s*>\s*\.card\s*\{[\s\S]*?height:\s*auto;/
     );
     expect(profile).toMatch(
-      /@media\s*\(max-width:\s*1200px\)[\s\S]*?\.profile-settings-grid\s*>\s*\.column\s*\{[\s\S]*?flex:\s*0\s+0\s+auto;[\s\S]*?max-width:\s*100%;/
+      /@media\s*\(max-width:\s*960px\)[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\);/
     );
   });
 });

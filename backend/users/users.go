@@ -20,6 +20,7 @@ const (
 
 // User describes a user.
 type User struct {
+	PlayerPreferences     PlayerPreferences  `json:"playerPreferences"`
 	ID                    uint               `storm:"id,increment" json:"id"`
 	Username              string             `storm:"unique" json:"username"`
 	Password              string             `json:"password"`
@@ -55,6 +56,7 @@ var checkableFields = []string{
 	"Sorting",
 	"Rules",
 	"ListingPreferences",
+	"PlayerPreferences",
 }
 
 // Clean cleans up a user and verifies if all its fields
@@ -90,6 +92,8 @@ func (u *User) Clean(baseScope string, fields ...string) error {
 			if u.Rules == nil {
 				u.Rules = []rules.Rule{}
 			}
+		case "PlayerPreferences":
+			u.PlayerPreferences.Normalize()
 		case "ListingPreferences":
 			preferences, err := NormalizeListingPreferences(u.ListingPreferences, u.HideDotfiles)
 			if err != nil {

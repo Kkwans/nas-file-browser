@@ -19,6 +19,7 @@ export interface IUser {
   aceEditorTheme: string;
   sidebarPreferences?: string;
   listingPreferences?: ListingPreferences;
+  playerPreferences?: PlayerPreferences;
 }
 
 export type ViewModeType =
@@ -57,6 +58,19 @@ export interface PrefixRule {
 export interface ListingPreferences {
   version: number;
   prefixRules: PrefixRule[];
+}
+
+export interface PlayerPreferences {
+  /** nil/undefined = default 4s; 0 = never hide; 1-20 = seconds */
+  controlsTimeoutSec?: number | null;
+  /** native | compat | ask */
+  playbackMode?: string | null;
+  /** 0.10–5.00 */
+  playbackRate?: number | null;
+  /** resume | from-start | ask — 进页续播策略 */
+  resumeMode?: string | null;
+  /** 续播提示/跳转阈值（秒）；默认 10；范围 5–600 */
+  resumeMinSec?: number | null;
 }
 
 interface IRule {

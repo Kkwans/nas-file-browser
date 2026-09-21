@@ -14,9 +14,10 @@ func TestParseTokenExpirationTime(t *testing.T) {
 	}{
 		{name: "minimum", value: "10m", want: 10 * time.Minute},
 		{name: "common", value: "2h", want: 2 * time.Hour},
-		{name: "maximum", value: "24h", want: 24 * time.Hour},
+		{name: "previous maximum remains valid", value: "24h", want: 24 * time.Hour},
+		{name: "maximum", value: "720h", want: 30 * 24 * time.Hour},
 		{name: "too short", value: "9m", wantErr: true},
-		{name: "too long", value: "24h1m", wantErr: true},
+		{name: "too long", value: "720h1m", wantErr: true},
 		{name: "invalid", value: "two hours", wantErr: true},
 	}
 

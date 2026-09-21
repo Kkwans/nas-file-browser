@@ -140,6 +140,15 @@
           @ready="onCurrentImageReady"
         />
         <AudioPreview v-else-if="fileStore.req?.type == 'audio'" :name="name" />
+        <ArtPlayerVideo
+          v-if="useArtPlayer && fileStore.req?.type == 'video'"
+          :key="'art-' + fileStore.req.path"
+          :path="fileStore.req.path"
+          :source="previewUrl"
+          :poster="videoPosterUrl"
+          :download-source="downloadUrl"
+          :subtitles="subtitleItems"
+        />
         <VideoPlayer
           v-else-if="fileStore.req?.type == 'video'"
           ref="player"
@@ -259,6 +268,15 @@ const ExtendedImage = defineAsyncComponent(
 const VideoPlayer = defineAsyncComponent(
   () => import("@/components/files/VideoPlayer.vue")
 );
+const ArtPlayerVideo = defineAsyncComponent(
+  () => import("@/components/files/ArtPlayerVideo.vue")
+);
+const useArtPlayer = computed(() => {
+  const requested = new URLSearchParams(
+    route.query as Record<string, string>
+  ).get("player");
+  return requested !== "videojs" && requested !== "video.js";
+});
 const AudioPreview = defineAsyncComponent(
   () => import("@/components/files/AudioPreview.vue")
 );
@@ -517,6 +535,13 @@ const subtitles = computed(() => {
   }
   return [];
 });
+
+const subtitleItems = computed(() =>
+  (subtitles.value ?? []).map((url) => ({
+    url,
+    name: url.split(/[?#]/, 1)[0].split("/").pop() || "字幕",
+  }))
+);
 
 const videoOptions = computed(() => {
   return { autoplay: autoPlay.value };

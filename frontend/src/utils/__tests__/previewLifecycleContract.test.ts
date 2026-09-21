@@ -13,6 +13,12 @@ const videoPlayerSource = readFileSync(
   ),
   "utf8"
 );
+const artPlayerSource = readFileSync(
+  fileURLToPath(
+    new URL("../../components/files/ArtPlayerVideo.vue", import.meta.url)
+  ),
+  "utf8"
+);
 
 describe("媒体预览生命周期契约", () => {
   it("等待新资源元数据后再按资源路径重建预览", () => {
@@ -123,5 +129,24 @@ describe("媒体预览生命周期契约", () => {
     );
     expect(imageSource).toContain("const RAW_IMAGE_FALLBACK_DELAY_MS = 2000;");
     expect(imageSource).toContain("Let the real thumbnail finish");
+  });
+
+  it("ArtPlayer 默认引擎保留显式 Video.js 诊断入口", () => {
+    const previewSource = readFileSync(
+      fileURLToPath(new URL("../../views/files/Preview.vue", import.meta.url)),
+      "utf8"
+    );
+    expect(previewSource).toContain('requested !== "videojs"');
+    expect(previewSource).toContain("<ArtPlayerVideo");
+    expect(previewSource).toContain("<VideoPlayer");
+  });
+
+  it("ArtPlayer 切换媒体保留进度并完整释放资源", () => {
+    expect(artPlayerSource).toContain("snapshotPlayback()");
+    expect(artPlayerSource).toContain("restorePlayback(snapshot)");
+    expect(artPlayerSource).toContain("hls.value?.destroy()");
+    expect(artPlayerSource).toContain("clearCompatTimer()");
+    expect(artPlayerSource).toContain("art.value?.destroy(false)");
+    expect(artPlayerSource).not.toContain("auth=");
   });
 });

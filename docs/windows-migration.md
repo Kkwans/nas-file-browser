@@ -137,3 +137,10 @@
 - HLS 创建接口接受受限 quality 值；显式画质强制真实转码，目标宽度进入 profile 与缓存标识，且不放大小于目标的源视频。
 - 保留 NAS 的 FFmpeg 路径、任务系统、单任务并发、取消、权限与缓存清理实现。
 - 尚未部署；真实 FFmpeg 编码、任务进度和浏览器播放留待最终环境验收。
+
+### 9. ArtPlayer 默认播放器
+
+- 切片 8：`21023bf8`，已 push；Go hls/http、前端 typecheck/lint 与 12 项播放测试通过。
+- ArtPlayer 5.4 与 hls.js 1.7 按官方 API 接入，默认启用；`?player=videojs` 保留显式诊断回退。
+- 原生/兼容模式切换保留进度、倍速与播放状态；退出时销毁 ArtPlayer、HLS、轮询和媒体资源。
+- HLS 请求使用现有 X-Auth；不把账号 token 写入 URL 或本地播放记录。

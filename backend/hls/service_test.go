@@ -122,7 +122,7 @@ func TestCappedBufferAcceptsAllInputAndRetainsOnlyLimit(t *testing.T) {
 }
 
 func TestFFmpegArgsPadOddVideoDimensionsForYUV420(t *testing.T) {
-	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8")
+	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1280)
 	joined := strings.Join(args, "\x00")
 	if !strings.Contains(joined, "pad=ceil(iw/2)*2:ceil(ih/2)*2") {
 		t.Fatalf("ffmpeg filter does not pad odd dimensions: %q", joined)
@@ -130,10 +130,40 @@ func TestFFmpegArgsPadOddVideoDimensionsForYUV420(t *testing.T) {
 }
 
 func TestFFmpegArgsExposeGrowingPlaylistAsSeekableEvent(t *testing.T) {
-	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8")
+	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1280)
 	joined := strings.Join(args, "\x00")
 	if !strings.Contains(joined, "-hls_playlist_type\x00event") {
 		t.Fatalf("growing HLS playlist is not marked as an event: %q", joined)
+	}
+}
+
+func TestQualityProfilesAreDistinctAndNeverUpscale(t *testing.T) {
+	if got := ProfileForQuality("1080p", 2160); got != "h264-main-1080p-aac-hls4-v1" {
+		t.Fatalf("1080 profile = %q", got)
+	}
+	if got := ProfileForQuality("4k", 720); got != "h264-main-720p-aac-hls4-v1" {
+		t.Fatalf("upscale profile = %q", got)
+	}
+	input := Input{UserID: 1, Path: "/movie.mkv", Identity: "v1", SourcePath: "/source.mkv"}
+	service := newFakeService(t, 1, DefaultMaxBytes, 0)
+	var first, second Job
+	_, _, err := service.ReserveWithProfile(input, ProfileForQuality("1080p", 2160), func(job Job) (string, error) { first = job; return "one", nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = service.ReserveWithProfile(input, ProfileForQuality("720p", 2160), func(job Job) (string, error) { second = job; return "two", nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.ID == second.ID || first.Profile == second.Profile {
+		t.Fatal("quality was not included in cache identity")
+	}
+}
+
+func TestFFmpegArgsUseSelectedMaximumWidth(t *testing.T) {
+	joined := strings.Join(ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1920), "\x00")
+	if !strings.Contains(joined, "min(1920,iw)") {
+		t.Fatalf("quality scale missing: %q", joined)
 	}
 }
 

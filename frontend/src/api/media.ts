@@ -206,12 +206,17 @@ export function getMediaInformation(
 
 export async function startHLSPlayback(
   path: string,
-  format: "hls" | "mp4" | "webm" = "hls"
+  format: "hls" | "mp4" | "webm" = "hls",
+  quality: "source" | "4k" | "2k" | "1080p" | "720p" | "480p" = "source"
 ): Promise<HLSPlaybackStatus> {
   const response = await fetchURL("/api/media/hls", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(format === "hls" ? { path } : { path, format }),
+    body: JSON.stringify({
+      path,
+      ...(format === "hls" ? {} : { format }),
+      quality,
+    }),
   });
   return response.json() as Promise<HLSPlaybackStatus>;
 }

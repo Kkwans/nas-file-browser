@@ -138,6 +138,17 @@ func TestMediaHLSFormatUsesRemuxForCompatibleStreams(t *testing.T) {
 	}
 }
 
+func TestMediaHLSQualityValidation(t *testing.T) {
+	for value, want := range map[string]bool{"": true, "source": true, "1080p": true, "720p": true, "ultra": false} {
+		if got := mediaHLSQualityAllowed(value); got != want {
+			t.Fatalf("quality %q = %v, want %v", value, got, want)
+		}
+	}
+	if mediaHLSExplicitQuality("source") || !mediaHLSExplicitQuality("480p") {
+		t.Fatal("explicit quality classification")
+	}
+}
+
 func TestMediaHLSReserveForFormatPreservesExplicitArtifactType(t *testing.T) {
 	service := newHTTPHLSService(t, false)
 	input := hls.Input{

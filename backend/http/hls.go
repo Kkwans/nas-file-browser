@@ -24,8 +24,9 @@ import (
 )
 
 type mediaHLSStartRequest struct {
-	Path   string `json:"path"`
-	Format string `json:"format,omitempty"`
+	Path    string `json:"path"`
+	Format  string `json:"format,omitempty"`
+	Quality string `json:"quality,omitempty"`
 }
 
 type mediaHLSTaskArgs struct {
@@ -81,6 +82,9 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 		if err := decoder.Decode(&request); err != nil {
 			return http.StatusBadRequest, fmt.Errorf("兼容播放参数无效: %w", err)
 		}
+		if !mediaHLSQualityAllowed(request.Quality) {
+			return http.StatusBadRequest, fmt.Errorf("不支持的兼容播放画质")
+		}
 		input, status, err := mediaHLSInputWithContext(r.Context(), d, d.user, request.Path, true)
 		if err != nil {
 			return status, err
@@ -101,8 +105,14 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 			}
 		} else if request.Format != "" && request.Format != "hls" {
 			return http.StatusBadRequest, fmt.Errorf("不支持的兼容播放格式")
-		} else if mediaHLSFormatForInput(input) == "copy" {
+		} else if mediaHLSFormatForInput(input) == "copy" && !mediaHLSExplicitQuality(request.Quality) {
 			reserve = service.ReserveCopy
+		}
+		if request.Format != "webm" && request.Format != "mp4" && mediaHLSExplicitQuality(request.Quality) {
+			profile := hls.ProfileForQuality(request.Quality, input.VideoHeight)
+			reserve = func(source hls.Input, start hls.StartFunc) (hls.Status, bool, error) {
+				return service.ReserveWithProfile(source, profile, start)
+			}
 		}
 		cached, created, err := reserve(input, func(job hls.Job) (string, error) {
 			task, err = enqueueMediaHLSTask(runtime, d, d.user, service, job, "")
@@ -223,6 +233,7 @@ func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, v
 			input.VideoPixelFormat = probe.VideoPixelFormat
 			input.VideoProfile = probe.VideoProfile
 			input.VideoBitDepth = probe.VideoBitDepth
+			input.VideoHeight = probe.Height
 			input.DurationSeconds = probe.Duration
 			log.Printf("media HLS codec probe video=%q audio=%q pix_fmt=%q profile=%q bit_depth=%d", input.VideoCodec, input.AudioCodec, input.VideoPixelFormat, input.VideoProfile, input.VideoBitDepth)
 		} else {
@@ -230,6 +241,21 @@ func mediaHLSInputWithContext(ctx context.Context, d *data, owner *users.User, v
 		}
 	}
 	return input, 0, nil
+}
+
+func mediaHLSExplicitQuality(quality string) bool {
+	value := strings.ToLower(strings.TrimSpace(quality))
+	switch value {
+	case "4k", "2160p", "2k", "1440p", "1080", "1080p", "720", "720p", "480", "480p":
+		return true
+	default:
+		return false
+	}
+}
+
+func mediaHLSQualityAllowed(quality string) bool {
+	value := strings.ToLower(strings.TrimSpace(quality))
+	return value == "" || value == "source" || value == "native" || mediaHLSExplicitQuality(value)
 }
 
 func mediaHLSFormatForInput(input hls.Input) string {

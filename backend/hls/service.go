@@ -72,6 +72,7 @@ type Input struct {
 	VideoPixelFormat string
 	VideoProfile     string
 	VideoBitDepth    int
+	VideoHeight      int
 	// DurationSeconds is the probed source duration used to render truthful
 	// compatibility progress while a WebM artifact is being generated.
 	DurationSeconds float64
@@ -249,6 +250,63 @@ func (service *Service) Reserve(input Input, start StartFunc) (Status, bool, err
 	return service.reserve(input, service.profile, start)
 }
 
+// ReserveWithProfile keeps the selected quality in the cache identity.
+func (service *Service) ReserveWithProfile(input Input, profile string, start StartFunc) (Status, bool, error) {
+	if profile == "" {
+		profile = service.profile
+	}
+	return service.reserve(input, profile, start)
+}
+
+// ProfileForQuality maps the public quality token to a bounded encode profile.
+// A source smaller than the requested profile is never upscaled.
+func ProfileForQuality(quality string, sourceHeight int) string {
+	requested := map[string]int{
+		"4k": 2160, "2160p": 2160,
+		"2k": 1440, "1440p": 1440,
+		"1080": 1080, "1080p": 1080,
+		"720": 720, "720p": 720,
+		"480": 480, "480p": 480,
+	}[strings.ToLower(strings.TrimSpace(quality))]
+	if requested == 0 {
+		requested = sourceHeight
+	}
+	if sourceHeight > 0 && (requested == 0 || sourceHeight < requested) {
+		requested = sourceHeight
+	}
+	return encodeProfileForHeight(requested)
+}
+
+func encodeProfileForHeight(height int) string {
+	switch {
+	case height >= 1800:
+		return "h264-main-2160p-aac-hls4-v1"
+	case height >= 1200:
+		return "h264-main-1440p-aac-hls4-v1"
+	case height >= 900:
+		return "h264-main-1080p-aac-hls4-v1"
+	case height >= 600:
+		return "h264-main-720p-aac-hls4-v1"
+	default:
+		return "h264-main-480p-aac-hls4-v1"
+	}
+}
+
+func profileMaxWidth(profile string) int {
+	switch {
+	case strings.Contains(profile, "2160p"):
+		return 3840
+	case strings.Contains(profile, "1440p"):
+		return 2560
+	case strings.Contains(profile, "1080p"):
+		return 1920
+	case strings.Contains(profile, "480p"):
+		return 854
+	default:
+		return 1280
+	}
+}
+
 // ReserveCopy creates an HLS playlist by copying already browser-compatible
 // H.264/AAC streams.  The container is remuxed, not re-encoded.
 func (service *Service) ReserveCopy(input Input, start StartFunc) (Status, bool, error) {
@@ -369,7 +427,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 
 	playlist := filepath.Join(directory, "index.m3u8")
 	segmentPattern := filepath.Join(directory, "segment-%06d.ts")
-	args := ffmpegArgs(job.SourcePath, segmentPattern, playlist)
+	args := ffmpegArgs(job.SourcePath, segmentPattern, playlist, profileMaxWidth(job.Profile))
 	if IsCopyProfile(job.Profile) {
 		args = copyFFmpegArgs(job.SourcePath, segmentPattern, playlist)
 	}
@@ -795,11 +853,15 @@ func cacheKey(userID uint, path, identity, profile string) string {
 	return hex.EncodeToString(digest[:])
 }
 
-func ffmpegArgs(source, segmentPattern, playlist string) []string {
+func ffmpegArgs(source, segmentPattern, playlist string, maxWidth int) []string {
+	if maxWidth <= 0 {
+		maxWidth = 1280
+	}
+	scale := fmt.Sprintf("scale=w='trunc(min(%d,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2", maxWidth)
 	return []string{
 		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
 		"-map", "0:v:0", "-map", "0:a:0?",
-		"-vf", "scale=w='trunc(min(1280,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2",
+		"-vf", scale,
 		"-c:v", "libx264", "-preset", "veryfast", "-profile:v", "main", "-pix_fmt", "yuv420p",
 		"-threads", "1", "-filter_threads", "1",
 		"-c:a", "aac", "-b:a", "128k", "-ac", "2",

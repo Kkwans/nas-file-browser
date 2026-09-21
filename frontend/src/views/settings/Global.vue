@@ -55,13 +55,19 @@
               <span>分钟</span>
             </div>
             <p class="small setting-help">
-              连续不活跃达到该时长后需要重新登录，可设置 10 分钟到 1 天。
+              连续不活跃达到该时长后需要重新登录。范围 10 分钟 –
+              {{ MAX_TOKEN_EXPIRATION_MINUTES / (24 * 60) }} 天（{{
+                MAX_TOKEN_EXPIRATION_MINUTES
+              }}
+              分钟）。
             </p>
           </div>
 
           <h3>规则</h3>
-          <p class="small">全局规则</p>
-          <rules v-model:rules="settings.rules" />
+          <div class="global-rules-box">
+            <p class="small">配置全局路径访问规则。</p>
+            <rules v-model:rules="settings.rules" />
+          </div>
 
           <div v-if="enableExec">
             <h3>在 Shell 中执行</h3>
@@ -160,10 +166,7 @@
             </p>
           </div>
         </div>
-
-        <div class="card-action">
-          <input class="button button--flat" type="submit" :value="'更新'" />
-        </div>
+        <!-- 保存：设置页 tab 栏右侧唯一入口 -->
       </form>
     </div>
 
@@ -174,7 +177,9 @@
         </div>
 
         <div class="card-content">
-          <p class="small">新用户的默认设置</p>
+          <p class="small">
+            新建用户时套用的默认权限与作用域（与「全局设置」不同：这里只影响新账号初始值）
+          </p>
 
           <user-form
             :isNew="false"
@@ -182,15 +187,11 @@
             v-model:user="settings.defaults"
           />
         </div>
-
-        <div class="card-action">
-          <input class="button button--flat" type="submit" :value="'更新'" />
-        </div>
       </form>
     </div>
 
-    <div class="column">
-      <form v-if="enableExec" class="card" @submit.prevent="save">
+    <div v-if="enableExec" class="column">
+      <form class="card" @submit.prevent="save">
         <div class="card-title">
           <h2>命令运行器</h2>
         </div>
@@ -225,10 +226,6 @@
             </div>
           </div>
         </div>
-
-        <div class="card-action">
-          <input class="button button--flat" type="submit" :value="'更新'" />
-        </div>
       </form>
     </div>
   </div>
@@ -256,11 +253,12 @@ import {
   minutesToDuration,
 } from "@/utils/tokenExpiration";
 import Errors from "@/views/Errors.vue";
-import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 const error = ref<StatusError | null>(null);
 const originalSettings = ref<ISettings | null>(null);
 const settings = ref<ISettings | null>(null);
-const debounceTimeout = ref<number | null>(null);
+const pendingChunkSize = ref<string | null>(null);
+const saving = ref(false);
 
 const commandObject = ref<{
   [key: string]: string[] | string;
@@ -275,22 +273,13 @@ const layoutStore = useLayoutStore();
 
 const formattedChunkSize = computed({
   get() {
+    if (pendingChunkSize.value !== null) return pendingChunkSize.value;
     return settings?.value?.tus?.chunkSize
       ? formatBytes(settings?.value?.tus?.chunkSize)
       : "";
   },
   set(value: string) {
-    // Use debouncing to allow the user to type freely without
-    // interruption by the formatter
-    // Clear the previous timeout if it exists
-    if (debounceTimeout.value) {
-      clearTimeout(debounceTimeout.value);
-    }
-
-    // Set a new timeout to apply the format after a short delay
-    debounceTimeout.value = window.setTimeout(() => {
-      if (settings.value) settings.value.tus.chunkSize = parseBytes(value);
-    }, 1500);
+    pendingChunkSize.value = value;
   },
 });
 
@@ -308,9 +297,12 @@ const capitalize = (name: string, where: string | RegExp = "_") => {
 };
 
 const save = async () => {
-  if (settings.value === null) return false;
+  if (settings.value === null || saving.value) return false;
+  if (pendingChunkSize.value !== null)
+    settings.value.tus.chunkSize = parseBytes(pendingChunkSize.value);
+  saving.value = true;
   const newSettings: ISettings = {
-    ...settings.value,
+    ...JSON.parse(JSON.stringify(settings.value)),
     tokenExpirationTime: minutesToDuration(tokenExpirationMinutes.value),
     shell:
       settings.value?.shell
@@ -342,15 +334,17 @@ const save = async () => {
     .split(" ")
     .filter((s) => s !== "");
 
-  if (newSettings.branding.theme !== getTheme()) {
-    setTheme(newSettings.branding.theme);
-  }
-
   try {
     await api.update(newSettings);
+    originalSettings.value = newSettings;
+    if (newSettings.branding.theme !== getTheme())
+      setTheme(newSettings.branding.theme);
     $showSuccess("设置已更新");
   } catch (e: any) {
     $showError(e);
+    return false;
+  } finally {
+    saving.value = false;
   }
 
   return true;
@@ -361,8 +355,9 @@ const parseBytes = (input: string) => {
   const matches = input.match(regex);
   if (matches) {
     const size = parseFloat(matches[1].concat(matches[2] || ""));
-    let unit: keyof SettingsUnit =
-      matches[3].toUpperCase() as keyof SettingsUnit;
+    let unit: keyof SettingsUnit = (
+      matches[3] || "B"
+    ).toUpperCase() as keyof SettingsUnit;
     if (!unit.endsWith("B")) {
       unit += "B";
     }
@@ -418,11 +413,10 @@ onMounted(async () => {
   }
 });
 
-// Clear the debounce timeout when the component is destroyed
-onBeforeUnmount(() => {
-  if (debounceTimeout.value) {
-    clearTimeout(debounceTimeout.value);
-  }
+defineExpose({
+  saveSettings: save,
+  saving,
+  canSave: computed(() => settings.value !== null && !error.value),
 });
 </script>
 
@@ -445,5 +439,31 @@ onBeforeUnmount(() => {
 
 .setting-help {
   margin: 0.375rem 0 0;
+}
+
+.global-card-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.global-card-title h2 {
+  margin: 0;
+}
+
+.global-save {
+  flex-shrink: 0;
+  min-width: 72px;
+}
+
+.global-rules-box {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 4px 0 12px;
+  border: 1px solid var(--borderPrimary, #e5e7eb);
+  border-radius: 8px;
+  background: var(--surfaceSecondary, #fafafa);
 }
 </style>

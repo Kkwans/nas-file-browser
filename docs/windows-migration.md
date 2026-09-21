@@ -96,3 +96,11 @@
 - 聚焦门禁：accountPreferences/settingsUiContract；Go users/http；typecheck/lint/diff-check。
 - 尚未部署，回滚候选仍为 v14；浏览器验收待最终发布。
 - 结果：前端 2 文件 6 测试、typecheck、lint、Go users/http 通过。`CGO_ENABLED=1 go test -race ./users` 因 gcc 缺失无法执行；不安装系统编译器，竞态检测标为未验证。
+
+### 3. 全局设置与统一保存
+
+- 切片 2：`356372f9`，已 push master。
+- 复用来源布局；通过当前路由组件公开保存方法接入唯一顶部入口，移除全局 window 保存事件。
+- 全局设置请求去重，保存前读取最新分块大小；失败保留输入，成功后应用主题。
+- typecheck/lint 与 2 文件 6 项聚焦测试通过；生产构建单独验证。
+- 尚未部署，真实目标验收待完成；回滚候选 v14。

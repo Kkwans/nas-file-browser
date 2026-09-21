@@ -4,14 +4,6 @@
       <form class="card" @submit.prevent="updateSettings">
         <div class="card-title">
           <h2>账户设置</h2>
-          <button
-            type="button"
-            class="button"
-            :disabled="saving"
-            @click="onSettingsSave"
-          >
-            {{ saving ? "保存中…" : "保存" }}
-          </button>
         </div>
 
         <div class="card-content account-preferences">
@@ -336,7 +328,7 @@ import { users as api } from "@/api";
 import AceEditorTheme from "@/components/settings/AceEditorTheme.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import AppSelect from "@/components/ui/AppSelect.vue";
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { authMethod, noAuth } from "@/utils/constants";
 import { useAccountPreferencesStore } from "@/stores/accountPreferences";
 import type { PrefixRule } from "@/types/user";
@@ -481,16 +473,11 @@ watch(
   },
   { flush: "sync" }
 );
-onMounted(() => window.addEventListener("nfb-settings-save", onSettingsSave));
-
-onBeforeUnmount(() => {
-  window.removeEventListener("nfb-settings-save", onSettingsSave);
-});
-
 const saving = ref(false);
 async function onSettingsSave() {
   if (saving.value) return;
   saving.value = true;
+  const accountId = authStore.user?.id;
   await (async () => {
     try {
       const wantsPassword =
@@ -498,7 +485,9 @@ async function onSettingsSave() {
         password.value === passwordConf.value &&
         (!isCurrentPasswordRequired.value || currentPassword.value);
       const accountOk = await persistAccountPrefsNow();
+      if (accountId !== authStore.user?.id) return;
       const playerOk = await persistPlayerPrefsNow();
+      if (accountId !== authStore.user?.id) return;
       if (wantsPassword) {
         await updatePassword(new Event("submit"));
         return;
@@ -660,6 +649,7 @@ const addPrefix = () => {
     newPrefix.value = "";
   });
 };
+defineExpose({ saveSettings: onSettingsSave, saving });
 </script>
 
 <style scoped>

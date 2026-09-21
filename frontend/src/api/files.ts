@@ -522,13 +522,14 @@ export function getDownloadURL(file: ResourceItem, inline: boolean) {
 export function getPreviewURL(
   file: ResourceItem,
   size: string,
-  options: { warm?: "big" } = {}
+  options: { warm?: "big"; fit?: "contain" } = {}
 ) {
   const params = {
     inline: "true",
     generator: "v3",
     key: `${Date.parse(file.modified)}-${file.size}`,
     ...(options.warm ? { warm: options.warm } : {}),
+    ...(options.fit ? { fit: options.fit } : {}),
   };
 
   return createURL("api/preview/" + size + file.path, params);

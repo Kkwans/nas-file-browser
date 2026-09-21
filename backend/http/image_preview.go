@@ -78,6 +78,30 @@ func (s *ffmpegImagePreviewService) create(
 	return output.Bytes(), nil
 }
 
+func (s *ffmpegImagePreviewService) createContained(ctx context.Context, file *files.FileInfo) ([]byte, error) {
+	select {
+	case s.workers <- struct{}{}:
+		defer func() { <-s.workers }()
+	case <-ctx.Done():
+		return nil, context.Cause(ctx)
+	}
+	ffmpegPath, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		return nil, fmt.Errorf("FFmpeg 不可用: %w", err)
+	}
+	var output, stderr bytes.Buffer
+	filter := "scale=512:512:force_original_aspect_ratio=decrease:flags=fast_bilinear"
+	command := exec.CommandContext(ctx, ffmpegPath, ffmpegImageArgs(file.RealPath(), filter, "4")...)
+	command.Stdout, command.Stderr = &output, &stderr
+	if err := command.Run(); err != nil {
+		return nil, fmt.Errorf("FFmpeg 图片预览生成失败: %s: %w", stderr.String(), err)
+	}
+	if !validCachedPreview(output.Bytes()) {
+		return nil, fmt.Errorf("FFmpeg 未生成有效的图片预览")
+	}
+	return output.Bytes(), nil
+}
+
 func ffmpegImageArgs(source, filter, quality string) []string {
 	return []string{
 		"-hide_banner", "-loglevel", "error",

@@ -171,6 +171,10 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		if err != nil {
 			return http.StatusBadRequest, err
 		}
+		contain := previewSize == PreviewSizeThumb && r.URL.Query().Get("fit") == "contain"
+		if contain && !enableThumbnails {
+			return http.StatusNotImplemented, fmt.Errorf("缩略图功能未启用")
+		}
 
 		file, err := files.NewFileInfo(&files.FileOptions{
 			Fs:            d.user.Fs,
@@ -189,13 +193,79 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 
 		switch file.Type {
 		case "image":
+			if contain {
+				return handleContainedImagePreview(w, r, imgSvc, ffmpegImage, fileCache, coordinator, file, enableThumbnails)
+			}
 			return handleImagePreview(w, r, imgSvc, ffmpegImage, fileCache, coordinator, file, previewSize, enableThumbnails, resizePreview)
 		case "video":
-			return handleVideoPreview(w, r, fileCache, coordinator, ffmpeg, file, previewSize)
+			return handleVideoPreview(w, r, fileCache, coordinator, ffmpeg, file, previewSize, contain)
 		default:
 			return http.StatusNotImplemented, fmt.Errorf("不支持预览 %s 类型的文件", file.Type)
 		}
 	})
+}
+
+func containedPreviewCacheKey(file *files.FileInfo) string {
+	return fmt.Sprintf("preview:v4:contain512:%s:%d:%d", file.RealPath(), file.ModTime.UnixNano(), file.Size)
+}
+
+func handleContainedImagePreview(
+	w http.ResponseWriter,
+	r *http.Request,
+	imgSvc ImgService,
+	ffmpegImage *ffmpegImagePreviewService,
+	fileCache FileCache,
+	coordinator *previewCoordinator,
+	file *files.FileInfo,
+	enabled bool,
+) (int, error) {
+	if !enabled {
+		return http.StatusNotImplemented, fmt.Errorf("缩略图功能未启用")
+	}
+	format, err := imgSvc.FormatFromExtension(file.Extension)
+	if err != nil || format == img.FormatGif {
+		return http.StatusNotImplemented, fmt.Errorf("此图片格式不支持等比例缩略图")
+	}
+	key := containedPreviewCacheKey(file)
+	preview, ok, err := loadPreviewCache(r.Context(), fileCache, key)
+	if err != nil {
+		return errToStatus(err), err
+	}
+	if !ok {
+		preview, err = coordinator.Do(r.Context(), key, func(ctx context.Context) ([]byte, error) {
+			if cached, exists, loadErr := loadPreviewCache(ctx, fileCache, key); loadErr != nil || exists {
+				return cached, loadErr
+			}
+			var generated []byte
+			var generateErr error
+			if ffmpegImage != nil && shouldUseFFmpegImagePreview(file, PreviewSizeThumb) {
+				generated, generateErr = ffmpegImage.createContained(ctx, file)
+			}
+			if generateErr != nil || len(generated) == 0 {
+				fd, openErr := file.Fs.Open(file.Path)
+				if openErr != nil {
+					return nil, openErr
+				}
+				defer func() { _ = fd.Close() }()
+				buffer := &bytes.Buffer{}
+				generateErr = imgSvc.Resize(ctx, fd, 512, 512, buffer,
+					img.WithMode(img.ResizeModeFit), img.WithQuality(img.QualityMedium), img.WithFormat(img.FormatJpeg))
+				generated = buffer.Bytes()
+			}
+			if generateErr != nil {
+				return nil, generateErr
+			}
+			storePreviewCache(ctx, fileCache, key, generated)
+			return generated, nil
+		})
+	}
+	if err != nil {
+		return errToStatus(err), err
+	}
+	w.Header().Set("Cache-Control", previewCacheControl)
+	w.Header().Set("Content-Type", "image/jpeg")
+	http.ServeContent(w, r, file.Name, file.ModTime, bytes.NewReader(preview))
+	return 0, nil
 }
 
 func handleImagePreview(

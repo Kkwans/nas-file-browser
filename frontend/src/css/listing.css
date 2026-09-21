@@ -249,6 +249,10 @@
   animation: thumbnail-fade-in 120ms ease-out;
 }
 
+#listing .file-thumbnail > img.thumbnail-image--contain {
+  object-fit: contain;
+}
+
 #listing .file-thumbnail > img.thumbnail-image--loading {
   opacity: 0;
 }

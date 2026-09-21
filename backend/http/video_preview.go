@@ -374,12 +374,16 @@ func handleVideoPreview(
 	ffmpeg *ffmpegPreviewService,
 	file *files.FileInfo,
 	previewSize PreviewSize,
+	contain bool,
 ) (int, error) {
 	if previewSize != PreviewSizeThumb {
 		return http.StatusNotImplemented, fmt.Errorf("视频仅支持缩略图封面")
 	}
 
 	cacheKey := previewCacheKey(file, previewSize)
+	if contain {
+		cacheKey = containedPreviewCacheKey(file)
+	}
 	preview, ok, err := loadPreviewCache(r.Context(), fileCache, cacheKey)
 	if err != nil {
 		return errToStatus(err), err

@@ -251,6 +251,15 @@ func TestFFmpegImageArgsUseTwoInternalThreadsWithoutRaisingTaskConcurrency(t *te
 	}
 }
 
+func TestContainedPreviewUsesVersionedCacheIdentity(t *testing.T) {
+	file := &files.FileInfo{Path: "/wide.jpg", Size: 123, ModTime: time.Unix(42, 0)}
+	contained := containedPreviewCacheKey(file)
+	cropped := previewCacheKey(file, PreviewSizeThumb)
+	if contained == cropped || !strings.Contains(contained, "contain512") {
+		t.Fatalf("contained cache key %q must differ from %q", contained, cropped)
+	}
+}
+
 func TestLargeJPEGThumbnailWarmHintRequiresExplicitRequest(t *testing.T) {
 	largeJPEG := &files.FileInfo{Extension: ".jpg", Size: ffmpegImagePreviewMinBytes}
 	withoutHint := httptest.NewRequest("GET", "/api/preview/thumb/photos/large.jpg", nil)
@@ -454,6 +463,7 @@ func TestVideoPreviewAdvertisesPrivateIdentityCache(t *testing.T) {
 		nil,
 		file,
 		PreviewSizeThumb,
+		false,
 	)
 	if err != nil || status != 0 {
 		t.Fatalf("video preview status = %d, error = %v", status, err)

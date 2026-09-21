@@ -9,7 +9,10 @@
       v-if="displaySource"
       ref="thumbnailImage"
       :src="displaySource"
-      :class="{ 'thumbnail-image--loading': status === 'generating' }"
+      :class="{
+        'thumbnail-image--loading': status === 'generating',
+        'thumbnail-image--contain': fit === 'contain',
+      }"
       alt=""
       width="256"
       height="256"
@@ -69,6 +72,7 @@ const props = defineProps<{
   isDir: boolean;
   riskLevel?: RiskLevel;
   readOnly?: boolean;
+  fit?: "cover" | "contain";
 }>();
 
 type ThumbnailStatus = "idle" | "generating" | "success" | "error";
@@ -101,7 +105,13 @@ const item = computed(
       size: props.size,
     }) as ResourceItem
 );
-const imagePreviewUrl = computed(() => api.getPreviewURL(item.value, "thumb"));
+const imagePreviewUrl = computed(() =>
+  api.getPreviewURL(
+    item.value,
+    "thumb",
+    props.fit === "contain" ? { fit: "contain" } : {}
+  )
+);
 const layoutStore = useLayoutStore();
 const statusTitle = computed(() => {
   if (status.value === "generating") return "正在生成缩略图";

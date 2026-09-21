@@ -171,4 +171,15 @@ describe("媒体预览生命周期契约", () => {
       "Progress thumbnails are optional; playback remains fully functional."
     );
   });
+
+  it("等比例缩略图使用独立接口参数和 contain 展示", () => {
+    const thumbnailSource = readFileSync(
+      fileURLToPath(
+        new URL("../../components/files/FileThumbnail.vue", import.meta.url)
+      ),
+      "utf8"
+    );
+    expect(thumbnailSource).toContain('{ fit: "contain" }');
+    expect(thumbnailSource).toContain("thumbnail-image--contain");
+  });
 });

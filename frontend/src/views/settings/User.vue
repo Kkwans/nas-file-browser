@@ -2,7 +2,7 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="row" v-else-if="!layoutStore.loading">
     <div class="column">
-      <form @submit="save" class="card">
+      <form ref="userFormEl" @submit="save" class="card">
         <div class="card-title">
           <h2 v-if="user?.id === 0">{{ "新建用户" }}</h2>
           <h2 v-else>{{ "编辑用户" }}</h2>
@@ -28,16 +28,14 @@
           >
             删除
           </button>
-          <router-link to="/settings/users">
-            <button
-              class="button button--flat button--grey"
-              aria-label="取消"
-              title="取消"
-            >
-              取消
-            </button>
+          <router-link
+            class="button button--flat button--grey"
+            to="/settings/users"
+            aria-label="取消"
+            title="取消"
+          >
+            取消
           </router-link>
-          <input class="button button--flat" type="submit" :value="'保存'" />
         </div>
       </form>
     </div>
@@ -57,11 +55,12 @@ import { authMethod } from "@/utils/constants";
 import { logout } from "@/utils/auth";
 import type { IUser } from "@/types/user";
 
+const saving = ref(false);
 const error = ref<StatusError>();
-const originalUser = ref<IUser>();
 const user = ref<IUser>();
 const createUserDir = ref<boolean>(false);
 const isCurrentPasswordRequired = ref<boolean>(false);
+const userFormEl = ref<HTMLFormElement | null>(null);
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
@@ -74,6 +73,10 @@ const router = useRouter();
 onMounted(() => {
   fetchData();
 });
+
+function requestSave() {
+  userFormEl.value?.requestSubmit?.();
+}
 
 const isNew = computed(() => route.path === "/settings/users/new");
 
@@ -159,6 +162,7 @@ const deleteUser = async (currentPassword: string) => {
 
 const save = (event: Event) => {
   event.preventDefault();
+  if (saving.value || !user.value) return false;
   if (isCurrentPasswordRequired.value) {
     layoutStore.showHover({
       prompt: "current-password",
@@ -176,31 +180,45 @@ const save = (event: Event) => {
 };
 
 const send = async (currentPassword: string) => {
-  if (!user.value) {
+  if (saving.value || !user.value) {
     return false;
   }
 
+  saving.value = true;
+  const accountId = authStore.user?.id;
+  const submitted = JSON.parse(JSON.stringify(user.value)) as IUser;
   try {
     if (isNew.value) {
       const newUser: IUser = {
-        ...originalUser?.value,
-        ...user.value,
+        ...submitted,
       };
 
       const loc = await api.create(newUser, currentPassword);
       router.push({ path: loc || "/settings/users" });
       $showSuccess("用户已创建");
     } else {
-      await api.update(user.value, ["all"], currentPassword);
+      await api.update(submitted, ["all"], currentPassword);
 
-      if (user.value.id === authStore.user?.id) {
-        authStore.updateUser(user.value);
+      if (
+        submitted.id === authStore.user?.id &&
+        accountId === authStore.user?.id
+      ) {
+        const safeUser = { ...submitted, password: "" };
+        authStore.updateUser(safeUser);
       }
+      user.value.password = "";
 
       $showSuccess("用户已更新");
     }
   } catch (e: any) {
     $showError(e);
+  } finally {
+    saving.value = false;
   }
 };
+defineExpose({
+  saveSettings: requestSave,
+  saving,
+  canSave: computed(() => Boolean(user.value) && !error.value),
+});
 </script>

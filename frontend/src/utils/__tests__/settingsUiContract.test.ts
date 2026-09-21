@@ -64,4 +64,18 @@ describe("settings UI contract", () => {
       /@media\s*\(max-width:\s*960px\)[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\);/
     );
   });
+
+  it("分享删除等待服务端成功后再更新列表", () => {
+    const shares = readFileSync(
+      resolve(process.cwd(), "src/views/settings/Shares.vue"),
+      "utf8"
+    );
+
+    expect(shares).toContain("await api.remove(link.hash)");
+    expect(shares.indexOf("await api.remove(link.hash)")).toBeLessThan(
+      shares.indexOf("links.value = links.value.filter")
+    );
+    expect(shares).toContain("deleting.has(link.hash)");
+    expect(shares).toContain("暂无分享链接");
+  });
 });

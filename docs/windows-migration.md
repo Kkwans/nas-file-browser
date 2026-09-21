@@ -111,3 +111,9 @@
 - 用户列表迁入来源标识；编辑页接入唯一顶部保存，保留原生表单验证与当前密码确认。
 - 保存请求防重，提交快照不随表单输入漂移；明文密码不写入 auth store。
 - 验证：settingsUiContract 3 项；typecheck/lint/diff-check。尚未部署，真实交互验收待完成。
+
+### 5. 分享管理
+
+- 切片 4：`d145c563`，已 push master；typecheck/lint 和 settingsUiContract 3 项通过。
+- 迁入分享空态和复制反馈；删除仅在服务端确认成功后更新列表，并防止重复删除请求。
+- 聚焦验证：settingsUiContract、typecheck、lint、diff-check。尚未部署，真实交互验收待完成。

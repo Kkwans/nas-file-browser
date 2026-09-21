@@ -146,7 +146,21 @@ describe("媒体预览生命周期契约", () => {
     expect(artPlayerSource).toContain("restorePlayback(snapshot)");
     expect(artPlayerSource).toContain("hls.value?.destroy()");
     expect(artPlayerSource).toContain("clearCompatTimer()");
+    expect(artPlayerSource).toContain("clearResumePromptTimer()");
+    expect(artPlayerSource).toContain("window.clearTimeout(rateSaveTimer)");
     expect(artPlayerSource).toContain("art.value?.destroy(false)");
     expect(artPlayerSource).not.toContain("auth=");
+  });
+
+  it("字幕与续播偏好按账号保存且不记录鉴权参数", () => {
+    expect(artPlayerSource).toContain(
+      '`nas-file-browser-subtitle-v1:${auth.user?.id ?? "guest"}`'
+    );
+    expect(artPlayerSource).toContain("resumeMinSec");
+    expect(artPlayerSource).toContain("resumePromptTimer");
+    expect(artPlayerSource).toContain(
+      "playbackRate: Math.round(rate * 100) / 100"
+    );
+    expect(artPlayerSource).not.toContain("?auth=");
   });
 });

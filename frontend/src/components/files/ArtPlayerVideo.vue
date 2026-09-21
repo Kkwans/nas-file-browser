@@ -137,6 +137,8 @@ const subtitlePickerOpen = ref(false);
 const resumePrompt = ref<{ position: number } | null>(null);
 const destroyed = ref(false);
 let compatPollTimer: number | undefined;
+let resumePromptTimer: number | undefined;
+let rateSaveTimer: number | undefined;
 let lastProgressWrite = 0;
 let pendingResume = 0;
 
@@ -320,6 +322,7 @@ function createPlayer() {
   video.addEventListener("timeupdate", onTimeUpdate);
   video.addEventListener("pause", saveProgress);
   video.addEventListener("error", onVideoError);
+  video.addEventListener("ratechange", scheduleRateSave);
   art.value.on("ready", () => {
     busyMessage.value = "";
     if (pendingResume > 0) applyResume(pendingResume);
@@ -329,7 +332,7 @@ function createPlayer() {
 
 function snapshotPlayback() {
   return {
-    position: art.value?.currentTime ?? 0,
+    position: pendingResume || art.value?.currentTime || 0,
     rate: art.value?.playbackRate ?? playbackRate(),
     playing: art.value?.playing ?? false,
   };
@@ -346,7 +349,9 @@ async function chooseMode(mode: ActualMode) {
         playbackMode: mode,
       },
     })
-    .catch(() => undefined);
+    .catch(() => {
+      showNotice("播放偏好保存失败");
+    });
   if (mode === "native") {
     detachHls();
     if (art.value) await art.value.switchUrl(props.source);
@@ -462,14 +467,20 @@ async function loadResume() {
     )
       return;
     if (resumeMode() === "resume") pendingResume = saved.position;
-    else if (resumeMode() === "ask")
+    else if (resumeMode() === "ask") {
       resumePrompt.value = { position: saved.position };
+      resumePromptTimer = window.setTimeout(() => {
+        resumePrompt.value = null;
+        resumePromptTimer = undefined;
+      }, 6000);
+    }
   } catch {
     // Resume history is optional and must not block playback.
   }
 }
 
 function applyResume(position: number) {
+  clearResumePromptTimer();
   resumePrompt.value = null;
   pendingResume = position;
   if (art.value && art.value.duration > 0) {
@@ -482,9 +493,31 @@ function applyResume(position: number) {
 }
 
 function dismissResume() {
+  clearResumePromptTimer();
   resumePrompt.value = null;
   pendingResume = 0;
   void media.clearPlayback(props.path).catch(() => undefined);
+}
+
+function scheduleRateSave() {
+  if (!art.value || Math.abs(art.value.playbackRate - playbackRate()) < 0.001)
+    return;
+  if (rateSaveTimer !== undefined) window.clearTimeout(rateSaveTimer);
+  rateSaveTimer = window.setTimeout(() => {
+    rateSaveTimer = undefined;
+    const rate = art.value?.playbackRate;
+    if (!rate) return;
+    void accountPreferences
+      .save({
+        playerPreferences: {
+          ...auth.user?.playerPreferences,
+          playbackRate: Math.round(rate * 100) / 100,
+        },
+      })
+      .catch(() => {
+        showNotice("倍速偏好保存失败");
+      });
+  }, 250);
 }
 
 function onTimeUpdate() {
@@ -492,6 +525,14 @@ function onTimeUpdate() {
   if (now - lastProgressWrite < 5000) return;
   lastProgressWrite = now;
   saveProgress();
+}
+
+function showNotice(message: string) {
+  if (!art.value) return;
+  const notice = art.value.notice as unknown as {
+    show: string | Error | false | "";
+  };
+  notice.show = message;
 }
 
 function saveProgress() {
@@ -537,10 +578,16 @@ function clearCompatTimer() {
   compatPollTimer = undefined;
 }
 
+function clearResumePromptTimer() {
+  if (resumePromptTimer !== undefined) window.clearTimeout(resumePromptTimer);
+  resumePromptTimer = undefined;
+}
+
 watch(
   () => props.path,
   () => {
     clearCompatTimer();
+    clearResumePromptTimer();
     detachHls();
     resumePrompt.value = null;
     pendingResume = 0;
@@ -560,6 +607,8 @@ onBeforeUnmount(() => {
   destroyed.value = true;
   saveProgress();
   clearCompatTimer();
+  clearResumePromptTimer();
+  if (rateSaveTimer !== undefined) window.clearTimeout(rateSaveTimer);
   detachHls();
   art.value?.destroy(false);
   art.value = null;

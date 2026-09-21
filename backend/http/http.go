@@ -66,6 +66,7 @@ func NewHandler(
 	r.NotFoundHandler = index
 
 	api := r.PathPrefix("/api").Subrouter()
+	spriteService := newVideoSpriteService(fileCache)
 
 	api.Handle("/login", monkey(loginHandler(), ""))
 	api.Handle("/signup", monkey(signupHandler, ""))
@@ -129,6 +130,8 @@ func NewHandler(
 	api.Handle("/media/playback", monkey(playbackPutHandler, "")).Methods("PUT")
 	api.Handle("/media/playback", monkey(playbackDeleteHandler, "")).Methods("DELETE")
 	api.Handle("/media/info", monkey(mediaInfoHandler(defaultMediaProbe), "")).Methods("GET")
+	api.Handle("/media/sprite", monkey(spriteService.metaHandler(), "")).Methods("GET")
+	api.Handle("/media/sprite.jpg", monkey(spriteService.imageHandler(), "")).Methods("GET")
 	api.Handle("/media/hls", monkey(mediaHLSStartHandler(hlsService, taskRuntime), "")).Methods("POST")
 	api.Handle("/media/hls/{id:[a-f0-9]{64}}", monkey(mediaHLSGetHandler(hlsService), "")).Methods("GET")
 	api.Handle("/media/hls/{id:[a-f0-9]{64}}/cancel", monkey(mediaHLSCancelHandler(hlsService, taskRuntime), "")).Methods("POST")

@@ -163,4 +163,12 @@ describe("媒体预览生命周期契约", () => {
     );
     expect(artPlayerSource).not.toContain("?auth=");
   });
+
+  it("进度预览失败不阻断播放器初始化", () => {
+    expect(artPlayerSource).toContain("media.getVideoSprite(props.path)");
+    expect(artPlayerSource).toContain("art.value.thumbnails =");
+    expect(artPlayerSource).toContain(
+      "Progress thumbnails are optional; playback remains fully functional."
+    );
+  });
 });

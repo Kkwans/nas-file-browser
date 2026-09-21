@@ -88,6 +88,16 @@ export interface HLSPlaybackStatus {
   sourceUrl?: string;
 }
 
+export interface VideoSprite {
+  path: string;
+  number: number;
+  column: number;
+  width: number;
+  height: number;
+  interval: number;
+  url: string;
+}
+
 export function getPlayback(path: string): Promise<PlaybackPosition> {
   return fetchJSON<PlaybackPosition>(
     `/api/media/playback?path=${encodeURIComponent(path)}`
@@ -202,6 +212,12 @@ export function getMediaInformation(
   return fetchJSON<MediaInformation>(`/api/media/info?${query.toString()}`, {
     signal,
   });
+}
+
+export function getVideoSprite(path: string): Promise<VideoSprite> {
+  return fetchJSON<VideoSprite>(
+    `/api/media/sprite?path=${encodeURIComponent(path)}`
+  );
 }
 
 export async function startHLSPlayback(

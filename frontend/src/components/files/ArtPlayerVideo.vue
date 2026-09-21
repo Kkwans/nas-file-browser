@@ -328,6 +328,23 @@ function createPlayer() {
     if (pendingResume > 0) applyResume(pendingResume);
     if (subtitlePrefs.url) void switchSubtitle(subtitlePrefs.url);
   });
+  void loadVideoSprite();
+}
+
+async function loadVideoSprite() {
+  try {
+    const sprite = await media.getVideoSprite(props.path);
+    if (destroyed.value || !art.value) return;
+    art.value.thumbnails = {
+      url: sprite.url,
+      number: sprite.number,
+      column: sprite.column,
+      width: sprite.width,
+      height: sprite.height,
+    };
+  } catch {
+    // Progress thumbnails are optional; playback remains fully functional.
+  }
 }
 
 function snapshotPlayback() {

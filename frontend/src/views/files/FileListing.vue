@@ -1043,6 +1043,7 @@ import {
   onBeforeRouteLeave,
 } from "vue-router";
 import { useNavigationStore } from "@/stores/navigation";
+import { useAccountPreferencesStore } from "@/stores/accountPreferences";
 import { storeToRefs } from "pinia";
 import { removePrefix } from "@/api/utils";
 import {
@@ -1061,6 +1062,11 @@ import {
   listingSortIcon,
   listingViewIcon,
 } from "@/utils/listingIconSemantics";
+import {
+  normalizeSorting,
+  readGuestSorting,
+  writeGuestSorting,
+} from "@/utils/sortingPreferences";
 
 const showLimit = ref<number>(50);
 const tagsStore = useTagsStore();
@@ -1089,6 +1095,7 @@ const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 const listingPreferencesStore = useListingPreferencesStore();
+const accountPreferencesStore = useAccountPreferencesStore();
 
 // View mode dropdown
 const showViewDropdown = ref<boolean>(false);
@@ -1146,8 +1153,11 @@ const compactGridSize = ref<CompactGridSize>(
 // Sort dropdown
 const showSortDropdown = ref<boolean>(false);
 const sortDropdownRef = ref<HTMLElement | null>(null);
-const accountSortBy = ref<string>(fileStore.req?.sorting?.by || "name");
-const accountSortAsc = ref<boolean>(fileStore.req?.sorting?.asc || false);
+const initialSorting = normalizeSorting(authStore.user?.sorting) ??
+  (!authStore.user?.id ? readGuestSorting() : null) ??
+  normalizeSorting(fileStore.req?.sorting) ?? { by: "name", asc: true };
+const accountSortBy = ref<string>(initialSorting.by);
+const accountSortAsc = ref<boolean>(initialSorting.asc);
 const currentSortBy = ref<string>(accountSortBy.value);
 const currentSortAsc = ref<boolean>(accountSortAsc.value);
 const sortIsOverridden = ref(false);
@@ -1378,11 +1388,16 @@ watch(req, () => {
 
   // Sync sort state from server
   if (fileStore.req?.sorting) {
-    accountSortBy.value = fileStore.req.sorting.by;
-    accountSortAsc.value = fileStore.req.sorting.asc;
-    if (!sortIsOverridden.value) {
-      currentSortBy.value = accountSortBy.value;
-      currentSortAsc.value = accountSortAsc.value;
+    const saved = normalizeSorting(authStore.user?.sorting);
+    const fallback = normalizeSorting(fileStore.req.sorting);
+    const next = saved ?? fallback;
+    if (next) {
+      accountSortBy.value = next.by;
+      accountSortAsc.value = next.asc;
+      if (!sortIsOverridden.value) {
+        currentSortBy.value = accountSortBy.value;
+        currentSortAsc.value = accountSortAsc.value;
+      }
     }
   }
 
@@ -2074,6 +2089,26 @@ const cycleSort = (by: string) => {
   currentSortBy.value = next.by;
   currentSortAsc.value = next.asc;
   sortIsOverridden.value = next.overridden;
+  const sorting = { by: next.by, asc: next.asc };
+  if (!authStore.user?.id) {
+    try {
+      writeGuestSorting(sorting);
+      accountSortBy.value = sorting.by;
+      accountSortAsc.value = sorting.asc;
+    } catch {
+      $showError(new Error("无法保存排序偏好"));
+    }
+    return;
+  }
+  void accountPreferencesStore
+    .save({ sorting })
+    .then(() => {
+      accountSortBy.value = sorting.by;
+      accountSortAsc.value = sorting.asc;
+    })
+    .catch((error) =>
+      $showError(error instanceof Error ? error : new Error("排序偏好保存失败"))
+    );
 };
 
 const sortByHeader = (by: string) => {

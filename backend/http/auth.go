@@ -15,6 +15,7 @@ import (
 
 	fbAuth "github.com/Kkwans/nas-file-browser/backend/auth"
 	fberrors "github.com/Kkwans/nas-file-browser/backend/errors"
+	"github.com/Kkwans/nas-file-browser/backend/files"
 	"github.com/Kkwans/nas-file-browser/backend/settings"
 	"github.com/Kkwans/nas-file-browser/backend/users"
 )
@@ -33,6 +34,7 @@ type userInfo struct {
 	RedirectAfterCopyMove bool                     `json:"redirectAfterCopyMove"`
 	Perm                  users.Permissions        `json:"perm"`
 	Commands              []string                 `json:"commands"`
+	Sorting               files.Sorting            `json:"sorting"`
 	LockPassword          bool                     `json:"lockPassword"`
 	HideDotfiles          bool                     `json:"hideDotfiles"`
 	DateFormat            bool                     `json:"dateFormat"`
@@ -264,6 +266,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 			Perm:                  user.Perm,
 			LockPassword:          user.LockPassword,
 			Commands:              user.Commands,
+			Sorting:               user.Sorting,
 			HideDotfiles:          user.HideDotfiles,
 			DateFormat:            user.DateFormat,
 			Username:              user.Username,

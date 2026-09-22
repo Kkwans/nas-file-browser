@@ -231,7 +231,7 @@ export async function startHLSPlayback(
     body: JSON.stringify({
       path,
       ...(format === "hls" ? {} : { format }),
-      quality,
+      ...(quality === "source" ? {} : { quality }),
     }),
   });
   return response.json() as Promise<HLSPlaybackStatus>;

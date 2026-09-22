@@ -26,8 +26,8 @@ describe("本地图标对齐契约", () => {
     expect(fileListingSource).toContain(
       ':aria-pressed="currentViewMode === mode.value"'
     );
-    expect(fileListingSource).toContain(
-      ':aria-pressed="compactGridSize === size.value"'
+    expect(fileListingSource).toMatch(
+      /:aria-pressed="[\s\S]*?currentViewMode === 'windows-icons'[\s\S]*?windowsIconSize[\s\S]*?compactGridSize[\s\S]*?size\.value"/
     );
     expect(fileListingSource).toMatch(
       /<AppIcon[\s\S]{0,100}class="sort-arrow"[\s\S]{0,120}:name="listingSortDirectionIcon/

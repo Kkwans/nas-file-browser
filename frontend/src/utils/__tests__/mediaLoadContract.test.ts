@@ -31,7 +31,9 @@ describe("media loading contract", () => {
   });
 
   it("uses the persistent server thumbnail for both images and videos", () => {
-    expect(thumbnailSource).toContain('api.getPreviewURL(item.value, "thumb")');
+    expect(thumbnailSource).toContain("api.getPreviewURL(");
+    expect(thumbnailSource).toContain('"thumb",');
+    expect(thumbnailSource).toContain('{ fit: "contain" }');
     expect(thumbnailSource).not.toContain("getDownloadURL");
     expect(thumbnailSource).not.toContain("extractVideoFrame");
     expect(thumbnailSource).not.toContain("browserVideoThumbnailScheduler");

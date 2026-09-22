@@ -39,8 +39,12 @@ describe("文件列表视觉契约", () => {
     }
     expect(block).toContain("overflow-wrap: anywhere");
     expect(block).toContain("object-fit: contain");
-    const itemRule = block?.match(/#listing\.windows-icons \.item \{([^}]*)\}/)?.[1];
-    const nameRule = block?.match(/#listing\.windows-icons \.item-name \{([^}]*)\}/)?.[1];
+    const itemRule = block?.match(
+      /#listing\.windows-icons \.item \{([^}]*)\}/
+    )?.[1];
+    const nameRule = block?.match(
+      /#listing\.windows-icons \.item-name \{([^}]*)\}/
+    )?.[1];
     expect(itemRule).not.toContain("min-height:");
     expect(nameRule).not.toContain("-webkit-line-clamp: 2");
   });

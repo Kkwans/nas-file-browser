@@ -102,12 +102,13 @@
 | CR 2 | WebM 真实画质转码 | `8bc2b838` | HLS 回归与 Go 全量、前端门禁 |
 | CR 3 | 透明 PNG 缩略图 | `99e02d9d` | 真实编码回归、Go 全量、vet |
 | CR 4 | 预览标题与兼容播放入口 | `4e76bbd7` | 前端全量 451 项、typecheck、lint、生产构建 |
+| CR 5 | 视图切换时刷新缩略图适配模式 | `236ba891` | mediaLoadContract 15 项、typecheck、lint、diff-check |
 
-最终代码门禁：前端目录执行 `corepack pnpm test`（108 文件、451 项）、`corepack pnpm run typecheck`、`corepack pnpm run lint`、`corepack pnpm run build`；后端目录执行 `go test ./...`、`go vet ./...`；仓库根目录执行 `git diff a202d0e627d2..HEAD --check`，均通过。NAS 缺少 GCC，`go test -race` 未执行。镜像从干净检出构建，未采用工作区已有的 `backend/frontend/dist`。
+上一轮全量代码门禁：前端目录执行 `corepack pnpm test`（108 文件、451 项）、`corepack pnpm run typecheck`、`corepack pnpm run lint`、`corepack pnpm run build`；后端目录执行 `go test ./...`、`go vet ./...`；仓库根目录执行 `git diff a202d0e627d2..HEAD --check`，均通过。CR 5 单独通过 15 项聚焦测试、typecheck 与 lint，最终全量门禁随最终镜像再次执行。NAS 缺少 GCC，`go test -race` 未执行。镜像从干净检出构建，未采用工作区已有的 `backend/frontend/dist`。
 
-运行验收：ARM64 镜像启动后 `/health` 与 `/login` 返回 200，未授权访问受保护的雪碧图和等比例缩略图接口均返回 401；真实 Chromium 登录页在 1440/1024/768/390 宽度正常加载且无横向溢出或页面异常。图标视图四档尺寸乘四种宽度的 CSS 检查使用注入样例，仅证明样式尺寸和 `object-fit: contain`，不等于真实目录的视觉验收。
+运行验收：ARM64 镜像启动后 `/health` 与 `/login` 返回 200，未授权访问受保护的雪碧图和等比例缩略图接口均返回 401；真实 Chromium 登录页在 1440/1024/768/390 宽度正常加载且无横向溢出或页面异常。使用授权 admin 账号检查了根目录 30 项、Windows 图标四档尺寸、390/768/1024/1440 宽度，以及图片目录 19 项（18 个真实缩略图）；图片接口返回 200、JPEG 实际尺寸可加载、`object-fit: contain` 生效、无横向溢出。搜索、最近访问、回收站、存储工具、任务中心和四个设置页面在真实部署下均无页面错误或横向溢出。图标视图的账号偏好在验收后恢复为原有 `mosaic`。
 
-登录后的设置保存、目录列表、实际媒体播放及视觉/交互验收仍未通过真实目标验证：唯一获准的 TX5Pro DPAPI 凭据文件在 SSH 会话中无法解密；没有复制、输出凭据，也未改用其他凭据。此前 Vite fixture 验收因前端预览服务器无法提供后端注入的入口而超时/404，不能作为产品失败或通过的证据。
+真实验收脚本的一个既有断言使用了不存在的 aria 名称“返回上一页”，在回收站刷新后等待 600 秒超时；实际页面按钮名称为“返回”，同一路由随后已用真实浏览器单独覆盖。已扫描的真实目录没有可访问视频文件，视频播放、ArtPlayer/HLS、字幕和雪碧图仍待真实媒体验证；此前 Vite fixture 验收因前端预览服务器无法提供后端注入的入口而超时/404，不能作为产品失败或通过的证据。
 
 回滚资产保留：原 `nas-file-browser:2026.9.6-v14` 镜像、发布前 Compose 与设置备份，以及前一版发布镜像均未清理。切换仅操作 `filebrowser` 服务；`/config`、`/database` 和媒体缓存挂载保持不变。
 

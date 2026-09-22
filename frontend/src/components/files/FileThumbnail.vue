@@ -174,7 +174,7 @@ watch(
 );
 
 watch(
-  () => [props.path, props.modified, props.size],
+  () => [props.path, props.modified, props.size, props.fit],
   () => {
     cancelActiveLoad();
     start();

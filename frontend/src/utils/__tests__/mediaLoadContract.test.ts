@@ -39,6 +39,18 @@ describe("media loading contract", () => {
     expect(thumbnailSource).not.toContain("browserVideoThumbnailScheduler");
   });
 
+  it("rebuilds the thumbnail request when the listing fit mode changes", () => {
+    const watchStart = thumbnailSource.indexOf(
+      "watch(\n  () => [props.path, props.modified, props.size, props.fit]"
+    );
+    expect(watchStart).toBeGreaterThanOrEqual(0);
+    const watchEnd = thumbnailSource.indexOf("\n);", watchStart);
+    expect(thumbnailSource.slice(watchStart, watchEnd)).toContain(
+      "cancelActiveLoad();"
+    );
+    expect(thumbnailSource.slice(watchStart, watchEnd)).toContain("start();");
+  });
+
   it("keeps the animated placeholder visible while the server thumbnail is loading", () => {
     expect(thumbnailSource).toContain("thumbnail-image--loading");
     expect(thumbnailSource).toContain("status === 'generating'");

@@ -226,6 +226,10 @@ func handleContainedImagePreview(
 	if err != nil || format == img.FormatGif {
 		return http.StatusNotImplemented, fmt.Errorf("此图片格式不支持等比例缩略图")
 	}
+	outputFormat := img.FormatJpeg
+	if format == img.FormatPng {
+		outputFormat = img.FormatPng
+	}
 	key := containedPreviewCacheKey(file)
 	preview, ok, err := loadPreviewCache(r.Context(), fileCache, key)
 	if err != nil {
@@ -249,7 +253,7 @@ func handleContainedImagePreview(
 				defer func() { _ = fd.Close() }()
 				buffer := &bytes.Buffer{}
 				generateErr = imgSvc.Resize(ctx, fd, 512, 512, buffer,
-					img.WithMode(img.ResizeModeFit), img.WithQuality(img.QualityMedium), img.WithFormat(img.FormatJpeg))
+					img.WithMode(img.ResizeModeFit), img.WithQuality(img.QualityMedium), img.WithFormat(outputFormat))
 				generated = buffer.Bytes()
 			}
 			if generateErr != nil {
@@ -263,7 +267,11 @@ func handleContainedImagePreview(
 		return errToStatus(err), err
 	}
 	w.Header().Set("Cache-Control", previewCacheControl)
-	w.Header().Set("Content-Type", "image/jpeg")
+	if outputFormat == img.FormatPng {
+		w.Header().Set("Content-Type", "image/png")
+	} else {
+		w.Header().Set("Content-Type", "image/jpeg")
+	}
 	http.ServeContent(w, r, file.Name, file.ModTime, bytes.NewReader(preview))
 	return 0, nil
 }

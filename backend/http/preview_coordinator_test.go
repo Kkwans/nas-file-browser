@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"image/png"
 	"io"
 	"net/http/httptest"
@@ -257,6 +258,40 @@ func TestContainedPreviewUsesVersionedCacheIdentity(t *testing.T) {
 	cropped := previewCacheKey(file, PreviewSizeThumb)
 	if contained == cropped || !strings.Contains(contained, "contain512") {
 		t.Fatalf("contained cache key %q must differ from %q", contained, cropped)
+	}
+}
+
+func TestContainedPngKeepsAspectRatioAndTransparency(t *testing.T) {
+	filesystem := afero.NewMemMapFs()
+	source := image.NewNRGBA(image.Rect(0, 0, 800, 400))
+	source.SetNRGBA(400, 200, color.NRGBA{R: 255, A: 255})
+	var encoded bytes.Buffer
+	if err := png.Encode(&encoded, source); err != nil {
+		t.Fatal(err)
+	}
+	if err := afero.WriteFile(filesystem, "/wide.png", encoded.Bytes(), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	file := &files.FileInfo{Fs: filesystem, Path: "/wide.png", Name: "wide.png", Extension: ".png", Size: int64(encoded.Len()), ModTime: time.Unix(42, 0)}
+	response := httptest.NewRecorder()
+	status, err := handleContainedImagePreview(response, httptest.NewRequest("GET", "/api/preview/thumb/wide.png?fit=contain", nil),
+		img.New(1), nil, newMemoryPreviewCache(), newPreviewCoordinator(), file, true)
+	if err != nil || status != 0 {
+		t.Fatalf("contained PNG status=%d error=%v", status, err)
+	}
+	if got := response.Header().Get("Content-Type"); got != "image/png" {
+		t.Fatalf("content type = %q", got)
+	}
+	result, err := png.Decode(bytes.NewReader(response.Body.Bytes()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Bounds().Dx() != 512 || result.Bounds().Dy() != 256 {
+		t.Fatalf("dimensions = %v", result.Bounds())
+	}
+	_, _, _, alpha := result.At(0, 0).RGBA()
+	if alpha != 0 {
+		t.Fatalf("transparent corner alpha = %d", alpha)
 	}
 }
 

@@ -27,6 +27,7 @@ const (
 	DefaultCopyProfile     = "h264-copy-hls-v1"
 	DefaultMP4CopyProfile  = "h264-aac-mp4-copy-v1"
 	DefaultWebMProfile     = "vp9-720p-opus-webm-v1"
+	transcodeScaleVersion  = "bounded-width-height-v2"
 	DefaultWebMCopyProfile = "vp9-opus-webm-copy-v1"
 	playingLease           = 2 * time.Minute
 	maxFFmpegError         = 8 * 1024
@@ -314,6 +315,21 @@ func profileMaxWidth(profile string) int {
 	}
 }
 
+func profileMaxHeight(profile string) int {
+	switch {
+	case strings.Contains(profile, "2160p"):
+		return 2160
+	case strings.Contains(profile, "1440p"):
+		return 1440
+	case strings.Contains(profile, "1080p"):
+		return 1080
+	case strings.Contains(profile, "480p"):
+		return 480
+	default:
+		return 720
+	}
+}
+
 // ReserveCopy creates an HLS playlist by copying already browser-compatible
 // H.264/AAC streams.  The container is remuxed, not re-encoded.
 func (service *Service) ReserveCopy(input Input, start StartFunc) (Status, bool, error) {
@@ -434,7 +450,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 
 	playlist := filepath.Join(directory, "index.m3u8")
 	segmentPattern := filepath.Join(directory, "segment-%06d.ts")
-	args := ffmpegArgs(job.SourcePath, segmentPattern, playlist, profileMaxWidth(job.Profile))
+	args := ffmpegArgs(job.SourcePath, segmentPattern, playlist, profileMaxWidth(job.Profile), profileMaxHeight(job.Profile))
 	if IsCopyProfile(job.Profile) {
 		args = copyFFmpegArgs(job.SourcePath, segmentPattern, playlist)
 	}
@@ -513,7 +529,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 func (service *Service) runWebM(ctx context.Context, job Job, directory string) error {
 	temporary := filepath.Join(directory, "index.webm.tmp")
 	output := filepath.Join(directory, "index.webm")
-	args := webMArgs(job.SourcePath, temporary, profileMaxWidth(job.Profile))
+	args := webMArgs(job.SourcePath, temporary, profileMaxWidth(job.Profile), profileMaxHeight(job.Profile))
 	command := exec.CommandContext(ctx, service.ffmpegPath, args...)
 	stderr := cappedBuffer{limit: maxFFmpegError}
 	command.Stderr = &stderr
@@ -856,19 +872,29 @@ func (service *Service) entryDir(id string) string {
 }
 
 func cacheKey(userID uint, path, identity, profile string) string {
-	digest := sha256.Sum256([]byte(strconv.FormatUint(uint64(userID), 10) + "\x00" + path + "\x00" + identity + "\x00" + profile))
+	version := ""
+	if !IsCopyProfile(profile) && !IsMP4CopyProfile(profile) && !IsWebMCopyProfile(profile) {
+		version = "\x00" + transcodeScaleVersion
+	}
+	digest := sha256.Sum256([]byte(strconv.FormatUint(uint64(userID), 10) + "\x00" + path + "\x00" + identity + "\x00" + profile + version))
 	return hex.EncodeToString(digest[:])
 }
 
-func ffmpegArgs(source, segmentPattern, playlist string, maxWidth int) []string {
+func boundedVideoScale(maxWidth, maxHeight int) string {
 	if maxWidth <= 0 {
 		maxWidth = 1280
 	}
-	scale := fmt.Sprintf("scale=w='trunc(min(%d,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2", maxWidth)
+	if maxHeight <= 0 {
+		maxHeight = 720
+	}
+	return fmt.Sprintf("scale=w='trunc(min(%d,iw)/2)*2':h='trunc(min(%d,ih)/2)*2':force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2", maxWidth, maxHeight)
+}
+
+func ffmpegArgs(source, segmentPattern, playlist string, maxWidth, maxHeight int) []string {
 	return []string{
 		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
 		"-map", "0:v:0", "-map", "0:a:0?",
-		"-vf", scale,
+		"-vf", boundedVideoScale(maxWidth, maxHeight),
 		"-c:v", "libx264", "-preset", "veryfast", "-profile:v", "main", "-pix_fmt", "yuv420p",
 		"-threads", "1", "-filter_threads", "1",
 		"-c:a", "aac", "-b:a", "128k", "-ac", "2",
@@ -890,15 +916,11 @@ func copyFFmpegArgs(source, segmentPattern, playlist string) []string {
 	}
 }
 
-func webMArgs(source, output string, maxWidth int) []string {
-	if maxWidth <= 0 {
-		maxWidth = 1280
-	}
-	scale := fmt.Sprintf("scale=w='trunc(min(%d,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2", maxWidth)
+func webMArgs(source, output string, maxWidth, maxHeight int) []string {
 	return []string{
 		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
 		"-map", "0:v:0", "-map", "0:a:0?",
-		"-vf", scale,
+		"-vf", boundedVideoScale(maxWidth, maxHeight),
 		"-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "1.5M",
 		// Keep the compatibility queue globally serial, but let the single
 		// active VP9 encode use two codec threads. On the NAS ARM host this

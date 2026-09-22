@@ -2,8 +2,13 @@ package hls
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
+	"image/png"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -122,7 +127,7 @@ func TestCappedBufferAcceptsAllInputAndRetainsOnlyLimit(t *testing.T) {
 }
 
 func TestFFmpegArgsPadOddVideoDimensionsForYUV420(t *testing.T) {
-	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1280)
+	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1280, 720)
 	joined := strings.Join(args, "\x00")
 	if !strings.Contains(joined, "pad=ceil(iw/2)*2:ceil(ih/2)*2") {
 		t.Fatalf("ffmpeg filter does not pad odd dimensions: %q", joined)
@@ -130,7 +135,7 @@ func TestFFmpegArgsPadOddVideoDimensionsForYUV420(t *testing.T) {
 }
 
 func TestFFmpegArgsExposeGrowingPlaylistAsSeekableEvent(t *testing.T) {
-	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1280)
+	args := ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1280, 720)
 	joined := strings.Join(args, "\x00")
 	if !strings.Contains(joined, "-hls_playlist_type\x00event") {
 		t.Fatalf("growing HLS playlist is not marked as an event: %q", joined)
@@ -169,28 +174,86 @@ func TestWebMQualityChangesTheTranscodeAndCacheProfile(t *testing.T) {
 	if IsWebMProfile(DefaultWebMCopyProfile) {
 		t.Fatal("copy profile must not be treated as transcode")
 	}
-	if profileMaxWidth(wide) != 1920 || profileMaxWidth(narrow) != 854 {
-		t.Fatal("WebM quality did not change target width")
+	if profileMaxWidth(wide) != 1920 || profileMaxHeight(wide) != 1080 ||
+		profileMaxWidth(narrow) != 854 || profileMaxHeight(narrow) != 480 {
+		t.Fatal("WebM quality did not change target dimensions")
 	}
-	args := strings.Join(webMArgs("/source.mkv", "/tmp/index.webm.tmp", profileMaxWidth(wide)), "\x00")
-	if !strings.Contains(args, "min(1920,iw)") {
+	args := strings.Join(webMArgs("/source.mkv", "/tmp/index.webm.tmp", profileMaxWidth(wide), profileMaxHeight(wide)), "\x00")
+	if !strings.Contains(args, "min(1920,iw)") || !strings.Contains(args, "min(1080,ih)") {
 		t.Fatalf("WebM FFmpeg scale not applied: %q", args)
 	}
 }
 
-func TestFFmpegArgsUseSelectedMaximumWidth(t *testing.T) {
-	joined := strings.Join(ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1920), "\x00")
-	if !strings.Contains(joined, "min(1920,iw)") {
+func TestFFmpegArgsUseSelectedMaximumDimensions(t *testing.T) {
+	joined := strings.Join(ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1920, 1080), "\x00")
+	if !strings.Contains(joined, "min(1920,iw)") || !strings.Contains(joined, "min(1080,ih)") {
 		t.Fatalf("quality scale missing: %q", joined)
 	}
 }
 
 func TestWebMArgsProduceBrowserSeekableCompatibilityFile(t *testing.T) {
-	args := webMArgs("/source.mkv", "/tmp/index.webm.tmp", 1280)
+	args := webMArgs("/source.mkv", "/tmp/index.webm.tmp", 1280, 720)
 	joined := strings.Join(args, "\x00")
 	for _, expected := range []string{"libvpx-vp9", "libopus", "-progress\x00pipe:1", "-threads\x002", "-f\x00webm", "/tmp/index.webm.tmp"} {
 		if !strings.Contains(joined, expected) {
 			t.Fatalf("WebM args missing %q: %q", expected, joined)
+		}
+	}
+}
+
+func TestBoundedVideoScaleFitsPortraitAndKeepsSmallLandscape(t *testing.T) {
+	ffmpeg, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		t.Skip("FFmpeg is unavailable")
+	}
+	for _, tc := range []struct {
+		name                  string
+		width, height         int
+		wantWidth, wantHeight int
+	}{
+		{name: "portrait", width: 360, height: 640, wantWidth: 270, wantHeight: 480},
+		{name: "small landscape", width: 640, height: 360, wantWidth: 640, wantHeight: 360},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			output := filepath.Join(t.TempDir(), "frame.png")
+			args := []string{
+				"-hide_banner", "-loglevel", "error", "-nostdin", "-f", "lavfi",
+				"-i", fmt.Sprintf("color=c=red:s=%dx%d:d=0.1", tc.width, tc.height),
+				"-vf", boundedVideoScale(854, 480), "-frames:v", "1", "-f", "image2", output,
+			}
+			if outputText, err := exec.Command(ffmpeg, args...).CombinedOutput(); err != nil {
+				t.Fatalf("FFmpeg scale failed: %v: %s", err, outputText)
+			}
+			file, err := os.Open(output)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer file.Close()
+			config, err := png.DecodeConfig(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if config.Width != tc.wantWidth || config.Height != tc.wantHeight {
+				t.Fatalf("scaled dimensions = %dx%d, want %dx%d", config.Width, config.Height, tc.wantWidth, tc.wantHeight)
+			}
+		})
+	}
+}
+
+func TestTranscodeCacheVersionLeavesCopyCacheUntouched(t *testing.T) {
+	legacy := func(profile string) string {
+		digest := sha256.Sum256([]byte("1\x00/movie.mkv\x00v1\x00" + profile))
+		return hex.EncodeToString(digest[:])
+	}
+	if got := cacheKey(1, "/movie.mkv", "v1", DefaultWebMProfile); got == legacy(DefaultWebMProfile) {
+		t.Fatal("WebM transcode still shares the old width-only cache")
+	}
+	if got := cacheKey(1, "/movie.mkv", "v1", DefaultProfile); got == legacy(DefaultProfile) {
+		t.Fatal("HLS transcode still shares the old width-only cache")
+	}
+	for _, profile := range []string{DefaultCopyProfile, DefaultMP4CopyProfile, DefaultWebMCopyProfile} {
+		if got := cacheKey(1, "/movie.mkv", "v1", profile); got != legacy(profile) {
+			t.Fatalf("copy cache changed for %q", profile)
 		}
 	}
 }

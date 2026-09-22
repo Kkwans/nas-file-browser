@@ -166,7 +166,7 @@ test.describe("NAS File Browser real deployment acceptance", () => {
       timeout: 20_000,
     });
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "返回上一页" }).click();
+    await page.goBack({ waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/sort=name/);
     await expect(page).toHaveURL(/order=desc/);
     await expect(page).toHaveURL(/view=details/);

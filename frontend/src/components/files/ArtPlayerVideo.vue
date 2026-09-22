@@ -658,7 +658,7 @@ onBeforeUnmount(() => {
 .player-status,
 .resume-prompt {
   position: absolute;
-  z-index: 5;
+  z-index: 30;
   left: 50%;
   top: 50%;
   display: grid;

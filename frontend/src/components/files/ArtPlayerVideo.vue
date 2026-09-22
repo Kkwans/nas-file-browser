@@ -31,6 +31,13 @@
       <span>{{ errorMessage }}</span>
       <div>
         <button type="button" @click="retry">重试</button>
+        <button
+          v-if="actualMode === 'native'"
+          type="button"
+          @click="chooseMode('compat')"
+        >
+          兼容播放
+        </button>
         <a :href="downloadSource" download>下载原文件</a>
       </div>
     </div>

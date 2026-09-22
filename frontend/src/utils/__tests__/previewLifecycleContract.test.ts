@@ -141,6 +141,16 @@ describe("媒体预览生命周期契约", () => {
     expect(previewSource).toContain("<VideoPlayer");
   });
 
+  it("原生播放失败提供明确兼容动作并尊重账户控件隐藏时长", () => {
+    const previewSource = readFileSync(
+      fileURLToPath(new URL("../../views/files/Preview.vue", import.meta.url)),
+      "utf8"
+    );
+    expect(artPlayerSource).toContain("@click=\"chooseMode('compat')\"");
+    expect(previewSource).toContain("resolveControlsTimeoutMs(");
+    expect(previewSource).toContain("if (hideMs <= 0)");
+  });
+
   it("ArtPlayer 切换媒体保留进度并完整释放资源", () => {
     expect(artPlayerSource).toContain("snapshotPlayback()");
     expect(artPlayerSource).toContain("restorePlayback(snapshot)");

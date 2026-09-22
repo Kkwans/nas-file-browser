@@ -93,7 +93,12 @@ func mediaHLSStartHandler(service *hls.Service, runtime *tasks.Runtime) handleFu
 		reserve := service.Reserve
 		if request.Format == "webm" {
 			reserve = service.ReserveWebM
-			if hls.CanCopyWebMMedia(input.VideoCodec, input.AudioCodec) {
+			if mediaHLSExplicitQuality(request.Quality) {
+				profile := hls.WebMProfileForQuality(request.Quality, input.VideoHeight)
+				reserve = func(source hls.Input, start hls.StartFunc) (hls.Status, bool, error) {
+					return service.ReserveWithProfile(source, profile, start)
+				}
+			} else if hls.CanCopyWebMMedia(input.VideoCodec, input.AudioCodec) {
 				reserve = service.ReserveWebMCopy
 			}
 		} else if request.Format == "mp4" {

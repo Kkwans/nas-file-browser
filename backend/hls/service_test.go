@@ -160,6 +160,24 @@ func TestQualityProfilesAreDistinctAndNeverUpscale(t *testing.T) {
 	}
 }
 
+func TestWebMQualityChangesTheTranscodeAndCacheProfile(t *testing.T) {
+	wide := WebMProfileForQuality("1080p", 2160)
+	narrow := WebMProfileForQuality("480p", 2160)
+	if wide == narrow || !IsWebMProfile(wide) || !IsWebMProfile(narrow) {
+		t.Fatalf("WebM quality profiles = %q, %q", wide, narrow)
+	}
+	if IsWebMProfile(DefaultWebMCopyProfile) {
+		t.Fatal("copy profile must not be treated as transcode")
+	}
+	if profileMaxWidth(wide) != 1920 || profileMaxWidth(narrow) != 854 {
+		t.Fatal("WebM quality did not change target width")
+	}
+	args := strings.Join(webMArgs("/source.mkv", "/tmp/index.webm.tmp", profileMaxWidth(wide)), "\x00")
+	if !strings.Contains(args, "min(1920,iw)") {
+		t.Fatalf("WebM FFmpeg scale not applied: %q", args)
+	}
+}
+
 func TestFFmpegArgsUseSelectedMaximumWidth(t *testing.T) {
 	joined := strings.Join(ffmpegArgs("/source.mkv", "/tmp/segment-%06d.ts", "/tmp/index.m3u8", 1920), "\x00")
 	if !strings.Contains(joined, "min(1920,iw)") {
@@ -168,7 +186,7 @@ func TestFFmpegArgsUseSelectedMaximumWidth(t *testing.T) {
 }
 
 func TestWebMArgsProduceBrowserSeekableCompatibilityFile(t *testing.T) {
-	args := webMArgs("/source.mkv", "/tmp/index.webm.tmp")
+	args := webMArgs("/source.mkv", "/tmp/index.webm.tmp", 1280)
 	joined := strings.Join(args, "\x00")
 	for _, expected := range []string{"libvpx-vp9", "libopus", "-progress\x00pipe:1", "-threads\x002", "-f\x00webm", "/tmp/index.webm.tmp"} {
 		if !strings.Contains(joined, expected) {

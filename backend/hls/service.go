@@ -92,7 +92,8 @@ type Job struct {
 // file rather than an HLS playlist.  The profile is part of the cache key so
 // browsers with and without H.264 MSE support do not share incompatible data.
 func IsWebMProfile(profile string) bool {
-	return profile == DefaultWebMProfile
+	return profile == DefaultWebMProfile ||
+		(strings.HasPrefix(profile, "vp9-") && strings.HasSuffix(profile, "-opus-webm-v1"))
 }
 
 // IsWebMCopyProfile reports a WebM artifact that only remuxes streams already
@@ -275,6 +276,12 @@ func ProfileForQuality(quality string, sourceHeight int) string {
 		requested = sourceHeight
 	}
 	return encodeProfileForHeight(requested)
+}
+
+func WebMProfileForQuality(quality string, sourceHeight int) string {
+	profile := ProfileForQuality(quality, sourceHeight)
+	profile = strings.Replace(profile, "h264-main-", "vp9-", 1)
+	return strings.Replace(profile, "-aac-hls4-v1", "-opus-webm-v1", 1)
 }
 
 func encodeProfileForHeight(height int) string {
@@ -506,7 +513,7 @@ func (service *Service) Run(ctx context.Context, job Job) error {
 func (service *Service) runWebM(ctx context.Context, job Job, directory string) error {
 	temporary := filepath.Join(directory, "index.webm.tmp")
 	output := filepath.Join(directory, "index.webm")
-	args := webMArgs(job.SourcePath, temporary)
+	args := webMArgs(job.SourcePath, temporary, profileMaxWidth(job.Profile))
 	command := exec.CommandContext(ctx, service.ffmpegPath, args...)
 	stderr := cappedBuffer{limit: maxFFmpegError}
 	command.Stderr = &stderr
@@ -883,11 +890,15 @@ func copyFFmpegArgs(source, segmentPattern, playlist string) []string {
 	}
 }
 
-func webMArgs(source, output string) []string {
+func webMArgs(source, output string, maxWidth int) []string {
+	if maxWidth <= 0 {
+		maxWidth = 1280
+	}
+	scale := fmt.Sprintf("scale=w='trunc(min(%d,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2", maxWidth)
 	return []string{
 		"-hide_banner", "-loglevel", "error", "-nostdin", "-i", source,
 		"-map", "0:v:0", "-map", "0:a:0?",
-		"-vf", "scale=w='trunc(min(1280,iw)/2)*2':h=-2:force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2",
+		"-vf", scale,
 		"-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "1.5M",
 		// Keep the compatibility queue globally serial, but let the single
 		// active VP9 encode use two codec threads. On the NAS ARM host this

@@ -79,7 +79,39 @@
 | `backend/users/resume_min_sec_test.go` | NAS 适配；按相关功能切片迁入并回归 |
 | `backend/users/users.go` | NAS 适配；按相关功能切片迁入并回归 |
 
-## 切片验证记录
+## 最终交付索引
+
+以下提交均按顺序独立验证、提交并立即推送到 `origin/master`。详细实施记录保留在下方，记录中的“尚未部署”描述的是当时切片交接状态。
+
+| 顺序 | 功能 | Commit | 主要代码门禁 |
+| --- | --- | --- | --- |
+| 1 | 通用选择控件、PathPicker 与设置样式 | `2566a093` | typecheck、lint、4 文件 17 项前端测试 |
+| 2 | 账户设置与播放器偏好契约 | `356372f9` | typecheck、lint、前端 6 项测试、Go users/http |
+| 3 | 全局设置与统一保存 | `d5502c9c` | typecheck、lint、前端 6 项测试、生产构建 |
+| 4 | 用户管理页面 | `d145c563` | typecheck、lint、前端 3 项测试 |
+| 5 | 分享管理页面 | `0a9ecce8` | typecheck、lint、前端 3 项测试 |
+| 6 | 会话上限扩展 | `aa35d1a4` | 前后端会话边界测试、typecheck、lint |
+| 7 | 排序偏好持久化 | `128f329d` | 前端 8 项与后端测试、typecheck、lint |
+| 8 | HLS 画质及媒体支持 | `21023bf8` | 前端 16 项、Go http/users、typecheck、lint |
+| 9 | ArtPlayer 默认播放 | `4135c047` | 前端 12 项、Go hls/http、typecheck、lint |
+| 10 | 字幕与续播 | `4bbddcb6` | 前端 26 项、typecheck、lint、生产构建 |
+| 11 | 视频进度预览 | `eea3533d` | 前端 26 项、typecheck、lint |
+| 12 | 等比例缩略图 | `1a9543ab` | Go 雪碧图/HLS、前端 12 项、typecheck、lint |
+| 13 | Windows 图标视图 | `abc62d6c` | Go http、前端 23 项、typecheck、lint |
+| CR 1 | 默认媒体请求与视图契约 | `1463ad43` | 前端全量 450 项、Go 全量、vet、生产构建 |
+| CR 2 | WebM 真实画质转码 | `8bc2b838` | HLS 回归与 Go 全量、前端门禁 |
+| CR 3 | 透明 PNG 缩略图 | `99e02d9d` | 真实编码回归、Go 全量、vet |
+| CR 4 | 预览标题与兼容播放入口 | `4e76bbd7` | 前端全量 451 项、typecheck、lint、生产构建 |
+
+最终代码门禁：前端目录执行 `corepack pnpm test`（108 文件、451 项）、`corepack pnpm run typecheck`、`corepack pnpm run lint`、`corepack pnpm run build`；后端目录执行 `go test ./...`、`go vet ./...`；仓库根目录执行 `git diff a202d0e627d2..HEAD --check`，均通过。NAS 缺少 GCC，`go test -race` 未执行。镜像从干净检出构建，未采用工作区已有的 `backend/frontend/dist`。
+
+运行验收：ARM64 镜像启动后 `/health` 与 `/login` 返回 200，未授权访问受保护的雪碧图和等比例缩略图接口均返回 401；真实 Chromium 登录页在 1440/1024/768/390 宽度正常加载且无横向溢出或页面异常。图标视图四档尺寸乘四种宽度的 CSS 检查使用注入样例，仅证明样式尺寸和 `object-fit: contain`，不等于真实目录的视觉验收。
+
+登录后的设置保存、目录列表、实际媒体播放及视觉/交互验收仍未通过真实目标验证：唯一获准的 TX5Pro DPAPI 凭据文件在 SSH 会话中无法解密；没有复制、输出凭据，也未改用其他凭据。此前 Vite fixture 验收因前端预览服务器无法提供后端注入的入口而超时/404，不能作为产品失败或通过的证据。
+
+回滚资产保留：原 `nas-file-browser:2026.9.6-v14` 镜像、发布前 Compose 与设置备份，以及前一版发布镜像均未清理。切换仅操作 `filebrowser` 服务；`/config`、`/database` 和媒体缓存挂载保持不变。
+
+## 切片验证记录（实施时快照）
 
 ### 1. 通用控件与路径选择器
 

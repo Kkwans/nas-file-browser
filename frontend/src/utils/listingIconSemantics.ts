@@ -3,6 +3,7 @@ import type { AppIconName } from "@/components/ui/iconRegistry";
 const VIEW_ICONS: Record<string, AppIconName> = {
   mosaic: "view-mosaic",
   "compact-grid": "view-compact-grid",
+  "windows-icons": "view-compact-grid",
   details: "view-details",
   "compact-list": "view-compact-list",
 };

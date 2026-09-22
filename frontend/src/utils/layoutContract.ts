@@ -24,6 +24,15 @@ export function getListingTagPresentation(
 export function getListingFieldVisibility(
   mode: ViewModeType | string | undefined
 ): ListingFieldVisibility {
+  if (mode === "windows-icons") {
+    return {
+      quickActions: false,
+      tags: false,
+      type: false,
+      size: false,
+      modified: false,
+    };
+  }
   if (mode === "compact-grid" || mode === "compact-list") {
     return {
       quickActions: false,

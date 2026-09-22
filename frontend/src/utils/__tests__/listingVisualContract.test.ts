@@ -22,6 +22,28 @@ const readWorkspace = () =>
   );
 
 describe("文件列表视觉契约", () => {
+  it("Windows 图标视图以内容决定行高，完整显示名称和媒体", () => {
+    const styles = readFileSync(
+      fileURLToPath(new URL("../../css/listing.css", import.meta.url)),
+      "utf8"
+    );
+    const block = styles
+      .split("#listing.windows-icons {")[1]
+      ?.split("/* Desktop semantic details table.")[0];
+    expect(block).toBeTruthy();
+    for (const width of [112, 160, 224, 288]) {
+      expect(block).toContain(`--windows-column-width: ${width}px`);
+    }
+    for (const size of [48, 96, 160, 256]) {
+      expect(block).toContain(`--windows-icon-size: ${size}px`);
+    }
+    expect(block).toContain("overflow-wrap: anywhere");
+    expect(block).toContain("object-fit: contain");
+    const itemRule = block?.match(/#listing\.windows-icons \.item \{([^}]*)\}/)?.[1];
+    const nameRule = block?.match(/#listing\.windows-icons \.item-name \{([^}]*)\}/)?.[1];
+    expect(itemRule).not.toContain("min-height:");
+    expect(nameRule).not.toContain("-webkit-line-clamp: 2");
+  });
   it("特殊前缀和备份文件不通过整项透明度弱化", () => {
     const styles = readStyles();
 

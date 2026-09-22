@@ -28,11 +28,12 @@ describe("file listing preferences", () => {
       "Markdown 文件"
     );
   });
-  it("supports the four required file views", () => {
+  it("supports the existing views and the independent Windows icon view", () => {
     expect(normalizeViewMode("mosaic")).toBe("mosaic");
     expect(normalizeViewMode("compact-grid")).toBe("compact-grid");
     expect(normalizeViewMode("details")).toBe("details");
     expect(normalizeViewMode("compact-list")).toBe("compact-list");
+    expect(normalizeViewMode("windows-icons")).toBe("windows-icons");
   });
 
   it("migrates the legacy gallery preference to details", () => {
@@ -44,7 +45,7 @@ describe("file listing preferences", () => {
     expect(normalizeViewMode(null)).toBe("mosaic");
   });
 
-  it("uses four explicit views and migrates removed legacy modes", () => {
+  it("preserves existing views and migrates removed legacy modes", () => {
     expect(normalizeViewMode("mosaic")).toBe("mosaic");
     expect(normalizeViewMode("compact-grid")).toBe("compact-grid");
     expect(normalizeViewMode("details")).toBe("details");

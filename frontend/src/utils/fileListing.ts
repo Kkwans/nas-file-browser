@@ -1,6 +1,7 @@
 export const FILE_VIEW_MODES = [
   "mosaic",
   "compact-grid",
+  "windows-icons",
   "details",
   "compact-list",
 ] as const;

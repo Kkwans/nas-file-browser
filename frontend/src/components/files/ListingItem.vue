@@ -45,6 +45,7 @@
         :is-dir="isDir"
         :risk-level="normalizedRiskLevel"
         :read-only="readOnly"
+        :fit="viewMode === 'windows-icons' ? 'contain' : 'cover'"
       />
     </div>
 

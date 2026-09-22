@@ -25,6 +25,7 @@ export interface IUser {
 export type ViewModeType =
   | "mosaic"
   | "compact-grid"
+  | "windows-icons"
   | "details"
   | "compact-list";
 

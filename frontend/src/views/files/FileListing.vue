@@ -71,17 +71,37 @@
                 <AppIcon :name="mode.icon" :size="19" />
                 <span>{{ mode.label }}</span>
               </button>
-              <template v-if="currentViewMode === 'compact-grid'">
+              <template
+                v-if="
+                  currentViewMode === 'compact-grid' ||
+                  currentViewMode === 'windows-icons'
+                "
+              >
                 <div class="dropdown-divider"></div>
                 <div class="dropdown-section-title">图标大小</div>
                 <button
-                  v-for="size in compactGridSizes"
+                  v-for="size in currentViewMode === 'windows-icons'
+                    ? windowsIconSizes
+                    : compactGridSizes"
                   :key="size.value"
                   type="button"
                   class="dropdown-item compact-grid-size-option"
-                  :class="{ active: compactGridSize === size.value }"
-                  :aria-pressed="compactGridSize === size.value"
-                  @click.stop="selectCompactGridSize(size.value)"
+                  :class="{
+                    active:
+                      (currentViewMode === 'windows-icons'
+                        ? windowsIconSize
+                        : compactGridSize) === size.value,
+                  }"
+                  :aria-pressed="
+                    (currentViewMode === 'windows-icons'
+                      ? windowsIconSize
+                      : compactGridSize) === size.value
+                  "
+                  @click.stop="
+                    currentViewMode === 'windows-icons'
+                      ? selectWindowsIconSize(size.value)
+                      : selectCompactGridSize(size.value)
+                  "
                 >
                   <AppIcon :name="size.icon" :size="19" />
                   <span>{{ size.label }}</span>
@@ -233,17 +253,37 @@
               <AppIcon :name="mode.icon" :size="19" />
               <span>{{ mode.label }}</span>
             </button>
-            <template v-if="currentViewMode === 'compact-grid'">
+            <template
+              v-if="
+                currentViewMode === 'compact-grid' ||
+                currentViewMode === 'windows-icons'
+              "
+            >
               <div class="dropdown-divider"></div>
               <div class="dropdown-section-title">图标大小</div>
               <button
-                v-for="size in compactGridSizes"
+                v-for="size in currentViewMode === 'windows-icons'
+                  ? windowsIconSizes
+                  : compactGridSizes"
                 :key="size.value"
                 class="dropdown-item compact-grid-size-option"
-                :class="{ active: compactGridSize === size.value }"
+                :class="{
+                  active:
+                    (currentViewMode === 'windows-icons'
+                      ? windowsIconSize
+                      : compactGridSize) === size.value,
+                }"
                 type="button"
-                :aria-pressed="compactGridSize === size.value"
-                @click.stop="selectCompactGridSize(size.value)"
+                :aria-pressed="
+                  (currentViewMode === 'windows-icons'
+                    ? windowsIconSize
+                    : compactGridSize) === size.value
+                "
+                @click.stop="
+                  currentViewMode === 'windows-icons'
+                    ? selectWindowsIconSize(size.value)
+                    : selectCompactGridSize(size.value)
+                "
               >
                 <AppIcon :name="size.icon" :size="19" />
                 <span>{{ size.label }}</span>
@@ -1116,6 +1156,11 @@ const viewModes = [
     label: "紧凑网格",
   },
   {
+    value: "windows-icons" as ViewModeType,
+    icon: listingViewIcon("windows-icons"),
+    label: "Windows 图标",
+  },
+  {
     value: "details" as ViewModeType,
     icon: listingViewIcon("details"),
     label: "详细列表",
@@ -1141,6 +1186,14 @@ const compactGridSizes: Array<{
     label: "超大图标",
   },
 ];
+const windowsIconSizes = compactGridSizes;
+const windowsIconSizeKey = "nas-file-browser-windows-icon-size";
+const storedWindowsIconSize = localStorage.getItem(windowsIconSizeKey);
+const windowsIconSize = ref<CompactGridSize>(
+  windowsIconSizes.some((size) => size.value === storedWindowsIconSize)
+    ? (storedWindowsIconSize as CompactGridSize)
+    : "medium"
+);
 const storedCompactGridSize = localStorage.getItem(
   "nas-file-browser-compact-grid-size"
 );
@@ -1332,7 +1385,7 @@ const prefixSectionAriaLabel = (section: {
 const skeletonViewMode = computed(() => {
   const mode = currentViewMode.value;
   if (mode === "details" || mode === "compact-list") return "list";
-  if (mode === "compact-grid") return "mosaic";
+  if (mode === "compact-grid" || mode === "windows-icons") return "mosaic";
   return mode;
 });
 
@@ -1341,12 +1394,16 @@ const listingClass = computed(() => ({
   ...(currentViewMode.value === "compact-grid"
     ? { [`compact-grid-size-${compactGridSize.value}`]: true }
     : {}),
+  ...(currentViewMode.value === "windows-icons"
+    ? { [`windows-icons-size-${windowsIconSize.value}`]: true }
+    : {}),
 }));
 
 const viewAppIcon = computed<AppIconName>(() => {
   const icons: Record<ViewModeType, AppIconName> = {
     mosaic: "view-mosaic",
     "compact-grid": "view-compact-grid",
+    "windows-icons": "view-compact-grid",
     details: "view-details",
     "compact-list": "view-compact-list",
   };
@@ -2074,6 +2131,14 @@ const selectCompactGridSize = (size: CompactGridSize) => {
   compactGridSize.value = size;
   localStorage.setItem("nas-file-browser-compact-grid-size", size);
   showViewDropdown.value = false;
+};
+
+const selectWindowsIconSize = (size: CompactGridSize) => {
+  windowsIconSize.value = size;
+  localStorage.setItem(windowsIconSizeKey, size);
+  showViewDropdown.value = false;
+  setItemWeight();
+  fillWindow();
 };
 
 const cycleSort = (by: string) => {

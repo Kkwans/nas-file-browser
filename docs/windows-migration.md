@@ -103,12 +103,17 @@
 | CR 3 | 透明 PNG 缩略图 | `99e02d9d` | 真实编码回归、Go 全量、vet |
 | CR 4 | 预览标题与兼容播放入口 | `4e76bbd7` | 前端全量 451 项、typecheck、lint、生产构建 |
 | CR 5 | 视图切换时刷新缩略图适配模式 | `236ba891` | mediaLoadContract 15 项、typecheck、lint、diff-check |
+| CR 6 | 真实验收返回状态 | `ab690c59` | typecheck、lint、真实浏览器历史恢复 |
+| CR 7 | 移动端设置卡片高度 | `b8eae420` | typecheck、lint、390px 前后尺寸与截图 |
+| CR 8 | 播放器弹层点击层级 | `5c26e146` | typecheck、lint、真实兼容播放点击与 WebM 播放 |
+| CR 9 | 竖屏画质双边界转码 | `e8f05e86` | FFmpeg 实际尺寸回归、Go hls/http、vet、真实 480p 成品 |
+| CR 10 | 移动端字幕工具栏 | `eee1d9f8` | typecheck、lint、390px 实际尺寸与截图 |
 
-上一轮全量代码门禁：前端目录执行 `corepack pnpm test`（108 文件、451 项）、`corepack pnpm run typecheck`、`corepack pnpm run lint`、`corepack pnpm run build`；后端目录执行 `go test ./...`、`go vet ./...`；仓库根目录执行 `git diff a202d0e627d2..HEAD --check`，均通过。CR 5 单独通过 15 项聚焦测试、typecheck 与 lint，最终全量门禁随最终镜像再次执行。NAS 缺少 GCC，`go test -race` 未执行。镜像从干净检出构建，未采用工作区已有的 `backend/frontend/dist`。
+最终全量代码门禁：前端目录执行 `corepack pnpm test`（108 文件、452 项）、`corepack pnpm run typecheck`、`corepack pnpm run lint`；后端目录执行 `go test ./...`、`go vet ./...`；仓库根目录执行 `git diff a202d0e627d2..HEAD --check`，均通过。生产镜像的前端阶段再次执行 typecheck 与生产构建。NAS 缺少 GCC，`go test -race` 未执行。镜像从干净检出构建，未采用工作区已有的 `backend/frontend/dist`。
 
-运行验收：ARM64 镜像启动后 `/health` 与 `/login` 返回 200，未授权访问受保护的雪碧图和等比例缩略图接口均返回 401；真实 Chromium 登录页在 1440/1024/768/390 宽度正常加载且无横向溢出或页面异常。使用授权 admin 账号检查了根目录 30 项、Windows 图标四档尺寸、390/768/1024/1440 宽度，以及图片目录 19 项（18 个真实缩略图）；图片接口返回 200、JPEG 实际尺寸可加载、`object-fit: contain` 生效、无横向溢出。搜索、最近访问、回收站、存储工具、任务中心和四个设置页面在真实部署下均无页面错误或横向溢出。图标视图的账号偏好在验收后恢复为原有 `mosaic`。
+运行验收：ARM64 镜像启动后 `/health` 与 `/login` 返回 200，未授权访问受保护的雪碧图和等比例缩略图接口均返回 401；真实 Chromium 登录页在 1440/1024/768/390 宽度正常加载且无横向溢出或页面异常。使用授权 admin 账号检查了 Windows 图标四档尺寸、390/768/1024/1440 宽度、真实图片目录和隔离媒体目录；长达 178 字符的无空格名称完整换行，宽图、长图、横竖视频封面均返回 `fit=contain` 缩略图且保持原比例。搜索、最近访问、回收站、存储工具、任务中心和四个设置页面均无页面错误或横向溢出；移动端用户与分享卡片按内容收起，不再保留 30rem 空白高度。图标视图的账号偏好在验收后恢复为原有 `mosaic`。
 
-真实验收脚本的一个既有断言使用了不存在的 aria 名称“返回上一页”，在回收站刷新后等待 600 秒超时；实际页面按钮名称为“返回”，同一路由随后已用真实浏览器单独覆盖。已扫描的真实目录没有可访问视频文件，视频播放、ArtPlayer/HLS、字幕和雪碧图仍待真实媒体验证；此前 Vite fixture 验收因前端预览服务器无法提供后端注入的入口而超时/404，不能作为产品失败或通过的证据。
+媒体验收使用 `/tmp` 下隔离生成的 4 秒 H.264 横屏和 HEVC 竖屏样本，不改动用户媒体。原生解码失败时错误弹层可点击，兼容播放真实生成 VP9/Opus WebM 并播放；同名 VTT 字幕加载并显示，桌面与 390px 工具栏可用。竖屏 480p 成品实测为 270×480，新缓存键不命中旧的宽度单边界结果。雪碧图元数据为 5 格、50×90、1 秒间隔，图片接口返回 JPEG。测试结束后播放器和视图账号偏好均恢复。真实验收脚本原先依赖不存在的 aria 名称，已改为浏览器历史返回并验证原目录查询参数恢复。
 
 回滚资产保留：原 `nas-file-browser:2026.9.6-v14` 镜像、发布前 Compose 与设置备份，以及前一版发布镜像均未清理。切换仅操作 `filebrowser` 服务；`/config`、`/database` 和媒体缓存挂载保持不变。
 

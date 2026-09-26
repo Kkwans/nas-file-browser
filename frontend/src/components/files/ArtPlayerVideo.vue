@@ -729,6 +729,10 @@ onBeforeUnmount(() => {
   gap: 5px;
   white-space: nowrap;
 }
+.player-tools button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
 .player-tools select,
 .player-tools input {
   min-height: 36px;
